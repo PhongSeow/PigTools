@@ -6,11 +6,12 @@
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.0.7
 '* Create Time: 4/11/2019
-'1.0.2  2019-11-5   增加mSaveFile
-'1.0.3  2019-11-20  增加 CopyFileTo
-'1.0.5  2020-2-13   增加 IsPigMD5
-'1.0.6  2020-2-15   部分功能迁到 fGEFileSystem
-'1.0.7  2020-3-5    增加 SetData
+'*1.0.2  2019-11-5   增加mSaveFile
+'*1.0.3  2019-11-20  增加 CopyFileTo
+'*1.0.5  2020-2-13   增加 IsPigMD5
+'*1.0.6  2020-2-15   部分功能迁到 fGEFileSystem
+'*1.0.7  2020-3-5    增加 SetData
+'*1.0.8  2020-10-27  修改 LoadFile
 '**********************************
 Imports System.IO
 Public Class PigFile
@@ -18,10 +19,12 @@ Public Class PigFile
     Private Const CLS_VERSION As String = "1.0.7"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
-    Public GbMain As PigBytes '主数据数组
+    Public GbMain As PigBytes '主数据数组
+
 
     Private mintKeepFileVerCnt As Integer = 10 '保留文件的版本数
-    Private mintKeepFileDays As Integer = 365 '保留文件的时间，以天为单位。
+    Private mintKeepFileDays As Integer = 365 '保留文件的时间，以天为单位。
+
 
 
     Public Sub New(FilePath As String)
@@ -100,9 +103,18 @@ Public Class PigFile
 
     ''' <summary>导入数据</summary>
     Public Function LoadFile() As String
+        Dim strStepName As String
         Try
             If Me.GbMain Is Nothing Then
-                Me.GbMain = New PigBytes(My.Computer.FileSystem.ReadAllBytes(mstrFilePath))
+                strStepName = "New FileStream(" & mstrFilePath & ")"
+                Dim sfAny As New FileStream(mstrFilePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None)
+                strStepName = "New BinaryReader"
+                Dim brAny = New BinaryReader(sfAny)
+                strStepName = "GbMain ReadBytes"
+                GbMain.Main = brAny.ReadBytes(Me.Size)
+                strStepName = "Close"
+                brAny.Close()
+                sfAny.Close()
             End If
             Return "OK"
         Catch ex As Exception

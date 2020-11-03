@@ -1,8 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>PigToolsLib</RootNamespace>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Company>Seow Phong Studio</Company>
+    <Authors>Seow Phong</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Copyright>Copyright © 2020 Seow Phong</Copyright>
   </PropertyGroup>
 
 </Project>
