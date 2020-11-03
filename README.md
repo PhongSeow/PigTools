@@ -13,6 +13,10 @@ This file can be used by referring to your. Net project.
 
 Executable code compilation uses .Net core 3.1, which can run on Windows, Linux and MacOS platforms.
 
+#### Src\Core3.1\PigToolsLib.1.0.0.nupkg
+
+The .net NuGet package of PigToolsLib.
+
 ##### Setup\DotNet4.5\PigToolsLib.dll
 
 This file can be used by referring to your. Net project.

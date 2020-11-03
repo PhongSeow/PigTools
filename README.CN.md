@@ -7,11 +7,15 @@
 
 执行码目录，如果你不想看到源程序，你可以直接使用这个目录中的文件。
 
-##### Setup\Core3.1\PigToolsLib.dll
+##### Setup\Core3.1\PigToolsLib.dll 和 
 
 豚豚工具集类库文件，将这个文件引用到你的 .net 工程就可以使用。
 
 执行码编译使用 .Net Core 3.1，可以运行在 Windows、Linux 和 MacOS 平台。
+
+#### Src\Core3.1\PigToolsLib.1.0.0.nupkg
+
+PigToolsLib 的 NuGet 包。
 
 ##### Setup\DotNet4.5\PigToolsLib.dll
 
