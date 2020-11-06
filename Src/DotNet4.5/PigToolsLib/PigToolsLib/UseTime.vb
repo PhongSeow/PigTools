@@ -95,7 +95,7 @@ Friend Class UseTime
         Dim decSs As Long, lngMm As Long, lngHh As Long, cuyDd As Decimal, lngYy As Long
         Try
             decSs = tsTimeDiff.TotalSeconds
-            '取出天
+            '取出天
             cuyDd = Int(decSs / 86400)
             decSs = decSs - cuyDd * 86400
             '取出小时

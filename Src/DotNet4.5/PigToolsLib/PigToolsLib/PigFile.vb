@@ -18,10 +18,10 @@ Public Class PigFile
     Private Const CLS_VERSION As String = "1.0.7"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
-    Public GbMain As PigBytes '主数据数组
+    Public GbMain As PigBytes '主数据数组
 
     Private mintKeepFileVerCnt As Integer = 10 '保留文件的版本数
-    Private mintKeepFileDays As Integer = 365 '保留文件的时间，以天为单位。
+    Private mintKeepFileDays As Integer = 365 '保留文件的时间，以天为单位。
 
 
     Public Sub New(FilePath As String)

@@ -2,7 +2,7 @@
 '* Name: PigText
 '* Author: Seow Phong.
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: Handle text conversion, MD5, Base64, etc. 处理文本转换，MD5，Base64等。
+'* Describe: Handle text conversion, MD5, Base64, etc. 处理文本转换，MD5，Base64等。
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.0.16
 '* Create Time: 1/9/2019
@@ -41,7 +41,7 @@ Public Class PigText
     End Enum
 
     Private mabSrcText As Byte() '源文本的Byte数组，未压缩
-    Private mabCompressText As Byte() '压缩过的源文本数组
+    Private mabCompressText As Byte() '压缩过的源文本数组
 
 
 
