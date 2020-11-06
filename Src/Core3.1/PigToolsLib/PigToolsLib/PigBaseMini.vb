@@ -18,7 +18,7 @@
 '************************************
 Public Class PigBaseMini
     Private mstrClsName As String    '类名
-    Private mstrClsVersion As String    '类版本
+    Private mstrClsVersion As String    '类版本
     Private mstrLastErr As String
     Private mbolIsDebug As Boolean
     Private mbolIsHardDebug As Boolean

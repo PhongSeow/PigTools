@@ -2,18 +2,18 @@
 '* Name: PigBytes
 '* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: Handle operations related to byte array division 【处理除字节数组相关的操作】
+'* Describe: Handle operations related to byte array division 【处理除字节数组相关的操作】
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.0.20
 '* Create Time: 2019-10-22
 '*1.0.2  2019-10-24  
-'*1.0.3  2019-10-25  优化 mSetValue 和 mGetValue 等，去掉一些没有属性
-'*1.0.5  2019-11-2  优化接口 GetBytesValue 等
+'*1.0.3  2019-10-25  优化 mSetValue 和 mGetValue 等，去掉一些没有属性
+'*1.0.5  2019-11-2  优化接口 GetBytesValue 等
 '*1.0.6  2019-11-7  增加 ToVarDef
 '*1.0.7  2019-11-11  ExtByMD5
 '*1.0.8  2019-11-16  CopyTo CopyFrom
 '*1.0.9  2019-11-16  GetBytes，去掉 TxRes
-'*1.0.10  2019-11-19 增加压缩和解压
+'*1.0.10  2019-11-19 增加压缩和解压
 '*1.0.11 2019-11-27  mToVarDef
 '*1.0.12 2020-2-13  修改 GetStru
 '*1.0.13 2020-3-4  增加 IsMatchBytes
@@ -468,7 +468,7 @@ Public Class PigBytes
                 BeginNum = EndNum
                 EndNum = i
             End If
-            '初始化随机数生成器
+            '初始化随机数生成器
 
 
 
@@ -822,7 +822,7 @@ Public Class PigBytes
             If SrcStartPos < 0 Then SrcStartPos = 0
             If TarStartPos < 0 Then TarStartPos = 0
             If (TarStartPos + CopyLen) > TarBytes.Length Then
-                '如果复制后目标数组装不下，则要扩大
+                '如果复制后目标数组装不下，则要扩大
 
 
 
