@@ -1,5 +1,4 @@
 # PigTools
-#### [English Readme](https://github.com/PhongSeow/PigTools/blob/main/README.md)
 豚豚工具集是一个简化一些 .net 开发接口的工具集类库。
 
 ## ***目录和文件描述***

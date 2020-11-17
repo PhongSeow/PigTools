@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PigCompressor.vb" />
+    <Compile Include="PigItemsBase.vb" />
     <Compile Include="PigMD5.vb" />
     <Compile Include="ShareMem.vb" />
     <Compile Include="Stru2Bytes.vb" />
