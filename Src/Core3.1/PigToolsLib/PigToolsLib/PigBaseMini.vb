@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Basic lightweight Edition
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.10
+'* Version: 1.0.12
 '* Create Time: 31/8/2019
 '*1.0.2  1/10/2019   Add mGetSubErrInf 
 '*1.0.3  4/11/2019   Add LastErr
@@ -15,10 +15,19 @@
 '*1.0.8  3/6/2020    Add KeyInf
 '*1.0.9  6/17/2020   modify mPrintDebugLog Add StepName
 '*1.0.10 6/25/2020   Not used My.Application , better compatibility, Add MyClassName
+'*1.0.11 30/11/2020  Update some summary, modify AppTitle, add AppPath
+'*1.0.12 6/12/2020  Modify mPrintDebugLog
 '************************************
 Public Class PigBaseMini
-    Private mstrClsName As String    '类名
-    Private mstrClsVersion As String    '类版本
+    ''' <summary>
+    ''' 类名
+    ''' </summary>
+    Private mstrClsName As String
+
+    ''' <summary>
+    ''' 类版本
+    ''' </summary>
+    Private mstrClsVersion As String
     Private mstrLastErr As String
     Private mbolIsDebug As Boolean
     Private mbolIsHardDebug As Boolean
@@ -73,8 +82,8 @@ Public Class PigBaseMini
     ''' <summary>调试</summary>
     Private Function mPrintDebugLog(StepName As String, LogInf As String, IsHardDebug As Boolean) As String
         Try
-            If IsHardDebug = True And mbolIsHardDebug = False Then Err.Raise(-1, , "只有硬调试模式才能打印日志")
-            If mbolIsDebug = False Then Err.Raise(-1, , "只有调试模式才能打印日志")
+            If IsHardDebug = True And mbolIsHardDebug = False Then Err.Raise(-1, , "Only hard debug mode can print logs")
+            If mbolIsDebug = False Then Err.Raise(-1, , "Only debug mode can print logs")
             Dim sfAny As New System.IO.FileStream(Me.mstrDebugFilePath, System.IO.FileMode.Append, System.IO.FileAccess.Write, System.IO.FileShare.Write, 10240, False)
             Dim swAny = New System.IO.StreamWriter(sfAny)
             LogInf = "[" & Format(Now, "yyyy-MM-dd HH:mm:ss.fff") & "][" & System.Diagnostics.Process.GetCurrentProcess.Id.ToString & "." & System.Threading.Thread.CurrentThread.ManagedThreadId.ToString & "]" & LogInf
@@ -96,9 +105,9 @@ Public Class PigBaseMini
     End Property
 
     ''' <summary>我的类名</summary>
-    Public Overloads ReadOnly Property MyClassName(IsIncAppName As Boolean) As String
+    Public Overloads ReadOnly Property MyClassName(IsIncAppTitle As Boolean) As String
         Get
-            If IsIncAppName = True Then
+            If IsIncAppTitle = True Then
                 MyClassName = System.Reflection.Assembly.GetExecutingAssembly().GetName.Name & "."
             End If
             MyClassName = mstrClsName
@@ -119,21 +128,19 @@ Public Class PigBaseMini
         End Get
     End Property
 
-    '''' <summary>应用名称</summary>
-    'Public ReadOnly Property AppName() As String
-    '    Get
-    '        AppName = System.Reflection.Assembly.GetExecutingAssembly().GetName.Name
-    '    End Get
-    'End Property
+    ''' <summary>应用标题</summary>
+    Public ReadOnly Property AppTitle() As String
+        Get
+            Return System.Reflection.Assembly.GetExecutingAssembly().GetName.Name
+        End Get
+    End Property
 
-    '''' <summary>应用名称</summary>
-    'Public ReadOnly Property AppName(IsIncClass As Boolean) As String
-    '    Get
-    '        'AppName = My.Application.Info.ProductName
-    '        AppName = System.Reflection.Assembly.GetExecutingAssembly().GetName.Name
-    '        If IsIncClass = True Then AppName &= "." & mstrClsName
-    '    End Get
-    'End Property
+    ''' <summary>应用路径</summary>
+    Public ReadOnly Property AppPath() As String
+        Get
+            Return System.AppDomain.CurrentDomain.BaseDirectory
+        End Get
+    End Property
 
 
     ''' <remarks>最近的错误信息</remarks>
@@ -159,8 +166,8 @@ Public Class PigBaseMini
                 sbAny.Append(StepName)
                 sbAny.Append(")")
             End If
-            If Len(Me.KeyInf) > 0 Then sbAny.Append(";键值:" & Me.KeyInf)
-            sbAny.Append(";错误信息:")
+            If Len(Me.KeyInf) > 0 Then sbAny.Append(";Key:" & Me.KeyInf)
+            sbAny.Append(";ErrInf:")
             sbAny.Append(exIn.Message)
             If IsStackTrace = True Then
                 Dim strExStackTrace As String = exIn.StackTrace
@@ -171,7 +178,7 @@ Public Class PigBaseMini
                         .Trim()
                     End If
                 End With
-                sbAny.Append(";跟踪信息:")
+                sbAny.Append(";Trace:")
                 sbAny.Append(strExStackTrace)
             End If
             If IsSetLastErr = True Then mstrLastErr = sbAny.ToString
@@ -224,8 +231,8 @@ Public Class PigBaseMini
                 sbAny.Append(StepName)
                 sbAny.Append(")")
             End If
-            If Len(Me.KeyInf) > 0 Then sbAny.Append(";键值:" & Me.KeyInf)
-            sbAny.Append(";调试信息:")
+            If Len(Me.KeyInf) > 0 Then sbAny.Append(";Key:" & Me.KeyInf)
+            sbAny.Append(";Debug:")
             sbAny.Append(DebugInf)
             Return sbAny.ToString
             sbAny = Nothing
@@ -233,5 +240,4 @@ Public Class PigBaseMini
             Return ex.Message.ToString
         End Try
     End Function
-
 End Class
