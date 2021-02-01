@@ -14,6 +14,7 @@
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageProjectUrl>http://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime</PackageTags>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
