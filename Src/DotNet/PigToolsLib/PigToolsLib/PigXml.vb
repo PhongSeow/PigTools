@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigXml
-'* Author: Seow Phong.
+'* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.10
+'* Version: 1.0.11
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -13,12 +13,13 @@
 '1.0.8  2020-6-19  修改 FillByXmlReader
 '1.0.9  2020-6-20  修改 Bug
 '1.0.10 2020-7-6    增加 XmlGetInt
+'1.0.11 2/2/2021   Modify mLng2Date
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.10"
+    Private Const CLS_VERSION As String = "1.0.11"
     Private mstrMainXml As String
     Private mslMain As SortedList
 
@@ -148,7 +149,11 @@ Public Class PigXml
         Dim dteStart As New DateTime(1970, 1, 1)
         Try
             Dim intHourAdd As Integer = 0
-            If IsLocalTime = True Then intHourAdd = System.TimeZone.CurrentTimeZone.GetUtcOffset(Now).Hours
+            If IsLocalTime = True Then
+                Dim oTimeZoneInfo As System.TimeZoneInfo
+                oTimeZoneInfo = System.TimeZoneInfo.Local
+                intHourAdd = oTimeZoneInfo.GetUtcOffset(Now).Hours
+            End If
 
             Return dteStart.AddSeconds(LngValue + intHourAdd * 3600)
             Me.ClearErr()

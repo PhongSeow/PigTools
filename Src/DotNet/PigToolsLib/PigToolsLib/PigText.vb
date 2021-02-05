@@ -1,6 +1,6 @@
 ﻿'**********************************
 '* Name: PigText
-'* Author: Seow Phong.
+'* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Handle text conversion, MD5, Base64, etc.|处理文本转换，MD5，Base64等。
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com

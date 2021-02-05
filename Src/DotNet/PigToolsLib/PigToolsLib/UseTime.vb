@@ -1,15 +1,15 @@
 ﻿'**********************************
 '* Name: ShareMem
-'* Author: Part of the source code found on the Internet, I do not know who is the author, organized by Seow Phong.
+'* Author: Part of the source code found on the Internet, I do not know who is the author, organized by Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Use time processing 使用时间处理
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.8
+'* Version: 1.0.3
 '* Create Time: 10/8/2019
 '* 1.0.2  2019-10-12  GoBegin,Step2NowSeconds,Step2NowSeconds优化,新增 AllDiffChnMain
 '* 1.0.3  2019-10-12  增加 FreeSeconds 
 '**********************************
-Friend Class UseTime
+Public Class UseTime
     Private mdteBegin As DateTime
     Private mdteCurrBegin As DateTime
     Private mtsTimeDiff As TimeSpan
@@ -95,7 +95,8 @@ Friend Class UseTime
         Dim decSs As Long, lngMm As Long, lngHh As Long, cuyDd As Decimal, lngYy As Long
         Try
             decSs = tsTimeDiff.TotalSeconds
-            '取出天
+            '取出天
+
             cuyDd = Int(decSs / 86400)
             decSs = decSs - cuyDd * 86400
             '取出小时

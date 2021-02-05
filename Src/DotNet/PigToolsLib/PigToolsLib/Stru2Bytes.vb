@@ -1,8 +1,9 @@
 ﻿'**********************************
 '* Name: Stru2Bytes
-'* Author: Part of the source code found on the Internet, I do not know who is the author, organized by Seow Phong.
+'* Author: Part of the source code found on the Internet, I do not know who is the author, organized by Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: Structure and byte array conversion 结构与字节数组转换
+'* Describe: Structure and byte array conversion 结构与字节数组转换
+
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.0.3
 '* Create Time: 25/10/2019

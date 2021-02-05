@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Handle operations related to byte array division 【处理除字节数组相关的操作】
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.21
+'* Version: 1.0.22
 '* Create Time: 2019-10-22
 '*1.0.2  2019-10-24  
 '*1.0.3  2019-10-25  优化 mSetValue 和 mGetValue 等，去掉一些没有属性
@@ -24,12 +24,13 @@
 '*1.0.19 2020-6-8  优化 GetDeSerializeObj
 '*1.0.20 2020-6-16 优化 IsPigMD5Mate
 '*1.0.21  1/2/2021 Err.Raise change to Throw New Exception|Err.Raise改为Throw New Exception
+'*1.0.22  2/2/2021 remove Formatters.Binary.BinaryFormatter 
 '************************************
 
 Imports System.Runtime.Serialization
 Public Class PigBytes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.21"
+    Private Const CLS_VERSION As String = "1.0.22"
 
     Private mabMain As Byte()
     ''' <summary>是否转换出错则为零，如果是则调用接口不会出错</summary>
@@ -39,8 +40,8 @@ Public Class PigBytes
     Private mbolIsAutoExt As Boolean = True  '是否自动扩展数组
     Private mabPigMD5 As Byte()
     Private mstrPigMD5 As String
-    Private mbfMain As Formatters.Binary.BinaryFormatter
-    Private mmsMain As System.IO.MemoryStream
+    '    Private mbfMain As Formatters.Binary.BinaryFormatter
+    '    Private mmsMain As System.IO.MemoryStream
 
     Public Sub RestPos()
         mlngCurrPos = 0
@@ -518,28 +519,28 @@ Public Class PigBytes
         End Try
     End Function
 
-    Public Sub New(ByRef InitObj As Object)
-        MyBase.New(CLS_VERSION)
-        Dim strStepName As String = ""
-        Try
-            strStepName = "New BinaryFormatter And MemoryStream"
-            mbfMain = New Formatters.Binary.BinaryFormatter
-            mmsMain = New System.IO.MemoryStream
-            strStepName = "Serialize"
-            mbfMain.Serialize(mmsMain, InitObj)
-            ReDim mabMain(mmsMain.Length - 1)
-            strStepName = "ReadAsync"
-            mmsMain.Position = 0
-            'mmsMain.ReadAsync(mabMain, 0, mmsMain.Length - 1)
-            mmsMain.Read(mabMain, 0, mmsMain.Length - 1)
-            mmsMain.Close()
-            Me.ClearErr()
-        Catch ex As Exception
-            mbfMain = Nothing
-            mmsMain = Nothing
-            Me.SetSubErrInf("New", strStepName, ex)
-        End Try
-    End Sub
+    'Public Sub New(ByRef InitObj As Object)
+    '    MyBase.New(CLS_VERSION)
+    '    Dim strStepName As String = ""
+    '    Try
+    '        strStepName = "New BinaryFormatter And MemoryStream"
+    '        mbfMain = New Formatters.Binary.BinaryFormatter
+    '        mmsMain = New System.IO.MemoryStream
+    '        strStepName = "Serialize"
+    '        mbfMain.Serialize(mmsMain, InitObj)
+    '        ReDim mabMain(mmsMain.Length - 1)
+    '        strStepName = "ReadAsync"
+    '        mmsMain.Position = 0
+    '        'mmsMain.ReadAsync(mabMain, 0, mmsMain.Length - 1)
+    '        mmsMain.Read(mabMain, 0, mmsMain.Length - 1)
+    '        mmsMain.Close()
+    '        Me.ClearErr()
+    '    Catch ex As Exception
+    '        mbfMain = Nothing
+    '        mmsMain = Nothing
+    '        Me.SetSubErrInf("New", strStepName, ex)
+    '    End Try
+    'End Sub
 
     Public Sub New(InitLen As Long)
         MyBase.New(CLS_VERSION)
@@ -566,29 +567,29 @@ Public Class PigBytes
         Me.RestPos()
     End Sub
 
-    ''' <summary>获取反序列化对象，引用格式：CType(GetDeSerializeObj,对象类型)</summary>
-    Public Function GetDeSerializeObj() As Object
-        Dim strStepName As String = ""
-        Try
-            strStepName = "Determine serialization preparation"
-            mbfMain = New Formatters.Binary.BinaryFormatter
-            mmsMain = New System.IO.MemoryStream
-            '            If mbfMain Is Nothing Or mmsMain Is Nothing Then Err.Raise(-1,, "未初始化")
-            If mabMain Is Nothing Then Throw New Exception("Array not initialized")
-            strStepName = "WriteAsync"
-            mmsMain.Position = 0
-            mmsMain.Flush()
-            mmsMain.Write(mabMain, 0, mabMain.Length - 1)
-            strStepName = "Deserialize"
-            mmsMain.Position = 0
-            'mmsMain.Seek(0, IO.SeekOrigin.Begin)
-            GetDeSerializeObj = mbfMain.Deserialize(mmsMain)
-            Me.ClearErr()
-        Catch ex As Exception
-            Me.SetSubErrInf("GetDeSerializeObj", strStepName, ex)
-            Return Nothing
-        End Try
-    End Function
+    '''' <summary>获取反序列化对象，引用格式：CType(GetDeSerializeObj,对象类型)</summary>
+    'Public Function GetDeSerializeObj() As Object
+    '    Dim strStepName As String = ""
+    '    Try
+    '        strStepName = "Determine serialization preparation"
+    '        mbfMain = New Formatters.Binary.BinaryFormatter
+    '        mmsMain = New System.IO.MemoryStream
+    '        '            If mbfMain Is Nothing Or mmsMain Is Nothing Then Err.Raise(-1,, "未初始化")
+    '        If mabMain Is Nothing Then Throw New Exception("Array not initialized")
+    '        strStepName = "WriteAsync"
+    '        mmsMain.Position = 0
+    '        mmsMain.Flush()
+    '        mmsMain.Write(mabMain, 0, mabMain.Length - 1)
+    '        strStepName = "Deserialize"
+    '        mmsMain.Position = 0
+    '        'mmsMain.Seek(0, IO.SeekOrigin.Begin)
+    '        GetDeSerializeObj = mbfMain.Deserialize(mmsMain)
+    '        Me.ClearErr()
+    '    Catch ex As Exception
+    '        Me.SetSubErrInf("GetDeSerializeObj", strStepName, ex)
+    '        Return Nothing
+    '    End Try
+    'End Function
 
     ''' <summary>复制数组到本类</summary>
     ''' <param name="SrcBytes">源数组</param>
@@ -857,9 +858,9 @@ Public Class PigBytes
             Return False
         End Try
     End Function
-    Protected Overrides Sub Finalize()
-        If Not mbfMain Is Nothing Then mbfMain = Nothing
-        If Not mmsMain Is Nothing Then mmsMain = Nothing
-        MyBase.Finalize()
-    End Sub
+    'Protected Overrides Sub Finalize()
+    '    If Not mbfMain Is Nothing Then mbfMain = Nothing
+    '    If Not mmsMain Is Nothing Then mmsMain = Nothing
+    '    MyBase.Finalize()
+    'End Sub
 End Class
