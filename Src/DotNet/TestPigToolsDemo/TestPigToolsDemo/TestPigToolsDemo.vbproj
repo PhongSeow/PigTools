@@ -3,11 +3,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>TestPigToolsDemo</RootNamespace>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net45</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsDemo" Version="1.0.1.5" />
+    <Reference Include="PigToolsLib">
+      <HintPath>..\..\PigToolsLib\PigToolsLib\bin\Debug\net40\PigToolsLib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Basic lightweight Edition
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.20
+'* Version: 1.0.21
 '* Create Time: 31/8/2019
 '*1.0.2  1/10/2019   Add mGetSubErrInf 
 '*1.0.3  4/11/2019   Add LastErr
@@ -25,6 +25,7 @@
 '*1.0.18 26/1/2021   Change some sub or function Public to Friend, modify 
 '*1.0.19 27/1/2021   Change KeyInf,ClearErr Public to Friend, modify 
 '*1.0.20 20/2/2021   Fix bug mstrKeyInf is nothing
+'*1.0.21 25/2/2021   Fix bug mstrLastErr is nothing
 '************************************
 Imports System.Runtime.InteropServices
 Public Class PigBaseMini
@@ -37,7 +38,7 @@ Public Class PigBaseMini
     ''' 类版本
     ''' </summary>
     Private mstrClsVersion As String
-    Private mstrLastErr As String
+    Private mstrLastErr As String = ""
     Private mbolIsDebug As Boolean
     Private mbolIsHardDebug As Boolean
     Private mstrDebugFilePath As String
