@@ -12,10 +12,10 @@ Public Class ConsoleDemo
             Console.WriteLine("Press B to PigText")
             Console.WriteLine("Press C to PigFile")
             Console.WriteLine("Press D to PigFunc")
-            'Console.WriteLine("Press E to PigFile")
-            'Console.WriteLine("Press F to PigMD5")
-            'Console.WriteLine("Press H to PigWebReq")
-            'Console.WriteLine("Press I to PigXml")
+            Console.WriteLine("Press E to PigWebReq")
+            'Console.WriteLine("Press F to PigFile")
+            'Console.WriteLine("Press G to PigMD5")
+            'Console.WriteLine("Press H to PigXml")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey().Key
                 Case ConsoleKey.Q
@@ -31,6 +31,10 @@ Public Class ConsoleDemo
                     Me.PigFileDemo(strFilePath)
                 Case ConsoleKey.D
                     Me.PigFuncDemo()
+                Case ConsoleKey.E
+                    Console.WriteLine("Input Url:")
+                    Dim strUrl As String = Console.ReadLine
+                    Me.PigWebReqDemo(strUrl)
                 Case Else
                     Console.WriteLine("Coming soon...")
             End Select
@@ -39,6 +43,31 @@ Public Class ConsoleDemo
 
     Protected Overrides Sub Finalize()
         MyBase.Finalize()
+    End Sub
+
+    Public Sub PigWebReqDemo(Url As String)
+        Dim strDisplay As String = ""
+        strDisplay &= vbCrLf & "***PigWebReqDemo Sample code***" & vbCrLf
+        strDisplay &= "```" & vbCrLf
+        strDisplay &= "Dim oPigWebReq As New PigWebReq(Url)" & vbCrLf
+        strDisplay &= "With oPigWebReq" & vbCrLf
+        strDisplay &= vbTab & ".GetText()" & vbCrLf
+        strDisplay &= vbTab & "Debug.Print("".LastErr="",.LastErr)" & vbCrLf
+        strDisplay &= vbTab & "Debug.Print("".ResString="",.ResString)" & vbCrLf
+        strDisplay &= "End With" & vbCrLf
+        strDisplay &= "```" & vbCrLf
+
+        Dim oPigWebReq As New PigWebReq(Url)
+        strDisplay &= vbCrLf & "***Return results***" & vbCrLf
+        strDisplay &= "```" & vbCrLf
+        With oPigWebReq
+            strDisplay &= ".GetText()" & vbCrLf
+            .GetText()
+            strDisplay &= ".LastErr" & .LastErr & vbCrLf
+            strDisplay &= ".ResString" & .ResString & vbCrLf
+        End With
+        strDisplay &= "```" & vbCrLf
+        Console.WriteLine(strDisplay)
     End Sub
 
     Public Sub PigFuncDemo()
