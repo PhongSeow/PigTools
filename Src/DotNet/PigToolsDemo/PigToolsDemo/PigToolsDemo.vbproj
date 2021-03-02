@@ -12,11 +12,11 @@
 	  <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
 	  <RepositoryType>GIT</RepositoryType>
 	  <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/master/Src/DotNet/PigToolsDemo</RepositoryUrl>
-	  <Version>1.0.2</Version>
+	  <Version>1.0.3</Version>
 	  <PackageTags>PigToolsLib .net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr</PackageTags>
 	  <PackageReleaseNotes>Add Demo code</PackageReleaseNotes>
-	  <AssemblyVersion>1.0.2.0</AssemblyVersion>
-	  <FileVersion>1.0.2.0</FileVersion>
+	  <AssemblyVersion>1.0.3.0</AssemblyVersion>
+	  <FileVersion>1.0.3.0</FileVersion>
 	  <Copyright>Copyright (c) 2021 Seow Phong</Copyright>
   </PropertyGroup>
 
@@ -43,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLib" Version="1.0.6" />
+    <PackageReference Include="PigToolsLib" Version="1.0.7.1" />
   </ItemGroup>
 
 </Project>

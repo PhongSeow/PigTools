@@ -83,6 +83,10 @@ Public Class ConsoleDemo
         strDisplay &= vbTab & "Debug.Print(""GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter) = "" & GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter))" & vbCrLf
         strDisplay &= vbTab & "Debug.Print("".GetRateDesc(16.88)="" & .GetRateDesc(16.88))" & vbCrLf
         strDisplay &= vbTab & "Debug.Print("".GetStr(""<hi>"", ""<"", "">"")="" & .GetStr(""<hi>"", ""<"", "">""))" & vbCrLf
+        strDisplay &= vbTab & "Debug.Print("".IsRegexMatch(""B2b"", ""^[A-Za-z0-9]+$"")="" & .IsRegexMatch(""B2b"", ""^[A-Za-z0-9]+$""))" & vbCrLf
+        strDisplay &= vbTab & "Debug.Print(""GetProcThreadID = "" & .GetProcThreadID)" & vbCrLf
+        strDisplay &= vbTab & "Debug.Print("".UrlEncode(""https://www.seowphong.com/oss/PigTools"")="" & .UrlEncode(""https://www.seowphong.com/oss/PigTools""))" & vbCrLf
+        strDisplay &= vbTab & "Debug.Print("".UrlDecode(""https%3A%2F%2Fwww.seowphong.com%2Foss%2FPigTools"")="" & .UrlDecode(""https%3A%2F%2Fwww.seowphong.com%2Foss%2FPigTools""))" & vbCrLf
         strDisplay &= "End With" & vbCrLf
         strDisplay &= "```" & vbCrLf
 
@@ -98,6 +102,10 @@ Public Class ConsoleDemo
             strDisplay &= "GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter)=" & .GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter) & vbCrLf
             strDisplay &= ".GetRateDesc(16.88)=" & .GetRateDesc(16.88) & vbCrLf
             strDisplay &= ".GetStr(""<hi>"", ""<"", "">"")=" & .GetStr("<hi>", "<", ">") & vbCrLf
+            strDisplay &= ".IsRegexMatch(""B2b"", ""^[A-Za-z0-9]+$"")=" & .IsRegexMatch("B2b", "^[A-Za-z0-9]+$") & vbCrLf
+            strDisplay &= ".GetProcThreadID=" & .GetProcThreadID & vbCrLf
+            strDisplay &= ".UrlEncode=" & .UrlEncode("https://www.seowphong.com/oss/PigTools") & vbCrLf
+            strDisplay &= ".UrlDecode=" & .UrlDecode("https%3A%2F%2Fwww.seowphong.com%2Foss%2FPigTools") & vbCrLf
         End With
         strDisplay &= "```" & vbCrLf
         Console.WriteLine(strDisplay)
