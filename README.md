@@ -3,40 +3,29 @@ Piggy Tools is a tool set class library that simplifies the. Net development int
 
 ## ***Folders and files description***
 
-### Setup
+### Release
 
-Execute code directory, if you don't want to see the source program, you can use the files in this directory directly in your VB.NET project.
+Release execute code directory, if you don't want to see the source program, you can use the files in this directory directly.
 
-##### Setup\Core3.1\PigToolsLib.dll
+##### Release\DotNet\PigToolsLib
+PigToolsLib Library DLL files and NuGet package.
 
-This file can be used by referring to your. Net project.
-
-Executable code compilation uses .Net core 3.1, which can run on Windows, Linux and MacOS platforms.
-
-#### Src\Core3.1\PigToolsLib.1.0.0.nupkg
-
-The .net NuGet package of PigToolsLib.
-
-##### Setup\DotNet4.5\PigToolsLib.dll
-
-This file can be used by referring to your. Net project.
-
-Executable code compilation uses .Net framework 4.5, which can only run on Windows platform.
+##### Release\DotNet\PigToolsWinLib
+PigToolsWinLib Library DLL files and NuGet package.
 
 ### Src
 
-Source code directory.
+Source code directory
 
-#### Src\Core3.1\PigToolsLib
+#### Src\DotNet\PigToolsLib
 
-Source code of PigTools .net class library .
+PigToolsLib Source code Directory
 
-The source code uses .Net Core 3.1
+#### Src\DotNet\PigToolsWinLib
 
-#### Src\DotNet4.5\PigToolsLib
+PigToolsWinLib Source code Directory
 
-Source code of PigTools .net class library .
+#### Src\DotNet\PigToolsDemo
 
-The source code uses .Net framework 4.5
-
+PigToolsLib Sample directory
 
