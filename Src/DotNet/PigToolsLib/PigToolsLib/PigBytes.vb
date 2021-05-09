@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Handle operations related to byte array division 【处理除字节数组相关的操作】
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.22
+'* Version: 1.0.23
 '* Create Time: 2019-10-22
 '*1.0.2  2019-10-24  
 '*1.0.3  2019-10-25  优化 mSetValue 和 mGetValue 等，去掉一些没有属性
@@ -25,12 +25,13 @@
 '*1.0.20 2020-6-16 优化 IsPigMD5Mate
 '*1.0.21  1/2/2021 Err.Raise change to Throw New Exception|Err.Raise改为Throw New Exception
 '*1.0.22  2/2/2021 remove Formatters.Binary.BinaryFormatter 
+'*1.0.23  6/5/2021 Add New(InitBase64Str)
 '************************************
 
 Imports System.Runtime.Serialization
 Public Class PigBytes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.22"
+    Private Const CLS_VERSION As String = "1.0.23"
 
     Private mabMain As Byte()
     ''' <summary>是否转换出错则为零，如果是则调用接口不会出错</summary>
@@ -553,6 +554,12 @@ Public Class PigBytes
         MyBase.New(CLS_VERSION)
         Me.mCopyFrom(InitBytes)
         Me.RestPos()
+    End Sub
+
+    Public Sub New(InitBase64Str As String)
+        MyBase.New(CLS_VERSION)
+        Me.mabMain = Convert.FromBase64String(InitBase64Str)
+        ReDim Me.mabPigMD5(0)
     End Sub
 
     Public Sub New(InitBytes As Byte(), SrcStartPos As Long, CopyLen As Long)
