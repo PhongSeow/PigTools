@@ -13,6 +13,10 @@ PigToolsLib 的类库 DLL 和 NuGet 包。
 ##### Release\DotNet\PigToolsWinLib
 PigToolsWinLib 的类库 DLL 和 NuGet 包。
 
+##### Release\GetFileAndDirList\VB6
+获取文件和目录列表的工具执行码，免安装，可以直接在不同版本的Windows上运行。
+执行 GetFileAndDirList.exe ，会在当前目录下生成 DirList.txt 和 FileList.txt 。
+
 ### Src
 
 源码目录。
@@ -28,3 +32,8 @@ PigToolsWinLib 源码目录
 #### Src\DotNet\PigToolsDemo
 
 PigToolsLib 示例目录。
+
+#### Src\VB6\GetFileAndDirList
+
+获取文件和目录列表的工具源码目录
+

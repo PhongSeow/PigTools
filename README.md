@@ -13,6 +13,10 @@ PigToolsLib Library DLL files and NuGet package.
 ##### Release\DotNet\PigToolsWinLib
 PigToolsWinLib Library DLL files and NuGet package.
 
+##### Release\GetFileAndDirList\VB6
+GetFileAndDirList tool execution code, installation free, can run directly on different versions of Windows.
+Executing GetFileAndDirList.exe will generate DirList.txt and FileList.txt in the current directory.
+
 ### Src
 
 Source code directory
@@ -28,4 +32,8 @@ PigToolsWinLib Source code Directory
 #### Src\DotNet\PigToolsDemo
 
 PigToolsLib Sample directory
+
+#### Src\VB6\GetFileAndDirList
+
+GetFileAndDirList tool source code directory.
 
