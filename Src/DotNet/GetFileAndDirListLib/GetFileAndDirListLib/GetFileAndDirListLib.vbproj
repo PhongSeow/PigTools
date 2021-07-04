@@ -4,7 +4,7 @@
     <RootNamespace>GetFileAndDirListLib</RootNamespace>
     <TargetFrameworks>net40;net5.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.1.8</Version>
+    <Version>1.0.1.9</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021 Seow Phong</Copyright>
@@ -14,9 +14,11 @@
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/GetFileAndDirListLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop File Dir List scan folder</PackageTags>
+    <PackageTags>.net develop File Dir List scan folder Windows Linux</PackageTags>
     <Description>A class library that scans the current directory and generates directory lists and file lists.
-Support to define directory list not to scan.</Description>
+Support to define directory list not to scan.
+It can run on Windows and Linux platforms.
+</Description>
   </PropertyGroup>
 
   <ItemGroup>

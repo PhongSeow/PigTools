@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>GetFileAndDirListLibDemo</RootNamespace>
+    <TargetFrameworks>net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Demo console program for GetFileAndDirListLib.
+It can run on Windows and Linux platforms.</Description>
+    <Version>1.0.1</Version>
+    <Authors>Seow Phong</Authors>
+    <Company>Seow Phong Studio</Company>
+    <Product>GetFileAndDirListLib Demo Console</Product>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Copyright (c) 2021 Seow Phong</Copyright>
+    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/GetFileAndDirListLibDemo</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>GetFileAndDirListLib Windows Linux Demo .net develop File Dir List scan folder</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GetFileAndDirListLib" Version="1.0.1.8" />
+  </ItemGroup>
+
+</Project>
