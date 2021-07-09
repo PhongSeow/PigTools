@@ -14,13 +14,23 @@ Dim strCmd As String, bolIsAbsDir As Boolean
     On Error GoTo ErrOcc:
     strLogFile = App.Path & "\" & App.Title & ".log"
     Set oFS = New FileSystemObject
-    strCmd = LCase(Trim(Command()))
+    strCmd = Trim(Command()) & " "
     If InStr(strCmd, "/abs") <> 0 Then
         bolIsAbsDir = True
     Else
         bolIsAbsDir = False
     End If
-    strRootDir = App.Path
+    
+    If InStr(strCmd, "-RD") <> 0 Then
+        If InStr(strCmd, """") > 0 Then
+            strRootDir = GetStr(strCmd, "-RD""", """")
+        Else
+            strRootDir = GetStr(strCmd, "-RD", " ")
+        End If
+    Else
+        strRootDir = App.Path
+    End If
+    
     '--------------------
     strNoScanDirListPath = strRootDir & "\NoScanDir.txt"
     strError = "´ò¿ª" & strNoScanDirListPath

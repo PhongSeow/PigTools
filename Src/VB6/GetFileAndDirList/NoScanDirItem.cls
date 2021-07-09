@@ -22,11 +22,20 @@ Public Property Get IsMeNoScan(ByVal ChkDirPath As String) As Boolean
 Dim strDirPath As String, lngLen As Long
     ChkDirPath = UCase(ChkDirPath)
     strDirPath = UCase(Me.DirPath)
-    lngLen = Len(strDirPath)
-    If Left(ChkDirPath, lngLen) = strDirPath Then
-        IsMeNoScan = True
-    Else
-        IsMeNoScan = False
+    If InStr(Me.DirPath, ":\") > 0 Then
+        '绝对目录，全匹配
+        lngLen = Len(strDirPath)
+        If Left(ChkDirPath, lngLen) = strDirPath Then
+            IsMeNoScan = True
+        Else
+            IsMeNoScan = False
+        End If
+    Else    '相对目录，模糊匹配
+        If InStr(ChkDirPath, strDirPath) > 0 Then
+            IsMeNoScan = True
+        Else
+            IsMeNoScan = False
+        End If
     End If
 End Property
 

@@ -149,7 +149,7 @@ Public Class PigXml
         Dim dteStart As New DateTime(1970, 1, 1)
         Try
             Dim intHourAdd As Integer = 0
-            If IsLocalTime = True Then
+            If IsLocalTime = False Then
                 Dim oTimeZoneInfo As System.TimeZoneInfo
                 oTimeZoneInfo = System.TimeZoneInfo.Local
                 intHourAdd = oTimeZoneInfo.GetUtcOffset(Now).Hours

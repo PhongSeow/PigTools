@@ -4,16 +4,17 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Get file and directory list application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.2
+'* Version: 1.0.3
 '* Create Time: 21/6/2021
 '* 1.0.2  23/6/2021   Add LogFilePath,IsAbsolutePath,RootDirPath
+'* 1.0.3  23/6/2021   Modify Start
 '************************************
 Imports PigObjFsLib
 Imports PigToolsLib
 
 Public Class GetFileAndDirListApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.2"
+    Private Const CLS_VERSION As String = "1.0.3"
     Private moFS As FileSystemObject
     Private moPigFunc As PigFunc
     Property mstrLogFilePath As String
@@ -179,9 +180,9 @@ Public Class GetFileAndDirListApp
                     If Me.IsAbsolutePath = False Then
                         lngSubLen = Len(strDirPath) - Len(Me.RootDirPath) - 1
                         If lngSubLen <= 0 Then
-                            strDirPath = ".\"
+                            strDirPath = "." & Me.OsPathSep
                         Else
-                            strDirPath = ".\" & Right(strDirPath, lngSubLen)
+                            strDirPath = "." & Me.OsPathSep & Right(strDirPath, lngSubLen)
                         End If
                     End If
                     strStepName = "WriteLine"
@@ -192,7 +193,7 @@ Public Class GetFileAndDirListApp
                         If LCase(moPigFunc.GetFilePart(oFile.Name)) <> VSSVER_SCC_FILE Then
                             Dim strFilePath As String = oFile.Path
                             If Me.IsAbsolutePath = False Then
-                                strFilePath = ".\" & Right(strFilePath, Len(strFilePath) - Len(Me.RootDirPath) - 1)
+                                strFilePath = "." & Me.OsPathSep & Right(strFilePath, Len(strFilePath) - Len(Me.RootDirPath) - 1)
                             End If
                             tsFile.WriteLine(strFilePath & vbTab & oFile.Size & vbTab & Format(oFile.DateLastModified, "yyyy-mm-dd hh:mm:ss"))
                         End If
@@ -276,6 +277,14 @@ Public Class GetFileAndDirListApp
             Return False
         End Try
     End Function
+
+    'Public ReadOnly Property LinuxTest() As String
+    '    Get
+    '        Dim strTest As String = "AppPath=" & Me.AppPath & ";"
+    '        strTest &= "AppTitle=" & Me.AppTitle & ";IsWindows=" & Me.IsWindows & ";OsCrLf=" & Me.OsCrLf & ";OsPathSep=" & Me.OsPathSep & ";"
+    '        Return strTest
+    '    End Get
+    'End Property
 
 
 End Class

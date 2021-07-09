@@ -2,7 +2,7 @@
 VB.net
 Module Program
     Sub Main(args As String())
-        Dim oConsoleDemo As New GetFileAndDirListLib.ConsoleDemo
+        Dim oConsoleDemo As New GetFileAndDirListLibDemo.ConsoleDemo
         oConsoleDemo.Main()
     End Sub
 End Module
@@ -12,7 +12,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        GetFileAndDirListLib.ConsoleDemo oConsoleDemo = new GetFileAndDirListLib.ConsoleDemo() ;
+        GetFileAndDirListLibDemo.ConsoleDemo oConsoleDemo = new GetFileAndDirListLibDemo.ConsoleDemo() ;
         oConsoleDemo.Main();
     }
 }

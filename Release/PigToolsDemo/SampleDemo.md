@@ -2,7 +2,7 @@
 VB.net
 Module Program
     Sub Main(args As String())
-        Dim oConsoleDemo As New ConsoleDemo.PigToolsDemo
+        Dim oConsoleDemo As New PigToolsDemo.ConsoleDemo
         oConsoleDemo.Main()
     End Sub
 End Module
