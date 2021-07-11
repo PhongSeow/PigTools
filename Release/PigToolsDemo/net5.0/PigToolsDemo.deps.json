@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "PigToolsDemo/1.0.3": {
+      "PigToolsDemo/1.0.5.2": {
         "dependencies": {
-          "PigToolsLib": "1.0.7.1"
+          "PigToolsLib": "1.0.12.2"
         },
         "runtime": {
           "PigToolsDemo.dll": {}
@@ -16,14 +16,14 @@
       },
       "Microsoft.NETCore.Platforms/1.1.1": {},
       "Microsoft.NETCore.Targets/1.1.0": {},
-      "PigToolsLib/1.0.7.1": {
+      "PigToolsLib/1.0.12.2": {
         "dependencies": {
           "System.Net.Http": "4.3.4"
         },
         "runtime": {
           "lib/net5.0/PigToolsLib.dll": {
-            "assemblyVersion": "1.0.7.1",
-            "fileVersion": "1.0.7.1"
+            "assemblyVersion": "1.0.12.2",
+            "fileVersion": "1.0.12.2"
           }
         }
       },
@@ -420,7 +420,7 @@
     }
   },
   "libraries": {
-    "PigToolsDemo/1.0.3": {
+    "PigToolsDemo/1.0.5.2": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -439,12 +439,12 @@
       "path": "microsoft.netcore.targets/1.1.0",
       "hashPath": "microsoft.netcore.targets.1.1.0.nupkg.sha512"
     },
-    "PigToolsLib/1.0.7.1": {
+    "PigToolsLib/1.0.12.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-kWmPyLS9uZcLbMrwASacG7y/aZrkS0deuXR8l68P6TR1/8RVtUM3mJoGB2cWf3ZSRz13uHHvJc+/4KPFlV8mBw==",
-      "path": "pigtoolslib/1.0.7.1",
-      "hashPath": "pigtoolslib.1.0.7.1.nupkg.sha512"
+      "sha512": "sha512-os8+/Fq0c1MGmb6DL8DEJy1FSRo+HQkHjuAmTh0V6xJwYtLoo2xfxODvCa+K0W5JeKBsaCPmlNWmDo3L0tMDNg==",
+      "path": "pigtoolslib/1.0.12.2",
+      "hashPath": "pigtoolslib.1.0.12.2.nupkg.sha512"
     },
     "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.2": {
       "type": "package",
