@@ -4,17 +4,18 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Get file and directory list application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.3
+'* Version: 1.0.4
 '* Create Time: 21/6/2021
 '* 1.0.2  23/6/2021   Add LogFilePath,IsAbsolutePath,RootDirPath
 '* 1.0.3  23/6/2021   Modify Start
+'* 1.0.4  9/7/2021   Modify Start
 '************************************
 Imports PigObjFsLib
 Imports PigToolsLib
 
 Public Class GetFileAndDirListApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.3"
+    Private Const CLS_VERSION As String = "1.0.4"
     Private moFS As FileSystemObject
     Private moPigFunc As PigFunc
     Property mstrLogFilePath As String
