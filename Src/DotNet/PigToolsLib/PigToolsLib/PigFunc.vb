@@ -4,14 +4,15 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.1
+'* Version: 1.0.3
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
+'*1.0.3  20/7/2021   Add GECBool,GECLng
 '**********************************
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.2"
+    Private Const CLS_VERSION As String = "1.0.3"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -419,6 +420,42 @@ Public Class PigFunc
 
     Public Function IsRegexMatch(SrcStr As String, RegularExp As String) As Boolean
         Return System.Text.RegularExpressions.Regex.IsMatch(SrcStr, RegularExp)
+    End Function
+
+    Public Function GECBool(vData As String) As Boolean
+        Try
+            Return CBool(vData)
+        Catch ex As Exception
+            Me.SetSubErrInf("GECBool", ex)
+            Return False
+        End Try
+    End Function
+
+    Public Function GECLng(vData As String) As Long
+        Try
+            Return GECLng(vData)
+        Catch ex As Exception
+            Me.SetSubErrInf("GECLng", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function GEDec(vData As String) As Decimal
+        Try
+            Return CDec(vData)
+        Catch ex As Exception
+            Me.SetSubErrInf("CDec", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function GECDate(vData As String) As DateTime
+        Try
+            Return Date.Parse(vData)
+        Catch ex As Exception
+            Me.SetSubErrInf("GECDate", ex)
+            Return DateTime.MinValue
+        End Try
     End Function
 
 End Class
