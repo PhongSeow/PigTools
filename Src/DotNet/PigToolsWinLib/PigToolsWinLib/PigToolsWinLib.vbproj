@@ -16,10 +16,10 @@ It is an extension of PigToolsLib and provides some interfaces that can only be 
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageProjectUrl>http://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <PackageTags>.net Develop tools Windows JSon Register HttpContext</PackageTags>
-    <Version>1.0.2.1</Version>
-    <PackageReleaseNotes>Fix bugs for PigBaseMini.</PackageReleaseNotes>
-    <AssemblyVersion>1.0.2.1</AssemblyVersion>
-    <FileVersion>1.0.2.1</FileVersion>
+    <Version>1.0.3.6</Version>
+    <PackageReleaseNotes>Optimize debugging function, upgrade PigJSon.</PackageReleaseNotes>
+    <AssemblyVersion>1.0.3.6</AssemblyVersion>
+    <FileVersion>1.0.3.6</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 给 HttpContext 加壳，实现一系统功能
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.8
+'* Version: 1.0.9
 '* Create Time: 31/8/2019
 '1.0.2  2020-1-29   改用fGEBaseMini
 '1.0.3  2020-1-31   BinaryRead，BinaryWrite
@@ -12,13 +12,14 @@
 '1.0.6  2020-2-8    删除 json
 '1.0.7  2020-3-11  增加 IsLocalHost
 '1.0.8  4/3/2021  Add to PigToolsWinLib
+'1.0.9  26/7/2021  Modify BinaryWrite,BinaryRead
 '************************************
 Imports System.Web
 Imports System.Web.Services
 Imports PigToolsLib
 Public Class PigHttpContext
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.8"
+    Private Const CLS_VERSION As String = "1.0.9"
 
     Public Enum enmWhatHtmlEle '什么HTML元素
         Table = 1 '表格
@@ -311,7 +312,7 @@ Public Class PigHttpContext
         Try
             If ContentType = "" Then
                 Dim strExtName As String = LCase(moPigFunc.GetFilePart(FilePath, PigFunc.enmFilePart.ExtName))
-                WriteFileMain = "自动识别对应的ContentType"
+                WriteFileMain = "Automatically identify the corresponding contenttype"
                 Select Case strExtName
                     Case "css"
                         ContentType = "text/css"
@@ -342,7 +343,7 @@ Public Class PigHttpContext
                     Case "zip"
                         ContentType = "application/x-zip-compressed"
                     Case Else
-                        strRet = "无法识别文件扩展名" & strExtName
+                        strRet = "Unrecognized file extension:" & strExtName
                         Err.Raise(-1, , strRet)
                 End Select
             End If
@@ -362,7 +363,7 @@ Public Class PigHttpContext
 
     Public Function BinaryWrite(ByRef ResBytes As Byte()) As String
         Try
-            If Me.IsPost = False Then Err.Raise(-1, , "只有POST方式可以使用")
+            If Me.IsPost = False Then Err.Raise(-1, , "Only post mode can be used")
             With Me.HcMain.Response
                 .BinaryWrite(ResBytes)
             End With
@@ -374,7 +375,7 @@ Public Class PigHttpContext
 
     Public Function BinaryRead(ByRef ReqBytes As Byte()) As String
         Try
-            If Me.IsPost = False Then Err.Raise(-1, , "只有POST方式可以使用")
+            If Me.IsPost = False Then Err.Raise(-1, , "Only post mode can be used")
             With Me.HcMain.Request
                 ReqBytes = .BinaryRead(.TotalBytes)
             End With
@@ -502,15 +503,9 @@ Public Class PigHttpContext
 
     Private Function ResponsTabCellBeginMain(IsCrLf As Boolean, Optional Colspan As Integer = 1, Optional Rowspan As Integer = 1) As String
         '向HTTP客户端写表格单元开始
-
-
         'Colspan：规定表头单元格可横跨的列数
         'Rowspan：规定表头单元格可横跨的行数。
-
-
         'Scope：规定表头单元格是否是行、列、行组或列组的头部。
-
-
         Dim strStepName As String = ""
         Try
             With Me.HcMain.Response
@@ -529,15 +524,9 @@ Public Class PigHttpContext
 
     Private Function ResponsTabHeadBeginMain(IsCrLf As Boolean, Optional Colspan As Integer = 1, Optional Rowspan As Integer = 1, Optional Scope As String = "") As String
         '向HTTP客户端写表格头开始
-
-
         'Colspan：规定表头单元格可横跨的列数
         'Rowspan：规定表头单元格可横跨的行数。
-
-
         'Scope：规定表头单元格是否是行、列、行组或列组的头部。
-
-
         Dim strStepName As String = ""
         Try
             With Me.HcMain.Response
@@ -549,7 +538,7 @@ Public Class PigHttpContext
                         .Write(" scope=""" & Scope & """")
                     Case ""
                     Case Else
-                        Err.Raise(-1, , "Scope=" & Scope & "无效")
+                        Err.Raise(-1, , "Scope=" & Scope & " invalid")
                 End Select
                 .Write(">")
                 If IsCrLf = True Then .Write(vbCrLf)
