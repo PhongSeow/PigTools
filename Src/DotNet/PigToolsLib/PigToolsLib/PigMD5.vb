@@ -4,12 +4,16 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Standard MD5 treatment and personalized MD5 treatment.
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.3
+'* Version: 1.0.4
 '* Create Time: 1/12/2018
 '1.0.2  增加小猪MD5，即取源串来的16位MD5加上源串的前128个字节（不足取源串长度）的16位MD5
 '1.0.3  PigMD5增加数组
+'1.0.4  Add PigBaseMini
 '**********************************
 Public Class PigMD5
+    Inherits PigBaseMini
+    Private Const CLS_VERSION As String = "1.0.4"
+
     ''' <summary>源数据</summary>
     Private mabSrcData As Byte()
     ''' <summary>MD数组</summary>
@@ -28,22 +32,34 @@ Public Class PigMD5
     End Enum
 
     Sub New(SrcData As Byte())
-        mabSrcData = SrcData
-        mabHashValue = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("MD5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(mabSrcData)
+        MyBase.New(CLS_VERSION)
+        Try
+            mabSrcData = SrcData
+            mabHashValue = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("MD5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(mabSrcData)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("New", ex)
+        End Try
     End Sub
 
     Sub New(SrcStr As String, TextType As enmTextType)
-        Select Case TextType
-            Case enmTextType.Ascii
-                mabSrcData = System.Text.Encoding.ASCII.GetBytes(SrcStr)
-            Case enmTextType.Unicode
-                mabSrcData = System.Text.Encoding.Unicode.GetBytes(SrcStr)
-            Case enmTextType.UTF8
-                mabSrcData = System.Text.Encoding.UTF8.GetBytes(SrcStr)
-            Case Else
-                mabSrcData = System.Text.Encoding.UTF8.GetBytes(SrcStr)
-        End Select
-        mabHashValue = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("MD5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(mabSrcData)
+        MyBase.New(CLS_VERSION)
+        Try
+            Select Case TextType
+                Case enmTextType.Ascii
+                    mabSrcData = System.Text.Encoding.ASCII.GetBytes(SrcStr)
+                Case enmTextType.Unicode
+                    mabSrcData = System.Text.Encoding.Unicode.GetBytes(SrcStr)
+                Case enmTextType.UTF8
+                    mabSrcData = System.Text.Encoding.UTF8.GetBytes(SrcStr)
+                Case Else
+                    mabSrcData = System.Text.Encoding.UTF8.GetBytes(SrcStr)
+            End Select
+            mabHashValue = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("MD5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(mabSrcData)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("New", ex)
+        End Try
     End Sub
 
 
@@ -95,23 +111,28 @@ Public Class PigMD5
     End Property
 
     Private Sub mMkPigMD5()
-        Dim i As Short, intLen As Long = mabSrcData.Length - 1
-        If intLen > 127 Then intLen = 127
-        Dim abPig(intLen) As Byte
-        For i = 0 To intLen
-            abPig(i) = mabSrcData(intLen - i)
-        Next
-        Dim oPig As New PigMD5(abPig)
-        ReDim mabPigMD5(15)
-        For i = 0 To 7
-            mabPigMD5(i) = mabHashValue(i + 4)
-            mabPigMD5(i + 8) = oPig.MD5Bytes(i + 4)
-        Next
-        mstrPigMD5 = ""
-        For i = 0 To 15 '选择32位字符的加密结果
-            mstrPigMD5 &= Right("00" & Hex(mabPigMD5(i)).ToLower, 2)
-        Next
-        oPig = Nothing
+        Try
+            Dim i As Short, intLen As Long = mabSrcData.Length - 1
+            If intLen > 127 Then intLen = 127
+            Dim abPig(intLen) As Byte
+            For i = 0 To intLen
+                abPig(i) = mabSrcData(intLen - i)
+            Next
+            Dim oPig As New PigMD5(abPig)
+            ReDim mabPigMD5(15)
+            For i = 0 To 7
+                mabPigMD5(i) = mabHashValue(i + 4)
+                mabPigMD5(i + 8) = oPig.MD5Bytes(i + 4)
+            Next
+            mstrPigMD5 = ""
+            For i = 0 To 15 '选择32位字符的加密结果
+                mstrPigMD5 &= Right("00" & Hex(mabPigMD5(i)).ToLower, 2)
+            Next
+            oPig = Nothing
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("mMkPigMD5", ex)
+        End Try
     End Sub
 
     Public ReadOnly Property PigMD5 As String

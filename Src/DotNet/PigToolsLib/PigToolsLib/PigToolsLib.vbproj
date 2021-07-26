@@ -16,10 +16,10 @@ It can run on Windows and Linux platforms.</Description>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageProjectUrl>http://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr</PackageTags>
-    <Version>1.0.13.2</Version>
-    <PackageReleaseNotes>Fix some data convert functions to PigFunc.</PackageReleaseNotes>
-    <AssemblyVersion>1.0.13.2</AssemblyVersion>
-    <FileVersion>1.0.13.2</FileVersion>
+    <Version>1.0.15.12</Version>
+    <PackageReleaseNotes>Optimize debugging function, fix bugs for PigFile.</PackageReleaseNotes>
+    <AssemblyVersion>1.0.15.12</AssemblyVersion>
+    <FileVersion>1.0.15.12</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

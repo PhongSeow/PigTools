@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.9
+'* Version: 1.0.10
 '* Create Time: 4/11/2019
 '*1.0.2  2019-11-5   增加mSaveFile
 '*1.0.3  2019-11-20  增加 CopyFileTo
@@ -13,11 +13,12 @@
 '*1.0.7  2020-3-5    增加 SetData
 '*1.0.8  2020-10-27  修改 LoadFile
 '*1.0.9  1/2/2021 Err.Raise change to Throw New Exception|Err.Raise改为Throw New Exception
+'*1.0.10  26/7/2021 Modify LoadFile
 '**********************************
 Imports System.IO
 Public Class PigFile
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.9"
+    Private Const CLS_VERSION As String = "1.0.10"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
     Public GbMain As PigBytes '主数据数组
@@ -101,13 +102,16 @@ Public Class PigFile
 
     ''' <summary>导入数据</summary>
     Public Function LoadFile() As String
-        Dim strStepName As String
+        Const SUB_NAME As String = "LoadFile"
+        Dim strStepName As String = ""
         Try
             If Me.GbMain Is Nothing Then
-                strStepName = "New FileStream(" & mstrFilePath & ")"
-                Dim sfAny As New FileStream(mstrFilePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None)
+                strStepName = "New FileStream"
+                Dim sfAny As New FileStream(mstrFilePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read)
                 strStepName = "New BinaryReader"
                 Dim brAny = New BinaryReader(sfAny)
+                strStepName = "New PigBytes"
+                Me.GbMain = New PigBytes
                 strStepName = "GbMain ReadBytes"
                 GbMain.Main = brAny.ReadBytes(Me.Size)
                 strStepName = "Close"
@@ -116,7 +120,12 @@ Public Class PigFile
             End If
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("LoadFile", ex, False)
+            strStepName &= "(" & mstrFilePath & ")"
+            If Me.IsDebug Or Me.IsHardDebug Then
+                Return Me.GetSubErrInf(SUB_NAME, strStepName, ex, True)
+            Else
+                Return Me.GetSubErrInf(SUB_NAME, strStepName, ex)
+            End If
         End Try
     End Function
 

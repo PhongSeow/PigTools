@@ -4,18 +4,19 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Get file and directory list application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.4
+'* Version: 1.0.5
 '* Create Time: 21/6/2021
 '* 1.0.2  23/6/2021   Add LogFilePath,IsAbsolutePath,RootDirPath
 '* 1.0.3  23/6/2021   Modify Start
 '* 1.0.4  9/7/2021   Modify Start
+'* 1.0.5  25/7/2021  Add OpenDebug, Modify LogFilePath
 '************************************
 Imports PigObjFsLib
 Imports PigToolsLib
 
 Public Class GetFileAndDirListApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.4"
+    Private Const CLS_VERSION As String = "1.0.5"
     Private moFS As FileSystemObject
     Private moPigFunc As PigFunc
     Property mstrLogFilePath As String
@@ -25,8 +26,19 @@ Public Class GetFileAndDirListApp
         End Get
         Set(value As String)
             mstrLogFilePath = value
+            If Me.IsDebug = True Then
+                Me.SetDebug(Me.LogFilePath)
+            End If
         End Set
     End Property
+
+    Public Sub OpenDebug()
+        Try
+            Me.SetDebug(Me.LogFilePath)
+        Catch ex As Exception
+            Me.SetSubErrInf("OpenDebug", ex)
+        End Try
+    End Sub
 
     Property mbolIsAbsolutePath As Boolean
     Public Property IsAbsolutePath() As Boolean
@@ -129,20 +141,27 @@ Public Class GetFileAndDirListApp
 
     Public Sub Start()
         Const VSSVER_SCC_FILE As String = "vssver.scc"
+        Const SUB_NAME As String = "Start"
         Dim strStepName As String = ""
         Try
             Dim strLine As String = ""
             moFS = New FileSystemObject
             moPigFunc = New PigFunc
             Dim tsDir As TextStream
-            strStepName = "OpenTextFile(" & Me.NoScanDirListPath & ")"
+            strStepName = "OpenTextFile"
             tsDir = moFS.OpenTextFile(Me.DirListPath, FileSystemObject.IOMode.ForReading, True)
-            If moFS.LastErr <> "" Then Throw New Exception(moFS.LastErr)
+            If moFS.LastErr <> "" Then
+                strStepName &= "(" & Me.NoScanDirListPath & ")"
+                Throw New Exception(moFS.LastErr)
+            End If
             Me.NoScanDirItems = New NoScanDirItems
             If tsDir.AtEndOfStream = False Then
                 strStepName = "ReadAll for NoScanDirList"
                 Dim strNoScanDirList As String = tsDir.ReadAll
-                If tsDir.LastErr <> "" Then Throw New Exception(tsDir.LastErr)
+                If tsDir.LastErr <> "" Then
+                    strStepName &= "(" & Me.NoScanDirListPath & ")"
+                    Throw New Exception(tsDir.LastErr)
+                End If
                 tsDir.Close()
                 If Right(strNoScanDirList, Me.OsCrLf.Length) <> Me.OsCrLf Then strNoScanDirList = strNoScanDirList & Me.OsCrLf
                 Do While True
@@ -153,18 +172,32 @@ Public Class GetFileAndDirListApp
             Else
                 tsDir.Close()
             End If
-            strStepName = "OpenTextFile(" & Me.DirListPath & ")"
+            strStepName = "OpenTextFile"
             tsDir = moFS.OpenTextFile(Me.DirListPath, FileSystemObject.IOMode.ForWriting, True)
-            If moFS.LastErr <> "" Then Throw New Exception(moFS.LastErr)
+            If moFS.LastErr <> "" Then
+                strStepName &= "(" & Me.DirListPath & ")"
+                Throw New Exception(moFS.LastErr)
+            End If
             Dim tsFile As TextStream
-            strStepName = "OpenTextFile(" & Me.FileListPath & ")"
+            strStepName = "OpenTextFile"
             tsFile = moFS.OpenTextFile(Me.FileListPath, FileSystemObject.IOMode.ForWriting, True)
-            If moFS.LastErr <> "" Then Throw New Exception(moFS.LastErr)
+            If moFS.LastErr <> "" Then
+                strStepName &= "(" & Me.DirListPath & ")"
+                Throw New Exception(moFS.LastErr)
+            End If
             Dim oFolder As Folder
-            strStepName = "GetFolder(" & Me.RootDirPath & ")"
+            strStepName = "GetFolder"
             oFolder = moFS.GetFolder(Me.RootDirPath)
-            If moFS.LastErr <> "" Then Throw New Exception(moFS.LastErr)
+            If moFS.LastErr <> "" Then
+                strStepName &= "(" & Me.RootDirPath & ")"
+                Throw New Exception(moFS.LastErr)
+            End If
+            strStepName = "mGetDirList"
             Dim strDirList As String = Me.mGetDirList(Me.RootDirPath)
+            If Me.LastErr <> "" Then
+                strStepName &= "(" & Me.RootDirPath & ")"
+                Throw New Exception(Me.LastErr)
+            End If
             Do While True
                 strLine = moPigFunc.GetStr(strDirList, "", Me.OsCrLf)
                 If strLine = "" Then Exit Do
@@ -188,7 +221,16 @@ Public Class GetFileAndDirListApp
                     End If
                     strStepName = "WriteLine"
                     tsDir.WriteLine(strDirPath)
+                    If tsDir.LastErr <> "" Then
+                        Me.PrintDebugLog(SUB_NAME, strStepName, strDirPath)
+                        Me.PrintDebugLog(SUB_NAME, strStepName, tsDir.LastErr)
+                    End If
+                    strStepName = "GetFolder"
                     oFolder = moFS.GetFolder(strLine)
+                    If moFS.LastErr <> "" Then
+                        Me.PrintDebugLog(SUB_NAME, strStepName, strLine)
+                        Me.PrintDebugLog(SUB_NAME, strStepName, moFS.LastErr)
+                    End If
                     strStepName = "Traverse the files in the current directory" & strLine
                     For Each oFile In oFolder.Files
                         If LCase(moPigFunc.GetFilePart(oFile.Name)) <> VSSVER_SCC_FILE Then
@@ -196,7 +238,13 @@ Public Class GetFileAndDirListApp
                             If Me.IsAbsolutePath = False Then
                                 strFilePath = "." & Me.OsPathSep & Right(strFilePath, Len(strFilePath) - Len(Me.RootDirPath) - 1)
                             End If
-                            tsFile.WriteLine(strFilePath & vbTab & oFile.Size & vbTab & Format(oFile.DateLastModified, "yyyy-mm-dd hh:mm:ss"))
+                            strStepName = "WriteLine"
+                            strLine = strFilePath & vbTab & oFile.Size & vbTab & Format(oFile.DateLastModified, "yyyy-mm-dd hh:mm:ss")
+                            tsFile.WriteLine(strLine)
+                            If tsFile.LastErr <> "" Then
+                                Me.PrintDebugLog(SUB_NAME, strStepName, strLine)
+                                Me.PrintDebugLog(SUB_NAME, strStepName, tsFile.LastErr)
+                            End If
                         End If
                     Next
                 End If
@@ -205,7 +253,8 @@ Public Class GetFileAndDirListApp
             tsFile.Close()
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("Start", strStepName, ex)
+            Me.SetSubErrInf(SUB_NAME, strStepName, ex)
+            Me.PrintDebugLog(SUB_NAME, "Catch Exception", Me.LastErr)
         End Try
     End Sub
 
@@ -278,14 +327,6 @@ Public Class GetFileAndDirListApp
             Return False
         End Try
     End Function
-
-    'Public ReadOnly Property LinuxTest() As String
-    '    Get
-    '        Dim strTest As String = "AppPath=" & Me.AppPath & ";"
-    '        strTest &= "AppTitle=" & Me.AppTitle & ";IsWindows=" & Me.IsWindows & ";OsCrLf=" & Me.OsCrLf & ";OsPathSep=" & Me.OsPathSep & ";"
-    '        Return strTest
-    '    End Get
-    'End Property
 
 
 End Class

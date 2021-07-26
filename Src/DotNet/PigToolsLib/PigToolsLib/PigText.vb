@@ -60,8 +60,9 @@ Public Class PigText
                     mstrHexStr = sbAny.ToString
                     sbAny = Nothing
                 End If
-                HexStr = mstrHexStr
+                Return mstrHexStr
             Catch ex As Exception
+                Me.SetSubErrInf("HexStr", ex)
                 Return ""
             End Try
         End Get
@@ -69,9 +70,20 @@ Public Class PigText
 
     ''' <remarks>小猪MD5</remarks>
     Public ReadOnly Property PigMD5() As String
+
         Get
-            If moMD5 Is Nothing Then moMD5 = New PigMD5(mabSrcText)
-            PigMD5 = moMD5.PigMD5
+            Dim strStepName As String = ""
+            Try
+                If moMD5 Is Nothing Then
+                    strStepName = "New PigMD5"
+                    moMD5 = New PigMD5(mabSrcText)
+
+                End If
+                Return moMD5.PigMD5
+            Catch ex As Exception
+                Me.SetSubErrInf("PigMD5", strStepName, ex)
+                Return ""
+            End Try
         End Get
     End Property
 

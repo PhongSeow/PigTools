@@ -4,15 +4,16 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.3
+'* Version: 1.0.4
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
+'*1.0.4  26/7/2021   Modify UrlEncode
 '**********************************
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.3"
+    Private Const CLS_VERSION As String = "1.0.4"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -392,7 +393,7 @@ Public Class PigFunc
 
     Public Function UrlEncode(SrcUrl As String) As String
         Try
-#If net50 Or netcoreapp31 Or netcoreapp30 Or netcoreapp22 Or netcoreapp21 Or netcoreapp20 Or netcoreapp11 Or netcoreapp10 Then
+#If NETCOREAPP Or NET5_0_OR_GREATER Then
             UrlEncode = System.Web.HttpUtility.UrlEncode(SrcUrl)
 #Else
             UrlEncode = System.Uri.EscapeDataString(SrcUrl)
@@ -406,11 +407,12 @@ Public Class PigFunc
 
     Public Function UrlDecode(DecodeUrl As String) As String
         Try
-#If net50 Or netcoreapp31 Or netcoreapp30 Or netcoreapp22 Or netcoreapp21 Or netcoreapp20 Or netcoreapp11 Or netcoreapp10 Then
-            UrlDecode = System.Web.HttpUtility.(DecodeUrl)
+#If NETCOREAPP Or NET5_0_OR_GREATER Then
+            UrlDecode = System.Web.HttpUtility.UrlDecode(DecodeUrl)
 #Else
             UrlDecode = System.Uri.UnescapeDataString(DecodeUrl)
 #End If
+
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("UrlDecode", ex)
