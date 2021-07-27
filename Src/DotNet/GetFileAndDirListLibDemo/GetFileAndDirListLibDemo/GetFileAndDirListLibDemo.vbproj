@@ -6,7 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Demo console program for GetFileAndDirListLib.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Product>GetFileAndDirListLib Demo Console</Product>
@@ -16,7 +16,7 @@ It can run on Windows and Linux platforms.</Description>
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/GetFileAndDirListLibDemo</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>GetFileAndDirListLib Windows Linux Demo .net develop File Dir List scan folder</PackageTags>
-    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
+    <PackageReleaseNotes>Optimize debugging function.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +24,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.0.2.10" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.0.3.8" />
   </ItemGroup>
 
 </Project>
