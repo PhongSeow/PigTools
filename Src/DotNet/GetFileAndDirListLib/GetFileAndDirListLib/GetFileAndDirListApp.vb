@@ -4,19 +4,20 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Get file and directory list application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.5
+'* Version: 1.0.6
 '* Create Time: 21/6/2021
 '* 1.0.2  23/6/2021   Add LogFilePath,IsAbsolutePath,RootDirPath
 '* 1.0.3  23/6/2021   Modify Start
 '* 1.0.4  9/7/2021   Modify Start
 '* 1.0.5  25/7/2021  Add OpenDebug, Modify LogFilePath
+'* 1.0.6  27/7/2021  Remove OpenDebug
 '************************************
 Imports PigObjFsLib
 Imports PigToolsLib
 
 Public Class GetFileAndDirListApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.5"
+    Private Const CLS_VERSION As String = "1.0.6"
     Private moFS As FileSystemObject
     Private moPigFunc As PigFunc
     Property mstrLogFilePath As String
@@ -31,14 +32,6 @@ Public Class GetFileAndDirListApp
             End If
         End Set
     End Property
-
-    Public Sub OpenDebug()
-        Try
-            Me.SetDebug(Me.LogFilePath)
-        Catch ex As Exception
-            Me.SetSubErrInf("OpenDebug", ex)
-        End Try
-    End Sub
 
     Property mbolIsAbsolutePath As Boolean
     Public Property IsAbsolutePath() As Boolean
