@@ -1,7 +1,11 @@
 ﻿Imports PigToolsLib
 
 Public Class ConsoleDemo
-
+    Public ShareMem As ShareMem
+    Public SMName As String
+    Public SMSize As Integer = 1024
+    Public MainText As String
+    Public Ret As String
     Public Sub Main()
         Do While True
             Console.WriteLine("*******************")
@@ -13,7 +17,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press C to PigFile")
             Console.WriteLine("Press D to PigFunc")
             Console.WriteLine("Press E to PigWebReq")
-            'Console.WriteLine("Press F to PigFile")
+            Console.WriteLine("Press F to ShareMem")
             'Console.WriteLine("Press G to PigMD5")
             'Console.WriteLine("Press H to PigXml")
             Console.WriteLine("*******************")
@@ -35,6 +39,84 @@ Public Class ConsoleDemo
                     Console.WriteLine("Input Url:")
                     Dim strUrl As String = Console.ReadLine
                     Me.PigWebReqDemo(strUrl)
+                Case ConsoleKey.F
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("ShareMem")
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("Press Q to Up")
+                    Console.WriteLine("Press A to Write")
+                    Console.WriteLine("Press B to Read")
+                    Console.WriteLine("*******************")
+                    Do While True
+                        Dim intConsoleKey As ConsoleKey = Console.ReadKey().Key
+                        Select Case intConsoleKey
+                            Case ConsoleKey.Q
+                                Exit Do
+                            Case ConsoleKey.A
+                                Console.WriteLine("Input ShareMem:")
+                                Me.SMName = Console.ReadLine
+                                Console.WriteLine("Input MainText:")
+                                Me.MainText = Console.ReadLine
+                                Dim oPigText As New PigText(Me.MainText, PigText.enmTextType.UTF8)
+                                Me.ShareMem = New ShareMem
+                                With Me.ShareMem
+                                    Console.WriteLine(" " & Me.SMName & ",Len=" & oPigText.TextBytes.Length)
+                                    .Init(Me.SMName, oPigText.TextBytes.Length)
+                                    If .LastErr <> "" Then
+                                        Console.WriteLine(.LastErr)
+                                    Else
+                                        Console.WriteLine("OK")
+                                    End If
+                                End With
+                                If Me.ShareMem.IsInit = False Then
+                                    Console.WriteLine("ShareMem Not Init")
+                                Else
+                                    With Me.ShareMem
+                                        Console.WriteLine("Write")
+                                        Me.Ret = .Write(oPigText.TextBytes)
+                                        Console.WriteLine(Me.Ret)
+                                    End With
+                                End If
+                                Exit Do
+                            Case ConsoleKey.B
+                                If Me.ShareMem Is Nothing Then Me.ShareMem = New ShareMem
+                                If Me.ShareMem.IsInit = False Then
+                                    Console.WriteLine("ShareMem Not Init")
+                                    Console.WriteLine("Input ShareMem:")
+                                    Me.SMName = Console.ReadLine
+                                    Console.WriteLine("Input TextLen:")
+                                    Dim intLen As Integer = CInt(Console.ReadLine)
+                                    With Me.ShareMem
+                                        Console.WriteLine("Init " & Me.SMName & ",Len=" & intLen.ToString)
+                                        .Init(Me.SMName, intLen)
+                                        If .LastErr <> "" Then
+                                            Console.WriteLine(.LastErr)
+                                        Else
+                                            Console.WriteLine("OK")
+                                        End If
+                                    End With
+                                End If
+                                With Me.ShareMem
+                                    Dim abAny(0) As Byte
+                                    Console.WriteLine("Read")
+                                    Me.Ret = .Read(abAny)
+                                    If Me.Ret <> "OK" Then
+                                        Console.WriteLine(Me.Ret)
+                                    Else
+                                        Console.WriteLine("OK")
+                                        Console.WriteLine("New PigText")
+                                        Dim oPigText As New PigText(abAny)
+                                        If .LastErr <> "" Then
+                                            Console.WriteLine(.LastErr)
+                                        Else
+                                            Console.WriteLine("OK")
+                                            Console.WriteLine(oPigText.Text)
+                                        End If
+                                    End If
+                                End With
+                                Exit Do
+                        End Select
+                    Loop
                 Case Else
                     Console.WriteLine("Coming soon...")
             End Select
