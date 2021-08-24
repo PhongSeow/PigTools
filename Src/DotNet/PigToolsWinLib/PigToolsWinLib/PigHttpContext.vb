@@ -16,7 +16,7 @@
 '************************************
 Imports System.Web
 Imports System.Web.Services
-Imports PigToolsLib
+
 Public Class PigHttpContext
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.0.9"
