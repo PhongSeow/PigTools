@@ -2,29 +2,24 @@
 
   <PropertyGroup>
     <RootNamespace>PigToolsLib</RootNamespace>
-    <TargetFrameworks>net40;net5.0;netcoreapp3.1;</TargetFrameworks>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <TargetFrameworks>net5.0;netcoreapp3.1;</TargetFrameworks>
+    <Version>1.1.1</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
-    <Copyright>Copyright (c) 2020-2021 Seow Phong</Copyright>
     <Description>A tool set class library that simplifies the .net development interface.
 A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared memory, HTTP and compression.
-It can run on Windows and Linux platforms.</Description>
-    <RepositoryType>GIT</RepositoryType>
-    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLib</RepositoryUrl>
-    <PackageIcon>SeowPhongLogo.png</PackageIcon>
+It can run on Windows and Linux platforms.
+</Description>
+    <Copyright>Copyright (c) 2020-2021 Seow Phong</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageIcon>SeowPhongLogo.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLib</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr</PackageTags>
-    <Version>1.0.15.12</Version>
-    <PackageReleaseNotes>Optimize debugging function, fix bugs for PigFile.</PackageReleaseNotes>
-    <AssemblyVersion>1.0.15.12</AssemblyVersion>
-    <FileVersion>1.0.15.12</FileVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="My Project\" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="SeowPhongLogo.png">
@@ -33,16 +28,25 @@ It can run on Windows and Linux platforms.</Description>
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="PigToolsLiteLib" Version="1.0.2.1" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-    <PackageReference Include="System.Net.Http">
-      <Version>4.3.4</Version>
+    <PackageReference Include="Microsoft.AspNetCore.Http">
+      <Version>2.2.2</Version>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <PackageReference Include="System.Net.Http">
-      <Version>4.3.4</Version>
+    <PackageReference Include="Microsoft.AspNetCore.Http">
+      <Version>2.2.2</Version>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Services" />
   </ItemGroup>
 
 </Project>

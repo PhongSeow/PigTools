@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 给 HttpContext 加壳，实现一系统功能
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.9
+'* Version: 1.1
 '* Create Time: 31/8/2019
 '1.0.2  2020-1-29   改用fGEBaseMini
 '1.0.3  2020-1-31   BinaryRead，BinaryWrite
@@ -13,13 +13,20 @@
 '1.0.7  2020-3-11  增加 IsLocalHost
 '1.0.8  4/3/2021  Add to PigToolsWinLib
 '1.0.9  26/7/2021  Modify BinaryWrite,BinaryRead
+'1.1    28/28/2021  Modify for not NETFRAMEWORK
 '************************************
+#If NETFRAMEWORK Then
 Imports System.Web
-Imports System.Web.Services
+Imports PigToolsLiteLib
+#Else
+Imports Microsoft.AspNetCore.Http
+#End If
+
+
 
 Public Class PigHttpContext
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.9"
+    Private Const CLS_VERSION As String = "1.1.1"
 
     Public Enum enmWhatHtmlEle '什么HTML元素
         Table = 1 '表格

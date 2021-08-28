@@ -34,6 +34,7 @@
 '*1.0.27 25/7/2021   Add mOpenDebug,OpenDebug, remove GetSubStepDebugInf, Modify mstrAppTitle
 '************************************
 Imports System.Runtime.InteropServices
+
 Public Class PigBaseMini
     Private mstrClsName As String
     Private mstrClsVersion As String
