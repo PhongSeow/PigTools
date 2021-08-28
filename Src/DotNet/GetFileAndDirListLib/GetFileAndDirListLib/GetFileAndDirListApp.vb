@@ -4,20 +4,21 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Get file and directory list application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.6
+'* Version: 1.1
 '* Create Time: 21/6/2021
 '* 1.0.2  23/6/2021   Add LogFilePath,IsAbsolutePath,RootDirPath
 '* 1.0.3  23/6/2021   Modify Start
 '* 1.0.4  9/7/2021   Modify Start
 '* 1.0.5  25/7/2021  Add OpenDebug, Modify LogFilePath
 '* 1.0.6  27/7/2021  Remove OpenDebug
+'* 1.1  28/8/2021  Change Imports PigToolsLib to PigToolsLiteLib, Modify mIsNoScanDir,mGetDirList
 '************************************
 Imports PigObjFsLib
-Imports PigToolsLib
+Imports PigToolsLiteLib
 
 Public Class GetFileAndDirListApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.6"
+    Private Const CLS_VERSION As String = "1.1.6"
     Private moFS As FileSystemObject
     Private moPigFunc As PigFunc
     Property mstrLogFilePath As String
@@ -278,7 +279,13 @@ Public Class GetFileAndDirListApp
             Else
                 DirList = DirList & oFolder.Path & Me.OsCrLf
             End If
-            If oFolder.SubFolders.Count = 0 Then Exit Sub
+            Dim lngCount As Long
+#If NETCOREAPP Or NET40_OR_GREATER Then
+            lngCount=oFolder.SubFolders.Count
+#Else
+            lngCount = oFolder.SubFolders.Length
+#End If
+            If lngCount = 0 Then Exit Sub
             For Each oSubFolder In oFolder.SubFolders
                 OptRes = ""
                 Me.mGetDirList(oSubFolder, DirList, OptRes£©
@@ -307,12 +314,10 @@ Public Class GetFileAndDirListApp
 
     Private Function mIsNoScanDir(ChkDirPath As String) As Boolean
         Try
-            Dim i As Long, bolIsNoScanDir As Boolean
-            For i = 0 To Me.NoScanDirItems.Count - 1
-                With Me.NoScanDirItems(i)
-                    bolIsNoScanDir = .IsMeNoScan(ChkDirPath)
-                    If bolIsNoScanDir = True Then Exit For
-                End With
+            Dim bolIsNoScanDir As Boolean
+            For Each oNoScanDirItem As NoScanDirItem In Me.NoScanDirItems
+                bolIsNoScanDir = oNoScanDirItem.IsMeNoScan(ChkDirPath)
+                If bolIsNoScanDir = True Then Exit For
             Next
             Return bolIsNoScanDir
         Catch ex As Exception
