@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>1.0.2.1</Version>
+    <Version>1.1.8</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -19,7 +19,7 @@ It can run on Windows and Linux platforms.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon</PackageTags>
-    <PackageReleaseNotes>This is a lite version of PigToolsLib, which can be compatible with more .net frameworks of Windows and Linux.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add some functions to PigFunc class</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
