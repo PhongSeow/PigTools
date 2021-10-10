@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* Describe: Simple JSON class, which can assemble and parse JSON definitions without components.
 '* Home Url: http://www.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 8/8/2019
 '* 1.0.2    10/8/2020   Code changed from VB6 to VB.NET
 '* 1.0.3    12/8/2020   Some Function debugging 
@@ -21,11 +21,12 @@
 '* 1.0.16   29/7/2021  Add UnlockEndSymbol
 '* 1.0.17   30/7/2021  Modify New, modify UnlockEndSymbol
 '* 1.1      14/9/2021  Modify xpJSonEleType,mAddJSonStr, and add AddOneObjectEle
+'* 1.2      14/9/2021  Modify GetDateValue
 '*******************************************************
 Imports System.Text
 Public Class PigJSon
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.3"
+    Private Const CLS_VERSION As String = "1.2.2"
 
     ''' <summary>The type of the JSON element</summary>
     Public Enum xpJSonEleType
@@ -299,11 +300,17 @@ Public Class PigJSon
             Dim strValue As String = ""
             strStepName = "mGetJSonValue"
             strRet = Me.mGetJSonValue(JSonKey, strValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
-            strStepName = "Convert string to datetime"
-            GetDateValue = Me.mLng2Date(CLng(strValue), False)
-            If Me.LastErr <> "" Then Err.Raise(-1, , Me.LastErr)
-            Me.ClearErr()
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            If IsDate(strValue) = True Then
+                strStepName = "CDate"
+                GetDateValue = CDate(strValue)
+            ElseIf IsNumeric(strValue) Then
+                strStepName = "mLng2Date"
+                GetDateValue = Me.mLng2Date(CLng(strValue), False)
+                If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
+            Else
+                Throw New Exception("Not date string")
+            End If
         Catch ex As Exception
             Me.SetSubErrInf("GetDateValue", strStepName, ex)
             If Me.IsGetValueErrRetNothing = True Then
@@ -323,11 +330,17 @@ Public Class PigJSon
             Dim strValue As String = ""
             strStepName = "mGetJSonValue"
             strRet = Me.mGetJSonValue(JSonKey, strValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
-            strStepName = "Convert string to datetime"
-            GetDateValue = Me.mLng2Date(CLng(strValue), IsLocalTime)
-            If Me.LastErr <> "" Then Err.Raise(-1, , Me.LastErr)
-            Me.ClearErr()
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            If IsDate(strValue) = True Then
+                strStepName = "CDate"
+                GetDateValue = CDate(strValue)
+            ElseIf IsNumeric(strValue) Then
+                strStepName = "mLng2Date"
+                GetDateValue = Me.mLng2Date(CLng(strValue), False)
+                If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
+            Else
+                Throw New Exception("Not date string")
+            End If
         Catch ex As Exception
             Me.SetSubErrInf("GetDateValue", strStepName, ex)
             If Me.IsGetValueErrRetNothing = True Then
