@@ -1,0 +1,41 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v3.1",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v3.1": {
+      "PigToolsLiteLibDemo/1.3.2": {
+        "dependencies": {
+          "PigToolsLiteLib": "1.3.28"
+        },
+        "runtime": {
+          "PigToolsLiteLibDemo.dll": {}
+        }
+      },
+      "PigToolsLiteLib/1.3.28": {
+        "runtime": {
+          "lib/netcoreapp3.1/PigToolsLiteLib.dll": {
+            "assemblyVersion": "1.3.28.0",
+            "fileVersion": "1.3.28.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "PigToolsLiteLibDemo/1.3.2": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "PigToolsLiteLib/1.3.28": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-aVI3xtIl2zE6gF0/+K7wwxjnHi25m8euvi2SC/l92MRgdJsL/yQuyaswgjEJQsppoaeJLy137OXHizfsdHH7rw==",
+      "path": "pigtoolslitelib/1.3.28",
+      "hashPath": "pigtoolslitelib.1.3.28.nupkg.sha512"
+    }
+  }
+}
