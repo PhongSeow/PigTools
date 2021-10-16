@@ -4,9 +4,10 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Compression processing
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.1
+'* Version: 1.1
 '* Create Time: 11/12/2019
-'* 1.0.2  10/17/2020  optimization
+'* 1.0.2  17/10/2020  optimization
+'* 1.1    16/10/2021  Modify Depress
 '**********************************
 
 Imports System
@@ -16,7 +17,7 @@ Imports System.Text
 
 Public Class PigCompressor
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.2"
+    Private Const CLS_VERSION As String = "1.1.2"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
@@ -44,7 +45,7 @@ Public Class PigCompressor
     End Function
 
     Public Function Depress(CompressBytes As Byte()) As Byte()
-#If NET40_OR_GREATER Then
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
         Try
             Dim buffer As Byte()
             Using msAny As MemoryStream = New MemoryStream(CompressBytes)
@@ -70,7 +71,6 @@ Public Class PigCompressor
             Return Nothing
         End Try
 #End If
-
     End Function
 
 End Class

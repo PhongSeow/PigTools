@@ -244,7 +244,7 @@ Public Class PigFunc
             aipaAny = System.Net.Dns.GetHostAddresses(System.Environment.MachineName.ToString)
             IpList = ""
             MainIp = ""
-#If NET40_OR_GREATER Then
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
             Dim i As Integer 
             For i = 0 To aipaAny.Count - 1
                 strIp = aipaAny(i).ToString
