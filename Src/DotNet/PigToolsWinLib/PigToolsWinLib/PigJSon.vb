@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* Describe: Simple JSON class, which can assemble and parse JSON definitions without components.
 '* Home Url: http://www.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 8/8/2019
 '* 1.0.2    10/8/2020   Code changed from VB6 to VB.NET
 '* 1.0.3    12/8/2020   Some Function debugging 
@@ -22,11 +22,14 @@
 '* 1.0.17   30/7/2021  Modify New, modify UnlockEndSymbol
 '* 1.1      14/9/2021  Modify xpJSonEleType,mAddJSonStr, and add AddOneObjectEle
 '* 1.2      14/9/2021  Modify GetDateValue
+'* 1.3      15/12/2021 Use LOG
 '*******************************************************
 Imports System.Text
+Imports PigToolsLiteLib
+
 Public Class PigJSon
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.2"
+    Private Const CLS_VERSION As String = "1.3.8"
 
     ''' <summary>The type of the JSON element</summary>
     Public Enum xpJSonEleType
@@ -106,24 +109,24 @@ Public Class PigJSon
     ''' <summary>Parsing with JSON string</summary>
     ''' <param name="JSonStr">JSON string</param>
     Private Function mParseJSON(JSonStr As String) As String
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("mParseJSON")
         Try
             If Not moSc Is Nothing Then moSc = Nothing
-            strStepName = "CreateObject"
+            LOG.StepName = "CreateObject"
             moSc = CreateObject("MSScriptControl.ScriptControl")
             With moSc
                 .Language = "javascript"
-                strStepName = "Reset"
+                LOG.StepName = "Reset"
                 .Reset()
                 JSonStr = "var json = " & JSonStr & ";"
-                strStepName = "AddCode"
+                LOG.StepName = "AddCode"
                 .AddCode(JSonStr)
             End With
             mbolIsParse = True
             Return "OK"
         Catch ex As Exception
             mbolIsParse = False
-            Me.SetSubErrInf("mParseJSON", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Me.LastErr
         End Try
     End Function
@@ -146,7 +149,7 @@ Public Class PigJSon
     Public Overloads Sub AddEle(EleKey As String, IntValue As Long, Optional IsFirstEle As Boolean = False)
         Try
             Dim strRet As String = Me.mAddEle(EleKey, IntValue.ToString, IsFirstEle, False)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.IntValue", ex)
@@ -160,7 +163,7 @@ Public Class PigJSon
     Public Overloads Sub AddEle(EleKey As String, StrValue As String, Optional IsFirstEle As Boolean = False)
         Try
             Dim strRet As String = Me.mAddEle(EleKey, StrValue, IsFirstEle, True)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.StrValue", ex)
@@ -175,7 +178,7 @@ Public Class PigJSon
     Public Overloads Sub AddEle(EleKey As String, BoolValue As Boolean, Optional IsFirstEle As Boolean = False)
         Try
             Dim strRet = Me.mAddEle(EleKey, BoolValue.ToString, IsFirstEle, False)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.BoolValue", ex)
@@ -189,7 +192,7 @@ Public Class PigJSon
     Public Overloads Sub AddEle(EleKey As String, DecValue As Decimal, Optional IsFirstEle As Boolean = False)
         Try
             Dim strRet = Me.mAddEle(EleKey, DecValue.ToString, IsFirstEle, False)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.DateValue", ex)
@@ -203,9 +206,9 @@ Public Class PigJSon
     Public Overloads Sub AddEle(EleKey As String, DateValue As DateTime, Optional IsFirstEle As Boolean = False)
         Try
             Dim lngDate As Long = Me.mDate2Lng(DateValue)
-            If Me.LastErr <> "" Then Err.Raise(-1, , Me.LastErr)
+            If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
             Dim strRet = Me.mAddEle(EleKey, lngDate.ToString, IsFirstEle, False)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.DateValue", ex)
@@ -231,15 +234,15 @@ Public Class PigJSon
     ''' <summary>Gets the string value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetStrValue(JSonKey As String) As String
-        Dim strStepName As String = "", strRet As String
+        Dim LOG As New PigStepLog("GetStrValue")
         Try
             GetStrValue = ""
-            strStepName = "mGetJSonValue"
-            strRet = Me.mGetJSonValue(JSonKey, GetStrValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            log.StepName = "mGetJSonValue"
+            log.Ret = Me.mGetJSonValue(JSonKey, GetStrValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetStrValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             If Me.IsGetValueErrRetNothing = True Then
                 Return Nothing
             Else
@@ -251,17 +254,17 @@ Public Class PigJSon
     ''' <summary>Gets the boolean value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetBoolValue(JSonKey As String) As Boolean
-        Dim strStepName As String = "", strRet As String
+        Dim LOG As New PigStepLog("GetBoolValue")
         Try
             Dim strValue As String = ""
-            strStepName = "mGetJSonValue"
-            strRet = Me.mGetJSonValue(JSonKey, strValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
-            strStepName = "Convert string to boolean"
+            LOG.StepName = "mGetJSonValue"
+            LOG.Ret = Me.mGetJSonValue(JSonKey, strValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Convert string to boolean"
             GetBoolValue = CBool(strValue)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetBoolValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             If Me.IsGetValueErrRetNothing = True Then
                 Return Nothing
             Else
@@ -273,17 +276,17 @@ Public Class PigJSon
     ''' <summary>Gets the long value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetDecValue(JSonKey As String) As Decimal
-        Dim strStepName As String = "", strRet As String
+        Dim LOG As New PigStepLog("GetDecValue")
         Try
             Dim strValue As String = ""
-            strStepName = "mGetJSonValue"
-            strRet = Me.mGetJSonValue(JSonKey, strValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
-            strStepName = "Convert string to long"
+            LOG.StepName = "mGetJSonValue"
+            LOG.Ret = Me.mGetJSonValue(JSonKey, strValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Convert string to long"
             GetDecValue = CDec(strValue)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetDecValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             If Me.IsGetValueErrRetNothing = True Then
                 Return Nothing
             Else
@@ -295,24 +298,24 @@ Public Class PigJSon
     ''' <summary>Gets the date value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Overloads Function GetDateValue(JSonKey As String) As DateTime
-        Dim strStepName As String = "", strRet As String
+        Dim LOG As New PigStepLog("GetDateValue")
         Try
             Dim strValue As String = ""
-            strStepName = "mGetJSonValue"
-            strRet = Me.mGetJSonValue(JSonKey, strValue)
-            If strRet <> "OK" Then Throw New Exception(strRet)
+            LOG.StepName = "mGetJSonValue"
+            LOG.Ret = Me.mGetJSonValue(JSonKey, strValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             If IsDate(strValue) = True Then
-                strStepName = "CDate"
+                LOG.StepName = "CDate"
                 GetDateValue = CDate(strValue)
             ElseIf IsNumeric(strValue) Then
-                strStepName = "mLng2Date"
+                LOG.StepName = "mLng2Date"
                 GetDateValue = Me.mLng2Date(CLng(strValue), False)
                 If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
             Else
                 Throw New Exception("Not date string")
             End If
         Catch ex As Exception
-            Me.SetSubErrInf("GetDateValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             If Me.IsGetValueErrRetNothing = True Then
                 Return Nothing
             Else
@@ -325,24 +328,24 @@ Public Class PigJSon
     ''' <param name="JSonKey">JSON key</param>
     ''' <param name="IsLocalTime">Is it local time</param>
     Public Overloads Function GetDateValue(JSonKey As String, IsLocalTime As Boolean) As DateTime
-        Dim strStepName As String = "", strRet As String
+        Dim LOG As New PigStepLog("GetDateValue")
         Try
             Dim strValue As String = ""
-            strStepName = "mGetJSonValue"
-            strRet = Me.mGetJSonValue(JSonKey, strValue)
-            If strRet <> "OK" Then Throw New Exception(strRet)
+            LOG.StepName = "mGetJSonValue"
+            LOG.Ret = Me.mGetJSonValue(JSonKey, strValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             If IsDate(strValue) = True Then
-                strStepName = "CDate"
+                LOG.StepName = "CDate"
                 GetDateValue = CDate(strValue)
             ElseIf IsNumeric(strValue) Then
-                strStepName = "mLng2Date"
+                LOG.StepName = "mLng2Date"
                 GetDateValue = Me.mLng2Date(CLng(strValue), False)
                 If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
             Else
                 Throw New Exception("Not date string")
             End If
         Catch ex As Exception
-            Me.SetSubErrInf("GetDateValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             If Me.IsGetValueErrRetNothing = True Then
                 Return Nothing
             Else
@@ -373,17 +376,17 @@ Public Class PigJSon
     ''' <summary>Gets the long value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetLngValue(JSonKey As String) As Long
-        Dim strStepName As String = "", strRet As String
+        Dim LOG As New PigStepLog("GetLngValue")
         Try
             Dim strValue As String = ""
-            strStepName = "mGetJSonValue"
-            strRet = Me.mGetJSonValue(JSonKey, strValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
-            strStepName = "Convert string to long"
+            LOG.StepName = "mGetJSonValue"
+            LOG.Ret = Me.mGetJSonValue(JSonKey, strValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Convert string to long"
             GetLngValue = CLng(strValue)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetLngValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             If Me.IsGetValueErrRetNothing = True Then
                 Return Nothing
             Else
@@ -395,17 +398,17 @@ Public Class PigJSon
     ''' <summary>Gets the integer value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetIntValue(JSonKey As String) As Integer
-        Dim strStepName As String = "", strRet As String
+        Dim LOG As New PigStepLog("GetIntValue")
         Try
             Dim strValue As String = ""
-            strStepName = "mGetJSonValue"
-            strRet = Me.mGetJSonValue(JSonKey, strValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
-            strStepName = "Convert string to integer"
+            LOG.StepName = "mGetJSonValue"
+            LOG.Ret = Me.mGetJSonValue(JSonKey, strValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Convert string to integer"
             GetIntValue = CInt(strValue)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetIntValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             If Me.IsGetValueErrRetNothing = True Then
                 Return Nothing
             Else
@@ -442,25 +445,25 @@ Public Class PigJSon
     ''' <param name="EleValue">The string value of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Private Function mAddEle(EleKey As String, EleValue As String, IsFirstEle As Boolean, IsChgCtlStr As Boolean) As String
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("mAddEle")
         Try
-            strStepName = "Add EleKey"
+            LOG.StepName = "Add EleKey"
             If IsFirstEle = True Then
                 If EleKey <> "" Then
-                    strRet = mAddJSonStr(msbMain, xpJSonEleType.FristEle, EleKey, "", False)
+                    LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.FristEle, EleKey, "", False)
                 Else
-                    strRet = "OK"
+                    LOG.Ret = "OK"
                 End If
             Else
-                strRet = mAddJSonStr(msbMain, xpJSonEleType.NotFristEle, EleKey, "", False)
+                LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.NotFristEle, EleKey, "", False)
             End If
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
-            strStepName = "Add EleValue"
-            strRet = mAddJSonStr(msbMain, xpJSonEleType.EleValue, "", EleValue, IsChgCtlStr)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Add EleValue"
+            LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.EleValue, "", EleValue, IsChgCtlStr)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mAddEle", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -468,17 +471,16 @@ Public Class PigJSon
     ''' Unpack the complete JSON terminator and use it to append JSON elements.|将完整的JSon结束符解开，用于追加JSon元素。
     ''' </summary>
     Public Sub UnlockEndSymbol()
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("UnlockEndSymbol")
         Try
-            Dim strRet As String
             Dim strJSon As String = msbMain.ToString()
-            strStepName = "ParseJSON"
-            strRet = Me.mParseJSON(strJSon)
-            If strRet <> "OK" Then Throw New Exception("Currently, it is not a complete JSON.")
-            strStepName = "Reset"
+            LOG.StepName = "ParseJSON"
+            LOG.Ret = Me.mParseJSON(strJSon)
+            If LOG.Ret <> "OK" Then Throw New Exception("Currently, it is not a complete JSON.")
+            LOG.StepName = "Reset"
             Me.Reset()
             If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
-            strStepName = "Find EndSymbol"
+            LOG.StepName = "Find EndSymbol"
             Dim i As Long
             For i = strJSon.Length To 1 Step -1
                 If Mid(strJSon, i, 1) = "}" Then
@@ -488,7 +490,7 @@ Public Class PigJSon
             msbMain.Append(Left(strJSon, i - 1))
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("UnlockEndSymbol", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
 
@@ -496,7 +498,7 @@ Public Class PigJSon
     ''' <param name="EleKey">The key of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Public Overloads Sub AddArrayEleBegin(EleKey As String, IsFirstEle As Boolean)
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("AddArrayEleBegin")
         Try
             mSrc2JSonStr(EleKey)
             With msbMain
@@ -511,14 +513,14 @@ Public Class PigJSon
             End With
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("AddArrayEle", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
 
     ''' <summary>Add a array JSON element begin</summary>
     ''' <param name="EleKey">The key of the element</param>
     Public Overloads Sub AddArrayEleBegin(EleKey As String)
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("AddArrayEleBegin")
         Try
             mSrc2JSonStr(EleKey)
             With msbMain
@@ -529,7 +531,7 @@ Public Class PigJSon
             End With
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("AddArrayEle", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
 
@@ -537,15 +539,15 @@ Public Class PigJSon
     ''' <param name="ArrayEleValue">The array string value of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Public Overloads Sub AddArrayEleValue(ArrayEleValue As String, IsFirstEle As Boolean)
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("AddArrayEleValue")
         Try
             If IsFirstEle = False Then msbMain.Append(",")
-            strStepName = "Add EleValue"
-            strRet = mAddJSonStr(msbMain, xpJSonEleType.ArrayValue, "", ArrayEleValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            LOG.StepName = "Add EleValue"
+            LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.ArrayValue, "", ArrayEleValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("AddArrayEleValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
 
@@ -554,22 +556,22 @@ Public Class PigJSon
     ''' <param name="ArrayEleValue">The array string value of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Public Overloads Sub AddOneArrayEle(EleKey As String, ArrayEleValue As String, Optional IsFirstEle As Boolean = False)
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("AddOneArrayEle")
         Try
-            strStepName = "Check EleKey"
+            LOG.StepName = "Check EleKey"
             If EleKey = "" Then Err.Raise(-1, , "Need EleKey")
             If IsFirstEle = True Then
-                strRet = mAddJSonStr(msbMain, xpJSonEleType.FristEle, EleKey, "")
+                LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.FristEle, EleKey, "")
             Else
-                strRet = mAddJSonStr(msbMain, xpJSonEleType.NotFristEle, EleKey, "")
+                LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.NotFristEle, EleKey, "")
             End If
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
-            strStepName = "Add EleValue"
-            strRet = mAddJSonStr(msbMain, xpJSonEleType.ArrayValue, "", "[" & ArrayEleValue & "]")
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Add EleValue"
+            LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.ArrayValue, "", "[" & ArrayEleValue & "]")
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("AddArrayEleValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
 
@@ -577,15 +579,15 @@ Public Class PigJSon
     ''' <summary>Add a array JSON element</summary>
     ''' <param name="ArrayEleValue">The array string value of the element</param>
     Public Overloads Sub AddArrayEleValue(ArrayEleValue As String)
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("AddArrayEleValue")
         Try
             msbMain.Append(",")
-            strStepName = "Add EleValue"
-            strRet = mAddJSonStr(msbMain, xpJSonEleType.ArrayValue, "", ArrayEleValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            LOG.StepName = "Add EleValue"
+            LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.ArrayValue, "", ArrayEleValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("AddArrayEleValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
 
@@ -601,7 +603,7 @@ Public Class PigJSon
     End Sub
 
     Private Function mAddJSonStr(ByRef sbJSonStr As System.Text.StringBuilder, JSonEleType As xpJSonEleType, ColName As String, ColValue As String, Optional IsChgCtlStr As Boolean = False) As String
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("mAddJSonStr")
         Try
 10:         Select Case JSonEleType
                 Case xpJSonEleType.FristEle, xpJSonEleType.NotFristEle, xpJSonEleType.FristArrayEle
@@ -631,12 +633,12 @@ Public Class PigJSon
                             sbJSonStr.Append(ColValue)
                     End Select
                 Case Else
-                    strRet = "Invalid jsoneletype:" & JSonEleType.ToString
-                    Err.Raise(-1, , strRet)
+                    LOG.Ret = "Invalid jsoneletype:" & JSonEleType.ToString
+                    Throw New Exception(LOG.Ret)
             End Select
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mAddJSonStr", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -708,19 +710,19 @@ Public Class PigJSon
 
     Public Sub New(JSonStr As String)
         MyBase.New(CLS_VERSION)
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("New")
         Try
-            strStepName = "mParseJSON"
-            Dim strRet As String = Me.mParseJSON(JSonStr)
-            If strRet <> "OK" Then Throw New Exception(strRet)
-            strStepName = "Reset"
+            LOG.StepName = "mParseJSON"
+            LOG.Ret = Me.mParseJSON(JSonStr)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Reset"
             Me.Reset()
             If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
-            strStepName = "Append"
+            LOG.StepName = "Append"
             msbMain.Append(JSonStr)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("New", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
 
@@ -729,22 +731,22 @@ Public Class PigJSon
     ''' <param name="ObjectEleValue">The object string value of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Public Overloads Sub AddOneObjectEle(EleKey As String, ObjectEleValue As String, Optional IsFirstEle As Boolean = False)
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("AddOneObjectEle")
         Try
-            strStepName = "Check EleKey"
+            LOG.StepName = "Check EleKey"
             If EleKey = "" Then Err.Raise(-1, , "Need EleKey")
             If IsFirstEle = True Then
-                strRet = mAddJSonStr(msbMain, xpJSonEleType.FristEle, EleKey, "")
+                LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.FristEle, EleKey, "")
             Else
-                strRet = mAddJSonStr(msbMain, xpJSonEleType.NotFristEle, EleKey, "")
+                LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.NotFristEle, EleKey, "")
             End If
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
-            strStepName = "Add EleValue"
-            strRet = mAddJSonStr(msbMain, xpJSonEleType.ObjectValue, "", ObjectEleValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Add EleValue"
+            LOG.Ret = mAddJSonStr(msbMain, xpJSonEleType.ObjectValue, "", ObjectEleValue)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("AddObjectEleValue", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
 

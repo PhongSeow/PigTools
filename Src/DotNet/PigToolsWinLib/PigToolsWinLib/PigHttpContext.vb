@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 给 HttpContext 加壳，实现一系统功能
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 31/8/2019
 '1.0.2  2020-1-29   改用fGEBaseMini
 '1.0.3  2020-1-31   BinaryRead，BinaryWrite
@@ -14,6 +14,7 @@
 '1.0.8  4/3/2021  Add to PigToolsWinLib
 '1.0.9  26/7/2021  Modify BinaryWrite,BinaryRead
 '1.1    28/28/2021  Modify for not NETFRAMEWORK
+'1.2    15/12/2021  Use LOG
 '************************************
 #If NETFRAMEWORK Then
 Imports System.Web
@@ -26,7 +27,7 @@ Imports Microsoft.AspNetCore.Http
 
 Public Class PigHttpContext
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.1"
+    Private Const CLS_VERSION As String = "1.2.8"
 
     Public Enum enmWhatHtmlEle '什么HTML元素
         Table = 1 '表格
@@ -112,9 +113,11 @@ Public Class PigHttpContext
         End Get
     End Property
 
+    ''' <summary>
+    ''' 客户端用户信息
+    ''' </summary>
+    ''' <returns></returns>
     Public ReadOnly Property UserAgent() As String
-        '客户端用户信息
-
         Get
             Try
                 If mstrUserAgent = "" Then mstrUserAgent = Me.ServerVariables("HTTP_USER_AGENT")
@@ -315,7 +318,7 @@ Public Class PigHttpContext
     ''' <param name="IsWrite2Memory"></param>
     ''' <returns></returns>
     Private Function WriteFileMain(FilePath As String, Optional ContentType As String = "", Optional IsWrite2Memory As Boolean = True) As String
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("WriteFileMain")
         Try
             If ContentType = "" Then
                 Dim strExtName As String = LCase(moPigFunc.GetFilePart(FilePath, PigFunc.enmFilePart.ExtName))
@@ -350,8 +353,8 @@ Public Class PigHttpContext
                     Case "zip"
                         ContentType = "application/x-zip-compressed"
                     Case Else
-                        strRet = "Unrecognized file extension:" & strExtName
-                        Err.Raise(-1, , strRet)
+                        LOG.Ret = "Unrecognized file extension:" & strExtName
+                        Throw New Exception(LOG.Ret)
                 End Select
             End If
             Dim oFile As New System.IO.FileInfo(FilePath)
@@ -364,7 +367,7 @@ Public Class PigHttpContext
             End With
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("WriteFileMain", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -394,28 +397,32 @@ Public Class PigHttpContext
     End Function
 
 
+    ''' <summary>
+    ''' 向HTTP客户端写页面
+    ''' </summary>
+    ''' <param name="FilePath"></param>
+    ''' <returns></returns>
     Private Function WritePageMain(FilePath As String) As String
-        '向HTTP客户端写页面
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("WritePageMain")
         Try
             With Me.HcMain
                 .Response.Write(My.Computer.FileSystem.ReadAllText(FilePath))    '默认为UTF8
             End With
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("WritePageMain", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
     Public Function ResponsJsAlert(AlertDesc As String) As String
         '向HTTP客户端写文件
-        Dim strStepName As String = "", strRet As String = ""
+        Dim LOG As New PigStepLog("ResponsJsAlert")
         Try
             Dim strHtml As String = "<script>window.alert(""" & AlertDesc & """);</script>"
             Me.HcMain.Response.Write(strHtml)
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("ResponsJsAlert", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -425,20 +432,20 @@ Public Class PigHttpContext
 
 
     Public Function ResponseWrite(WriteStr As String) As String
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("ResponseWrite")
         Try
-            strStepName = "HcMain.Response.Write"
+            LOG.StepName = "HcMain.Response.Write"
             With Me.HcMain.Response
                 .Write(WriteStr)
             End With
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("ResponseWrite", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
     Public Function ResponsHtmlEnd(WhatTabEle As enmWhatHtmlEle) As String
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("ResponsHtmlEnd")
         Try
             With Me.HcMain.Response
                 Select Case WhatTabEle
@@ -454,19 +461,19 @@ Public Class PigHttpContext
             End With
             ResponsHtmlEnd = "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("ResponseWrite", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
     Public Overloads Function ResponsTabRowBegin() As String
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("ResponsTabRowBegin")
         Try
             With Me.HcMain.Response
                 .Write("<tr>")
             End With
             ResponsTabRowBegin = "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("ResponsTabRowBegin", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -513,7 +520,7 @@ Public Class PigHttpContext
         'Colspan：规定表头单元格可横跨的列数
         'Rowspan：规定表头单元格可横跨的行数。
         'Scope：规定表头单元格是否是行、列、行组或列组的头部。
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("ResponsTabCellBeginMain")
         Try
             With Me.HcMain.Response
                 .Write("<td")
@@ -524,7 +531,7 @@ Public Class PigHttpContext
             End With
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("ResponsTabCellBeginMain", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -534,7 +541,7 @@ Public Class PigHttpContext
         'Colspan：规定表头单元格可横跨的列数
         'Rowspan：规定表头单元格可横跨的行数。
         'Scope：规定表头单元格是否是行、列、行组或列组的头部。
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("ResponsTabHeadBeginMain")
         Try
             With Me.HcMain.Response
                 .Write("<th")
@@ -552,16 +559,21 @@ Public Class PigHttpContext
             End With
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("ResponsTabHeadBeginMain", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
 
+    ''' <summary>
+    ''' 向HTTP客户端写表格开始
+    ''' </summary>
+    ''' <param name="IsCrLf"></param>
+    ''' <param name="Border"></param>
+    ''' <param name="ClassName"></param>
+    ''' <param name="Style"></param>
+    ''' <returns></returns>
     Private Function ResponsTableBeginMain(IsCrLf As Boolean, Optional Border As Integer = 1, Optional ClassName As String = "", Optional Style As String = "width:100%;") As String
-        '向HTTP客户端写表格开始
-
-
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("ResponsTableBeginMain")
         Try
             With Me.HcMain.Response
                 .Write("<table border=""" & Border.ToString & """")
@@ -572,7 +584,7 @@ Public Class PigHttpContext
             End With
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("ResponsTableBeginMain", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
