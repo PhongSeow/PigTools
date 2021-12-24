@@ -4,8 +4,10 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0
+'* Version: 1.2
 '* Create Time: 16/10/2021
+'* 1.1    21/12/2020   Add PigConfig
+'* 1.2    22/12/2020   Modify PigConfig
 '************************************
 Imports PigToolsLiteLib
 
@@ -16,6 +18,17 @@ Public Class ConsoleDemo
     Public MainText As String
     Public Ret As String
     Public Base64EncKey As String
+    Public PigConfigApp As PigConfigApp
+    Public PigConfigSession As PigConfigSession
+    Public PigConfig As PigConfig
+    Public ConfName As String
+    Public ConfValue As String
+    Public SessionName As String
+    Public ConfDesc As String
+    Public ConfData As String
+    Public FilePath As String
+    Public Line As String
+
     Public Sub Main()
         Do While True
             Console.WriteLine("*******************")
@@ -31,6 +44,8 @@ Public Class ConsoleDemo
             Console.WriteLine("Press G to PigBytes")
             Console.WriteLine("Press H to PigAes")
             Console.WriteLine("Press I to PigRsa")
+            Console.WriteLine("Press J to PigConfig")
+            Console.WriteLine("Press K to PigXml")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey().Key
                 Case ConsoleKey.Q
@@ -262,6 +277,162 @@ Public Class ConsoleDemo
                                 Me.Ret = oPigRsa.Decrypt(strBase64EncStr, strSrc, PigText.enmTextType.UTF8)
                                 Console.WriteLine("Decrypt=" & Me.Ret)
                                 Console.WriteLine("Decrypt string=" & vbCrLf & strSrc)
+                        End Select
+                    Loop
+                Case ConsoleKey.J
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("PigConfig")
+                    Console.WriteLine("*******************")
+                    Dim oPigRsa As New PigRsa
+                    Dim strBase64EncKey As String = ""
+                    Dim strSrc As String = ""
+                    Dim strBase64EncStr As String = ""
+                    Do While True
+                        Console.WriteLine("*******************")
+                        Console.WriteLine("Press Q to Up")
+                        Console.WriteLine("Press A to New")
+                        Console.WriteLine("Press B to MkEncKey")
+                        Console.WriteLine("Press C to GetEncStr")
+                        Console.WriteLine("Press D to Add ConfigSession")
+                        Console.WriteLine("Press E to Add ConfigItem")
+                        Console.WriteLine("Press F to SaveConfig and SaveConfigFile")
+                        Console.WriteLine("Press G to LoadConfig")
+                        Console.WriteLine("Press H to LoadConfigFile")
+                        Console.WriteLine("Press I to ShowConfig")
+                        Console.WriteLine("*******************")
+                        Select Case Console.ReadKey().Key
+                            Case ConsoleKey.Q
+                                Exit Do
+                            Case ConsoleKey.A
+                                Console.WriteLine("EncKey=")
+                                Me.Line = Console.ReadLine
+                                Me.PigConfigApp = New PigConfigApp(Me.Line)
+                                Console.WriteLine("New PigConfigApp=")
+                                If Me.PigConfigApp.LastErr = "" Then
+                                    Console.WriteLine("OK")
+                                    Me.PigConfigApp.OpenDebug()
+                                Else
+                                    Console.WriteLine(Me.PigConfigApp.LastErr)
+                                End If
+                            Case ConsoleKey.B
+                                If Me.PigConfigApp Is Nothing Then
+                                    Console.WriteLine("PigConfigApp Is Nothing")
+                                Else
+                                    Console.WriteLine("PigConfigApp.MkEncKey=")
+                                    Me.Ret = Me.PigConfigApp.MkEncKey(Me.Base64EncKey)
+                                    Console.WriteLine(Me.Ret)
+                                    If Me.Ret = "OK" Then
+                                        Console.WriteLine(Me.Base64EncKey)
+                                    End If
+                                End If
+                            Case ConsoleKey.C
+                                If Me.PigConfigApp Is Nothing Then
+                                    Console.WriteLine("PigConfigApp Is Nothing")
+                                Else
+                                    Console.WriteLine("Input source string=")
+                                    Me.MainText = Console.ReadLine
+                                    Console.WriteLine("GetEncStr=")
+                                    Me.Ret = Me.PigConfigApp.GetEncStr(Me.MainText)
+                                    Console.WriteLine(Me.Ret)
+                                End If
+                            Case ConsoleKey.D
+                                If Me.PigConfigApp Is Nothing Then
+                                    Console.WriteLine("PigConfigApp Is Nothing")
+                                Else
+                                    Console.WriteLine("SessionName=")
+                                    Me.SessionName = Console.ReadLine
+                                    Me.PigConfigSession = Me.PigConfigApp.PigConfigSessions.Add(Me.SessionName)
+                                    If Me.PigConfigApp.PigConfigSessions.LastErr <> "" Then
+                                        Console.WriteLine(Me.PigConfigApp.PigConfigSessions.LastErr)
+                                    ElseIf Me.PigConfigSession Is Nothing Then
+                                        Console.WriteLine("PigConfigSession Is Nothing")
+                                    Else
+                                        Console.WriteLine("OK")
+                                    End If
+                                End If
+                            Case ConsoleKey.E
+                                If Me.PigConfigApp Is Nothing Then
+                                    Console.WriteLine("PigConfigApp Is Nothing")
+                                Else
+                                    Console.WriteLine("SessionName=" & Me.SessionName)
+                                    Me.Line = Console.ReadLine
+                                    If Me.Line <> "" Then Me.SessionName = Me.Line
+                                    Me.PigConfigSession = Me.PigConfigApp.GetPigConfigSession(Me.SessionName)
+                                    If Me.PigConfigApp.LastErr <> "" Then
+                                        Console.WriteLine(Me.PigConfigApp.LastErr)
+                                    ElseIf Me.PigConfigSession Is Nothing Then
+                                        Console.WriteLine("PigConfigSession Is Nothing")
+                                    Else
+                                        Console.WriteLine("OK")
+                                        Console.WriteLine("ConfName=" & Me.ConfName)
+                                        Me.ConfName = Console.ReadLine
+                                        Console.WriteLine("ConfValue=" & Me.ConfValue)
+                                        Me.ConfValue = Console.ReadLine
+                                        Console.WriteLine("ConfDesc=" & Me.ConfDesc)
+                                        Me.ConfDesc = Console.ReadLine
+                                        Me.PigConfig = Me.PigConfigSession.PigConfigs.Add(Me.ConfName, Me.ConfValue, Me.ConfDesc)
+                                        If Me.PigConfigSession.PigConfigs.LastErr <> "" Then
+                                            Console.WriteLine(Me.PigConfigSession.PigConfigs.LastErr)
+                                        ElseIf Me.PigConfig Is Nothing Then
+                                            Console.WriteLine("PigConfig Is Nothing")
+                                        Else
+                                            Console.WriteLine("OK")
+                                        End If
+                                    End If
+                                End If
+                            Case ConsoleKey.F
+                                If Me.PigConfigApp Is Nothing Then
+                                    Console.WriteLine("PigConfigApp Is Nothing")
+                                Else
+                                    Console.WriteLine("PigConfigApp.SaveConfig")
+                                    Me.Ret = Me.PigConfigApp.SaveConfig(Me.ConfData, PigConfigApp.EnmSaveType.Xml)
+                                    Console.WriteLine(Me.Ret)
+                                    Console.WriteLine("ConfData=")
+                                    Console.WriteLine(Me.ConfData)
+                                    Console.WriteLine("PigConfigApp.SaveConfigFile")
+                                    Console.WriteLine("FilePath=" & Me.FilePath)
+                                    Me.FilePath = Console.ReadLine
+                                    Me.Ret = Me.PigConfigApp.SaveConfigFile(Me.FilePath, PigConfigApp.EnmSaveType.Xml)
+                                    Console.WriteLine(Me.Ret)
+                                End If
+                            Case ConsoleKey.G
+                                If Me.PigConfigApp Is Nothing Then
+                                    Console.WriteLine("PigConfigApp Is Nothing")
+                                Else
+                                    Console.WriteLine("FilePath=" & Me.FilePath)
+                                    Me.Line = Console.ReadLine
+                                    If Me.Line <> "" Then Me.FilePath = Me.Line
+                                    Console.WriteLine("PigConfigApp.LoadConfigFile")
+                                    Me.Ret = Me.PigConfigApp.LoadConfigFile(Me.FilePath, PigConfigApp.EnmSaveType.Xml)
+                                    Console.WriteLine(Me.Ret)
+                                End If
+                            Case ConsoleKey.H
+                                If Me.PigConfigApp Is Nothing Then
+                                    Console.WriteLine("PigConfigApp Is Nothing")
+                                Else
+                                    Console.WriteLine("FilePath=" & Me.FilePath)
+                                    Me.Line = Console.ReadLine
+                                    If Me.Line <> "" Then Me.FilePath = Me.Line
+                                    Console.WriteLine("PigConfigApp.LoadConfigFile")
+                                    Me.Ret = Me.PigConfigApp.LoadConfigFile(Me.FilePath, PigConfigApp.EnmSaveType.Xml)
+                                    Console.WriteLine(Me.Ret)
+                                End If
+                            Case ConsoleKey.I
+                                If Me.PigConfigApp Is Nothing Then
+                                    Console.WriteLine("PigConfigApp Is Nothing")
+                                Else
+                                    For Each oPigConfigSession As PigConfigSession In Me.PigConfigApp.PigConfigSessions
+                                        Console.WriteLine("PigConfigSession=" & oPigConfigSession.SessionName)
+                                        For Each oPigConfig As PigConfig In oPigConfigSession.PigConfigs
+                                            With oPigConfig
+                                                Console.WriteLine("ConfName=" & .ConfName)
+                                                Console.WriteLine("ConfValue=" & .ConfValue)
+                                                Console.WriteLine("ConfDesc=" & .ConfDesc)
+                                                Console.WriteLine("ContentType=" & .ContentType.ToString)
+                                            End With
+                                        Next
+                                    Next
+                                End If
                         End Select
                     Loop
                 Case Else
