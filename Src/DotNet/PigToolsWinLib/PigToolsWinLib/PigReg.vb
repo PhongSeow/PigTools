@@ -4,17 +4,18 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 各种注册表操作
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.8
+'* Version: 1.1
 '* Create Time: 5/11/2019
 '* 1.0.2  2019-11-7   修改BUG
 '* 1.0.3  15/4/2021   Add to PigToolsWinLib
+'* 1.1  15/4/2021   Modify mOpenRegPath
 '************************************
 Imports Microsoft.Win32
 Public Class PigReg
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.3"
+    Private Const CLS_VERSION As String = "1.1.1"
     ''' <summary>注册表的根区</summary>
-    Public Enum emnRegRoot
+    Public Enum EmnRegRoot
         ''' <summary>HKEY_CLASSES_ROOT</summary>
         CLASSES_ROOT = &H80000000
         ''' <summary>HKEY_CURRENT_USER</summary>
@@ -28,7 +29,7 @@ Public Class PigReg
     End Enum
 
     ''' <summary>获取什么注册表项</summary>
-    Public Enum emnGetWhatRegItem
+    Public Enum EmnGetWhatRegItem
         ''' <summary>Windows的产品ID</summary>
         WinProductId = 10
         ''' <summary>机器GUID，ID在重装Windows系统后应该不一样了</summary>
@@ -235,7 +236,7 @@ Public Class PigReg
                     rkRoot = Registry.Users
                 Case Else
                     rkRoot = Nothing
-                    Err.Raise(-1, , "无效RegRoot")
+                    Throw New Exception("Invalid RegRoot")
             End Select
             strStepName = "OpenSubKey(" & RegPath & ")"
             mOpenRegPath = rkRoot.OpenSubKey(RegPath, IsReadOnly)

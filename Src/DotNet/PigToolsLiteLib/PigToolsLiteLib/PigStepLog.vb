@@ -4,33 +4,77 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigStepLog is for logging and error handling in the process.
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.6
+'* Version: 1.2.1
 '* Create Time: 8/12/2019
+'1.1    18/12/2021  Add TrackID,ErrInf2User, modify mNew,StepName
+'1.2    21/12/2021  Modify TrackID
 '************************************
 Public Class PigStepLog
     Public ReadOnly Property SubName As String
-    Public ReadOnly Property IsLogUseTime As Boolean
+
+    Private mbolIsLogUseTime As Boolean
+    Public Property IsLogUseTime As Boolean
+        Get
+            Return mbolIsLogUseTime
+        End Get
+        Friend Set(value As Boolean)
+            mbolIsLogUseTime = value
+        End Set
+    End Property
+
     Public Ret As String = ""
+
     Private moUseTime As UseTime
 
-    Private Sub mNew()
-        If Me.IsLogUseTime = True Then
+    ''' <summary>
+    ''' 显示给用户看的错误信息，不能显示内部错误内容。
+    ''' </summary>
+    Private mstrErrInf2User As String
+    Public Property ErrInf2User As String
+        Get
+            If Me.TrackID = "" Then
+                Return mstrErrInf2User
+            Else
+                Return mstrErrInf2User & "(" & Me.TrackID & ")"
+            End If
+        End Get
+        Set(value As String)
+            mstrErrInf2User = value
+        End Set
+    End Property
 
+    Private Sub mNew(Optional IsTrack As Boolean = False, Optional IsLogUseTime As Boolean = False)
+        Me.IsLogUseTime = IsLogUseTime
+        If IsTrack = True Then
+            Dim oPigFunc As New PigFunc
+            Me.TrackID = oPigFunc.GetPKeyValue("PigStepLog", False)
+            oPigFunc = Nothing
+        End If
+        If Me.IsLogUseTime = True Then
             moUseTime = New UseTime
             moUseTime.GoBegin()
         End If
     End Sub
     Public Sub New(SubName As String)
         Me.SubName = SubName
-        Me.IsLogUseTime = False
         Me.mNew()
     End Sub
 
     Public Sub New(SubName As String, IsLogUseTime As Boolean)
         Me.SubName = SubName
-        Me.IsLogUseTime = IsLogUseTime
-        Me.mNew()
+        Me.mNew(, IsLogUseTime)
     End Sub
+
+
+    Private mstrTrackID As String
+    Public Property TrackID As String
+        Get
+            Return mstrTrackID
+        End Get
+        Friend Set(value As String)
+            mstrTrackID = value
+        End Set
+    End Property
 
     Private mstrStepName As String = ""
     Public Property StepName As String
@@ -39,6 +83,9 @@ Public Class PigStepLog
         End Get
         Set(value As String)
             mstrStepName = value
+            If Me.TrackID <> "" Then
+                Me.AddStepNameInf(Me.TrackID)
+            End If
         End Set
     End Property
 
@@ -82,4 +129,6 @@ Public Class PigStepLog
             moUseTime.ToEnd()
         End If
     End Sub
+
+
 End Class

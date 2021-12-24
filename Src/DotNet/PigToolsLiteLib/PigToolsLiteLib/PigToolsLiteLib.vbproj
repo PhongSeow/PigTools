@@ -3,12 +3,13 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>1.5.9</Version>
+    <Version>1.6.118</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
 A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared memory and compression.
+Configuration file management supporting configuration item encryption.
 It can run on Windows and Linux platforms.
 </Description>
     <Copyright>Copyright (c) 2021 Seow Phong</Copyright>
@@ -19,7 +20,8 @@ It can run on Windows and Linux platforms.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa</PackageTags>
-    <PackageReleaseNotes>Added PigStepLog for logging and error handling in the process.</PackageReleaseNotes>
+    <PackageReleaseNotes>Optimize PigStepLog.
+Add PigConfigApp for configuration management.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

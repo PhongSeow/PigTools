@@ -17,7 +17,7 @@
 '* 1.0.11   4/4/2021   Modify AddArrayEleBegin,mSrc2JSonStr,mJSonStr2Src,mLng2Date
 '* 1.0.12   5/7/2021   Remove parsing function
 '* 1.0.13   6/7/2021   Modify mLng2Date,AddEle,mDate2Lng
-'* 1.0.14   27/8/2021   Modify mLng2Date for NETCOREAPP3_1_OR_GREATER
+'* 1.0.14   27/8/2021  Modify mLng2Date for NETCOREAPP3_1_OR_GREATER
 '* 1.1      14/9/2021  Modify xpJSonEleType,mAddJSonStr, and add AddOneObjectEle
 '*******************************************************
 Imports System.Text

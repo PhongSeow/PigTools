@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.13
+'* Version: 1.2
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -16,12 +16,14 @@
 '1.0.11 2/2/2021   Modify mLng2Date
 '1.0.12 24/8/2021   Modify mLng2Date
 '1.0.13 24/8/2021   Modify mLng2Date for NETCOREAPP3_1_OR_GREATER
+'1.1 24/8/2021   Modify mGetStr
+'1.2 22/12/2021   Modify mXMLAddStr
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.13.1"
+    Private Const CLS_VERSION As String = "1.2.3"
     Private mstrMainXml As String
     Private mslMain As SortedList
 
@@ -221,7 +223,7 @@ Public Class PigXml
                 strBegin &= "<![CDATA["
                 strEnd = "]]>" & strEnd
             End If
-            mXmlGetStr = Me.GetStr(SrcXmlStr, strBegin, strEnd, True)
+            mXmlGetStr = Me.mGetStr(SrcXmlStr, strBegin, strEnd, True)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mXmlGetStr", ex)
@@ -254,7 +256,7 @@ Public Class PigXml
 
 
     ''' <remarks>截取字符串</remarks>
-    Public Function GetStr(ByRef SrcStr As String, BeginKey As String, EndKey As String, Optional IsCut As Boolean = True) As String
+    Private Function mGetStr(ByRef SrcStr As String, BeginKey As String, EndKey As String, Optional IsCut As Boolean = True) As String
         Dim intBegin As Integer
         Dim intEnd As Integer
         Dim intBeginLen As Integer
@@ -271,13 +273,13 @@ Public Class PigXml
             End If
             If intEnd <= intBegin Then Err.Raise(-1, , "intEnd <= intBegin")
             If intBegin = 0 Then Err.Raise(-1, , "intBegin为0")
-            GetStr = Mid(SrcStr, intBegin + intBeginLen, (intEnd - intBegin - intBeginLen))
+            mGetStr = Mid(SrcStr, intBegin + intBeginLen, (intEnd - intBegin - intBeginLen))
             If IsCut = True Then
                 SrcStr = Left(SrcStr, intBegin - 1) & Mid(SrcStr, intEnd + intEndLen)
             End If
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetStr", ex)
+            Me.SetSubErrInf("mGetStr", ex)
             Return ""
         End Try
     End Function
@@ -409,7 +411,7 @@ Public Class PigXml
                          Optional ByVal IsCData As Boolean = False) As String
         Try
             Select Case AddWhere
-                Case xpXMLAddWhere.Left, xpXMLAddWhere.Both
+                Case xpXMLAddWhere.Left, xpXMLAddWhere.Both, xpXMLAddWhere.Right
 10:                 If LeftTab > 0 Then
                         For i = 1 To LeftTab
                             sbAny.Append(vbTab)
