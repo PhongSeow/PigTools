@@ -6,23 +6,23 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "GetFileAndDirListLibDemo/1.1.8": {
+      "GetFileAndDirListLibDemo/1.1.18": {
         "dependencies": {
-          "GetFileAndDirListLib": "1.1.28"
+          "GetFileAndDirListLib": "1.1.38"
         },
         "runtime": {
           "GetFileAndDirListLibDemo.dll": {}
         }
       },
-      "GetFileAndDirListLib/1.1.28": {
+      "GetFileAndDirListLib/1.1.38": {
         "dependencies": {
           "PigObjFsLib": "1.3.8",
-          "PigToolsLiteLib": "1.3.28"
+          "PigToolsLiteLib": "1.6.118"
         },
         "runtime": {
           "lib/netcoreapp3.1/GetFileAndDirListLib.dll": {
-            "assemblyVersion": "1.1.28.0",
-            "fileVersion": "1.1.28.0"
+            "assemblyVersion": "1.1.38.0",
+            "fileVersion": "1.1.38.0"
           }
         }
       },
@@ -34,28 +34,28 @@
           }
         }
       },
-      "PigToolsLiteLib/1.3.28": {
+      "PigToolsLiteLib/1.6.118": {
         "runtime": {
           "lib/netcoreapp3.1/PigToolsLiteLib.dll": {
-            "assemblyVersion": "1.3.28.0",
-            "fileVersion": "1.3.28.0"
+            "assemblyVersion": "1.6.118.0",
+            "fileVersion": "1.6.118.0"
           }
         }
       }
     }
   },
   "libraries": {
-    "GetFileAndDirListLibDemo/1.1.8": {
+    "GetFileAndDirListLibDemo/1.1.18": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "GetFileAndDirListLib/1.1.28": {
+    "GetFileAndDirListLib/1.1.38": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-d4KGuKICFpoxipKzx4f70NUv93XH2mA7IjlLit+Lxeo2kq1wfGuplDu76savZncnE8QVOdiykr83zdwGkUpXwA==",
-      "path": "getfileanddirlistlib/1.1.28",
-      "hashPath": "getfileanddirlistlib.1.1.28.nupkg.sha512"
+      "sha512": "sha512-epH0xTFxpsHgVV8ScX2JjpXl8T+4jVWB2aPv+ZSZMfSwfE4rzR3EVP0CBbw+Jaf18n6mIraMT6COfGRL+l/Ifw==",
+      "path": "getfileanddirlistlib/1.1.38",
+      "hashPath": "getfileanddirlistlib.1.1.38.nupkg.sha512"
     },
     "PigObjFsLib/1.3.8": {
       "type": "package",
@@ -64,12 +64,12 @@
       "path": "pigobjfslib/1.3.8",
       "hashPath": "pigobjfslib.1.3.8.nupkg.sha512"
     },
-    "PigToolsLiteLib/1.3.28": {
+    "PigToolsLiteLib/1.6.118": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-aVI3xtIl2zE6gF0/+K7wwxjnHi25m8euvi2SC/l92MRgdJsL/yQuyaswgjEJQsppoaeJLy137OXHizfsdHH7rw==",
-      "path": "pigtoolslitelib/1.3.28",
-      "hashPath": "pigtoolslitelib.1.3.28.nupkg.sha512"
+      "sha512": "sha512-/pQkehh6KupUW1etYxzoLbB0QKXd40G3CwRhhw2DgPfR+idsnaWsmiZ11q5MKQwVwhL94cg12gmf7/G0VttzXg==",
+      "path": "pigtoolslitelib/1.6.118",
+      "hashPath": "pigtoolslitelib.1.6.118.nupkg.sha512"
     }
   }
 }
