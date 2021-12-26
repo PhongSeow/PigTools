@@ -4,10 +4,11 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2020   Add PigConfig
 '* 1.2    22/12/2020   Modify PigConfig
+'* 1.3    26/12/2020   Modify PigConfig
 '************************************
 Imports PigToolsLiteLib
 
@@ -341,7 +342,7 @@ Public Class ConsoleDemo
                                 Else
                                     Console.WriteLine("SessionName=")
                                     Me.SessionName = Console.ReadLine
-                                    Me.PigConfigSession = Me.PigConfigApp.PigConfigSessions.Add(Me.SessionName)
+                                    Me.PigConfigSession = Me.PigConfigApp.PigConfigSessions.AddOrGet(Me.SessionName)
                                     If Me.PigConfigApp.PigConfigSessions.LastErr <> "" Then
                                         Console.WriteLine(Me.PigConfigApp.PigConfigSessions.LastErr)
                                     ElseIf Me.PigConfigSession Is Nothing Then
@@ -370,7 +371,7 @@ Public Class ConsoleDemo
                                         Me.ConfValue = Console.ReadLine
                                         Console.WriteLine("ConfDesc=" & Me.ConfDesc)
                                         Me.ConfDesc = Console.ReadLine
-                                        Me.PigConfig = Me.PigConfigSession.PigConfigs.Add(Me.ConfName, Me.ConfValue, Me.ConfDesc)
+                                        Me.PigConfig = Me.PigConfigSession.PigConfigs.AddOrGet(Me.ConfName, Me.ConfValue, Me.ConfDesc)
                                         If Me.PigConfigSession.PigConfigs.LastErr <> "" Then
                                             Console.WriteLine(Me.PigConfigSession.PigConfigs.LastErr)
                                         ElseIf Me.PigConfig Is Nothing Then
