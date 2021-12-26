@@ -4,15 +4,16 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 配置项段落|Configuration session
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.4
 '* Create Time: 21/12/2021
 '* 1.1    22/12/2020   Modify mNew 
 '* 1.2    23/12/2020   Modify mNew 
 '* 1.3    24/12/2020   Add ConfStrValue,ConfIntValue,ConfBoolValue,ConfDateValue,ConfDecValue, modify mNew,SetDebug
+'* 1.4    25/12/2020   Add SessionDesc, modify New,mNew
 '**********************************
 Public Class PigConfigSession
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.9"
+    Private Const CLS_VERSION As String = "1.4.2"
 
     Private moPigConfigs As PigConfigs
     Public Property PigConfigs As PigConfigs
@@ -26,15 +27,21 @@ Public Class PigConfigSession
 
     Public Sub New(SessionName As String, Parent As PigConfigApp)
         MyBase.New(CLS_VERSION)
-        Me.mNew(SessionName, Parent)
+        Me.mNew(SessionName, "", Parent)
     End Sub
 
-    Private Sub mNew(SessionName As String, Parent As PigConfigApp)
+    Public Sub New(SessionName As String, SessionDesc As String, Parent As PigConfigApp)
+        MyBase.New(CLS_VERSION)
+        Me.mNew(SessionName, SessionDesc, Parent)
+    End Sub
+
+    Private Sub mNew(SessionName As String, SessionDesc As String, Parent As PigConfigApp)
         Try
             If SessionName = "" Then Throw New Exception("SessionName is a space")
             If Parent Is Nothing Then Throw New Exception("PigConfigApp Is Nothing")
             With Me
                 .SessionName = SessionName
+                .SessionDesc = SessionDesc
                 .Parent = Parent
                 .PigConfigs = New PigConfigs(Me)
             End With
@@ -54,6 +61,19 @@ Public Class PigConfigSession
         End Get
         Friend Set(value As String)
             mstrSessionName = value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' 段落描述|Section describe
+    ''' </summary>
+    Private mstrSessionDesc As String
+    Public Property SessionDesc As String
+        Get
+            Return mstrSessionDesc
+        End Get
+        Friend Set(value As String)
+            mstrSessionDesc = value
         End Set
     End Property
 

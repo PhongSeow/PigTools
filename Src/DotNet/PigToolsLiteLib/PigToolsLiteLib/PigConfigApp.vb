@@ -4,17 +4,19 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 配置应用类|Configure application classes
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.7
 '* Create Time: 18/12/2021
 '* 1.1    20/12/2020   Add mNew,MkEncKey,mLoadConfig,GetEncStr
 '* 1.2    21/12/2020   Modify mLoadConfig,EnmSaveType,mNew, add LoadConfig,LoadConfigFile,SaveConfigFile,SaveConfig,PigConfigSessions,AddNewConfigSession
 '* 1.3    22/12/2020   Modify mNew,SaveConfig,mSaveConfig,SaveConfigFile, add TextType,fGetUnEncStr,LoadConfigFile,mLoadConfig
 '* 1.4    23/12/2020   Modify mNew,mLoadConfig,GetPigConfigSession,MkEncKey
 '* 1.5    24/12/2020   Modify GetPigConfig,mNew,mLoadConfig,MkEncKey, Add ConfStrValue,ConfIntValue,ConfBoolValue,ConfDateValue,ConfDecValue
+'* 1.6    25/12/2020   Modify mLoadConfig
+'* 1.7    26/12/2020   Add IsClearFrist, modify mLoadConfig
 '**********************************
 Public Class PigConfigApp
     Inherits PigBaseMini
-	Private Const CLS_VERSION As String = "1.5.18"
+	Private Const CLS_VERSION As String = "1.7.2"
 	Public Enum EnmSaveType
 		''' <summary>
 		''' XML text
@@ -214,14 +216,14 @@ Public Class PigConfigApp
 				LOG.StepName = "New PigConfigSessions"
 				Me.PigConfigSessions = New PigConfigSessions(Me)
 				If Me.PigConfigSessions.LastErr <> "" Then Throw New Exception(Me.PigConfigSessions.LastErr)
-			Else
+			ElseIf Me.IsLoadConfClearFrist = True Then
 				LOG.StepName = "PigConfigSessions.Clear"
 				Me.PigConfigSessions.Clear()
 				If Me.PigConfigSessions.LastErr <> "" Then Throw New Exception(Me.PigConfigSessions.LastErr)
-				LOG.StepName = "PigConfigSessions.Add(Main)"
-				Me.PigConfigSessions.Add("Main")
-				If Me.PigConfigSessions.LastErr <> "" Then Throw New Exception(Me.PigConfigSessions.LastErr)
 			End If
+			LOG.StepName = "PigConfigSessions.Add(Main)"
+			Me.PigConfigSessions.AddOrGet("Main")
+			If Me.PigConfigSessions.LastErr <> "" Then Throw New Exception(Me.PigConfigSessions.LastErr)
 			LOG.StepName = "New PigText"
 			Dim ptConfData As New PigText(AbConfData, Me.TextType)
 			If ptConfData.LastErr <> "" Then Throw New Exception(ptConfData.LastErr)
@@ -251,14 +253,8 @@ Public Class PigConfigApp
 							Throw New Exception(pxSession.LastErr)
 						End If
 						Dim strSessionName As String = pxSession.XmlGetStr("SessionName")
-						Dim oPigConfigSession As PigConfigSession
-						If Me.PigConfigSessions.IsItemExists(strSessionName) = True Then
-							LOG.StepName = "PigConfigSessions.Item"
-							oPigConfigSession = Me.PigConfigSessions.Item(strSessionName)
-						Else
-							LOG.StepName = "PigConfigSessions.Add"
-							oPigConfigSession = Me.PigConfigSessions.Add(strSessionName)
-						End If
+						LOG.StepName = "PigConfigSessions.AddOrGet"
+						Dim oPigConfigSession As PigConfigSession = Me.PigConfigSessions.AddOrGet(strSessionName)
 						If Me.PigConfigSessions.LastErr <> "" Then
 							LOG.AddStepNameInf(strSessionName)
 							Throw New Exception(Me.PigConfigSessions.LastErr)
@@ -284,17 +280,19 @@ Public Class PigConfigApp
 								Throw New Exception(pxConfItem.LastErr)
 							End If
 							Dim strConfName As String = pxConfItem.XmlGetStr("ConfName")
-							If oPigConfigSession.PigConfigs.IsItemExists(strConfName) = True Then
-								LOG.AddStepNameInf("Duplicate definition of configuration item")
-								Me.PrintDebugLog(LOG.SubName, LOG.StepName, strSessionName & "." & strConfName)
-							Else
-								LOG.StepName = "PigConfigs.Add"
-								oPigConfigSession.PigConfigs.Add(strConfName, pxConfItem.XmlGetStr("ConfValue"), pxConfItem.XmlGetStr("ConfDesc"))
-								If oPigConfigSession.PigConfigs.LastErr <> "" Then
-									LOG.AddStepNameInf(strConfName)
-									Throw New Exception(oPigConfigSession.PigConfigs.LastErr)
-								End If
+							LOG.StepName = "PigConfigs.AddOrGet"
+							Dim oPigConfig As PigConfig = oPigConfigSession.PigConfigs.AddOrGet(strConfName)
+							If oPigConfigSession.PigConfigs.LastErr <> "" Then
+								LOG.AddStepNameInf(strConfName)
+								Throw New Exception(oPigConfigSession.PigConfigs.LastErr)
+							ElseIf oPigConfig Is Nothing Then
+								LOG.AddStepNameInf(strConfName)
+								Throw New Exception("oPigConfig Is Nothing")
 							End If
+							With oPigConfig
+								.ConfValue = pxConfItem.XmlGetStr("ConfValue")
+								.ConfDesc = pxConfItem.XmlGetStr("ConfDesc")
+							End With
 						Loop
 					Loop
 			End Select
@@ -603,6 +601,23 @@ Public Class PigConfigApp
 			End If
 		End Get
 	End Property
+
+
+	''' <summary>
+	''' 是否在导入配置前清空原有配置|Clear the original configuration before importing the configuration
+	''' 默认为False，好处是配置文件中没有新增的参数，也不会影响新增加参数的使用|The default value is false. The advantage is that there are no new parameters in the configuration file, and the use of new parameters will not be affected
+	''' </summary>
+	''' <returns></returns>
+	Private mbolIsLoadConfClearFrist As Boolean = False
+	Public Property IsLoadConfClearFrist() As Boolean
+		Get
+			Return mbolIsLoadConfClearFrist
+		End Get
+		Friend Set(value As Boolean)
+			mbolIsLoadConfClearFrist = value
+		End Set
+	End Property
+
 
 
 	Public Overloads Function SetDebug(Optional DebugFilePath As String = "") As String

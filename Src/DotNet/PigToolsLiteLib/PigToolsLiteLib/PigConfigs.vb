@@ -4,16 +4,18 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigConfig 的集合类|Collection class of PigConfig
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 18/12/2021
 '* 1.1    22/12/2020   Modify Add 
 '* 1.2    23/12/2020   Add Parent, modify New,Add
 '* 1.3    24/12/2020   Add Clear
+'* 1.4    25/12/2020   Add AddOrGet
+'* 1.5    26/12/2020   Add AddOrGet
 '************************************
 Public Class PigConfigs
     Inherits PigBaseMini
     Implements IEnumerable(Of PigConfig)
-    Private Const CLS_VERSION As String = "1.3.2"
+    Private Const CLS_VERSION As String = "1.5.1"
     Friend Property Parent As PigConfigSession
     Private ReadOnly moList As New List(Of PigConfig)
 
@@ -94,6 +96,20 @@ Public Class PigConfigs
     End Function
 
 
+    Public Function AddOrGet(ConfName As String, ConfValue As String) As PigConfig
+        Dim LOG As New PigStepLog("AddOrGet")
+        Try
+            If Me.IsItemExists(ConfName) = True Then
+                AddOrGet = Me.Item(ConfName)
+            Else
+                AddOrGet = Me.Add(ConfName, ConfValue)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Nothing
+        End Try
+    End Function
+
     Public Function Add(ConfName As String, ConfValue As String) As PigConfig
         Dim LOG As New PigStepLog("Remove.ConfName.ConfValue")
         Try
@@ -114,6 +130,21 @@ Public Class PigConfigs
             Return Nothing
         End Try
     End Function
+
+    Public Function AddOrGet(ConfName As String, ConfValue As String, ConfDesc As String) As PigConfig
+        Dim LOG As New PigStepLog("AddOrGet")
+        Try
+            If Me.IsItemExists(ConfName) = True Then
+                AddOrGet = Me.Item(ConfName)
+            Else
+                AddOrGet = Me.Add(ConfName, ConfValue, ConfDesc)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Nothing
+        End Try
+    End Function
+
 
     Public Function Add(ConfName As String, ConfValue As String, ConfDesc As String) As PigConfig
         Dim LOG As New PigStepLog("Remove.ConfName.ConfValue.ConfDesc")
@@ -183,6 +214,20 @@ Public Class PigConfigs
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function AddOrGet(ConfName As String) As PigConfig
+        Dim LOG As New PigStepLog("AddOrGet")
+        Try
+            If Me.IsItemExists(ConfName) = True Then
+                AddOrGet = Me.Item(ConfName)
+            Else
+                AddOrGet = Me.Add(ConfName)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Nothing
         End Try
     End Function
 

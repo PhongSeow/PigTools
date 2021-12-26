@@ -4,15 +4,16 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigConfigSession 的集合类|Collection class of PigConfigSession
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 21/12/2021
 '* 1.1    23/12/2020   Add Parent, modify New,Add
 '* 1.2    24/12/2020   Add Clear
+'* 1.3    25/12/2020   Add AddOrGet
 '************************************
 Public Class PigConfigSessions
     Inherits PigBaseMini
     Implements IEnumerable(Of PigConfigSession)
-    Private Const CLS_VERSION As String = "1.2.2"
+    Private Const CLS_VERSION As String = "1.3.2"
 
     Friend Property Parent As PigConfigApp
     Private ReadOnly moList As New List(Of PigConfigSession)
@@ -98,6 +99,34 @@ Public Class PigConfigSessions
         End Try
     End Function
 
+    Public Function AddOrGet(SessionName As String) As PigConfigSession
+        Dim LOG As New PigStepLog("AddOrGet")
+        Try
+            If Me.IsItemExists(SessionName) = True Then
+                AddOrGet = Me.Item(SessionName)
+            Else
+                AddOrGet = Me.Add(SessionName)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Nothing
+        End Try
+    End Function
+
+    Public Function AddOrGet(SessionName As String, SessionDesc As String) As PigConfigSession
+        Dim LOG As New PigStepLog("AddOrGet")
+        Try
+            If Me.IsItemExists(SessionName) = True Then
+                AddOrGet = Me.Item(SessionName)
+            Else
+                AddOrGet = Me.Add(SessionName, SessionDesc)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Nothing
+        End Try
+    End Function
+
     Public Function Add(SessionName As String) As PigConfigSession
         Dim LOG As New PigStepLog("Add")
         Try
@@ -119,6 +148,26 @@ Public Class PigConfigSessions
         End Try
     End Function
 
+    Public Function Add(SessionName As String, SessionDesc As String) As PigConfigSession
+        Dim LOG As New PigStepLog("Add")
+        Try
+            LOG.StepName = "New PigConfigSession"
+            Add = New PigConfigSession(SessionName, SessionDesc, Me.Parent)
+            If Add.LastErr <> "" Then
+                LOG.AddStepNameInf(SessionName)
+                Throw New Exception(Add.LastErr)
+            End If
+            LOG.StepName = "mAdd"
+            LOG.Ret = Me.mAdd(Add)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(SessionName)
+                Throw New Exception(LOG.Ret)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Nothing
+        End Try
+    End Function
 
     Public Function Remove(SessionName As String) As String
         Dim LOG As New PigStepLog("Remove.SessionName")
