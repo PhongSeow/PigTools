@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.11
+'* Version: 1.2
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -14,12 +14,16 @@
 '1.0.9  2020-6-20  修改 Bug
 '1.0.10 2020-7-6    增加 XmlGetInt
 '1.0.11 2/2/2021   Modify mLng2Date
+'1.0.12 24/8/2021   Modify mLng2Date
+'1.0.13 24/8/2021   Modify mLng2Date for NETCOREAPP3_1_OR_GREATER
+'1.1 24/8/2021   Modify mGetStr
+'1.2 22/12/2021   Modify mXMLAddStr
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.11"
+    Private Const CLS_VERSION As String = "1.2.3"
     Private mstrMainXml As String
     Private mslMain As SortedList
 
@@ -145,6 +149,7 @@ Public Class PigXml
     ''' <summary>整型转日期型</summary>
     ''' <param name="LngValue">整型值，即1970-1-1以来的秒数</param>
     ''' <param name="IsLocalTime">是否本地时间，否则为格林威治时间</param>
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
     Private Function mLng2Date(LngValue As Long, Optional IsLocalTime As Boolean = True) As DateTime
         Dim dteStart As New DateTime(1970, 1, 1)
         Try
@@ -154,7 +159,6 @@ Public Class PigXml
                 oTimeZoneInfo = System.TimeZoneInfo.Local
                 intHourAdd = oTimeZoneInfo.GetUtcOffset(Now).Hours
             End If
-
             Return dteStart.AddSeconds(LngValue + intHourAdd * 3600)
             Me.ClearErr()
         Catch ex As Exception
@@ -162,6 +166,23 @@ Public Class PigXml
             Me.SetSubErrInf("mLng2Date", ex)
         End Try
     End Function
+#Else
+    Private Function mLng2Date(LngValue As Long, Optional IsLocalTime As Boolean = True) As DateTime
+        Dim dteStart As New DateTime(1970, 1, 1)
+        Try
+            If IsLocalTime = False Then
+                mLng2Date = dteStart.AddMilliseconds(LngValue - System.TimeZone.CurrentTimeZone.GetUtcOffset(Now).Hours * 3600000)
+            Else
+                mLng2Date = dteStart.AddMilliseconds(LngValue)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("mLng2Date", ex)
+            Return DateTime.MinValue
+        End Try
+    End Function
+#End If
+
+
 
     ''' <summary>获取一个元素日期值</summary>
     ''' <param name="XMLSign">元素标记</param>
@@ -202,7 +223,7 @@ Public Class PigXml
                 strBegin &= "<![CDATA["
                 strEnd = "]]>" & strEnd
             End If
-            mXmlGetStr = Me.GetStr(SrcXmlStr, strBegin, strEnd, True)
+            mXmlGetStr = Me.mGetStr(SrcXmlStr, strBegin, strEnd, True)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mXmlGetStr", ex)
@@ -235,7 +256,7 @@ Public Class PigXml
 
 
     ''' <remarks>截取字符串</remarks>
-    Public Function GetStr(ByRef SrcStr As String, BeginKey As String, EndKey As String, Optional IsCut As Boolean = True) As String
+    Private Function mGetStr(ByRef SrcStr As String, BeginKey As String, EndKey As String, Optional IsCut As Boolean = True) As String
         Dim intBegin As Integer
         Dim intEnd As Integer
         Dim intBeginLen As Integer
@@ -252,13 +273,13 @@ Public Class PigXml
             End If
             If intEnd <= intBegin Then Err.Raise(-1, , "intEnd <= intBegin")
             If intBegin = 0 Then Err.Raise(-1, , "intBegin为0")
-            GetStr = Mid(SrcStr, intBegin + intBeginLen, (intEnd - intBegin - intBeginLen))
+            mGetStr = Mid(SrcStr, intBegin + intBeginLen, (intEnd - intBegin - intBeginLen))
             If IsCut = True Then
                 SrcStr = Left(SrcStr, intBegin - 1) & Mid(SrcStr, intEnd + intEndLen)
             End If
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetStr", ex)
+            Me.SetSubErrInf("mGetStr", ex)
             Return ""
         End Try
     End Function
@@ -390,7 +411,7 @@ Public Class PigXml
                          Optional ByVal IsCData As Boolean = False) As String
         Try
             Select Case AddWhere
-                Case xpXMLAddWhere.Left, xpXMLAddWhere.Both
+                Case xpXMLAddWhere.Left, xpXMLAddWhere.Both, xpXMLAddWhere.Right
 10:                 If LeftTab > 0 Then
                         For i = 1 To LeftTab
                             sbAny.Append(vbTab)

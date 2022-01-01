@@ -4,10 +4,11 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Use time processing 使用时间处理
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.3
+'* Version: 1.1.2
 '* Create Time: 10/8/2019
 '* 1.0.2  2019-10-12  GoBegin,Step2NowSeconds,Step2NowSeconds优化,新增 AllDiffChnMain
 '* 1.0.3  2019-10-12  增加 FreeSeconds 
+'* 1.1.2  8/12/2021  Add BeginTime,EndTime
 '**********************************
 Public Class UseTime
     Private mdteBegin As DateTime
@@ -41,6 +42,7 @@ Public Class UseTime
 
     ''' <summary>结束计时</summary>
     Public Sub ToEnd()
+        Me.EndTime = Now
         mtsTimeDiff = Now - mdteBegin
     End Sub
 
@@ -120,5 +122,21 @@ Public Class UseTime
         End Try
     End Function
 
+    Public ReadOnly Property BeginTime As DateTime
+        Get
+            Return mdteBegin
+        End Get
+    End Property
+
+    Private mdteEndTime As DateTime
+    Public Property EndTime As DateTime
+        Get
+            Return mdteEndTime
+        End Get
+        Friend Set(value As DateTime)
+            mdteEndTime = value
+        End Set
+
+    End Property
 
 End Class

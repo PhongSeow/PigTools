@@ -4,16 +4,19 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.4
+'* Version: 1.1
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
 '*1.0.4  26/7/2021   Modify UrlEncode
+'*1.0.5  26/7/2021   Modify UrlEncode
+'*1.0.6  24/8/2021   Modify GetIpList
+'*1.1    4/9/2021    Add Date2Lng,Lng2Date,Src2CtlStr,CtlStr2Src,AddMultiLineText
 '**********************************
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.4"
+    Private Const CLS_VERSION As String = "1.1.5"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -237,10 +240,12 @@ Public Class PigFunc
         'MainIp:主IP
         'MainIpRole:主IP规则，如：56.0.，如果IP列表中有第一个匹配的就是主IP
         Try
-            Dim aipaAny() As System.Net.IPAddress, i As Integer, strIp As String = "", intFindCnt As Integer = 0, intLen As Integer = 0
+            Dim aipaAny() As System.Net.IPAddress, strIp As String = "", intFindCnt As Integer = 0, intLen As Integer = 0
             aipaAny = System.Net.Dns.GetHostAddresses(System.Environment.MachineName.ToString)
             IpList = ""
             MainIp = ""
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+            Dim i As Integer 
             For i = 0 To aipaAny.Count - 1
                 strIp = aipaAny(i).ToString
                 If InStr(strIp, "::") = 0 Then
@@ -262,6 +267,7 @@ Public Class PigFunc
                     End If
                 End If
             Next
+#End If
         Catch ex As Exception
             IpList = ""
             MainIp = ""
@@ -359,37 +365,7 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function CtlStr2Src(ByRef CltStr As String) As String
-        '将带控制字符的字符串转换成源字符串
 
-        Try
-            If CltStr.IndexOf("\n") > 0 Then CltStr.Replace("\n", vbCrLf) '\n 换行(LF) 010
-            If CltStr.IndexOf("\r") > 0 Then CltStr.Replace("\n", vbCr) '\r 回车(CR) 013
-            If CltStr.IndexOf("\t") > 0 Then CltStr.Replace("\t", vbTab) '\t 水平制表(HT) 009
-            If CltStr.IndexOf("\b") > 0 Then CltStr.Replace("\b", vbBack) '\b 退格(BS) 008
-            If CltStr.IndexOf("\f") > 0 Then CltStr.Replace("\f", vbFormFeed) '\f 换页(FF) 012
-            If CltStr.IndexOf("\v") > 0 Then CltStr.Replace("\v", vbVerticalTab) '\v 垂直制表(VT) 011
-            Return "OK"
-        Catch ex As Exception
-            Return Me.GetSubErrInf("CtlStr2Src", ex)
-        End Try
-    End Function
-
-    Public Function Src2CtlStr(ByRef CltStr As String) As String
-        '将源字符串转换成带控制字符的字符串
-
-        Try
-            If CltStr.IndexOf(vbCrLf) > 0 Then CltStr.Replace(vbCrLf, "\n") '\n 换行(LF) 010
-            If CltStr.IndexOf(vbCr) > 0 Then CltStr.Replace(vbCr, "\n") '\r 回车(CR) 013
-            If CltStr.IndexOf(vbTab) > 0 Then CltStr.Replace(vbTab, "\t") '\t 水平制表(HT) 009
-            If CltStr.IndexOf(vbBack) > 0 Then CltStr.Replace(vbBack, "\b") '\b 退格(BS) 008
-            If CltStr.IndexOf(vbFormFeed) > 0 Then CltStr.Replace(vbFormFeed, "\f") '\f 换页(FF) 012
-            If CltStr.IndexOf(vbVerticalTab) > 0 Then CltStr.Replace(vbVerticalTab, "\v") '\v 垂直制表(VT) 011
-            Return "OK"
-        Catch ex As Exception
-            Return Me.GetSubErrInf("Src2CtlStr", ex)
-        End Try
-    End Function
 
     Public Function UrlEncode(SrcUrl As String) As String
         Try
@@ -457,6 +433,105 @@ Public Class PigFunc
         Catch ex As Exception
             Me.SetSubErrInf("GECDate", ex)
             Return DateTime.MinValue
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Gets the number of microseconds of Greenwich mean time for the current time|获取当前时间的格林威治时间微秒数
+    ''' </summary>
+    ''' <param name="DateValue"></param>
+    ''' <returns></returns>
+    Public Function Date2Lng(DateValue As DateTime) As Long
+        Dim dteStart As New DateTime(1970, 1, 1)
+        Dim mtsTimeDiff As TimeSpan = DateValue - dteStart
+        Try
+            Return mtsTimeDiff.TotalMilliseconds
+        Catch ex As Exception
+            Me.SetSubErrInf("Date2Lng", ex)
+            Return 0
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name="LngValue">The number of milliseconds since 1970-1-1</param>
+    ''' <param name="IsLocalTime">Convert to local time</param>
+    ''' <returns></returns>
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+    Public  Function Lng2Date(LngValue As Long, Optional IsLocalTime As Boolean = True) As DateTime
+        Dim dteStart As New DateTime(1970, 1, 1)
+        Try
+            Dim intHourAdd As Integer = 0
+            If IsLocalTime = False Then
+                Dim oTimeZoneInfo As System.TimeZoneInfo
+                oTimeZoneInfo = System.TimeZoneInfo.Local
+                intHourAdd = oTimeZoneInfo.GetUtcOffset(Now).Hours
+            End If
+
+            Return dteStart.AddSeconds(LngValue + intHourAdd * 3600)
+            Me.ClearErr()
+        Catch ex As Exception
+            Return dteStart
+            Me.SetSubErrInf("Lng2Date", ex)
+        End Try
+    End Function
+#Else
+    Public Function Lng2Date(LngValue As Long, Optional IsLocalTime As Boolean = True) As DateTime
+        Dim dteStart As New DateTime(1970, 1, 1)
+        Try
+            If IsLocalTime = False Then
+                Lng2Date = dteStart.AddMilliseconds(LngValue - System.TimeZone.CurrentTimeZone.GetUtcOffset(Now).Hours * 3600000)
+            Else
+                Lng2Date = dteStart.AddMilliseconds(LngValue)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("Lng2Date", ex)
+            Return DateTime.MinValue
+        End Try
+    End Function
+#End If
+
+    Public Function Src2CtlStr(ByRef SrcStr As String) As String
+        Try
+            If SrcStr.IndexOf(vbCrLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\r\n")
+            If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
+            If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
+            If SrcStr.IndexOf(vbBack) > 0 Then SrcStr = Replace(SrcStr, vbBack, "\b")
+            If SrcStr.IndexOf(vbFormFeed) > 0 Then SrcStr = Replace(SrcStr, vbFormFeed, "\f")
+            If SrcStr.IndexOf(vbVerticalTab) > 0 Then SrcStr = Replace(SrcStr, vbVerticalTab, "\v")
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("Src2CtlStr", ex)
+        End Try
+    End Function
+
+    Public Function CtlStr2Src(ByRef CtlStr As String) As String
+        Try
+            If CtlStr.IndexOf("\r\n") > 0 Then CtlStr = Replace(CtlStr, "\r\n", vbCrLf)
+            If CtlStr.IndexOf("\r") > 0 Then CtlStr = Replace(CtlStr, "\r", vbCr)
+            If CtlStr.IndexOf("\t") > 0 Then CtlStr = Replace(CtlStr, "\t", vbTab)
+            If CtlStr.IndexOf("\b") > 0 Then CtlStr = Replace(CtlStr, "\b", vbBack)
+            If CtlStr.IndexOf(vbFormFeed) > 0 Then CtlStr = Replace(CtlStr, "\f", vbFormFeed)
+            If CtlStr.IndexOf(vbVerticalTab) > 0 Then CtlStr = Replace(CtlStr, "\v", vbVerticalTab)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("CtlStr2Src", ex)
+        End Try
+    End Function
+
+    Public Function AddMultiLineText(ByRef MainText As String, NewLine As String, Optional LeftTabs As Integer = 0) As String
+        Try
+            Dim strTabs As String = ""
+            If LeftTabs > 0 Then
+                For i = 1 To LeftTabs
+                    strTabs &= vbTab
+                Next
+            End If
+            MainText &= strTabs & NewLine & vbCrLf
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("AddMultiLineText", ex)
         End Try
     End Function
 
