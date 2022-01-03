@@ -18,6 +18,7 @@
 '1.0.13 24/8/2021   Modify mLng2Date for NETCOREAPP3_1_OR_GREATER
 '1.1 24/8/2021   Modify mGetStr
 '1.2 22/12/2021   Modify mXMLAddStr
+'1.3 3/1/2022   Modify Err.Raise to Throw New Exception
 '*******************************************************
 
 Imports System.Xml
@@ -269,10 +270,10 @@ Public Class PigXml
                 intEnd = Len(SrcStr) + 1
             Else
                 intEnd = InStr(intBegin + intBeginLen + 1, SrcStr, EndKey)
-                If intEnd = 0 Then Err.Raise(-1, , "intEnd为0")
+                If intEnd = 0 Then Throw New Exception("intEnd is 0")
             End If
-            If intEnd <= intBegin Then Err.Raise(-1, , "intEnd <= intBegin")
-            If intBegin = 0 Then Err.Raise(-1, , "intBegin为0")
+            If intEnd <= intBegin Then Throw New Exception("intEnd <= intBegin")
+            If intBegin = 0 Then Throw New Exception("intBegin is 0")
             mGetStr = Mid(SrcStr, intBegin + intBeginLen, (intEnd - intBegin - intBeginLen))
             If IsCut = True Then
                 SrcStr = Left(SrcStr, intBegin - 1) & Mid(SrcStr, intEnd + intEndLen)
@@ -291,7 +292,7 @@ Public Class PigXml
     Public Overloads Function AddEle(XMLSign As String, XMLValue As String) As String
         Try
             AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, mbolIsCrLf)
-            If AddEle <> "OK" Then Err.Raise(-1, , AddEle)
+            If AddEle <> "OK" Then Throw New Exception(AddEle)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEle", ex)
@@ -305,7 +306,7 @@ Public Class PigXml
     Public Overloads Function AddEle(XMLSign As String, XMLValue As String, IsCData As Boolean) As String
         Try
             AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, mbolIsCrLf, , IsCData)
-            If AddEle <> "OK" Then Err.Raise(-1, , AddEle)
+            If AddEle <> "OK" Then Throw New Exception(AddEle)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEle", ex)
@@ -320,7 +321,7 @@ Public Class PigXml
     Public Overloads Function AddEle(XMLSign As String, XMLValue As String, LeftTab As Integer) As String
         Try
             AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, mbolIsCrLf, LeftTab)
-            If AddEle <> "OK" Then Err.Raise(-1, , AddEle)
+            If AddEle <> "OK" Then Throw New Exception(AddEle)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEle", ex)
@@ -336,7 +337,7 @@ Public Class PigXml
     Public Overloads Function AddEle(XMLSign As String, XMLValue As String, LeftTab As Integer, IsCData As Boolean) As String
         Try
             AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, mbolIsCrLf, LeftTab, IsCData)
-            If AddEle <> "OK" Then Err.Raise(-1, , AddEle)
+            If AddEle <> "OK" Then Throw New Exception(AddEle)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEle", ex)
@@ -347,7 +348,7 @@ Public Class PigXml
     Public Function AddEleValue(XMLValue As String) As String
         Try
             AddEleValue = Me.mXMLAddStr(msbMain, "", XMLValue, xpXMLAddWhere.ValueOnly)
-            If AddEleValue <> "OK" Then Err.Raise(-1, , AddEleValue)
+            If AddEleValue <> "OK" Then Throw New Exception(AddEleValue)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEleValue", ex)
@@ -359,7 +360,7 @@ Public Class PigXml
     Public Overloads Function AddEleLeftSign(XMLSign As String) As String
         Try
             AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, mbolIsCrLf)
-            If AddEleLeftSign <> "OK" Then Err.Raise(-1, , AddEleLeftSign)
+            If AddEleLeftSign <> "OK" Then Throw New Exception(AddEleLeftSign)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEleLeftSign", ex)
@@ -372,7 +373,7 @@ Public Class PigXml
     Public Overloads Function AddEleLeftSign(XMLSign As String, LeftTab As Integer) As String
         Try
             AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, mbolIsCrLf, LeftTab)
-            If AddEleLeftSign <> "OK" Then Err.Raise(-1, , AddEleLeftSign)
+            If AddEleLeftSign <> "OK" Then Throw New Exception(AddEleLeftSign)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEleLeftSign", ex)
@@ -384,7 +385,7 @@ Public Class PigXml
     Public Overloads Function AddEleRightSign(XMLSign As String) As String
         Try
             AddEleRightSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Right, mbolIsCrLf)
-            If AddEleRightSign <> "OK" Then Err.Raise(-1, , AddEleRightSign)
+            If AddEleRightSign <> "OK" Then Throw New Exception(AddEleRightSign)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEleRightSign", ex)
@@ -397,7 +398,7 @@ Public Class PigXml
     Public Overloads Function AddEleRightSign(XMLSign As String, LeftTab As Integer) As String
         Try
             AddEleRightSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Right, mbolIsCrLf, LeftTab)
-            If AddEleRightSign <> "OK" Then Err.Raise(-1, , AddEleRightSign)
+            If AddEleRightSign <> "OK" Then Throw New Exception(AddEleRightSign)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEleRightSign", ex)
@@ -450,7 +451,13 @@ Public Class PigXml
                 Case xpXMLAddWhere.ValueOnly
                     sbAny.Append(XMLValue)
             End Select
-50:         If IsCrlf = True Then sbAny.Append(vbCrLf)
+50:         If IsCrlf = True Then
+                If Me.IsWindows = True Then
+                    sbAny.Append(vbCrLf)
+                Else
+                    sbAny.Append(vbLf)
+                End If
+            End If
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("mXMLAddStr", ex)

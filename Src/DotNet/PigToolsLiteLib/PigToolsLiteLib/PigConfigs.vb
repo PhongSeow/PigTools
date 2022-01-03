@@ -4,18 +4,19 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigConfig 的集合类|Collection class of PigConfig
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 18/12/2021
 '* 1.1    22/12/2020   Modify Add 
 '* 1.2    23/12/2020   Add Parent, modify New,Add
 '* 1.3    24/12/2020   Add Clear
-'* 1.4    25/12/2020   Add AddOrGet
-'* 1.5    26/12/2020   Add AddOrGet
+'* 1.4    25/12/2021   Add AddOrGet
+'* 1.5    26/12/2021   Modify AddOrGet
+'* 1.6    3/1/2022   Modify AddOrGet
 '************************************
 Public Class PigConfigs
     Inherits PigBaseMini
     Implements IEnumerable(Of PigConfig)
-    Private Const CLS_VERSION As String = "1.5.1"
+    Private Const CLS_VERSION As String = "1.6.2"
     Friend Property Parent As PigConfigSession
     Private ReadOnly moList As New List(Of PigConfig)
 
@@ -104,6 +105,7 @@ Public Class PigConfigs
             Else
                 AddOrGet = Me.Add(ConfName, ConfValue)
             End If
+            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
@@ -125,6 +127,7 @@ Public Class PigConfigs
                 LOG.AddStepNameInf(ConfName)
                 Throw New Exception(LOG.Ret)
             End If
+            Me.ClearErr()
         Catch ex As Exception
             Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
@@ -139,6 +142,7 @@ Public Class PigConfigs
             Else
                 AddOrGet = Me.Add(ConfName, ConfValue, ConfDesc)
             End If
+            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
@@ -161,6 +165,7 @@ Public Class PigConfigs
                 LOG.AddStepNameInf(ConfName)
                 Throw New Exception(LOG.Ret)
             End If
+            Me.ClearErr()
         Catch ex As Exception
             Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
@@ -182,6 +187,7 @@ Public Class PigConfigs
                 LOG.AddStepNameInf(ConfName)
                 Throw New Exception(LOG.Ret)
             End If
+            Me.ClearErr()
         Catch ex As Exception
             Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
@@ -225,6 +231,7 @@ Public Class PigConfigs
             Else
                 AddOrGet = Me.Add(ConfName)
             End If
+            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing

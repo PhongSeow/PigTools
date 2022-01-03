@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 配置应用类|Configure application classes
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 18/12/2021
 '* 1.1    20/12/2020   Add mNew,MkEncKey,mLoadConfig,GetEncStr
 '* 1.2    21/12/2020   Modify mLoadConfig,EnmSaveType,mNew, add LoadConfig,LoadConfigFile,SaveConfigFile,SaveConfig,PigConfigSessions,AddNewConfigSession
@@ -14,10 +14,12 @@
 '* 1.6    25/12/2020   Modify mLoadConfig
 '* 1.7    26/12/2020   Add IsClearFrist, modify mLoadConfig
 '* 1.8    1/1/2021     Modify mSaveConfig,mLoadConfig
+'* 1.9    3/1/2021     Modify mSaveConfig
 '**********************************
+Imports Microsoft.VisualBasic
 Public Class PigConfigApp
     Inherits PigBaseMini
-	Private Const CLS_VERSION As String = "1.8.6"
+	Private Const CLS_VERSION As String = "1.9.12"
 	Public Enum EnmSaveType
 		''' <summary>
 		''' XML text
@@ -39,7 +41,7 @@ Public Class PigConfigApp
 
 	Private mprEnc As PigRsa
 	Private mpaEnc As PigAes
-
+	Private moPigFunc As New PigFunc
 	Private moPigConfigSessions As PigConfigSessions
 	Public Property PigConfigSessions As PigConfigSessions
 		Get
@@ -207,9 +209,9 @@ Public Class PigConfigApp
 					Else
 						Throw New Exception(SaveType.ToString & " support coming soon")
 					End If
-				Case EnmSaveType.Ini, EnmSaveType.EncData
+				Case EnmSaveType.EncData
 					Throw New Exception(SaveType.ToString & " support coming soon")
-				Case EnmSaveType.Xml
+				Case EnmSaveType.Xml, EnmSaveType.Ini
 				Case Else
 					Throw New Exception(SaveType.ToString & " is invalid")
 			End Select
@@ -231,6 +233,99 @@ Public Class PigConfigApp
 			Select Case SaveType
 				Case EnmSaveType.Registry
 				Case EnmSaveType.Ini
+					Dim strData As String = ptConfData.Text
+					Dim strLastLine As String = "", strCurrLine As String, strSessionName As String = "", strTmpLine As String = "", strTmpSession As String = ""
+					Dim strLeft As String, strRight As String, strDataTmp As String
+					'数据清理
+					Do While True
+						If InStr(strData, vbCrLf) = 0 Then Exit Do
+						strData = Replace(strData, vbCrLf, vbLf)
+					Loop
+					Do While True
+						If InStr(strData, vbCr) = 0 Then Exit Do
+						strData = Replace(strData, vbCr, vbLf)
+					Loop
+					Do While True
+						If InStr(strData, vbLf & vbLf) = 0 Then Exit Do
+						strData = Replace(strData, vbLf & vbLf, vbLf)
+					Loop
+					strDataTmp = strData
+					If Right(strDataTmp, 1) <> vbLf Then strDataTmp &= vbLf
+					strData = ""
+					Dim dteBegin As DateTime = Now
+					LOG.StepName = "Re merge strData"
+					Do While True
+						strTmpLine = Trim(moPigFunc.GetStr(strDataTmp, "", vbLf))
+						Select Case strTmpLine
+							Case "", vbTab
+							Case Else
+								strData &= strTmpLine & vbLf
+						End Select
+						If strDataTmp = "" Then Exit Do
+						Dim tsTimeDiff As TimeSpan = Now - dteBegin
+						If tsTimeDiff.Milliseconds > 500 Then
+							Me.PrintDebugLog(LOG.StepName, "Run timeout")
+							Exit Do
+						End If
+					Loop
+					If Right(strData, 1) <> vbLf Then strData &= vbLf
+					Dim oPigConfigSession As PigConfigSession = Nothing
+					Do While True
+						strCurrLine = Trim(moPigFunc.GetStr(strData, "", vbLf))
+						If strCurrLine = "" Then Exit Do
+						strTmpLine = Trim(strCurrLine) & vbLf
+						strLeft = "["
+						strRight = "]" & vbLf
+						If Left(strTmpLine, 1) = strLeft And Right(strTmpLine, Len(strRight)) = strRight Then
+							strTmpSession = moPigFunc.GetStr(strTmpLine, strLeft, strRight)
+							If strTmpSession <> strSessionName Then
+								strSessionName = strTmpSession
+								LOG.StepName = "PigConfigSessions.AddOrGet"
+								oPigConfigSession = Me.PigConfigSessions.AddOrGet(strSessionName)
+								If Me.PigConfigSessions.LastErr <> "" Then
+									LOG.AddStepNameInf(strSessionName)
+									Throw New Exception(Me.PigConfigSessions.LastErr)
+								ElseIf oPigConfigSession Is Nothing Then
+									LOG.AddStepNameInf(strSessionName)
+									Throw New Exception("oPigConfigSession Is Nothing")
+								End If
+								If strLastLine <> "" Then
+									Select Case Left(strLastLine, 1)
+										Case ";", "#"
+											oPigConfigSession.SessionDesc = Mid(strLastLine, 2)
+									End Select
+								End If
+							End If
+						Else
+							Select Case Left(strTmpLine, 1)
+								Case ";", "#"
+								Case Else
+									If oPigConfigSession IsNot Nothing Then
+										If InStr(strTmpLine, "=") > 0 Then
+											Dim strConfName As String, strConfValue As String
+											strConfName = moPigFunc.GetStr(strTmpLine, "", "=")
+											strConfValue = moPigFunc.GetStr(strTmpLine, "", vbLf)
+											LOG.StepName = "PigConfigs.AddOrGet"
+											Dim oPigConfig As PigConfig = oPigConfigSession.PigConfigs.AddOrGet(strConfName, strConfValue)
+											If oPigConfigSession.PigConfigs.LastErr <> "" Then
+												LOG.AddStepNameInf(strSessionName)
+												LOG.AddStepNameInf(strConfName)
+												Throw New Exception(oPigConfigSession.PigConfigs.LastErr)
+											ElseIf oPigConfig Is Nothing Then
+												LOG.AddStepNameInf(strSessionName)
+												LOG.AddStepNameInf(strConfName)
+												Throw New Exception("oPigConfig Is Nothing")
+											End If
+											Select Case Left(strLastLine, 1)
+												Case ";", "#"
+													oPigConfig.ConfDesc = Mid(strLastLine, 2)
+											End Select
+										End If
+									End If
+							End Select
+						End If
+						strLastLine = strCurrLine
+					Loop
 				Case EnmSaveType.EncData
 				Case EnmSaveType.Xml
 					Dim pxMain As New PigXml(False)
@@ -347,9 +442,9 @@ Public Class PigConfigApp
 					Else
 						Throw New Exception(SaveType.ToString & " support coming soon")
 					End If
-				Case EnmSaveType.Ini, EnmSaveType.EncData
+				Case EnmSaveType.EncData
 					Throw New Exception(SaveType.ToString & " support coming soon")
-				Case EnmSaveType.Xml
+				Case EnmSaveType.Xml, EnmSaveType.Ini
 				Case Else
 					Throw New Exception(SaveType.ToString & " is invalid")
 			End Select
@@ -369,8 +464,9 @@ Public Class PigConfigApp
 						strConfData &= "[" & oPigConfigSession.SessionName & "]" & strOsCrLf
 						For Each oPigConfig As PigConfig In oPigConfigSession.PigConfigs
 							If oPigConfig.ConfDesc <> "" Then strConfData &= strRemFrist & oPigConfig.ConfDesc & strOsCrLf
-							strConfData &= oPigConfig.ConfName & "=" & oPigConfig.fConfValue
+							strConfData &= oPigConfig.ConfName & "=" & oPigConfig.fConfValue & strOsCrLf
 						Next
+						strConfData &= strOsCrLf
 					Next
 					LOG.StepName = "New PigText(Ini)"
 					Dim oPigText As New PigText(strConfData, Me.TextType)

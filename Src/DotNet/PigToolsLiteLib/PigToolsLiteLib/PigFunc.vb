@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -12,11 +12,12 @@
 '*1.0.5  26/7/2021   Modify UrlEncode
 '*1.0.6  24/8/2021   Modify GetIpList
 '*1.1    4/9/2021    Add Date2Lng,Lng2Date,Src2CtlStr,CtlStr2Src,AddMultiLineText
+'*1.2    2/1/2022    Modify IsFileExists
 '**********************************
-
+Imports System.IO
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.5"
+    Private Const CLS_VERSION As String = "1.2.1"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -532,6 +533,33 @@ Public Class PigFunc
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddMultiLineText", ex)
+        End Try
+    End Function
+
+    Public Function IsFileExists(FilePath As String) As Boolean
+        Try
+            Return IO.File.Exists(FilePath)
+        Catch ex As Exception
+            Me.SetSubErrInf("IsFileExists", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    Public Function IsFolderExists(FolderPath As String) As Boolean
+        Try
+            Return Directory.Exists(FolderPath)
+        Catch ex As Exception
+            Me.SetSubErrInf("IsFolderExists", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    Public Function CreateFolder(FolderPath As String) As String
+        Try
+            Directory.CreateDirectory(FolderPath)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("CreateFolder", ex)
         End Try
     End Function
 
