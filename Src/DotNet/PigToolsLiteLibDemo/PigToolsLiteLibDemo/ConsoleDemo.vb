@@ -4,11 +4,13 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 16/10/2021
-'* 1.1    21/12/2020   Add PigConfig
-'* 1.2    22/12/2020   Modify PigConfig
-'* 1.3    26/12/2020   Modify PigConfig
+'* 1.1    21/12/2021   Add PigConfig
+'* 1.2    22/12/2021   Modify PigConfig
+'* 1.3    26/12/2021   Modify PigConfig
+'* 1.4    2/1/2022   Modify PigConfig
+'* 1.5    2/2/2022   Modify PigConfig
 '************************************
 Imports PigToolsLiteLib
 
@@ -25,10 +27,12 @@ Public Class ConsoleDemo
     Public ConfName As String
     Public ConfValue As String
     Public SessionName As String
+    Public SessionDesc As String
     Public ConfDesc As String
     Public ConfData As String
     Public FilePath As String
     Public Line As String
+    Public SaveType As PigConfigApp.EnmSaveType
 
     Public Sub Main()
         Do While True
@@ -88,12 +92,8 @@ Public Class ConsoleDemo
                                 Me.ShareMem = New ShareMem
                                 With Me.ShareMem
                                     Console.WriteLine(" " & Me.SMName & ",Len=" & oPigText.TextBytes.Length)
-                                    .Init(Me.SMName, oPigText.TextBytes.Length)
-                                    If .LastErr <> "" Then
-                                        Console.WriteLine(.LastErr)
-                                    Else
-                                        Console.WriteLine("OK")
-                                    End If
+                                    Me.Ret = .Init(Me.SMName, oPigText.TextBytes.Length)
+                                    Console.WriteLine(Me.Ret)
                                 End With
                                 If Me.ShareMem.IsInit = False Then
                                     Console.WriteLine("ShareMem Not Init")
@@ -294,8 +294,8 @@ Public Class ConsoleDemo
                         Console.WriteLine("Press A to New")
                         Console.WriteLine("Press B to MkEncKey")
                         Console.WriteLine("Press C to GetEncStr")
-                        Console.WriteLine("Press D to Add ConfigSession")
-                        Console.WriteLine("Press E to Add ConfigItem")
+                        Console.WriteLine("Press D to AddOrGet ConfigSession")
+                        Console.WriteLine("Press E to AddOrGet ConfigItem")
                         Console.WriteLine("Press F to SaveConfig and SaveConfigFile")
                         Console.WriteLine("Press G to LoadConfig")
                         Console.WriteLine("Press H to LoadConfigFile")
@@ -342,7 +342,9 @@ Public Class ConsoleDemo
                                 Else
                                     Console.WriteLine("SessionName=")
                                     Me.SessionName = Console.ReadLine
-                                    Me.PigConfigSession = Me.PigConfigApp.PigConfigSessions.AddOrGet(Me.SessionName)
+                                    Console.WriteLine("SessionDesc=")
+                                    Me.SessionDesc = Console.ReadLine
+                                    Me.PigConfigSession = Me.PigConfigApp.PigConfigSessions.AddOrGet(Me.SessionName, Me.SessionDesc)
                                     If Me.PigConfigApp.PigConfigSessions.LastErr <> "" Then
                                         Console.WriteLine(Me.PigConfigApp.PigConfigSessions.LastErr)
                                     ElseIf Me.PigConfigSession Is Nothing Then
@@ -386,36 +388,42 @@ Public Class ConsoleDemo
                                     Console.WriteLine("PigConfigApp Is Nothing")
                                 Else
                                     Console.WriteLine("PigConfigApp.SaveConfig")
-                                    Me.Ret = Me.PigConfigApp.SaveConfig(Me.ConfData, PigConfigApp.EnmSaveType.Xml)
+                                    Console.WriteLine("SaveType(" & PigConfigApp.EnmSaveType.Xml.ToString & "=" & PigConfigApp.EnmSaveType.Xml & "," & PigConfigApp.EnmSaveType.Ini.ToString & "=" & PigConfigApp.EnmSaveType.Ini & ")=" & Me.SaveType.ToString)
+                                    Me.SaveType = Console.ReadLine
+                                    Me.Ret = Me.PigConfigApp.SaveConfig(Me.ConfData, Me.SaveType)
                                     Console.WriteLine(Me.Ret)
                                     Console.WriteLine("ConfData=")
                                     Console.WriteLine(Me.ConfData)
                                     Console.WriteLine("PigConfigApp.SaveConfigFile")
                                     Console.WriteLine("FilePath=" & Me.FilePath)
                                     Me.FilePath = Console.ReadLine
-                                    Me.Ret = Me.PigConfigApp.SaveConfigFile(Me.FilePath, PigConfigApp.EnmSaveType.Xml)
+                                    Me.Ret = Me.PigConfigApp.SaveConfigFile(Me.FilePath, Me.SaveType)
                                     Console.WriteLine(Me.Ret)
                                 End If
                             Case ConsoleKey.G
                                 If Me.PigConfigApp Is Nothing Then
                                     Console.WriteLine("PigConfigApp Is Nothing")
                                 Else
-                                    Console.WriteLine("FilePath=" & Me.FilePath)
+                                    Console.WriteLine("SaveType(" & PigConfigApp.EnmSaveType.Xml.ToString & "=" & PigConfigApp.EnmSaveType.Xml & "," & PigConfigApp.EnmSaveType.Ini.ToString & "=" & PigConfigApp.EnmSaveType.Ini & ")=" & Me.SaveType.ToString)
+                                    Me.SaveType = Console.ReadLine
+                                    Console.WriteLine("ConfData=" & Me.ConfData)
                                     Me.Line = Console.ReadLine
                                     If Me.Line <> "" Then Me.FilePath = Me.Line
-                                    Console.WriteLine("PigConfigApp.LoadConfigFile")
-                                    Me.Ret = Me.PigConfigApp.LoadConfigFile(Me.FilePath, PigConfigApp.EnmSaveType.Xml)
+                                    Console.WriteLine("PigConfigApp.LoadConfig")
+                                    Me.Ret = Me.PigConfigApp.LoadConfig(Me.ConfData, Me.SaveType)
                                     Console.WriteLine(Me.Ret)
                                 End If
                             Case ConsoleKey.H
                                 If Me.PigConfigApp Is Nothing Then
                                     Console.WriteLine("PigConfigApp Is Nothing")
                                 Else
+                                    Console.WriteLine("SaveType(" & PigConfigApp.EnmSaveType.Xml.ToString & "=" & PigConfigApp.EnmSaveType.Xml & "," & PigConfigApp.EnmSaveType.Ini.ToString & "=" & PigConfigApp.EnmSaveType.Ini & ")=" & Me.SaveType.ToString)
+                                    Me.SaveType = Console.ReadLine
                                     Console.WriteLine("FilePath=" & Me.FilePath)
                                     Me.Line = Console.ReadLine
                                     If Me.Line <> "" Then Me.FilePath = Me.Line
                                     Console.WriteLine("PigConfigApp.LoadConfigFile")
-                                    Me.Ret = Me.PigConfigApp.LoadConfigFile(Me.FilePath, PigConfigApp.EnmSaveType.Xml)
+                                    Me.Ret = Me.PigConfigApp.LoadConfigFile(Me.FilePath, Me.SaveType)
                                     Console.WriteLine(Me.Ret)
                                 End If
                             Case ConsoleKey.I
@@ -423,7 +431,8 @@ Public Class ConsoleDemo
                                     Console.WriteLine("PigConfigApp Is Nothing")
                                 Else
                                     For Each oPigConfigSession As PigConfigSession In Me.PigConfigApp.PigConfigSessions
-                                        Console.WriteLine("PigConfigSession=" & oPigConfigSession.SessionName)
+                                        Console.WriteLine("SessionName=" & oPigConfigSession.SessionName)
+                                        Console.WriteLine("SessionDesc=" & oPigConfigSession.SessionDesc)
                                         For Each oPigConfig As PigConfig In oPigConfigSession.PigConfigs
                                             With oPigConfig
                                                 Console.WriteLine("ConfName=" & .ConfName)
