@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -13,11 +13,17 @@
 '*1.0.6  24/8/2021   Modify GetIpList
 '*1.1    4/9/2021    Add Date2Lng,Lng2Date,Src2CtlStr,CtlStr2Src,AddMultiLineText
 '*1.2    2/1/2022    Modify IsFileExists
+'*1.3    12/1/2022   Add GetHostName,GetHostIp,mGetHostIp,GetEnvVar,GetUserName,GetComputerName,mGetHostIpList
 '**********************************
 Imports System.IO
+Imports System.Net
+Imports System.Net.Sockets
+Imports System.Environment
+
+
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.1"
+    Private Const CLS_VERSION As String = "1.3.15"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -115,6 +121,73 @@ Public Class PigFunc
     ''' <remarks>显示精确到毫秒的时间</remarks>
     Public Function GENow() As String
         GENow = Format(Now, "yyyy-MM-dd HH:mm:ss.fff")
+    End Function
+
+    Public Function GetHostName() As String
+        Return Dns.GetHostName()
+    End Function
+
+    Public Function GetHostIp() As String
+        Return mGetHostIp(False)
+    End Function
+
+    Public Function GetHostIpList() As String
+        Return mGetHostIpList(False)
+    End Function
+
+    Public Function GetHostIpList(IsIPv6 As Boolean) As String
+        Return mGetHostIpList(IsIPv6)
+    End Function
+
+    Public Function GetHostIp(IpHead As String) As String
+        Return mGetHostIp(False, IpHead)
+    End Function
+
+    Public Function GetHostIp(IsIPv6 As Boolean) As String
+        Return mGetHostIp(IsIPv6)
+    End Function
+
+    Public Function GetHostIp(IsIPv6 As Boolean, IpHead As String) As String
+        Return mGetHostIp(IsIPv6, IpHead)
+    End Function
+
+    Private Function mGetHostIpList(IsIPv6 As Boolean) As String
+        mGetHostIpList = ""
+        For Each oIPAddress As IPAddress In Dns.GetHostAddresses(Dns.GetHostName)
+            With oIPAddress
+                Dim strHostIp = .ToString()
+                If IsIPv6 = True Then
+                    If InStr(strHostIp, ":") > 0 Then mGetHostIpList &= strHostIp & ";"
+                ElseIf InStr(strHostIp, ".") > 0 Then
+                    mGetHostIpList &= strHostIp & ";"
+                End If
+            End With
+        Next
+    End Function
+
+    Private Function mGetHostIp(IsIPv6 As Boolean, Optional IpHead As String = "") As String
+        mGetHostIp = ""
+        For Each oIPAddress As IPAddress In Dns.GetHostAddresses(Dns.GetHostName)
+            With oIPAddress
+                mGetHostIp = .ToString()
+                If IsIPv6 = True Then
+                    If InStr(mGetHostIp, ":") > 0 Then
+                        If IpHead = "" Then
+                            Exit For
+                        ElseIf UCase(Left(mGetHostIp, Len(IpHead))) = UCase(IpHead) Then
+                            Exit For
+                        End If
+                    End If
+                ElseIf InStr(mGetHostIp, ".") > 0 Then
+                    If IpHead = "" Then
+                        Exit For
+                    ElseIf Left(mGetHostIp, Len(IpHead)) = IpHead Then
+                        Exit For
+                    End If
+                End If
+            End With
+            mGetHostIp = ""
+        Next
     End Function
 
     ''' <remarks>获取随机数</remarks>
@@ -554,6 +627,13 @@ Public Class PigFunc
         End Try
     End Function
 
+    Public Function GetEnvVar(EnvVarName As String) As String
+        Return GetEnvironmentVariable(EnvVarName)
+    End Function
+
+    Public Function GetUserName() As String
+        Return Environment.UserName
+    End Function
     Public Function CreateFolder(FolderPath As String) As String
         Try
             Directory.CreateDirectory(FolderPath)
@@ -561,6 +641,10 @@ Public Class PigFunc
         Catch ex As Exception
             Return Me.GetSubErrInf("CreateFolder", ex)
         End Try
+    End Function
+
+    Public Function GetComputerName() As String
+        Return Dns.GetHostName()
     End Function
 
 End Class
