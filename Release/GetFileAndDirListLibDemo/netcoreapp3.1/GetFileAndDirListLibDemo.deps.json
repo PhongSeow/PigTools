@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "GetFileAndDirListLibDemo/1.1.28": {
+      "GetFileAndDirListLibDemo/1.1.30": {
         "dependencies": {
           "GetFileAndDirListLib": "1.1.60"
         },
@@ -45,7 +45,7 @@
     }
   },
   "libraries": {
-    "GetFileAndDirListLibDemo/1.1.28": {
+    "GetFileAndDirListLibDemo/1.1.30": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
