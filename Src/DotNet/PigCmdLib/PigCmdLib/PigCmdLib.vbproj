@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PigCmdLib</RootNamespace>
+    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Seow Phong</Authors>
+    <Company>Seow Phong Studio</Company>
+    <Copyright>Copyright (c) 2022 Seow Phong</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageIcon>SeowPhongLogo.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLib</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>.net develop shell command windows Linux VB6</PackageTags>
+    <Description>Application of calling operating system commands.
+It can run on Windows and Linux platforms.</Description>
+    <Version>1.0.22</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="SeowPhongLogo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PigToolsLiteLib" Version="1.8.9" />
+  </ItemGroup>
+
+</Project>
