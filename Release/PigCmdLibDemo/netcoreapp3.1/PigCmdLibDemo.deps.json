@@ -1,0 +1,59 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v3.1",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v3.1": {
+      "PigCmdLibDemo/1.0.2": {
+        "dependencies": {
+          "PigCmdLib": "1.0.22"
+        },
+        "runtime": {
+          "PigCmdLibDemo.dll": {}
+        }
+      },
+      "PigCmdLib/1.0.22": {
+        "dependencies": {
+          "PigToolsLiteLib": "1.8.9"
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/PigCmdLib.dll": {
+            "assemblyVersion": "1.0.22.0",
+            "fileVersion": "1.0.22.0"
+          }
+        }
+      },
+      "PigToolsLiteLib/1.8.9": {
+        "runtime": {
+          "lib/netcoreapp3.1/PigToolsLiteLib.dll": {
+            "assemblyVersion": "1.8.9.0",
+            "fileVersion": "1.8.9.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "PigCmdLibDemo/1.0.2": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "PigCmdLib/1.0.22": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-govAYrZ+gvkfXuWU35Z7ccCbOgbC+s+Q9UUbvOP4jOTAAaqlSWD0U0aQ5IuEpWoRw2CXRLVrz/ittsdpAXIaiQ==",
+      "path": "pigcmdlib/1.0.22",
+      "hashPath": "pigcmdlib.1.0.22.nupkg.sha512"
+    },
+    "PigToolsLiteLib/1.8.9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-y+dSDgVSSPlHWncDcL7xFS2aO224VOVnZ/lCRHWrAKcsIYoZy8FVue0oNnug39U40d+15KxxiniDjaQYrsY+/A==",
+      "path": "pigtoolslitelib/1.8.9",
+      "hashPath": "pigtoolslitelib.1.8.9.nupkg.sha512"
+    }
+  }
+}
