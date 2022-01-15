@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "PigToolsDemo/1.0.7.1": {
+      "PigToolsDemo/2.0.6": {
         "dependencies": {
           "PigToolsLib": "1.0.15.12"
         },
@@ -420,7 +420,7 @@
     }
   },
   "libraries": {
-    "PigToolsDemo/1.0.7.1": {
+    "PigToolsDemo/2.0.6": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
