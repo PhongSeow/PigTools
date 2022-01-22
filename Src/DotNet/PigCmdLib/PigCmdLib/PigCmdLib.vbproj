@@ -13,10 +13,12 @@
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop shell command windows Linux VB6</PackageTags>
+    <PackageTags>.net develop shell command windows Linux VB6 console</PackageTags>
     <Description>Application of calling operating system commands.
+Add console functions.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.0.22</Version>
+    <Version>1.1.8</Version>
+    <PackageReleaseNotes>Add PigConsole.GetPwdStr for Read password string from console.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

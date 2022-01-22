@@ -1,5 +1,5 @@
 ﻿'**********************************
-'* Name: CmdShell
+'* Name: PigCmdApp
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
