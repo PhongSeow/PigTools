@@ -1,15 +1,4 @@
-﻿'**********************************
-'* Name: ConsoleDemo
-'* Author: Seow Phong
-'* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: 
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
-'* Create Time: 15/1/2022
-'* 1.1    23/1/2022   Add GetPwdStr
-'************************************
-
-Imports PigCmdLib
+﻿Imports PigCmdLib
 
 Public Class ConsoleDemo
     Public CmdOrFilePath As String
