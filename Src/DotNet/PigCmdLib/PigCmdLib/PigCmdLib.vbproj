@@ -17,8 +17,8 @@
     <Description>Application of calling operating system commands.
 Add console functions.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.1.8</Version>
-    <PackageReleaseNotes>Add PigConsole.GetPwdStr for Read password string from console.</PackageReleaseNotes>
+    <Version>1.1.20</Version>
+    <PackageReleaseNotes>Fix bugs of PigConsole.GetPwdStr for Read password string from console.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>1.8.9</Version>
+    <Version>1.8.18</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -12,7 +12,7 @@ A simplified tool interface class library based on .net platform, including func
 Configuration file management supporting configuration item encryption.
 It can run on Windows and Linux platforms.
 </Description>
-    <Copyright>Copyright (c) 2021 Seow Phong</Copyright>
+    <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>

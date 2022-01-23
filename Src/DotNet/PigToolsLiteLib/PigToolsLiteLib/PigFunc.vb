@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.4
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -14,6 +14,7 @@
 '*1.1    4/9/2021    Add Date2Lng,Lng2Date,Src2CtlStr,CtlStr2Src,AddMultiLineText
 '*1.2    2/1/2022    Modify IsFileExists
 '*1.3    12/1/2022   Add GetHostName,GetHostIp,mGetHostIp,GetEnvVar,GetUserName,GetComputerName,mGetHostIpList
+'*1.4    23/1/2022   Add IsOsWindows,MyOsCrLf,MyOsPathSep
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -23,7 +24,7 @@ Imports System.Environment
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.15"
+    Private Const CLS_VERSION As String = "1.4.5"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -645,6 +646,17 @@ Public Class PigFunc
 
     Public Function GetComputerName() As String
         Return Dns.GetHostName()
+    End Function
+
+    Public Function IsOsWindows() As Boolean
+        Return Me.IsWindows
+    End Function
+
+    Public Function MyOsCrLf() As String
+        Return Me.OsCrLf
+    End Function
+    Public Function MyOsPathSep() As String
+        Return Me.OsPathSep
     End Function
 
 End Class
