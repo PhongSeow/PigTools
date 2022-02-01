@@ -12,16 +12,16 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLibDemo</RepositoryUrl>
-    <Version>1.1.8</Version>
+    <Version>1.2.6</Version>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>Demo PigCmdLib .net develop shell command windows Linux VB6 password string</PackageTags>
-    <PackageReleaseNotes>Fix bugs of PigConsole.GetPwdStr for Read password string from console.
+    <PackageTags>Demo PigCmdLib .net develop shell command windows Linux VB6 password string  cmdShell CallFile StandardOutput StandardError StandardInput</PackageTags>
+    <PackageReleaseNotes>Add Shell commands that return results.
 
 </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.1.20" />
+    <PackageReference Include="PigCmdLib" Version="1.2.28" />
   </ItemGroup>
 
   <ItemGroup>
