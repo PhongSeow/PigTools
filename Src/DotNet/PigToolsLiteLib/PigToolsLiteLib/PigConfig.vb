@@ -4,14 +4,15 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 配置项|Configuration item
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 18/12/2021
-'* 1.1    20/12/2020   Add ConfValue,ContentType
-'* 1.2    22/12/2020   Modify ConfValue,mNew
+'* 1.1    20/12/2021   Add ConfValue,ContentType
+'* 1.2    22/12/2021   Modify ConfValue,mNew
+'* 1.3    2/2/2022   Add IsChange
 '**********************************
 Public Class PigConfig
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.6"
+    Private Const CLS_VERSION As String = "1.3.8"
 
     Public Enum EnmContentType
         ''' <summary>
@@ -62,6 +63,7 @@ Public Class PigConfig
                 .Parent = Parent
                 .ConfValue = ConfValue
                 .ConfDesc = ConfDesc
+                .IsChange = False
             End With
             Me.ClearErr()
         Catch ex As Exception
@@ -92,7 +94,10 @@ Public Class PigConfig
             Return mstrConfName
         End Get
         Friend Set(value As String)
-            mstrConfName = value
+            If mstrConfName <> value Then
+                mstrConfName = value
+                Me.IsChange = True
+            End If
         End Set
     End Property
 
@@ -105,7 +110,10 @@ Public Class PigConfig
             Return mstrConfDesc
         End Get
         Set(value As String)
-            mstrConfDesc = value
+            If mstrConfDesc <> value Then
+                mstrConfDesc = value
+                Me.IsChange = True
+            End If
         End Set
     End Property
 
@@ -143,7 +151,10 @@ Public Class PigConfig
             End Try
         End Get
         Set(value As String)
-            mstrConfValue = value
+            If mstrConfValue <> value Then
+                mstrConfValue = value
+                Me.IsChange = True
+            End If
             If Mid(mstrConfValue, 1, 5) = "{Enc}" Then
                 mstrUnEncConfValue = ""
                 Me.ContentType = EnmContentType.EncText
@@ -175,7 +186,20 @@ Public Class PigConfig
             Return mintContentType
         End Get
         Friend Set(value As EnmContentType)
-            mintContentType = value
+            If mintContentType <> value Then
+                mintContentType = value
+                Me.IsChange = True
+            End If
+        End Set
+    End Property
+
+    Private mbolIsChange As Boolean = False
+    Public Property IsChange As Boolean
+        Get
+            Return mbolIsChange
+        End Get
+        Friend Set(value As Boolean)
+            mbolIsChange = value
         End Set
     End Property
 

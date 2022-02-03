@@ -4,16 +4,17 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 配置项段落|Configuration session
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.4
+'* Version: 1.5
 '* Create Time: 21/12/2021
 '* 1.1    22/12/2020   Modify mNew 
 '* 1.2    23/12/2020   Modify mNew 
 '* 1.3    24/12/2020   Add ConfStrValue,ConfIntValue,ConfBoolValue,ConfDateValue,ConfDecValue, modify mNew,SetDebug
 '* 1.4    25/12/2020   Add SessionDesc, modify New,mNew
+'* 1.5    2/2/2022   Add IsChange
 '**********************************
 Public Class PigConfigSession
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.4.2"
+    Private Const CLS_VERSION As String = "1.5.2"
 
     Private moPigConfigs As PigConfigs
     Public Property PigConfigs As PigConfigs
@@ -162,6 +163,18 @@ Public Class PigConfigSession
             Else
                 Return 0
             End If
+        End Get
+    End Property
+
+    Public ReadOnly Property IsChange As Boolean
+        Get
+            IsChange = False
+            For Each oPigConfig As PigConfig In Me.PigConfigs
+                If oPigConfig.IsChange = True Then
+                    IsChange = True
+                    Exit For
+                End If
+            Next
         End Get
     End Property
 

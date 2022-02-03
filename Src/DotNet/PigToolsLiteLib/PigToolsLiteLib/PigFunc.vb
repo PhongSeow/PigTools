@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.4
+'* Version: 1.5
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -15,6 +15,7 @@
 '*1.2    2/1/2022    Modify IsFileExists
 '*1.3    12/1/2022   Add GetHostName,GetHostIp,mGetHostIp,GetEnvVar,GetUserName,GetComputerName,mGetHostIpList
 '*1.4    23/1/2022   Add IsOsWindows,MyOsCrLf,MyOsPathSep
+'*1.5    3/2/2022   Add GetFileText,SaveTextToFile, modify GetFilePart
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -24,7 +25,7 @@ Imports System.Environment
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.4.5"
+    Private Const CLS_VERSION As String = "1.5.10"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -353,6 +354,7 @@ Public Class PigFunc
     Public Function GetFilePart(ByVal FilePath As String, Optional FilePart As enmFilePart = enmFilePart.FileTitle) As String
         Dim strTemp As String, i As Long, lngLen As Long
         Dim strPath As String = "", strFileTitle As String = ""
+        Dim strOsPathSep As String = Me.OsPathSep
         Try
             GetFilePart = ""
             Select Case FilePart
@@ -363,11 +365,10 @@ Public Class PigFunc
                         If GetFilePart <> "" Then GetFilePart = GetFilePart & "$"
                     End If
                 Case enmFilePart.ExtName
-                    'GetFilePart = GetStr(FilePath, ".", "", False)
                     lngLen = Len(FilePath)
                     For i = lngLen To 1 Step -1
                         Select Case Mid(FilePath, i, 1)
-                            Case "/", ":", "$"
+                            Case "/", ":", "$", "\"
                                 Exit For
                             Case "."
                                 GetFilePart = Mid(FilePath, i + 1)
@@ -377,15 +378,14 @@ Public Class PigFunc
                     Next
                 Case enmFilePart.FileTitle, enmFilePart.Path
                     Do While True
-                        'My.Application.DoEvents()
-                        strTemp = GetStr(FilePath, "", "\", True)
+                        strTemp = GetStr(FilePath, "", strOsPathSep, True)
                         If Len(strTemp) = 0 Then
-                            If Right(strPath, 1) = "\" Then
-                                If Right(strPath, 2) <> ":\" Then
+                            If Right(strPath, 1) = strOsPathSep Then
+                                If Right(strPath, 2) <> ":" & strOsPathSep Then
                                     strPath = Left(strPath, Len(strPath) - 1)
                                 End If
-                            ElseIf Left(FilePath, 1) = "\" Then
-                                strPath = "\"
+                            ElseIf Left(FilePath, 1) = strOsPathSep Then
+                                strPath = strOsPathSep
                                 FilePath = Mid(FilePath, 2)
                             End If
                             If FilePath <> "" Then
@@ -395,7 +395,7 @@ Public Class PigFunc
                             End If
                             Exit Do
                         End If
-                        strPath = strPath & strTemp & "\"
+                        strPath = strPath & strTemp & strOsPathSep
                     Loop
                     If FilePart = enmFilePart.FileTitle Then
                         GetFilePart = strFileTitle
@@ -659,4 +659,78 @@ Public Class PigFunc
         Return Me.OsPathSep
     End Function
 
+    Public Function GetFileText(FilePath As String, ByRef FileText As String) As String
+        Dim LOG As New PigStepLog("GetFileText")
+        Try
+            LOG.StepName = "New StreamReader"
+            Dim srMain As New StreamReader(FilePath)
+            LOG.StepName = "ReadToEnd"
+            FileText = srMain.ReadToEnd()
+            LOG.StepName = "Close"
+            srMain.Close()
+            Return "OK"
+        Catch ex As Exception
+            FileText = ""
+            LOG.AddStepNameInf(FilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function SaveTextToFile(FilePath As String, SaveText As String) As String
+        Dim LOG As New PigStepLog("SaveTextToFile")
+        Try
+            LOG.StepName = "New StreamWriter"
+            Dim swMain As New StreamWriter(FilePath, False)
+            LOG.StepName = "Write"
+            swMain.Write(SaveText)
+            LOG.StepName = "Close"
+            swMain.Close()
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(FilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    'Public Function GetUUID() As String
+    '    Dim LOG As New PigStepLog("GetUUID")
+    '    Try
+    '        If Me.IsWindows = True Then
+    '            GetUUID = ""
+    '        Else
+    '            Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
+    '            LOG.StepName = "New PigFile"
+    '            Dim oPigFile As New PigFile(strFilePath)
+    '            If oPigFile.LastErr <> "" Then
+    '                LOG.AddStepNameInf(strFilePath)
+    '                Throw New Exception(oPigFile.LastErr)
+    '            End If
+    '            LOG.StepName = "oPigFile.LoadFile"
+    '            LOG.Ret = oPigFile.LoadFile()
+    '            If LOG.Ret <> "OK" Then
+    '                LOG.AddStepNameInf(strFilePath)
+    '                Throw New Exception(LOG.Ret)
+    '            End If
+    '            LOG.StepName = "New PigText"
+    '            Dim oPigText As New PigText(oPigFile.GbMain.Main, PigText.enmTextType.Ascii)
+    '            If oPigText.LastErr <> "" Then
+    '                If oPigFile.GbMain Is Nothing Then
+    '                    LOG.AddStepNameInf("oPigFile.GbMain Is Nothing")
+    '                ElseIf oPigFile.GbMain.Main Is Nothing Then
+    '                    LOG.AddStepNameInf("oPigFile.GbMain.Main Is Nothing")
+    '                Else
+    '                    LOG.AddStepNameInf("Main.Length=" & oPigFile.GbMain.Main.Length)
+    '                End If
+    '                Throw New Exception(oPigText.LastErr)
+    '            End If
+    '            GetUUID = oPigText.Text
+    '            GetUUID = oPigFile.GbMain.Main.Length
+    '            oPigFile = Nothing
+    '            oPigText = Nothing
+    '        End If
+    '    Catch ex As Exception
+    '        Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+    '        Return ""
+    '    End Try
+    'End Function
 End Class
