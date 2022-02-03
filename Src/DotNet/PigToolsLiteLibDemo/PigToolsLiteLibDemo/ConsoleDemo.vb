@@ -4,13 +4,13 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.5.8
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
 '* 1.3    26/12/2021   Modify PigConfig
 '* 1.4    2/1/2022   Modify PigConfig
-'* 1.5    2/2/2022   Modify PigConfig
+'* 1.5    3/2/2022   Modify PigConfig, Main, PigFunc demo,PigCompressorDemo
 '************************************
 Imports PigToolsLiteLib
 
@@ -31,9 +31,16 @@ Public Class ConsoleDemo
     Public ConfDesc As String
     Public ConfData As String
     Public FilePath As String
+    Public FilePart As PigFunc.enmFilePart
     Public Line As String
     Public SaveType As PigConfigApp.EnmSaveType
-
+    Public PigFunc As New PigFunc
+    Public Url As String
+    Public SrcStr As String
+    Public Base64EncStr As String
+    Public LeftStr As String
+    Public RightStr As String
+    Public EnvVar As String
     Public Sub Main()
         Do While True
             Console.WriteLine("*******************")
@@ -52,7 +59,8 @@ Public Class ConsoleDemo
             Console.WriteLine("Press J to PigConfig")
             Console.WriteLine("Press K to PigXml")
             Console.WriteLine("*******************")
-            Select Case Console.ReadKey().Key
+            Console.CursorVisible = False
+            Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
                     Exit Do
                 Case ConsoleKey.A
@@ -60,16 +68,23 @@ Public Class ConsoleDemo
                 Case ConsoleKey.B
                     Me.PigTextDemo()
                 Case ConsoleKey.C
-                    Dim strFilePath As String
-                    Console.WriteLine("Input filepath:")
-                    strFilePath = Console.ReadLine
-                    Me.PigFileDemo(strFilePath)
+                    Console.CursorVisible = True
+                    Console.WriteLine("Input FilePath:" & Me.FilePath)
+                    Me.Line = Console.ReadLine
+                    If Me.Line <> "" Then
+                        Me.FilePath = Me.Line
+                    End If
+                    Me.PigFileDemo(Me.FilePath)
                 Case ConsoleKey.D
                     Me.PigFuncDemo()
                 Case ConsoleKey.E
-                    Console.WriteLine("Input Url:")
-                    Dim strUrl As String = Console.ReadLine
-                    Me.PigWebReqDemo(strUrl)
+                    Console.CursorVisible = True
+                    Console.WriteLine("Input Url:" & Me.Url)
+                    Me.Line = Console.ReadLine
+                    If Me.Line <> "" Then
+                        Me.Url = Me.Line
+                    End If
+                    Me.PigWebReqDemo(Me.Url)
                 Case ConsoleKey.F
                     Console.WriteLine("*******************")
                     Console.WriteLine("ShareMem")
@@ -84,10 +99,17 @@ Public Class ConsoleDemo
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
-                                Console.WriteLine("Input ShareMem:")
-                                Me.SMName = Console.ReadLine
-                                Console.WriteLine("Input MainText:")
-                                Me.MainText = Console.ReadLine
+                                Console.CursorVisible = True
+                                Console.WriteLine("Input ShareMem:" & Me.SMName)
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.SMName = Me.Line
+                                End If
+                                Console.WriteLine("Input MainText:" & Me.MainText)
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.MainText = Me.Line
+                                End If
                                 Dim oPigText As New PigText(Me.MainText, PigText.enmTextType.UTF8)
                                 Me.ShareMem = New ShareMem
                                 With Me.ShareMem
@@ -193,9 +215,7 @@ Public Class ConsoleDemo
                     Console.WriteLine("PigAes")
                     Console.WriteLine("*******************")
                     Dim oPigAes As New PigAes
-                    Dim strBase64EncKey As String = ""
-                    Dim strSrc As String = ""
-                    Dim strBase64EncStr As String = ""
+                    Console.CursorVisible = False
                     Do While True
                         Console.WriteLine("*******************")
                         Console.WriteLine("Press Q to Up")
@@ -204,34 +224,41 @@ Public Class ConsoleDemo
                         Console.WriteLine("Press C to Encrypt")
                         Console.WriteLine("Press D to Decrypt")
                         Console.WriteLine("*******************")
-                        Select Case Console.ReadKey().Key
+                        Select Case Console.ReadKey(True).Key
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
-                                Me.Ret = oPigAes.MkEncKey(strBase64EncKey)
-                                Me.Base64EncKey = strBase64EncKey
+                                Me.Ret = oPigAes.MkEncKey(Me.Base64EncKey)
                                 Console.WriteLine("MkEncKey=" & Me.Ret)
                                 Console.WriteLine("Base64EncKey=" & Me.Base64EncKey)
                             Case ConsoleKey.B
                                 Console.WriteLine("Inupt Base64EncKey:" & vbCrLf & Me.Base64EncKey)
-                                strBase64EncKey = Console.ReadLine
-                                If strBase64EncKey = "" Then strBase64EncKey = Me.Base64EncKey
-                                Me.Ret = oPigAes.LoadEncKey(strBase64EncKey)
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.Base64EncKey = Me.Line
+                                End If
+                                Me.Ret = oPigAes.LoadEncKey(Me.Base64EncKey)
                                 Console.WriteLine("LoadEncKey=" & Me.Ret)
                             Case ConsoleKey.C
-                                Console.WriteLine("Enter the string to encrypt:")
-                                strSrc = Console.ReadLine
-                                Dim oPigText As New PigText(strSrc, PigText.enmTextType.UTF8)
-                                Me.Ret = oPigAes.Encrypt(oPigText.TextBytes, strBase64EncStr)
+                                Console.WriteLine("Enter the string to encrypt:" & Me.SrcStr)
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.SrcStr = Me.Line
+                                End If
+                                Dim oPigText As New PigText(Me.SrcStr, PigText.enmTextType.UTF8)
+                                Me.Ret = oPigAes.Encrypt(oPigText.TextBytes, Me.Base64EncStr)
                                 Console.WriteLine("Encrypt=" & Me.Ret)
-                                Console.WriteLine("Base64EncStr=" & vbCrLf & strBase64EncStr)
+                                Console.WriteLine("Base64EncStr=" & vbCrLf & Me.Base64EncStr)
                             Case ConsoleKey.D
                                 Console.WriteLine("Enter the Base64EncStr:")
-                                strBase64EncStr = Console.ReadLine
-                                strSrc = ""
-                                Me.Ret = oPigAes.Decrypt(strBase64EncStr, strSrc, PigText.enmTextType.UTF8)
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.Base64EncStr = Me.Line
+                                End If
+                                Me.SrcStr = ""
+                                Me.Ret = oPigAes.Decrypt(Me.Base64EncStr, Me.SrcStr, PigText.enmTextType.UTF8)
                                 Console.WriteLine("Decrypt=" & Me.Ret)
-                                Console.WriteLine("Decrypt string=" & vbCrLf & strSrc)
+                                Console.WriteLine("Decrypt string=" & vbCrLf & Me.SrcStr)
                         End Select
                     Loop
                 Case ConsoleKey.I
@@ -239,9 +266,7 @@ Public Class ConsoleDemo
                     Console.WriteLine("PigRsa")
                     Console.WriteLine("*******************")
                     Dim oPigRsa As New PigRsa
-                    Dim strBase64EncKey As String = ""
-                    Dim strSrc As String = ""
-                    Dim strBase64EncStr As String = ""
+                    Console.CursorVisible = False
                     Do While True
                         Console.WriteLine("*******************")
                         Console.WriteLine("Press Q to Up")
@@ -254,30 +279,36 @@ Public Class ConsoleDemo
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
-                                Me.Ret = oPigRsa.MkPubKey(True, strBase64EncKey)
-                                Me.Base64EncKey = strBase64EncKey
+                                Me.Ret = oPigRsa.MkPubKey(True, Me.Base64EncKey)
+                                Me.Base64EncKey = Me.Base64EncKey
                                 Console.WriteLine("MkPubKey=" & Me.Ret)
                                 Console.WriteLine("Base64EncKey=" & Me.Base64EncKey)
                             Case ConsoleKey.B
+                                Console.CursorVisible = True
                                 Console.WriteLine("Inupt Base64EncKey:" & vbCrLf & Me.Base64EncKey)
-                                strBase64EncKey = Console.ReadLine
-                                If strBase64EncKey = "" Then strBase64EncKey = Me.Base64EncKey
-                                Me.Ret = oPigRsa.LoadPubKey(strBase64EncKey)
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.Base64EncKey = Me.Line
+                                End If
+                                Me.Ret = oPigRsa.LoadPubKey(Me.Base64EncKey)
                                 Console.WriteLine("LoadPubKey=" & Me.Ret)
                             Case ConsoleKey.C
                                 Console.WriteLine("Enter the string to encrypt:")
-                                strSrc = Console.ReadLine
-                                Dim oPigText As New PigText(strSrc, PigText.enmTextType.UTF8)
-                                Me.Ret = oPigRsa.Encrypt(oPigText.TextBytes, strBase64EncStr)
+                                Me.SrcStr = Console.ReadLine
+                                Dim oPigText As New PigText(Me.SrcStr, PigText.enmTextType.UTF8)
+                                Me.Ret = oPigRsa.Encrypt(oPigText.TextBytes, Me.Base64EncStr)
                                 Console.WriteLine("Encrypt=" & Me.Ret)
-                                Console.WriteLine("Base64EncStr=" & vbCrLf & strBase64EncStr)
+                                Console.WriteLine("Base64EncStr=" & vbCrLf & Me.Base64EncStr)
                             Case ConsoleKey.D
-                                Console.WriteLine("Enter the Base64EncStr:")
-                                strBase64EncStr = Console.ReadLine
-                                strSrc = ""
-                                Me.Ret = oPigRsa.Decrypt(strBase64EncStr, strSrc, PigText.enmTextType.UTF8)
+                                Console.WriteLine("Enter the Base64EncStr:" & Me.Base64EncKey)
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.Base64EncKey = Me.Line
+                                End If
+                                Me.SrcStr = ""
+                                Me.Ret = oPigRsa.Decrypt(Me.Base64EncStr, Me.SrcStr, PigText.enmTextType.UTF8)
                                 Console.WriteLine("Decrypt=" & Me.Ret)
-                                Console.WriteLine("Decrypt string=" & vbCrLf & strSrc)
+                                Console.WriteLine("Decrypt string=" & vbCrLf & Me.SrcStr)
                         End Select
                     Loop
                 Case ConsoleKey.J
@@ -481,44 +512,73 @@ Public Class ConsoleDemo
     End Sub
 
     Public Sub PigFuncDemo()
-        Dim strDisplay As String = ""
-        strDisplay &= vbCrLf & "***PigFuncDemo Sample code***" & vbCrLf
-        strDisplay &= "```" & vbCrLf
-        strDisplay &= "Dim oPigFunc As New PigFunc" & vbCrLf
-        strDisplay &= "With oPigFunc" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print(""GENow = "" & .GENow)" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print(""GetFilePart(""c:\temp\aaa"", PigFunc.enmFilePart.FileTitle)= & .GetFilePart(""c:\temp\aaa"", PigFunc.enmFilePart.FileTitle))" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print(""GetProcThreadID = "" & .GetProcThreadID)" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print(""GetRandNum(1, 100) = "" & .GetRandNum(1, 100))" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print(""GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter) = "" & GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter))" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print("".GetRateDesc(16.88)="" & .GetRateDesc(16.88))" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print("".GetStr(""<hi>"", ""<"", "">"")="" & .GetStr(""<hi>"", ""<"", "">""))" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print("".IsRegexMatch(""B2b"", ""^[A-Za-z0-9]+$"")="" & .IsRegexMatch(""B2b"", ""^[A-Za-z0-9]+$""))" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print(""GetProcThreadID = "" & .GetProcThreadID)" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print("".UrlEncode(""https://www.seowphong.com/oss/PigTools"")="" & .UrlEncode(""https://www.seowphong.com/oss/PigTools""))" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print("".UrlDecode(""https%3A%2F%2Fwww.seowphong.com%2Foss%2FPigTools"")="" & .UrlDecode(""https%3A%2F%2Fwww.seowphong.com%2Foss%2FPigTools""))" & vbCrLf
-        strDisplay &= "End With" & vbCrLf
-        strDisplay &= "```" & vbCrLf
-
-        Dim strSrc As String = "PigTextDemo Sample code"
-        Dim oPigFunc As New PigFunc
-        strDisplay &= vbCrLf & "***Return results***" & vbCrLf
-        strDisplay &= "```" & vbCrLf
-        With oPigFunc
-            strDisplay &= "GENow=" & .GENow & vbCrLf
-            strDisplay &= "GetFilePart(""c:\temp\aaa"", PigFunc.enmFilePart.FileTitle)=" & .GetFilePart("c:\temp\aaa", PigFunc.enmFilePart.FileTitle) & vbCrLf
-            strDisplay &= "GetProcThreadID=" & .GetProcThreadID & vbCrLf
-            strDisplay &= "GetRandNum(1, 100)=" & .GetRandNum(1, 100) & vbCrLf
-            strDisplay &= "GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter)=" & .GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter) & vbCrLf
-            strDisplay &= ".GetRateDesc(16.88)=" & .GetRateDesc(16.88) & vbCrLf
-            strDisplay &= ".GetStr(""<hi>"", ""<"", "">"")=" & .GetStr("<hi>", "<", ">") & vbCrLf
-            strDisplay &= ".IsRegexMatch(""B2b"", ""^[A-Za-z0-9]+$"")=" & .IsRegexMatch("B2b", "^[A-Za-z0-9]+$") & vbCrLf
-            strDisplay &= ".GetProcThreadID=" & .GetProcThreadID & vbCrLf
-            strDisplay &= ".UrlEncode=" & .UrlEncode("https://www.seowphong.com/oss/PigTools") & vbCrLf
-            strDisplay &= ".UrlDecode=" & .UrlDecode("https%3A%2F%2Fwww.seowphong.com%2Foss%2FPigTools") & vbCrLf
-        End With
-        strDisplay &= "```" & vbCrLf
-        Console.WriteLine(strDisplay)
+        Do While True
+            Console.WriteLine("*******************")
+            Console.WriteLine("PigFunc")
+            Console.WriteLine("*******************")
+            Console.WriteLine("Press Q to Exit")
+            Console.WriteLine("Press A to Show Function Demo")
+            Console.WriteLine("Press B to GetFilePart")
+            Console.WriteLine("Press C to GetFileText")
+            Console.WriteLine("Press D to SaveTextToFile")
+            Console.WriteLine("Press E to GetEnvVar")
+            Console.WriteLine("*******************")
+            Select Case Console.ReadKey(True).Key
+                Case ConsoleKey.Q
+                    Exit Do
+                Case ConsoleKey.A
+                    With Me.PigFunc
+                        Console.WriteLine("GENow=" & .GENow)
+                        Console.WriteLine("GetHostName=" & .GetHostName)
+                        Console.WriteLine("GetHostIpList=" & .GetHostIpList)
+                        Console.WriteLine("GetHostIpList(True)=" & .GetHostIpList(True))
+                        Console.WriteLine("GetHostIp=" & .GetHostIp)
+                        Console.WriteLine("GetHostIp(True)=" & .GetHostIp(True))
+                        Console.WriteLine("GetHostIp(False, ""169.254.79."")=" & .GetHostIp(False, "169.254.79."))
+                        Console.WriteLine("GetUserName=" & .GetUserName)
+                        Console.WriteLine("GetEnvVar(""Path"")=" & .GetEnvVar("Path"))
+                        'Console.WriteLine("GetFilePart(""c: \temp\aaa"", PigFunc.enmFilePart.FileTitle)=" & .GetFilePart("c:\temp\aaa", PigFunc.enmFilePart.FileTitle))
+                        Console.WriteLine("GetProcThreadID=" & .GetProcThreadID)
+                        Console.WriteLine("GetRandNum(1, 100)=" & .GetRandNum(1, 100))
+                        Console.WriteLine("GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter)=" & .GetRandString(16, PigFunc.enmGetRandString.NumberAndLetter))
+                        Console.WriteLine(".GetRateDesc(16.88)=" & .GetRateDesc(16.88))
+                        Console.WriteLine(".GetStr(""<hi>"", ""<"", "">"")=" & .GetStr("<hi>", "<", ">"))
+                        Console.WriteLine(".IsRegexMatch(""B2b"", ""^[A-Za-z0-9]+$"")=" & .IsRegexMatch("B2b", "^[A-Za-z0-9]+$"))
+                        Console.WriteLine(".GetProcThreadID=" & .GetProcThreadID)
+                        Console.WriteLine(".UrlEncode=" & .UrlEncode("https://www.seowphong.com/oss/PigTools"))
+                        Console.WriteLine(".UrlDecode=" & .UrlDecode("https%3A%2F%2Fwww.seowphong.com%2Foss%2FPigTools"))
+                    End With
+                Case ConsoleKey.B
+                    Console.CursorVisible = True
+                    Me.GetLine("FilePath", Me.FilePath)
+                    Console.WriteLine("FilePart=DriveNo-" & PigFunc.enmFilePart.DriveNo & ",ExtName-" & PigFunc.enmFilePart.ExtName & ",FileTitle-" & PigFunc.enmFilePart.FileTitle & ",Path-" & PigFunc.enmFilePart.Path)
+                    Me.Line = Console.ReadLine
+                    Select Case Me.Line
+                        Case PigFunc.enmFilePart.DriveNo, PigFunc.enmFilePart.ExtName, PigFunc.enmFilePart.FileTitle, PigFunc.enmFilePart.Path
+                            Me.FilePart = CInt(Me.Line)
+                            Console.WriteLine("GetFilePart(" & Me.FilePath & "," & Me.FilePart & ")=" & Me.PigFunc.GetFilePart(Me.FilePath, Me.FilePart))
+                        Case Else
+                            Console.WriteLine("Invalid FilePart")
+                    End Select
+                Case ConsoleKey.C
+                    Console.CursorVisible = True
+                    Me.GetLine("FilePath", Me.FilePath)
+                    Me.Ret = Me.PigFunc.GetFileText(Me.FilePath, Me.SrcStr)
+                    Console.WriteLine("GetFileText(" & Me.FilePath & ")=" & Me.Ret)
+                    Console.WriteLine("FileText=" & Me.SrcStr)
+                Case ConsoleKey.D
+                    Console.CursorVisible = True
+                    Me.GetLine("FilePath", Me.FilePath)
+                    Me.GetLine("SaveText", Me.SrcStr)
+                    Me.Ret = Me.PigFunc.SaveTextToFile(Me.FilePath, Me.SrcStr)
+                    Console.WriteLine("SaveTextToFile(" & Me.FilePath & ")=" & Me.Ret)
+                Case ConsoleKey.E
+                    Console.CursorVisible = True
+                    Me.GetLine("EnvVarName", Me.EnvVar)
+                    Me.SrcStr = Me.PigFunc.GetEnvVar(Me.EnvVar)
+                    Console.WriteLine("GetEnvVar(" & Me.EnvVar & ")=" & Me.SrcStr)
+            End Select
+        Loop
     End Sub
 
     Public Sub PigFileDemo(FilePath As String)
@@ -595,44 +655,51 @@ Public Class ConsoleDemo
         Console.WriteLine(strDisplay)
     End Sub
 
+    Public Sub GetLine(ShowInf As String, ByRef OutLine As String)
+        Console.WriteLine("Input " & ShowInf & " : " & OutLine)
+        Dim strLine As String = Console.ReadLine
+        If strLine <> "" Then
+            OutLine = strLine
+        End If
+    End Sub
     Public Sub PigCompressorDemo()
-        Dim strDisplay As String = ""
-        strDisplay &= vbCrLf & "***PigCompressor Sample code***" & vbCrLf
-        strDisplay &= "```" & vbCrLf
-        strDisplay &= "Dim oPigCompressor As New PigCompressor" & vbCrLf
-        strDisplay &= "With oPigCompressor" & vbCrLf
-        strDisplay &= vbTab & "abCompressor = .Compress(strSrc)" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print(""strSrc.Length="" & strSrc.Length.ToString)" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print(""abCompressor.Length="" & abCompressor.Length.ToString)" & vbCrLf
-        strDisplay &= vbTab & "abSrc = .Depress(abCompressor)" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print(""abSrc.Length="" & abSrc.Length.ToString)" & vbCrLf
-        strDisplay &= "End With" & vbCrLf
-        strDisplay &= "```" & vbCrLf
-
+        Console.CursorVisible = True
+        Me.GetLine("SrcStr", Me.SrcStr)
+        Console.WriteLine("SrcStr.Length=" & Me.SrcStr.Length)
         Dim oPigCompressor As New PigCompressor
-        Dim strSrc As String = "11111111111111113333333333444444444444446666666666666ggggggggggdddddddddddddddddeeeeeeeeeeeeeeeeedsfffffffffffffeeeeeegggggggggghhhhhhhhh"
-        Dim abSrc(-1) As Byte
-        Dim abCompressor(-1) As Byte
-
-        strDisplay &= vbCrLf & "***Return results***" & vbCrLf
-        strDisplay &= "```" & vbCrLf
+        Dim abSrc(0) As Byte
+        Dim abCompressor(0) As Byte
         With oPigCompressor
-            abCompressor = .Compress(strSrc)
-            If .LastErr <> "" Then
-                strDisplay &= "Compress=" & .LastErr & vbCrLf
-            Else
-                strDisplay &= "strSrc.Length=" & strSrc.Length.ToString & vbCrLf
-                strDisplay &= "abCompressor.Length=" & abCompressor.Length.ToString & vbCrLf
+            Console.WriteLine("abCompressor = .Compress(Me.SrcStr)")
+            abCompressor = .Compress(Me.SrcStr, PigText.enmTextType.UTF8)
+            If .LastErr = "" Then
+                Console.WriteLine("OK")
+                Console.WriteLine("abCompressor.Length=" & abCompressor.Length)
+                Console.WriteLine("abSrc = .Depress(abCompressor)")
                 abSrc = .Depress(abCompressor)
-                If .LastErr <> "" Then
-                    strDisplay &= "Depress=" & .LastErr & vbCrLf
+                If .LastErr = "" Then
+                    Console.WriteLine("OK")
+                    Console.WriteLine("abSrc.Length=" & abSrc.Length)
+                    Console.WriteLine("Dim oPigText As New PigText(abSrc, PigText.enmTextType.UTF8)")
+                    Dim oPigText As New PigText(abSrc, PigText.enmTextType.UTF8)
+                    If oPigText.LastErr = "" Then
+                        Console.WriteLine("OK")
+                        Console.WriteLine("oPigText.Text=" & oPigText.Text)
+                        If oPigText.Text = Me.SrcStr Then
+                            Console.WriteLine("oPigText.Text = Me.SrcStr")
+                        Else
+                            Console.WriteLine("oPigText.Text <> Me.SrcStr")
+                        End If
+                    Else
+                        Console.WriteLine(oPigText.LastErr)
+                    End If
                 Else
-                    strDisplay &= "abSrc.Length=" & abSrc.Length.ToString & vbCrLf
+                    Console.WriteLine(.LastErr)
                 End If
+            Else
+                Console.WriteLine(.LastErr)
             End If
         End With
-        strDisplay &= "```" & vbCrLf
-        Console.WriteLine(strDisplay)
     End Sub
 
 End Class
