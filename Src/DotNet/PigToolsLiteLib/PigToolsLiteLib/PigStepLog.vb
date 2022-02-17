@@ -1,13 +1,15 @@
 ﻿'**********************************
 '* Name: PigStepLog
 '* Author: Seow Phong
-'* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigStepLog is for logging and error handling in the process.
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2.1
+'* Version: 1.3.2
 '* Create Time: 8/12/2019
 '1.1    18/12/2021  Add TrackID,ErrInf2User, modify mNew,StepName
 '1.2    21/12/2021  Modify TrackID
+'1.3    10/2/2022  Add StepLogInf
+
 '************************************
 Public Class PigStepLog
     Public ReadOnly Property SubName As String
@@ -66,7 +68,7 @@ Public Class PigStepLog
     End Sub
 
 
-    Private mstrTrackID As String
+    Private mstrTrackID As String = ""
     Public Property TrackID As String
         Get
             Return mstrTrackID
@@ -130,5 +132,20 @@ Public Class PigStepLog
         End If
     End Sub
 
+    ''' <summary>
+    ''' 当前步骤的日志信息|Log information of the current step
+    ''' </summary>
+    ''' <returns></returns>
+    Public ReadOnly Property StepLogInf As String
+        Get
+            With Me
+                StepLogInf = "[" & Me.SubName & "]"
+                StepLogInf &= "[" & Me.StepName & "]"
+                If Me.Ret <> "" Then StepLogInf &= "[" & Me.Ret & "]"
+                If Me.TrackID <> "" Then StepLogInf &= "[TrackID:" & Me.TrackID & "]"
+                If Me.IsLogUseTime = True Then StepLogInf &= "[" & Me.AllDiffSeconds.ToString & "]"
+            End With
+        End Get
+    End Property
 
 End Class

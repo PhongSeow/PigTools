@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.7
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -16,6 +16,8 @@
 '*1.3    12/1/2022   Add GetHostName,GetHostIp,mGetHostIp,GetEnvVar,GetUserName,GetComputerName,mGetHostIpList
 '*1.4    23/1/2022   Add IsOsWindows,MyOsCrLf,MyOsPathSep
 '*1.5    3/2/2022   Add GetFileText,SaveTextToFile, modify GetFilePart
+'*1.6    3/2/2022   Add GetFmtDateTime, modify GENow
+'*1.7    13/2/2022   Add DeleteFolder,DeleteFile
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -25,7 +27,7 @@ Imports System.Environment
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.10"
+    Private Const CLS_VERSION As String = "1.7.6"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -122,7 +124,11 @@ Public Class PigFunc
 
     ''' <remarks>显示精确到毫秒的时间</remarks>
     Public Function GENow() As String
-        GENow = Format(Now, "yyyy-MM-dd HH:mm:ss.fff")
+        Return Format(Now, "yyyy-MM-dd HH:mm:ss.fff")
+    End Function
+
+    Public Function GetFmtDateTime(SrcTime As DateTime, Optional TimeFmt As String = "yyyy-MM-dd HH:mm:ss.fff") As String
+        Return Format(SrcTime, TimeFmt)
     End Function
 
     Public Function GetHostName() As String
@@ -641,6 +647,53 @@ Public Class PigFunc
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("CreateFolder", ex)
+        End Try
+    End Function
+
+    Public Function MoveFile(SrcFilePath As String, DestFilePath As String, Optional IsForceOverride As Boolean = False) As String
+        Dim LOG As New PigStepLog("MoveFile")
+        Try
+            If IsForceOverride = True Then
+                If File.Exists(DestFilePath) = True Then
+                    LOG.StepName = "Delete(DestFilePath)"
+                    File.Delete(DestFilePath)
+                End If
+            End If
+            LOG.StepName = "Move(SrcFilePath, DestFilePath)"
+            File.Move(SrcFilePath, DestFilePath)
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(SrcFilePath)
+            LOG.AddStepNameInf(DestFilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+
+    Public Function DeleteFile(FilePath As String) As String
+        Try
+            File.Delete(FilePath)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("DeleteFile", ex)
+        End Try
+    End Function
+
+    Public Function DeleteFolder(FolderPath As String) As String
+        Try
+            Directory.Delete(FolderPath)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("DeleteFolder", ex)
+        End Try
+    End Function
+
+    Public Function DeleteFolder(FolderPath As String, IsSubDir As Boolean) As String
+        Try
+            Directory.Delete(FolderPath, IsSubDir)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("DeleteFolder", ex)
         End Try
     End Function
 
