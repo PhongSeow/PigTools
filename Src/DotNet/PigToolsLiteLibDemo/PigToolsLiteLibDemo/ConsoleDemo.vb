@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5.8
+'* Version: 1.6.2
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
 '* 1.3    26/12/2021   Modify PigConfig
 '* 1.4    2/1/2022   Modify PigConfig
 '* 1.5    3/2/2022   Modify PigConfig, Main, PigFunc demo,PigCompressorDemo
+'* 1.6    22/2/2022   Modify PigConfig
 '************************************
 Imports PigToolsLiteLib
 
@@ -331,11 +332,13 @@ Public Class ConsoleDemo
                         Console.WriteLine("Press G to LoadConfig")
                         Console.WriteLine("Press H to LoadConfigFile")
                         Console.WriteLine("Press I to ShowConfig")
+                        Console.WriteLine("Press J to Edit ConfigItem")
                         Console.WriteLine("*******************")
-                        Select Case Console.ReadKey().Key
+                        Select Case Console.ReadKey(True).Key
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
+                                Console.CursorVisible = True
                                 Console.WriteLine("EncKey=")
                                 Me.Line = Console.ReadLine
                                 Me.PigConfigApp = New PigConfigApp(Me.Line)
@@ -358,6 +361,7 @@ Public Class ConsoleDemo
                                     End If
                                 End If
                             Case ConsoleKey.C
+                                Console.CursorVisible = True
                                 If Me.PigConfigApp Is Nothing Then
                                     Console.WriteLine("PigConfigApp Is Nothing")
                                 Else
@@ -368,6 +372,7 @@ Public Class ConsoleDemo
                                     Console.WriteLine(Me.Ret)
                                 End If
                             Case ConsoleKey.D
+                                Console.CursorVisible = True
                                 If Me.PigConfigApp Is Nothing Then
                                     Console.WriteLine("PigConfigApp Is Nothing")
                                 Else
@@ -385,6 +390,7 @@ Public Class ConsoleDemo
                                     End If
                                 End If
                             Case ConsoleKey.E
+                                Console.CursorVisible = True
                                 If Me.PigConfigApp Is Nothing Then
                                     Console.WriteLine("PigConfigApp Is Nothing")
                                 Else
@@ -445,6 +451,7 @@ Public Class ConsoleDemo
                                     Console.WriteLine(Me.Ret)
                                 End If
                             Case ConsoleKey.H
+                                Console.CursorVisible = True
                                 If Me.PigConfigApp Is Nothing Then
                                     Console.WriteLine("PigConfigApp Is Nothing")
                                 Else
@@ -461,6 +468,7 @@ Public Class ConsoleDemo
                                 If Me.PigConfigApp Is Nothing Then
                                     Console.WriteLine("PigConfigApp Is Nothing")
                                 Else
+                                    Console.WriteLine("PigConfigApp.IsChange=" & Me.PigConfigApp.IsChange)
                                     For Each oPigConfigSession As PigConfigSession In Me.PigConfigApp.PigConfigSessions
                                         Console.WriteLine("SessionName=" & oPigConfigSession.SessionName)
                                         Console.WriteLine("SessionDesc=" & oPigConfigSession.SessionDesc)
@@ -473,6 +481,33 @@ Public Class ConsoleDemo
                                             End With
                                         Next
                                     Next
+                                End If
+                            Case ConsoleKey.J
+                                Console.CursorVisible = True
+                                If Me.PigConfigApp Is Nothing Then
+                                    Console.WriteLine("PigConfigApp Is Nothing")
+                                Else
+                                    Console.WriteLine("SessionName=" & Me.SessionName)
+                                    Me.Line = Console.ReadLine
+                                    If Me.Line <> "" Then Me.SessionName = Me.Line
+                                    Me.PigConfigSession = Me.PigConfigApp.GetPigConfigSession(Me.SessionName)
+                                    If Me.PigConfigApp.LastErr <> "" Then
+                                        Console.WriteLine(Me.PigConfigApp.LastErr)
+                                    ElseIf Me.PigConfigSession Is Nothing Then
+                                        Console.WriteLine("PigConfigSession Is Nothing")
+                                    Else
+                                        Console.WriteLine("OK")
+                                        Console.WriteLine("ConfName=" & Me.ConfName)
+                                        Me.ConfName = Console.ReadLine
+                                        Console.WriteLine("ConfValue=" & Me.ConfValue)
+                                        Me.ConfValue = Console.ReadLine
+                                        Console.WriteLine("ConfDesc=" & Me.ConfDesc)
+                                        Me.ConfDesc = Console.ReadLine
+                                        With Me.PigConfigSession.PigConfigs.Item(ConfName)
+                                            .ConfValue = Me.ConfValue
+                                            .ConfDesc = Me.ConfDesc
+                                        End With
+                                    End If
                                 End If
                         End Select
                     Loop
@@ -620,6 +655,9 @@ Public Class ConsoleDemo
         End With
         strDisplay &= "```" & vbCrLf
         Console.WriteLine(strDisplay)
+        oPigFile.LoadFile()
+        Dim o As New PigText(oPigFile.GbMain.Main, PigText.enmTextType.Ascii)
+        Console.WriteLine(o.Text)
     End Sub
 
     Public Sub PigTextDemo()
