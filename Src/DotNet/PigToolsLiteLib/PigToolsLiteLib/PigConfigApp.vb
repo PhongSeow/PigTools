@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 配置应用类|Configure application classes
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.11
 '* Create Time: 18/12/2021
 '* 1.1    20/12/2020   Add mNew,MkEncKey,mLoadConfig,GetEncStr
 '* 1.2    21/12/2020   Modify mLoadConfig,EnmSaveType,mNew, add LoadConfig,LoadConfigFile,SaveConfigFile,SaveConfig,PigConfigSessions,AddNewConfigSession
@@ -16,11 +16,12 @@
 '* 1.8    1/1/2021     Modify mSaveConfig,mLoadConfig
 '* 1.9    3/1/2021     Modify mSaveConfig
 '* 1.10   2/2/2022     Add IsChange
+'* 1.11   21/2/2022    Modify mLoadConfig,IsChange,SaveConfigFile,SaveConfig, add fSetIsChangeFalse
 '**********************************
 Imports Microsoft.VisualBasic
 Public Class PigConfigApp
     Inherits PigBaseMini
-	Private Const CLS_VERSION As String = "1.10.3"
+	Private Const CLS_VERSION As String = "1.11.5"
 	Public Enum EnmSaveType
 		''' <summary>
 		''' XML text
@@ -393,6 +394,9 @@ Public Class PigConfigApp
 						Loop
 					Loop
 			End Select
+			LOG.StepName = "fSetIsChangeFalse"
+			LOG.Ret = Me.fSetIsChangeFalse()
+			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			ptConfData = Nothing
 			Return "OK"
 		Catch ex As Exception
@@ -525,6 +529,9 @@ Public Class PigConfigApp
 				LOG.AddStepNameInf(FilePath)
 				Throw New Exception(LOG.Ret)
 			End If
+			LOG.StepName = "fSetIsChangeFalse"
+			LOG.Ret = Me.fSetIsChangeFalse()
+			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			Return "OK"
 		Catch ex As Exception
 			Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -544,6 +551,9 @@ Public Class PigConfigApp
 			If oPigText.LastErr <> "" Then Throw New Exception(oPigText.LastErr)
 			OutConfData = oPigText.Text
 			oPigText = Nothing
+			LOG.StepName = "fSetIsChangeFalse"
+			LOG.Ret = Me.fSetIsChangeFalse()
+			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			Return "OK"
 		Catch ex As Exception
 			Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -559,6 +569,9 @@ Public Class PigConfigApp
 			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			OutConfData = oPigBytes.Main
 			oPigBytes = Nothing
+			LOG.StepName = "fSetIsChangeFalse"
+			LOG.Ret = Me.fSetIsChangeFalse()
+			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			Return "OK"
 		Catch ex As Exception
 			Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -754,16 +767,42 @@ Public Class PigConfigApp
 		End Try
 	End Function
 
-	Public ReadOnly Property IsChange As Boolean
+	Friend Function fSetIsChangeFalse() As String
+		Try
+			For Each oPigConfigSession As PigConfigSession In Me.PigConfigSessions
+				For Each oPigConfig As PigConfig In oPigConfigSession.PigConfigs
+					If oPigConfig.IsChange = True Then
+						oPigConfig.IsChange = False
+					End If
+				Next
+				If oPigConfigSession.IsChange = True Then
+					oPigConfigSession.IsChange = False
+				End If
+			Next
+			If Me.IsChange = True Then
+				Me.IsChange = False
+			End If
+			Return "OK"
+		Catch ex As Exception
+			Return Me.GetSubErrInf("fSetIsChangeFalse", ex)
+		End Try
+	End Function
+	Private mbolIsChange As Boolean
+	Public Property IsChange As Boolean
 		Get
-			IsChange = False
 			For Each oPigConfigSession As PigConfigSession In Me.PigConfigSessions
 				If oPigConfigSession.IsChange = True Then
-					IsChange = True
+					If mbolIsChange = False Then
+						mbolIsChange = True
+					End If
 					Exit For
 				End If
 			Next
+			Return mbolIsChange
 		End Get
+		Friend Set(value As Boolean)
+			mbolIsChange = value
+		End Set
 	End Property
 
 End Class

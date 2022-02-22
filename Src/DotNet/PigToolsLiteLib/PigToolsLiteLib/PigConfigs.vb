@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigConfig 的集合类|Collection class of PigConfig
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 18/12/2021
 '* 1.1    22/12/2020   Modify Add 
 '* 1.2    23/12/2020   Add Parent, modify New,Add
@@ -12,11 +12,12 @@
 '* 1.4    25/12/2021   Add AddOrGet
 '* 1.5    26/12/2021   Modify AddOrGet
 '* 1.6    3/1/2022   Modify AddOrGet
+'* 1.7    21/2/2022   Modify Modify mAdd,Remove,Clear
 '************************************
 Public Class PigConfigs
     Inherits PigBaseMini
     Implements IEnumerable(Of PigConfig)
-    Private Const CLS_VERSION As String = "1.6.2"
+    Private Const CLS_VERSION As String = "1.7.5"
     Friend Property Parent As PigConfigSession
     Private ReadOnly moList As New List(Of PigConfig)
 
@@ -90,6 +91,7 @@ Public Class PigConfigs
         Try
             If Me.IsItemExists(NewItem.ConfName) = True Then Throw New Exception(NewItem.ConfName & " already exists.")
             moList.Add(NewItem)
+            Me.Parent.IsChange = True
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("mAdd", ex)
@@ -206,6 +208,7 @@ Public Class PigConfigs
                     Exit For
                 End If
             Next
+            Me.Parent.IsChange = True
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -217,6 +220,7 @@ Public Class PigConfigs
         Try
             LOG.StepName = "Index=" & Index.ToString
             moList.RemoveAt(Index)
+            Me.Parent.IsChange = True
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -241,6 +245,7 @@ Public Class PigConfigs
     Public Function Clear() As String
         Try
             moList.Clear()
+            Me.Parent.IsChange = True
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("Clear", ex)
