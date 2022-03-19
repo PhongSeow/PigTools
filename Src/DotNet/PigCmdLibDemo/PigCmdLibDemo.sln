@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31702.278
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PigCmdLibDemo", "PigCmdLibDemo\PigCmdLibDemo.vbproj", "{7061A134-3FA1-4011-AC13-B1CB6CE74491}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PigCmdLibDemo", "PigCmdLibDemo\PigCmdLibDemo.vbproj", "{08A8280B-82E5-4798-9AA2-87CDFBC961A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7061A134-3FA1-4011-AC13-B1CB6CE74491}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7061A134-3FA1-4011-AC13-B1CB6CE74491}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7061A134-3FA1-4011-AC13-B1CB6CE74491}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7061A134-3FA1-4011-AC13-B1CB6CE74491}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08A8280B-82E5-4798-9AA2-87CDFBC961A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08A8280B-82E5-4798-9AA2-87CDFBC961A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08A8280B-82E5-4798-9AA2-87CDFBC961A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08A8280B-82E5-4798-9AA2-87CDFBC961A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {32C816DE-6B9F-48E7-AB33-785F077C25B6}
+		SolutionGuid = {787CB5D4-6171-4CDE-80D0-F97850028D03}
 	EndGlobalSection
 EndGlobal

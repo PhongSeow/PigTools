@@ -4,10 +4,11 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2.1
+'* Version: 1.3.3
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
-'* 1.1    1/3/2022   Add CmdShell
+'* 1.2    1/3/2022   Add CmdShell
+'* 1.3    19/3/2022  Modify GetLine,GetPwdStr
 '************************************
 
 Imports PigCmdLib
@@ -33,6 +34,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press B to CallFile")
             Console.WriteLine("Press C to CmdShell")
             Console.WriteLine("Press D to GetPwdStr")
+            Console.WriteLine("Press E to GetLine")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
@@ -94,14 +96,25 @@ Public Class ConsoleDemo
                     Console.WriteLine("*******************")
                     Console.WriteLine("GetPwdStr")
                     Console.WriteLine("*******************")
-                    Console.WriteLine("Enter the password and press ENTER to end")
                     Console.CursorVisible = True
-                    Me.Pwd = Me.PigConsole.GetPwdStr()
+                    Me.Pwd = Me.PigConsole.GetPwdStr("Enter the password and press ENTER to end")
                     If Me.PigConsole.LastErr <> "" Then
                         Console.WriteLine(Me.PigConsole.LastErr)
                     Else
                         Console.WriteLine("Password is ")
                         Console.WriteLine(Me.Pwd)
+                    End If
+                Case ConsoleKey.E
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("GetLine")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    Me.Ret = Me.PigConsole.GetLine("Enter the Line", Me.Line, True)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Console.Write("Line is :")
+                        Console.WriteLine(Me.Line)
                     End If
             End Select
             Console.CursorVisible = False
