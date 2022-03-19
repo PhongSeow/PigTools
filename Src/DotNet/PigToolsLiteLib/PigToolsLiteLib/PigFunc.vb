@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -18,6 +18,7 @@
 '*1.5    3/2/2022   Add GetFileText,SaveTextToFile, modify GetFilePart
 '*1.6    3/2/2022   Add GetFmtDateTime, modify GENow
 '*1.7    13/2/2022   Add DeleteFolder,DeleteFile
+'*1.8    23/2/2022   Add PLSqlCsv2Bcp
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -27,7 +28,7 @@ Imports System.Environment
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.7.6"
+    Private Const CLS_VERSION As String = "1.8.2"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -742,6 +743,38 @@ Public Class PigFunc
         Catch ex As Exception
             LOG.AddStepNameInf(FilePath)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 将一行PLSQL Developer 导出的CSV文本行转换成标准的SQL Server BCP格式行|Convert a line of CSV text exported by PL/SQL Developer into a standard SQL Server BCP format line
+    ''' </summary>
+    ''' <param name="CsvLine"></param>
+    ''' <param name="BcpLine"></param>
+    ''' <returns></returns>
+    Public Function PLSqlCsv2Bcp(CsvLine As String, ByRef BcpLine As String) As String
+        Try
+            CsvLine &= ","
+            Do While True
+                If InStr(CsvLine, """"",") = 0 Then Exit Do
+                CsvLine = Replace(CsvLine, """"",", """ "",")
+            Loop
+            BcpLine = ""
+            Dim bolIsBegin As Boolean = False
+            Do While True
+                Dim strCol As String = Me.GetStr(CsvLine, """", """,")
+                If strCol = "" Then Exit Do
+                If strCol = " " Then strCol = ""
+                If bolIsBegin = True Then
+                    BcpLine &= vbTab
+                Else
+                    bolIsBegin = True
+                End If
+                BcpLine &= strCol
+            Loop
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("PLSqlCsv2Bcp", ex)
         End Try
     End Function
 

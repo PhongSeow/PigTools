@@ -4,19 +4,20 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
 '*1.3 4/2/2022     Add mGetKeyTypeForLine,ClearLine,mGetLine
 '*1.4 5/2/2022     Modify GetLine.
 '*1.5 6/2/2022     Modify mGetKeyTypeForLine,mGetKeyTypeForPwd,mGetLine
+'*1.6 19/3/2022    Modify mGetLine,GetLine,GetPwdStr, add mGetPwdStr, 
 '**********************************
 Imports PigToolsLiteLib
 
 Public Class PigConsole
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.8"
+    Private Const CLS_VERSION As String = "1.6.3"
 
     Friend Enum EnmLineEdit
         Insert = 0
@@ -245,25 +246,43 @@ Public Class PigConsole
     ''' <summary>
     ''' 从控制台当前行读取密码|Read the password from the current line of the console
     ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <returns></returns>
+    Public Function GetPwdStr(PromptInf As String) As String
+        Return Me.mGetPwdStr(PromptInf)
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取密码|Read the password from the current line of the console
+    ''' </summary>
     ''' <returns></returns>
     Public Function GetPwdStr() As String
+        Return Me.mGetPwdStr("")
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取密码|Read the password from the current line of the console
+    ''' </summary>
+    ''' <returns></returns>
+    Private Function mGetPwdStr(PromptInf As String) As String
         Try
-            GetPwdStr = ""
+            Dim strPwd As String = ""
             Dim bolCurrCursorVisible As Boolean
             If Me.IsWindows = True Then
                 bolCurrCursorVisible = Console.CursorVisible
                 If bolCurrCursorVisible = False Then Console.CursorVisible = True
             End If
+            If PromptInf <> "" Then Console.Write(PromptInf & ":")
             Do While True
                 Dim oConsoleKeyInfo As ConsoleKeyInfo = Console.ReadKey(True)
                 Select Case Me.mGetKeyTypeForPwd(oConsoleKeyInfo.KeyChar)
                     Case EnmKeyTypeForPwd.PasswordChar
-                        GetPwdStr &= oConsoleKeyInfo.KeyChar
+                        strPwd &= oConsoleKeyInfo.KeyChar
                         Console.Write("*")
                     Case EnmKeyTypeForPwd.Backspace
-                        If GetPwdStr <> "" Then
+                        If strPwd <> "" Then
                             Console.Write(vbBack & " " & vbBack)
-                            GetPwdStr = Left(GetPwdStr, Len(GetPwdStr) - 1)
+                            strPwd = Left(strPwd, Len(strPwd) - 1)
                         End If
                     Case EnmKeyTypeForPwd.Enter
                         Console.WriteLine()
@@ -273,12 +292,24 @@ Public Class PigConsole
             If Me.IsWindows = True Then
                 If bolCurrCursorVisible = Console.CursorVisible Then Console.CursorVisible = bolCurrCursorVisible
             End If
+            Return strPwd
         Catch ex As Exception
-            Me.SetSubErrInf("GetPwdStr", ex)
+            Me.SetSubErrInf("mGetPwdStr", ex)
             Return ""
         End Try
     End Function
 
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutLine">输出的文本|Output text</param>
+    ''' <param name="IsShowCurrLine">是否显示当前文本|Is show current text</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutLine As String, IsShowCurrLine As Boolean) As String
+        Return Me.mGetLine(PromptInf, OutLine, IsShowCurrLine)
+    End Function
 
     ''' <summary>
     ''' 从控制台当前行读取文本|Read text from the current line of the console
@@ -299,7 +330,7 @@ Public Class PigConsole
         Return Me.mGetLine("", OutLine)
     End Function
 
-    Private Function mGetLine(PromptInf As String, ByRef OutLine As String) As String
+    Private Function mGetLine(PromptInf As String, ByRef OutLine As String, Optional IsShowCurrLine As Boolean = True) As String
         Dim LOG As New PigStepLog("mGetLine")
         Try
             Dim strOldLine As String = OutLine
@@ -309,37 +340,16 @@ Public Class PigConsole
                 bolCurrCursorVisible = Console.CursorVisible
                 If bolCurrCursorVisible = False Then Console.CursorVisible = True
             End If
-            If PromptInf <> "" Then Console.WriteLine(PromptInf)
             Dim intBeginLeft As Integer = Console.CursorLeft, intBeginTop As Integer = Console.CursorTop
-            If OutLine <> "" Then Console.Write(OutLine)
-            Do While True
-                Dim intLineLen As Integer = Len(OutLine)
-                Dim oConsoleKeyInfo As ConsoleKeyInfo = Console.ReadKey(True)
-                Dim strLeft As String = "", strRight As String = ""
-                Select Case Me.mGetKeyTypeForLine(oConsoleKeyInfo)
-                    Case EnmKeyTypeForLine.TextChar
-                        Me.mEditLine(OutLine, intBeginTop, EnmLineEdit.Insert, oConsoleKeyInfo.KeyChar)
-                    Case EnmKeyTypeForLine.Backspace
-                    Case EnmKeyTypeForLine.Home
-                        Me.mSetLinePos(0, intLineLen, intBeginTop)
-                    Case EnmKeyTypeForLine.End
-                        Me.mSetLinePos(intLineLen, intLineLen, intBeginTop)
-                    Case EnmKeyTypeForLine.Delete
-                    Case EnmKeyTypeForLine.LeftArrow
-                        If Console.CursorLeft > 0 Then Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop)
-                    Case EnmKeyTypeForLine.RightArrow
-                        If Console.CursorLeft < OutLine.Length - 1 Then Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop)
-                    Case EnmKeyTypeForLine.Escape
-                        OutLine = strOldLine
-                        LOG.StepName = "ClearLine"
-                        LOG.Ret = Me.ClearLine(OutLine.Length, 0, intBeginTop)
-                        If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-                        Console.Write(OutLine)
-                    Case EnmKeyTypeForLine.Enter
-                        Console.WriteLine()
-                        Exit Do
-                End Select
-            Loop
+            If OutLine <> "" And IsShowCurrLine = True Then
+                Console.WriteLine("(Press ENTER to set the current value to the following text)")
+                Console.WriteLine(OutLine)
+            End If
+            If PromptInf <> "" Then Console.Write(PromptInf & ":")
+            Dim strLine As String = Console.ReadLine
+            If strLine <> "" Then
+                OutLine = strLine
+            End If
             If Me.IsWindows = True Then
                 If bolCurrCursorVisible = Console.CursorVisible Then Console.CursorVisible = bolCurrCursorVisible
             End If
