@@ -17,7 +17,7 @@
     <Description>Application of calling operating system commands and call file.
 Add console functions.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.3.18</Version>
+    <Version>1.3.20</Version>
     <PackageReleaseNotes>Add PigConsole.GetLine for Read text from the current line of the console</PackageReleaseNotes>
   </PropertyGroup>
 
@@ -33,7 +33,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.0.8" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.1.22" />
   </ItemGroup>
 
 </Project>
