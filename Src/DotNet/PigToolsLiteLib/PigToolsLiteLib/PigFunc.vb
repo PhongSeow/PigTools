@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -19,6 +19,7 @@
 '*1.6    3/2/2022   Add GetFmtDateTime, modify GENow
 '*1.7    13/2/2022   Add DeleteFolder,DeleteFile
 '*1.8    23/2/2022   Add PLSqlCsv2Bcp
+'*1.9    20/3/2022   Modify GetProcThreadID, add 
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -28,7 +29,7 @@ Imports System.Environment
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.8.2"
+    Private Const CLS_VERSION As String = "1.9.2"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -103,7 +104,12 @@ Public Class PigFunc
 
     ''' <remarks>获取进程及线程标识</remarks>
     Public Function GetProcThreadID() As String
-        GetProcThreadID = System.Diagnostics.Process.GetCurrentProcess.Id.ToString & "." & System.Threading.Thread.CurrentThread.ManagedThreadId.ToString
+        Return System.Diagnostics.Process.GetCurrentProcess.Id.ToString & "." & System.Threading.Thread.CurrentThread.ManagedThreadId.ToString
+    End Function
+
+    ''' <remarks>获取进程号</remarks>
+    Public Function GetProcID() As Long
+        Return Me.fMyPID
     End Function
 
 

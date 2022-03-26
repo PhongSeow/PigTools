@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>2.1.28</Version>
+    <Version>2.2.8</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -20,7 +20,7 @@ It can run on Windows and Linux platforms.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa UUID EnvironmentVariable PL/SQL BCP</PackageTags>
-    <PackageReleaseNotes>Add Convert a line of CSV text exported by PL/SQL Developer into a standard SQL Server BCP format line.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add PigProc for Process processing.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
