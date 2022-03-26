@@ -6,36 +6,55 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "PigToolsLiteLibDemo/2.1.2": {
+      "PigToolsLiteLibDemo/2.2.2": {
         "dependencies": {
-          "PigToolsLiteLib": "2.1.22"
+          "PigCmdLib": "1.3.20",
+          "PigToolsLiteLib": "2.2.8"
         },
         "runtime": {
           "PigToolsLiteLibDemo.dll": {}
         }
       },
-      "PigToolsLiteLib/2.1.22": {
+      "PigCmdLib/1.3.20": {
+        "dependencies": {
+          "PigToolsLiteLib": "2.2.8"
+        },
+        "runtime": {
+          "lib/net5.0/PigCmdLib.dll": {
+            "assemblyVersion": "1.3.20.0",
+            "fileVersion": "1.3.20.0"
+          }
+        }
+      },
+      "PigToolsLiteLib/2.2.8": {
         "runtime": {
           "lib/net5.0/PigToolsLiteLib.dll": {
-            "assemblyVersion": "2.1.22.0",
-            "fileVersion": "2.1.22.0"
+            "assemblyVersion": "2.2.8.0",
+            "fileVersion": "2.2.8.0"
           }
         }
       }
     }
   },
   "libraries": {
-    "PigToolsLiteLibDemo/2.1.2": {
+    "PigToolsLiteLibDemo/2.2.2": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "PigToolsLiteLib/2.1.22": {
+    "PigCmdLib/1.3.20": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-hgLuhug+av3TwzyjnGcxdfHpHC/W8bnBHdxyiAhVkNmgDef5keong+eeUYj6V0FHGmHFZJPX4Af9oEuJc5EMyg==",
-      "path": "pigtoolslitelib/2.1.22",
-      "hashPath": "pigtoolslitelib.2.1.22.nupkg.sha512"
+      "sha512": "sha512-DVAkvo2WcxPnp63Z5HIBIswXeCCFnatnU3s5e84Ks6qeKN44IUeeATdpwLdyQXrTZWZlE/38lHk22RVHfkbo9w==",
+      "path": "pigcmdlib/1.3.20",
+      "hashPath": "pigcmdlib.1.3.20.nupkg.sha512"
+    },
+    "PigToolsLiteLib/2.2.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-pvSJ6mbQgrVecwrIOA07QhiSvZZXJswryx4+tqQVUq3IHmxVWZj2ZSsAxhbupgZS/lYODfPnHrJmMJ2LD8CCWA==",
+      "path": "pigtoolslitelib/2.2.8",
+      "hashPath": "pigtoolslitelib.2.2.8.nupkg.sha512"
     }
   }
 }

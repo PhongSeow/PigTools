@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6.2
+'* Version: 1.9.3
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -12,8 +12,12 @@
 '* 1.4    2/1/2022   Modify PigConfig
 '* 1.5    3/2/2022   Modify PigConfig, Main, PigFunc demo,PigCompressorDemo
 '* 1.6    22/2/2022   Modify PigConfig
+'* 1.7    23/2/2022   Add PLSqlCsv2Bcp
+'* 1.8    20/3/2022   Add PigCmdLib.PigConsole
+'* 1.9    26/3/2022   Add PigProcApp
 '************************************
 Imports PigToolsLiteLib
+Imports PigCmdLib
 
 Public Class ConsoleDemo
     Public ShareMem As ShareMem
@@ -42,6 +46,13 @@ Public Class ConsoleDemo
     Public LeftStr As String
     Public RightStr As String
     Public EnvVar As String
+    Public CsvLine As String
+    Public BcpLine As String
+    Public PigConsole As New PigCmdLib.PigConsole
+    Public PigProcApp As PigProcApp
+    Public PID As Integer
+    Public ProcName As String
+
     Public Sub Main()
         Do While True
             Console.WriteLine("*******************")
@@ -59,6 +70,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press I to PigRsa")
             Console.WriteLine("Press J to PigConfig")
             Console.WriteLine("Press K to PigXml")
+            Console.WriteLine("Press L to PigProc")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
@@ -70,21 +82,13 @@ Public Class ConsoleDemo
                     Me.PigTextDemo()
                 Case ConsoleKey.C
                     Console.CursorVisible = True
-                    Console.WriteLine("Input FilePath:" & Me.FilePath)
-                    Me.Line = Console.ReadLine
-                    If Me.Line <> "" Then
-                        Me.FilePath = Me.Line
-                    End If
+                    Me.PigConsole.GetLine("Input FilePath", Me.FilePath)
                     Me.PigFileDemo(Me.FilePath)
                 Case ConsoleKey.D
                     Me.PigFuncDemo()
                 Case ConsoleKey.E
                     Console.CursorVisible = True
-                    Console.WriteLine("Input Url:" & Me.Url)
-                    Me.Line = Console.ReadLine
-                    If Me.Line <> "" Then
-                        Me.Url = Me.Line
-                    End If
+                    Me.PigConsole.GetLine("Input Url", Me.Url)
                     Me.PigWebReqDemo(Me.Url)
                 Case ConsoleKey.F
                     Console.WriteLine("*******************")
@@ -95,22 +99,14 @@ Public Class ConsoleDemo
                     Console.WriteLine("Press B to Read")
                     Console.WriteLine("*******************")
                     Do While True
-                        Dim intConsoleKey As ConsoleKey = Console.ReadKey().Key
+                        Dim intConsoleKey As ConsoleKey = Console.ReadKey(True).Key
                         Select Case intConsoleKey
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
                                 Console.CursorVisible = True
-                                Console.WriteLine("Input ShareMem:" & Me.SMName)
-                                Me.Line = Console.ReadLine
-                                If Me.Line <> "" Then
-                                    Me.SMName = Me.Line
-                                End If
-                                Console.WriteLine("Input MainText:" & Me.MainText)
-                                Me.Line = Console.ReadLine
-                                If Me.Line <> "" Then
-                                    Me.MainText = Me.Line
-                                End If
+                                Me.PigConsole.GetLine("Input ShareMem", Me.SMName)
+                                Me.PigConsole.GetLine("Input MainText", Me.MainText)
                                 Dim oPigText As New PigText(Me.MainText, PigText.enmTextType.UTF8)
                                 Me.ShareMem = New ShareMem
                                 With Me.ShareMem
@@ -132,10 +128,9 @@ Public Class ConsoleDemo
                                 If Me.ShareMem Is Nothing Then Me.ShareMem = New ShareMem
                                 If Me.ShareMem.IsInit = False Then
                                     Console.WriteLine("ShareMem Not Init")
-                                    Console.WriteLine("Input ShareMem:")
-                                    Me.SMName = Console.ReadLine
-                                    Console.WriteLine("Input TextLen:")
-                                    Dim intLen As Integer = CInt(Console.ReadLine)
+                                    Me.PigConsole.GetLine("Input ShareMem", Me.SMName)
+                                    Me.PigConsole.GetLine("Input TextLen", Me.Line)
+                                    Dim intLen As Integer = CInt(Me.Line)
                                     With Me.ShareMem
                                         Console.WriteLine("Init " & Me.SMName & ",Len=" & intLen.ToString)
                                         .Init(Me.SMName, intLen)
@@ -276,7 +271,7 @@ Public Class ConsoleDemo
                         Console.WriteLine("Press C to Encrypt")
                         Console.WriteLine("Press D to Decrypt")
                         Console.WriteLine("*******************")
-                        Select Case Console.ReadKey().Key
+                        Select Case Console.ReadKey(True).Key
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
@@ -511,8 +506,55 @@ Public Class ConsoleDemo
                                 End If
                         End Select
                     Loop
+                Case ConsoleKey.L
+                    Me.PigProcDemo()
                 Case Else
                     Console.WriteLine("Coming soon...")
+            End Select
+        Loop
+    End Sub
+
+    Public Sub ShowPigProc(ByRef oPigProc As PigProc)
+        With oPigProc
+            Console.WriteLine("ProcessID=" & .ProcessID)
+            Console.WriteLine("ProcessName=" & .ProcessName)
+            Console.WriteLine("ModuleName=" & .ModuleName)
+            Console.WriteLine("FilePath=" & .FilePath)
+        End With
+    End Sub
+
+    Public Sub PigProcDemo()
+        If Me.PigProcApp Is Nothing Then Me.PigProcApp = New PigProcApp
+        Console.WriteLine("*******************")
+        Console.WriteLine("PigProcApp")
+        Console.WriteLine("*******************")
+        Do While True
+            Console.WriteLine("*******************")
+            Console.WriteLine("Press Q to Up")
+            Console.WriteLine("Press A to GetPigProc")
+            Console.WriteLine("Press B to GetPigProcs")
+            Console.WriteLine("*******************")
+            Select Case Console.ReadKey(True).Key
+                Case ConsoleKey.Q
+                    Exit Do
+                Case ConsoleKey.A
+                    Me.PigConsole.GetLine("Input PID", Me.PID)
+                    Dim oPigProc As PigProc = Me.PigProcApp.GetPigProc(Me.PID)
+                    If Me.PigProcApp.LastErr <> "" Then
+                        Console.WriteLine("PigProcApp.GetPigProc=" & PigProcApp.LastErr)
+                    Else
+                        Me.ShowPigProc(oPigProc)
+                    End If
+                Case ConsoleKey.B
+                    Me.PigConsole.GetLine("Input ProcName", Me.ProcName)
+                    Dim oPigProcs As PigProcs = Me.PigProcApp.GetPigProcs(Me.ProcName)
+                    If Me.PigProcApp.LastErr <> "" Then
+                        Console.WriteLine("PigProcApp.GetPigProcs=" & PigProcApp.LastErr)
+                    Else
+                        For Each oPigProc As PigProc In oPigProcs
+                            Me.ShowPigProc(oPigProc)
+                        Next
+                    End If
             End Select
         Loop
     End Sub
@@ -557,6 +599,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press C to GetFileText")
             Console.WriteLine("Press D to SaveTextToFile")
             Console.WriteLine("Press E to GetEnvVar")
+            Console.WriteLine("Press F to PLSqlCsv2Bcp")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
@@ -612,6 +655,16 @@ Public Class ConsoleDemo
                     Me.GetLine("EnvVarName", Me.EnvVar)
                     Me.SrcStr = Me.PigFunc.GetEnvVar(Me.EnvVar)
                     Console.WriteLine("GetEnvVar(" & Me.EnvVar & ")=" & Me.SrcStr)
+                Case ConsoleKey.F
+                    Console.CursorVisible = True
+                    Me.GetLine("CsvLine", Me.CsvLine)
+                    Console.WriteLine("CsvLine is ")
+                    Console.WriteLine(Me.CsvLine)
+                    Console.WriteLine("PigFunc.PLSqlCsv2Bcp=")
+                    Me.Ret = Me.PigFunc.PLSqlCsv2Bcp(Me.CsvLine, Me.BcpLine)
+                    Console.WriteLine(Me.Ret)
+                    Console.WriteLine("BcpLine is ")
+                    Console.WriteLine(Me.BcpLine)
             End Select
         Loop
     End Sub
