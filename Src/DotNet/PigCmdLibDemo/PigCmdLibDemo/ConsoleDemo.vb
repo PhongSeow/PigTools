@@ -4,37 +4,41 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3.3
+'* Version: 1.5.6
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
 '* 1.3    19/3/2022  Modify GetLine,GetPwdStr
+'* 1.4    20/3/2022  Modify GetPwdStr
+'* 1.5    1/4/2022  Add PigCmdAppDemo
 '************************************
 
 Imports PigCmdLib
+Imports PigToolsLiteLib
+
 
 Public Class ConsoleDemo
     Public CmdOrFilePath As String
     Public CmdPara As String
     Public PigCmdApp As New PigCmdApp
-    Public PID As Long
+    Public PID As String
     Public Cmd As String
     Public Para As String
     Public Line As String
     Public PigConsole As New PigConsole
     Public Pwd As String
     Public Ret As String
-    Public Sub Main()
+
+    Public Sub PigCmdAppDemo()
         Do While True
             Console.WriteLine("*******************")
-            Console.WriteLine("Main menu")
+            Console.WriteLine("PigCmdAppDemo")
             Console.WriteLine("*******************")
-            Console.WriteLine("Press Q to Exit")
+            Console.WriteLine("Press Q to Up")
             Console.WriteLine("Press A to HideShell")
             Console.WriteLine("Press B to CallFile")
             Console.WriteLine("Press C to CmdShell")
-            Console.WriteLine("Press D to GetPwdStr")
-            Console.WriteLine("Press E to GetLine")
+            Console.WriteLine("Press D to GetParentProc")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
@@ -94,6 +98,43 @@ Public Class ConsoleDemo
                     End If
                 Case ConsoleKey.D
                     Console.WriteLine("*******************")
+                    Console.WriteLine("GetParentProc")
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("Cmd=" & Me.Cmd)
+                    Console.CursorVisible = True
+                    Me.PigConsole.GetLine("Input PID", Me.PID)
+                    If IsNumeric(Me.PID) = False Then
+                        Console.WriteLine("PID is not Numeric")
+                    Else
+                        Dim oParentPigProc As PigProc = PigCmdApp.GetParentProc(CInt(Me.PID))
+                        If PigCmdApp.LastErr <> "" Then
+                            Console.WriteLine(PigCmdApp.LastErr)
+                        Else
+                            Console.WriteLine("ProcessID=" & oParentPigProc.ProcessID)
+                            Console.WriteLine("ProcessName=" & oParentPigProc.ProcessName)
+                            Console.WriteLine("FilePath=" & oParentPigProc.FilePath)
+                        End If
+                    End If
+            End Select
+            Console.CursorVisible = False
+        Loop
+    End Sub
+
+    Public Sub PigConsoleDemo()
+        Do While True
+            Console.WriteLine("*******************")
+            Console.WriteLine("PigCmdAppDemo")
+            Console.WriteLine("*******************")
+            Console.WriteLine("Press Q to Up")
+            Console.WriteLine("Press A to GetPwdStr")
+            Console.WriteLine("Press B to GetLine")
+            Console.WriteLine("*******************")
+            Console.CursorVisible = False
+            Select Case Console.ReadKey(True).Key
+                Case ConsoleKey.Q
+                    Exit Do
+                Case ConsoleKey.A
+                    Console.WriteLine("*******************")
                     Console.WriteLine("GetPwdStr")
                     Console.WriteLine("*******************")
                     Console.CursorVisible = True
@@ -104,7 +145,7 @@ Public Class ConsoleDemo
                         Console.WriteLine("Password is ")
                         Console.WriteLine(Me.Pwd)
                     End If
-                Case ConsoleKey.E
+                Case ConsoleKey.B
                     Console.WriteLine("*******************")
                     Console.WriteLine("GetLine")
                     Console.WriteLine("*******************")
@@ -116,6 +157,28 @@ Public Class ConsoleDemo
                         Console.Write("Line is :")
                         Console.WriteLine(Me.Line)
                     End If
+            End Select
+            Console.CursorVisible = False
+        Loop
+    End Sub
+
+    Public Sub Main()
+        Do While True
+            Console.WriteLine("*******************")
+            Console.WriteLine("Main menu")
+            Console.WriteLine("*******************")
+            Console.WriteLine("Press Q to Exit")
+            Console.WriteLine("Press A to PigCmdAppDemo")
+            Console.WriteLine("Press B to PigConsoleDemo")
+            Console.WriteLine("*******************")
+            Console.CursorVisible = False
+            Select Case Console.ReadKey(True).Key
+                Case ConsoleKey.Q
+                    Exit Do
+                Case ConsoleKey.A
+                    Me.PigCmdAppDemo()
+                Case ConsoleKey.B
+                    Me.PigConsoleDemo
             End Select
             Console.CursorVisible = False
         Loop
