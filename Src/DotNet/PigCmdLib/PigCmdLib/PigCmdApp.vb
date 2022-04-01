@@ -4,19 +4,21 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
+'*1.3  1/2/2022   Add GetParentProc
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
 Public Class PigCmdApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.8"
+    Private Const CLS_VERSION As String = "1.3.3"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private moPigFunc As New PigFunc
+    Private moPigProcApp As PigProcApp
     Public Sub New()
         MyBase.New(CLS_VERSION)
         If Me.IsWindows = True Then
@@ -216,5 +218,65 @@ Public Class PigCmdApp
         End Try
     End Function
 
+    ''' <summary>
+    ''' 获取指定进程号的父进程|Gets the parent process of the specified process number
+    ''' </summary>
+    ''' <param name="PID">进程号|Process number</param>
+    ''' <returns></returns>
+    Public Function GetParentProc(PID As Integer) As PigProc
+        Dim LOG As New PigStepLog("GetParentProc")
+        Try
+            If moPigProcApp Is Nothing Then
+                LOG.StepName = "New PigProcApp"
+                moPigProcApp = New PigProcApp
+                If moPigProcApp.LastErr <> "" Then Throw New Exception(moPigProcApp.LastErr)
+            End If
+            Dim strCmd As String
+            If Me.IsWindows = True Then
+                strCmd = "wmic process where ProcessId=" & PID.ToString & " get ParentProcessId"
+            Else
+                strCmd = "ps -ef|awk '{if($2==""" & PID.ToString & """) print $3}'"
+            End If
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.CmdShell(strCmd)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            End If
+            Dim strData As String = Me.StandardOutput
+            Dim lngParentPID As Integer = -1
+            If Me.IsWindows = True Then
+                Do While True
+                    Dim strLine As String = moPigFunc.GetStr(strData, "", vbCr & vbCrLf)
+                    If strLine = "" Then Exit Do
+                    If IsNumeric(strLine) = True Then
+                        lngParentPID = CInt(strLine)
+                        Exit Do
+                    End If
+                Loop
+                If lngParentPID = -1 Then
+                    LOG.AddStepNameInf(strCmd)
+                    LOG.AddStepNameInf(strData)
+                    Throw New Exception("Cannot get parent process number")
+                End If
+            ElseIf IsNumeric(strData) = False Then
+                LOG.AddStepNameInf(strCmd)
+                LOG.AddStepNameInf(Me.StandardOutput)
+                Throw New Exception("The returned result is not a numeric value")
+            Else
+                lngParentPID = CInt(strData)
+            End If
+            LOG.StepName = "New PigProc"
+            GetParentProc = New PigProc(lngParentPID)
+            If GetParentProc.LastErr <> "" Then
+                LOG.AddStepNameInf("PID=" & lngParentPID.ToString)
+                Throw New Exception(GetParentProc.LastErr)
+            End If
+
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Nothing
+        End Try
+    End Function
 
 End Class

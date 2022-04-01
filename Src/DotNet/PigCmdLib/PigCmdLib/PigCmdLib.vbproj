@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>PigCmdLib</RootNamespace>
-    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net40;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -13,12 +13,12 @@
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput</PackageTags>
+    <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process</PackageTags>
     <Description>Application of calling operating system commands and call file.
 Add console functions.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.3.20</Version>
-    <PackageReleaseNotes>Add PigConsole.GetLine for Read text from the current line of the console</PackageReleaseNotes>
+    <Version>1.5.12</Version>
+    <PackageReleaseNotes>Add the method of obtaining parent process object in Windows and Linux .</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,7 +33,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.1.22" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.2.28" />
   </ItemGroup>
 
 </Project>
