@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.9
+'* Version: 1.10
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -19,7 +19,8 @@
 '*1.6    3/2/2022   Add GetFmtDateTime, modify GENow
 '*1.7    13/2/2022   Add DeleteFolder,DeleteFile
 '*1.8    23/2/2022   Add PLSqlCsv2Bcp
-'*1.9    20/3/2022   Modify GetProcThreadID, add 
+'*1.9    20/3/2022   Modify GetProcThreadID
+'*1.10   2/4/2022   Add GetHumanSize
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -29,7 +30,7 @@ Imports System.Environment
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.9.2"
+    Private Const CLS_VERSION As String = "1.10.6"
 
     ''' <summary>文件的部分</summary>
     Public Enum enmFilePart
@@ -783,6 +784,48 @@ Public Class PigFunc
             Return Me.GetSubErrInf("PLSqlCsv2Bcp", ex)
         End Try
     End Function
+
+    Public Function GetHumanSize(SrcSize As Decimal) As String
+        Try
+            Dim strSize As String = SrcSize.ToString
+            If SrcSize < 0 Then Throw New Exception("Invalid size")
+            If SrcSize < 1024 Then
+                strSize = SrcSize.ToString & " bytes"
+            Else
+                SrcSize = SrcSize / 1024
+                If SrcSize < 1024 Then
+                    strSize = Math.Round(SrcSize, 2) & " KB"
+                Else
+                    SrcSize = SrcSize / 1024
+                    If SrcSize < 1024 Then
+                        strSize = Math.Round(SrcSize, 2) & " MB"
+                    Else
+                        SrcSize = SrcSize / 1024
+                        If SrcSize < 1024 Then
+                            strSize = Math.Round(SrcSize, 2) & " GB"
+                        Else
+                            SrcSize = SrcSize / 1024
+                            If SrcSize < 1024 Then
+                                strSize = Math.Round(SrcSize, 2) & " TB"
+                            Else
+                                SrcSize = SrcSize / 1024
+                                If SrcSize < 1024 Then
+                                    strSize = Math.Round(SrcSize, 2) & " PB"
+                                Else
+                                    SrcSize = SrcSize / 1024
+                                    strSize = Math.Round(SrcSize, 2) & " EB"
+                                End If
+                            End If
+                        End If
+                    End If
+                End If
+            End If
+            Return strSize
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
 
     'Public Function GetUUID() As String
     '    Dim LOG As New PigStepLog("GetUUID")
