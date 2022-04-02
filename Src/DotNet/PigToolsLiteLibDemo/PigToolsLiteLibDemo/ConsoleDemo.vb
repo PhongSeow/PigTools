@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.9.3
+'* Version: 1.10.3
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -15,6 +15,7 @@
 '* 1.7    23/2/2022   Add PLSqlCsv2Bcp
 '* 1.8    20/3/2022   Add PigCmdLib.PigConsole
 '* 1.9    26/3/2022   Add PigProcApp
+'* 1.10   2/4/2022   Modify PigProcDemo, add GetHumanSize
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -52,6 +53,7 @@ Public Class ConsoleDemo
     Public PigProcApp As PigProcApp
     Public PID As Integer
     Public ProcName As String
+    Public SrcSize As String
 
     Public Sub Main()
         Do While True
@@ -520,6 +522,9 @@ Public Class ConsoleDemo
             Console.WriteLine("ProcessName=" & .ProcessName)
             Console.WriteLine("ModuleName=" & .ModuleName)
             Console.WriteLine("FilePath=" & .FilePath)
+            Console.WriteLine("MemoryUse=" & CDec(.MemoryUse) / 1024 / 1024)
+            Console.WriteLine("TotalProcessorTime=" & .TotalProcessorTime.ToString)
+            Console.WriteLine("UserProcessorTime=" & .UserProcessorTime.ToString)
         End With
     End Sub
 
@@ -600,6 +605,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press D to SaveTextToFile")
             Console.WriteLine("Press E to GetEnvVar")
             Console.WriteLine("Press F to PLSqlCsv2Bcp")
+            Console.WriteLine("Press G to GetHumanSize")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
@@ -665,6 +671,11 @@ Public Class ConsoleDemo
                     Console.WriteLine(Me.Ret)
                     Console.WriteLine("BcpLine is ")
                     Console.WriteLine(Me.BcpLine)
+                Case ConsoleKey.G
+                    Console.CursorVisible = True
+                    Me.GetLine("Input SrcSize", Me.SrcSize)
+                    Console.WriteLine("SrcSize is " & Me.SrcSize)
+                    Console.WriteLine("GetHumanSize is " & Me.PigFunc.GetHumanSize(CDec(Me.SrcSize)))
             End Select
         Loop
     End Sub
