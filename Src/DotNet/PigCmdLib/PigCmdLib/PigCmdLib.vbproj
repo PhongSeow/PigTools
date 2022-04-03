@@ -17,8 +17,8 @@
     <Description>Application of calling operating system commands and call file.
 Add console functions.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.5.12</Version>
-    <PackageReleaseNotes>Add the method of obtaining parent process object in Windows and Linux .</PackageReleaseNotes>
+    <Version>1.5.38</Version>
+    <PackageReleaseNotes>Optimize StandardOutput and  GetParentProc of PigCmdApp.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,7 +33,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.2.28" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.2.50" />
   </ItemGroup>
 
 </Project>

@@ -6,36 +6,36 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v6.0": {
-      "PigCmdLib/1.5.12": {
+      "PigCmdLib/1.5.38": {
         "dependencies": {
-          "PigToolsLiteLib": "2.2.28"
+          "PigToolsLiteLib": "2.2.50"
         },
         "runtime": {
           "PigCmdLib.dll": {}
         }
       },
-      "PigToolsLiteLib/2.2.28": {
+      "PigToolsLiteLib/2.2.50": {
         "runtime": {
           "lib/net6.0/PigToolsLiteLib.dll": {
-            "assemblyVersion": "2.2.28.0",
-            "fileVersion": "2.2.28.0"
+            "assemblyVersion": "2.2.49.0",
+            "fileVersion": "2.2.49.0"
           }
         }
       }
     }
   },
   "libraries": {
-    "PigCmdLib/1.5.12": {
+    "PigCmdLib/1.5.38": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "PigToolsLiteLib/2.2.28": {
+    "PigToolsLiteLib/2.2.50": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-K8+D6Jxdi0w9W87F7G9UPPt/is1Tpu+FZxu8UMwUoRH8utfTqC3op1egaRbxh4gYoz4qRP8c1tDwYnNlgffxMg==",
-      "path": "pigtoolslitelib/2.2.28",
-      "hashPath": "pigtoolslitelib.2.2.28.nupkg.sha512"
+      "sha512": "sha512-IikD84QG7ot0AiQOtQd3GL6UE1Lp5jLOoPiJ4w2wSA2s7Bo0nqK/RivR/im+A6LCX5F6YVjoabmf2HtK4AXD0Q==",
+      "path": "pigtoolslitelib/2.2.50",
+      "hashPath": "pigtoolslitelib.2.2.50.nupkg.sha512"
     }
   }
 }

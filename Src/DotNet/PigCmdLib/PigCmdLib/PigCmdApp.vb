@@ -4,27 +4,38 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
-'*1.3  1/2/2022   Add GetParentProc
+'*1.3  31/3/2022  Add GetParentProc
+'*1.4  1/4/2022   Modify GetParentProc
+'*1.5  3/4/2022   Add EnmStandardOutputReadType,mCallFile, and modify CallFile
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
 Public Class PigCmdApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.3"
+    Private Const CLS_VERSION As String = "1.5.9"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private moPigFunc As New PigFunc
     Private moPigProcApp As PigProcApp
+
+    Public Enum EnmStandardOutputReadType
+        FullString = 0
+        StringArray = 1
+        StreamReader = 2
+    End Enum
+
     Public Sub New()
         MyBase.New(CLS_VERSION)
         If Me.IsWindows = True Then
             Me.WindowsCmdPath = moPigFunc.GetEnvVar("windir") & "\System32\cmd.exe"
         End If
     End Sub
+
+
 
     Private mintCmdWaitForExitTime As Integer = 10
     Public Property CmdWaitForExitTime As Long
@@ -34,6 +45,18 @@ Public Class PigCmdApp
         Set(value As Long)
             If value < 0 Then value = 10
             mintCmdWaitForExitTime = value
+        End Set
+    End Property
+
+
+
+    Private mintStandardOutputReadType As EnmStandardOutputReadType = EnmStandardOutputReadType.FullString
+    Public Property StandardOutputReadType As EnmStandardOutputReadType
+        Get
+            Return mintStandardOutputReadType
+        End Get
+        Friend Set(value As EnmStandardOutputReadType)
+            mintStandardOutputReadType = value
         End Set
     End Property
 
@@ -57,6 +80,24 @@ Public Class PigCmdApp
             mstrStandardOutput = value
         End Set
     End Property
+
+    Private moStandardOutputStreamReader As StreamReader
+    Public Property StandardOutputStreamReader As StreamReader
+        Get
+            Return moStandardOutputStreamReader
+        End Get
+        Friend Set(value As StreamReader)
+            moStandardOutputStreamReader = value
+        End Set
+    End Property
+
+    Private mabStandardOutputArray As String()
+    Public ReadOnly Property StandardOutputArray As String()
+        Get
+            Return mabStandardOutputArray
+        End Get
+    End Property
+
 
     Private mstrStandardError As String = ""
     Public Property StandardError As String
@@ -191,12 +232,30 @@ Public Class PigCmdApp
             Dim oProcess As Process = Process.Start(moProcessStartInfo)
             Me.PID = oProcess.Id
             LOG.StepName = "Process.StandardOutput"
-            Dim srStandardOutput As StreamReader = oProcess.StandardOutput
-            LOG.StepName = "StandardOutput.ReadToEnd"
-            Me.StandardOutput = srStandardOutput.ReadToEnd
+            Me.StandardOutputStreamReader = oProcess.StandardOutput
+            Select Case Me.StandardOutputReadType
+                Case EnmStandardOutputReadType.FullString
+                    LOG.StepName = "StandardOutputStreamReader.ReadToEnd"
+                    Me.StandardOutput = Me.StandardOutputStreamReader.ReadToEnd
+                    LOG.StepName = "StandardOutputStreamReader.Close"
+                    Me.StandardOutputStreamReader.Close()
+                Case EnmStandardOutputReadType.StreamReader
+                Case EnmStandardOutputReadType.StringArray
+                    Dim i As Integer = 0
+                    ReDim mabStandardOutputArray(i)
+                    Do While Not Me.StandardOutputStreamReader.EndOfStream
+                        ReDim Preserve mabStandardOutputArray(i)
+                        LOG.StepName = "StandardOutputStreamReader.ReadLine(" & i & ")"
+                        mabStandardOutputArray(i) = Me.StandardOutputStreamReader.ReadLine
+                        i += 1
+                    Loop
+                    LOG.StepName = "StandardOutputStreamReader.Close"
+                    Me.StandardOutputStreamReader.Close()
+                Case Else
+                    Throw New Exception("Invalid StandardOutputReadType")
+            End Select
             LOG.StepName = "Process.StandardOutput.WaitForExit"
             oProcess.WaitForExit(Me.CmdWaitForExitTime)
-            srStandardOutput = Nothing
             LOG.StepName = "Process.StandardError"
             Dim srStandardError As StreamReader = oProcess.StandardError
             LOG.StepName = "srStandardError.ReadToEnd"
@@ -237,34 +296,24 @@ Public Class PigCmdApp
             Else
                 strCmd = "ps -ef|awk '{if($2==""" & PID.ToString & """) print $3}'"
             End If
+            Me.StandardOutputReadType = EnmStandardOutputReadType.StringArray
             LOG.StepName = "CmdShell"
             LOG.Ret = Me.CmdShell(strCmd)
             If LOG.Ret <> "OK" Then
                 LOG.AddStepNameInf(strCmd)
                 Throw New Exception(LOG.Ret)
             End If
-            Dim strData As String = Me.StandardOutput
             Dim lngParentPID As Integer = -1
-            If Me.IsWindows = True Then
-                Do While True
-                    Dim strLine As String = moPigFunc.GetStr(strData, "", vbCr & vbCrLf)
-                    If strLine = "" Then Exit Do
-                    If IsNumeric(strLine) = True Then
-                        lngParentPID = CInt(strLine)
-                        Exit Do
-                    End If
-                Loop
-                If lngParentPID = -1 Then
-                    LOG.AddStepNameInf(strCmd)
-                    LOG.AddStepNameInf(strData)
-                    Throw New Exception("Cannot get parent process number")
+            For i = 0 To Me.StandardOutputArray.Length - 1
+                Dim strLine As String = Trim(Me.StandardOutputArray(i))
+                If IsNumeric(strLine) = True Then
+                    lngParentPID = CInt(strLine)
+                    Exit For
                 End If
-            ElseIf IsNumeric(strData) = False Then
-                LOG.AddStepNameInf(strCmd)
-                LOG.AddStepNameInf(Me.StandardOutput)
-                Throw New Exception("The returned result is not a numeric value")
-            Else
-                lngParentPID = CInt(strData)
+            Next
+            If lngParentPID = -1 Then
+                If Me.IsDebug = True Then LOG.AddStepNameInf(strCmd)
+                Throw New Exception("Cannot get parent process number")
             End If
             LOG.StepName = "New PigProc"
             GetParentProc = New PigProc(lngParentPID)
@@ -278,5 +327,6 @@ Public Class PigCmdApp
             Return Nothing
         End Try
     End Function
+
 
 End Class
