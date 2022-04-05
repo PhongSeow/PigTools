@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>PigWebCtrlLib</RootNamespace>
-    <TargetFrameworks>>net20;net30;net40;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
 </Project>
