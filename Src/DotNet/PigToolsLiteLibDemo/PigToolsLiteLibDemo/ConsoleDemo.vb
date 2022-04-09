@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10.3
+'* Version: 1.11.6
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -16,6 +16,7 @@
 '* 1.8    20/3/2022   Add PigCmdLib.PigConsole
 '* 1.9    26/3/2022   Add PigProcApp
 '* 1.10   2/4/2022   Modify PigProcDemo, add GetHumanSize
+'* 1.11   9/4/2022   Modify PigFunc demo
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -631,6 +632,14 @@ Public Class ConsoleDemo
                         Console.WriteLine(".GetProcThreadID=" & .GetProcThreadID)
                         Console.WriteLine(".UrlEncode=" & .UrlEncode("https://www.seowphong.com/oss/PigTools"))
                         Console.WriteLine(".UrlDecode=" & .UrlDecode("https%3A%2F%2Fwww.seowphong.com%2Foss%2FPigTools"))
+                        Console.WriteLine(".GetUUID=" & .GetUUID())
+                        Console.WriteLine(".DigitalToChnName(1234567890)=" & .DigitalToChnName("1234567890", True)）
+                        Console.WriteLine(".DigitalToChnName(3389)=" & .DigitalToChnName("3389", False)）
+                        Console.WriteLine(".DigitalToChnName(大写1234567890)=" & .DigitalToChnName("1234567890", True, True)）
+                        Console.WriteLine(".ConvertHtmlStr=" & .ConvertHtmlStr("<html><title>Title</titel><body>Body</body></html>", PigFunc.EmnHowToConvHtml.DisableHTML)）
+                        Console.WriteLine(".GetAlignStr(Left Alignment)=" & vbCrLf & "*" & .GetAlignStr("Left Alignment", PigFunc.EnmAlignment.Left, 80) & "*")
+                        Console.WriteLine(".GetAlignStr(Right Alignment)=" & vbCrLf & "*" & .GetAlignStr("Right Alignment", PigFunc.EnmAlignment.Right, 80) & "*")
+                        Console.WriteLine(".GetAlignStr(Center Alignment)=" & vbCrLf & "*" & .GetAlignStr("Center Alignment", PigFunc.EnmAlignment.Center, 80) & "*")
                     End With
                 Case ConsoleKey.B
                     Console.CursorVisible = True

@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLibDemo</RootNamespace>
-    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net40;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.2.8</Version>
+    <Version>2.2.16</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigToolsLiteLib</Description>
@@ -14,13 +14,12 @@
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLibDemo</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa PigToolsLiteLib</PackageTags>
-    <PackageReleaseNotes>Optimize process processing function.
-Add GetHumanSizefor display.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add new functions of PigFunc</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.5.12" />
-    <PackageReference Include="PigToolsLiteLib" Version="2.2.50" />
+    <PackageReference Include="PigCmdLib" Version="1.5.38" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.2.88" />
   </ItemGroup>
 
   <ItemGroup>

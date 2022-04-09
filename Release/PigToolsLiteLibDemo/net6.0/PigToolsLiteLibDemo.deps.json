@@ -1,11 +1,11 @@
 {
   "runtimeTarget": {
-    "name": ".NETCoreApp,Version=v5.0",
+    "name": ".NETCoreApp,Version=v6.0",
     "signature": ""
   },
   "compilationOptions": {},
   "targets": {
-    ".NETCoreApp,Version=v5.0": {
+    ".NETCoreApp,Version=v6.0": {
       "PigToolsLiteLibDemo/2.2.16": {
         "dependencies": {
           "PigCmdLib": "1.5.38",
@@ -20,7 +20,7 @@
           "PigToolsLiteLib": "2.2.88"
         },
         "runtime": {
-          "lib/net5.0/PigCmdLib.dll": {
+          "lib/net6.0/PigCmdLib.dll": {
             "assemblyVersion": "1.5.38.0",
             "fileVersion": "1.5.38.0"
           }
@@ -28,7 +28,7 @@
       },
       "PigToolsLiteLib/2.2.88": {
         "runtime": {
-          "lib/net5.0/PigToolsLiteLib.dll": {
+          "lib/net6.0/PigToolsLiteLib.dll": {
             "assemblyVersion": "2.2.68.0",
             "fileVersion": "2.2.68.0"
           }
