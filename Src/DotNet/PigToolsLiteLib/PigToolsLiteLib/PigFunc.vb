@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.11
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -21,6 +21,7 @@
 '*1.8    23/2/2022   Add PLSqlCsv2Bcp
 '*1.9    20/3/2022   Modify GetProcThreadID
 '*1.10   2/4/2022   Add GetHumanSize
+'*1.11   9/4/2022   Add DigitalToChnName,ConvertHtmlStr,GetAlignStr,GetRepeatStr
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -30,10 +31,18 @@ Imports System.Environment
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.10.6"
+    Private Const CLS_VERSION As String = "1.11.8"
+
+    ''' <summary>对齐方式|Alignment</summary>
+    Public Enum EnmAlignment
+        Left = 1
+        Right = 2
+        Center = 3
+    End Enum
+
 
     ''' <summary>文件的部分</summary>
-    Public Enum enmFilePart
+    Public Enum EnmFilePart
         Path = 1         '路径
         FileTitle = 2    '文件名
         ExtName = 3      '扩展名
@@ -41,12 +50,23 @@ Public Class PigFunc
     End Enum
 
     ''' <summary>获取随机字符串的方式</summary>
-    Public Enum enmGetRandString
+    Public Enum EnmGetRandString
         NumberOnly = 1      '只有数字
         NumberAndLetter = 2 '只有数字和字母(包括大小写)
         DisplayChar = 3     '全部可显示字符(ASCII 33-126)
         AllAsciiChar = 4    '全部ASCII码(返回结果以16进制方式显示)
     End Enum
+
+    ''' <summary>
+    ''' 转换HTML标记的方式|How to convert HTML tags
+    ''' </summary>
+    Public Enum EmnHowToConvHtml
+        DisableHTML = 1            '使HTML标记失效(空格、制表符及回车符都会被转换)
+        EnableHTML = 2             '使HTML标记生效(空格会被还原，但制表符及回车符不会被还原)
+        DisableHTMLOnlySymbol = 3  '使HTML标记失效(只有标记的符号本身受影响，空格、制表符及回车符不会被转换)
+        EnableHTMLOnlySymbol = 4   '使HTML标记生效(只有标记的符号本身被还原)
+    End Enum
+
 
     Sub New()
         MyBase.New(CLS_VERSION)
@@ -826,46 +846,223 @@ Public Class PigFunc
         End Try
     End Function
 
+    ''' <summary>
+    ''' 将数字转换成中文显示|Convert numbers to Chinese display
+    ''' </summary>
+    ''' <param name="Digital">数字</param>
+    ''' <param name="IsDecimal">是否小数，不是小数部分只支持千百十个位</param>
+    ''' <param name="IsUCase">是否大写数字</param>
+    ''' <returns></returns>
+    Public Function DigitalToChnName(Digital As String, IsDecimal As Boolean, Optional IsUCase As Boolean = False) As String
+        Try
+            Dim i As Integer
+            Dim lngDigital As Integer
+            Dim lngDigitalLen As Integer
+            Dim strDigital(0 To 9) As String
+            Dim strUnit(0 To 3) As String
+            If IsDecimal = False Then
+                Select Case Len(Digital)
+                    Case Is < 4
+                        Digital = Right("0000" & Digital, 4)
+                    Case Is > 4
+                        Digital = Right(Digital, 4)
+                End Select
+            End If
+            lngDigitalLen = Len(Digital)
 
-    'Public Function GetUUID() As String
-    '    Dim LOG As New PigStepLog("GetUUID")
-    '    Try
-    '        If Me.IsWindows = True Then
-    '            GetUUID = ""
-    '        Else
-    '            Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
-    '            LOG.StepName = "New PigFile"
-    '            Dim oPigFile As New PigFile(strFilePath)
-    '            If oPigFile.LastErr <> "" Then
-    '                LOG.AddStepNameInf(strFilePath)
-    '                Throw New Exception(oPigFile.LastErr)
-    '            End If
-    '            LOG.StepName = "oPigFile.LoadFile"
-    '            LOG.Ret = oPigFile.LoadFile()
-    '            If LOG.Ret <> "OK" Then
-    '                LOG.AddStepNameInf(strFilePath)
-    '                Throw New Exception(LOG.Ret)
-    '            End If
-    '            LOG.StepName = "New PigText"
-    '            Dim oPigText As New PigText(oPigFile.GbMain.Main, PigText.enmTextType.Ascii)
-    '            If oPigText.LastErr <> "" Then
-    '                If oPigFile.GbMain Is Nothing Then
-    '                    LOG.AddStepNameInf("oPigFile.GbMain Is Nothing")
-    '                ElseIf oPigFile.GbMain.Main Is Nothing Then
-    '                    LOG.AddStepNameInf("oPigFile.GbMain.Main Is Nothing")
-    '                Else
-    '                    LOG.AddStepNameInf("Main.Length=" & oPigFile.GbMain.Main.Length)
-    '                End If
-    '                Throw New Exception(oPigText.LastErr)
-    '            End If
-    '            GetUUID = oPigText.Text
-    '            GetUUID = oPigFile.GbMain.Main.Length
-    '            oPigFile = Nothing
-    '            oPigText = Nothing
-    '        End If
-    '    Catch ex As Exception
-    '        Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
-    '        Return ""
-    '    End Try
-    'End Function
+            strDigital(0) = "零"
+            If IsUCase = True Then
+                strDigital(1) = "壹"
+                strDigital(2) = "贰"
+                strDigital(3) = "叁"
+                strDigital(4) = "肆"
+                strDigital(5) = "伍"
+                strDigital(6) = "陆"
+                strDigital(7) = "柒"
+                strDigital(8) = "捌"
+                strDigital(9) = "玖"
+
+                strUnit(0) = "仟"
+                strUnit(1) = "佰"
+                strUnit(2) = "拾"
+                strUnit(3) = ""
+            Else
+                strDigital(1) = "一"
+                strDigital(2) = "二"
+                strDigital(3) = "三"
+                strDigital(4) = "四"
+                strDigital(5) = "五"
+                strDigital(6) = "六"
+                strDigital(7) = "七"
+                strDigital(8) = "八"
+                strDigital(9) = "九"
+
+                strUnit(0) = "千"
+                strUnit(1) = "百"
+                strUnit(2) = "十"
+                strUnit(3) = ""
+            End If
+            DigitalToChnName = ""
+            For i = 0 To lngDigitalLen - 1
+                lngDigital = CLng(Mid(Digital, i + 1, 1))
+                If IsDecimal = False Then
+                    '这种情况lngDigitalLen为4
+                    If lngDigital = 0 Then
+                        DigitalToChnName &= strDigital(lngDigital)
+                    Else
+                        DigitalToChnName &= strDigital(lngDigital) & strUnit(i)
+                    End If
+                Else
+                    DigitalToChnName &= strDigital(lngDigital)
+                End If
+            Next
+        Catch ex As Exception
+            Me.SetSubErrInf("DigitalToChnName", ex)
+            Return ""
+        End Try
+
+    End Function
+
+    ''' <summary>
+    ''' 转换HTML标记
+    ''' </summary>
+    ''' <param name="HtmlStr">源HTML字符串|Source HTML string</param>
+    ''' <param name="HowToConvHtml">如何转换|How to convert</param>
+    ''' <returns></returns>
+    Public Function ConvertHtmlStr(SrcHtml As String, HowToConvHtml As EmnHowToConvHtml) As String
+
+        Try
+            ConvertHtmlStr = SrcHtml
+            Select Case HowToConvHtml
+                Case EmnHowToConvHtml.DisableHTML
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "<", "&lt;")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, ">", "&gt;")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, " ", "&nbsp;")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, vbTab, "&nbsp;&nbsp;&nbsp;&nbsp;")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, vbCrLf, "<br>")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "&lt;br&gt;", "<br>")
+                Case EmnHowToConvHtml.EnableHTML
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "&lt;", "<")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "&gt;", ">")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "&nbsp;&nbsp;&nbsp;&nbsp;", vbTab) '必须在空格转换前面
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "&nbsp;", " ")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "&lt;br&gt;", "<br>")
+                Case EmnHowToConvHtml.DisableHTMLOnlySymbol
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "<", "&lt;")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, ">", "&gt;")
+                Case EmnHowToConvHtml.EnableHTMLOnlySymbol
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "&lt;", "<")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, "&gt;", ">")
+                Case Else
+                    Throw New Exception("Invalid HowToConvHtml " & HowToConvHtml.ToString)
+            End Select
+        Catch ex As Exception
+            Me.SetSubErrInf("ConvertHtmlStr", ex)
+            Return ""
+        End Try
+    End Function
+
+
+    Public Function GetUUID() As String
+        Dim LOG As New PigStepLog("GetUUID")
+        Try
+            If Me.IsWindows = True Then
+                GetUUID = ""
+            Else
+                Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
+                LOG.StepName = "New PigFile"
+                Dim oPigFile As New PigFile(strFilePath)
+                If oPigFile.LastErr <> "" Then
+                    LOG.AddStepNameInf(strFilePath)
+                    Throw New Exception(oPigFile.LastErr)
+                End If
+                LOG.StepName = "oPigFile.LoadFile"
+                LOG.Ret = oPigFile.LoadFile()
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(strFilePath)
+                    Throw New Exception(LOG.Ret)
+                End If
+                LOG.StepName = "New PigText"
+                Dim oPigText As New PigText(oPigFile.GbMain.Main, PigText.enmTextType.Unicode)
+                If oPigText.LastErr <> "" Then
+                    If oPigFile.GbMain Is Nothing Then
+                        LOG.AddStepNameInf("oPigFile.GbMain Is Nothing")
+                    ElseIf oPigFile.GbMain.Main Is Nothing Then
+                        LOG.AddStepNameInf("oPigFile.GbMain.Main Is Nothing")
+                    Else
+                        LOG.AddStepNameInf("Main.Length=" & oPigFile.GbMain.Main.Length)
+                    End If
+                    Throw New Exception(oPigText.LastErr)
+                End If
+                GetUUID = oPigText.Text
+                GetUUID = oPigFile.GbMain.Main.Length
+                oPigFile = Nothing
+                oPigText = Nothing
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 获取对齐的字符串|Gets the aligned string
+    ''' </summary>
+    ''' <param name="SrcStr">源串|Source string</param>
+    ''' <param name="Alignment">对齐方式|Alignment</param>
+    ''' <param name="RowLen">行长度|Row length</param>
+    ''' <returns></returns>
+    Public Function GetAlignStr(SrcStr As String, Alignment As EnmAlignment, RowLen As Integer) As String
+        Try
+            Dim intSrcLen As Integer = Len(SrcStr)
+            GetAlignStr = ""
+            Select Case Alignment
+                Case EnmAlignment.Left
+                    If intSrcLen >= RowLen Then
+                        GetAlignStr = Left(SrcStr, RowLen)
+                    Else
+                        GetAlignStr = SrcStr & Me.GetRepeatStr(RowLen - intSrcLen， " ")
+                    End If
+                Case EnmAlignment.Right
+                    If intSrcLen >= RowLen Then
+                        GetAlignStr = Right(SrcStr, RowLen)
+                    Else
+                        GetAlignStr = Me.GetRepeatStr(RowLen - intSrcLen， " ") & SrcStr
+                    End If
+                Case EnmAlignment.Center
+                    Dim intBegin As Integer = (RowLen - intSrcLen) / 2
+                    Dim intMidLen As Integer = intSrcLen
+                    If intBegin < 1 Then intBegin = 1
+                    Select Case intSrcLen
+                        Case < RowLen
+                            GetAlignStr = Me.GetRepeatStr(intBegin， " ") & SrcStr & Me.GetRepeatStr(RowLen - intBegin - intSrcLen, " ")
+                        Case = RowLen
+                            GetAlignStr = SrcStr
+                        Case > RowLen
+                            intBegin = (intSrcLen - RowLen) / 2
+                            If intBegin < 1 Then intBegin = 1
+                            intMidLen = RowLen
+                            GetAlignStr = Mid(SrcStr, intBegin, intMidLen)
+                    End Select
+                Case Else
+                    Throw New Exception("Invalid Alignment " & Alignment.ToString)
+            End Select
+        Catch ex As Exception
+            Me.SetSubErrInf("GetAlignStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetRepeatStr(Number As Integer, SrcStr As String) As String
+        Try
+            GetRepeatStr = ""
+            For i = 1 To Number
+                GetRepeatStr &= SrcStr
+            Next
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRepeatStr", ex)
+            Return ""
+        End Try
+    End Function
+
 End Class

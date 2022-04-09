@@ -17,8 +17,9 @@
     <Description>Application of calling operating system commands and call file.
 Add console functions.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.5.38</Version>
-    <PackageReleaseNotes>Optimize StandardOutput and  GetParentProc of PigCmdApp.</PackageReleaseNotes>
+    <Version>1.6.2</Version>
+    <PackageReleaseNotes>Add GetSubProcs  Gets the child process of the specified process number
+</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,19 +4,20 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
 '*1.3  31/3/2022  Add GetParentProc
 '*1.4  1/4/2022   Modify GetParentProc
 '*1.5  3/4/2022   Add EnmStandardOutputReadType,mCallFile, and modify CallFile
+'*1.6  5/4/2022   Add GetSubProcs
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
 Public Class PigCmdApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.9"
+    Private Const CLS_VERSION As String = "1.6.1"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private moPigFunc As New PigFunc
@@ -328,5 +329,52 @@ Public Class PigCmdApp
         End Try
     End Function
 
+    ''' <summary>
+    ''' 获取指定进程号的子进程|Gets the child process of the specified process number
+    ''' </summary>
+    ''' <param name="PID">进程号|Process number</param>
+    ''' <returns></returns>
+    Public Function GetSubProcs(PID As Integer) As PigProcs
+        Dim LOG As New PigStepLog("GetSubProcs")
+        Try
+            If moPigProcApp Is Nothing Then
+                LOG.StepName = "New PigProcApp"
+                moPigProcApp = New PigProcApp
+                If moPigProcApp.LastErr <> "" Then Throw New Exception(moPigProcApp.LastErr)
+            End If
+            Dim strCmd As String
+            If Me.IsWindows = True Then
+                strCmd = "wmic process where ParentProcessId=" & PID.ToString & " get ProcessId"
+            Else
+                strCmd = "ps -ef|awk '{if($3==""" & PID.ToString & """) print $2}'"
+            End If
+            Me.StandardOutputReadType = EnmStandardOutputReadType.StringArray
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.CmdShell(strCmd)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            End If
+            LOG.StepName = "New PigProcs"
+            LOG.Ret = ""
+            GetSubProcs = New PigProcs
+            For Each strSubPID As String In Me.StandardOutputArray
+                If IsNumeric(strSubPID) = True Then
+                    GetSubProcs.Add(strSubPID)
+                    If GetSubProcs.LastErr <> "" Then
+                        If LOG.Ret = "" Then
+
+                        End If
+                        LOG.AddStepNameInf(strSubPID)
+                        LOG.AddStepNameInf(GetSubProcs.LastErr)
+                    End If
+                End If
+            Next
+
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Nothing
+        End Try
+    End Function
 
 End Class
