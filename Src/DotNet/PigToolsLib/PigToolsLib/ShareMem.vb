@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Shared memory processing|共享内存处理
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.9
+'* Version: 1.1
 '* Create Time: 23/12/2019
 '* 1.0.2  2019-12-24  联调
 '* 1.0.3  2019-12-26  增加 IsInit 和修订BUG
@@ -13,6 +13,7 @@
 '* 1.0.7  2020-3-19   增加 MaxSize
 '* 1.0.8  2020-6-14   取消 Finalize ，不要执行Close
 '* 1.0.9  1/2/2021   Err.Raise change to Throw New Exception|Err.Raise改为Throw New Exception
+'* 1.1    2/2/2022   Modify Init
 '**********************************
 
 Imports System
@@ -20,7 +21,7 @@ Imports System.Runtime.InteropServices
 
 Public Class ShareMem
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.9"
+    Private Const CLS_VERSION As String = "1.1.2"
     Private mbolIsInit As Boolean
     Private mstrSMName As String
     Private mlngSMSize As Long
@@ -90,15 +91,15 @@ Public Class ShareMem
     Public Function Init(SMName As String, SMSize As Long) As String
         Dim strStepName As String = ""
         Try
-            'If ((SMSize <= 0) OrElse (SMSize > &H800000)) Then
-            '    SMSize = &H800000
-            'End If
+            If Me.IsWindows = False Then
+                Throw New Exception("This class can only run on windows")
+            End If
             If ((SMSize <= 0) OrElse (SMSize > mlngMaxSize)) Then
                 SMSize = mlngMaxSize
             End If
             Me.m_MemSize = SMSize
             If (SMName.Length <= 0) Then
-                Throw New Exception("未指定共享内存名")
+                Throw New Exception("Shared memory name not specified")
             Else
                 strStepName = "CreateFileMapping"
                 '                Me.m_hSharedMemoryFile = ShareMem.CreateFileMapping(-1, IntPtr.Zero, 4, 0, DirectCast(CUInt(SMSize), UInt32), SMName)
@@ -129,7 +130,7 @@ Public Class ShareMem
             Return "OK"
         Catch ex As Exception
             mbolIsInit = False
-            Return Me.GetSubErrInf("Init", ex)
+            Return Me.GetSubErrInf("Init", ex, True)
         End Try
     End Function
 
