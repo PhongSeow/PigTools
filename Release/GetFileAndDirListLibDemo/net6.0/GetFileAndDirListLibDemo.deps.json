@@ -1,11 +1,11 @@
 {
   "runtimeTarget": {
-    "name": ".NETCoreApp,Version=v5.0",
+    "name": ".NETCoreApp,Version=v6.0",
     "signature": ""
   },
   "compilationOptions": {},
   "targets": {
-    ".NETCoreApp,Version=v5.0": {
+    ".NETCoreApp,Version=v6.0": {
       "GetFileAndDirListLibDemo/1.1.38": {
         "dependencies": {
           "GetFileAndDirListLib": "1.1.88"
@@ -20,7 +20,7 @@
           "PigToolsLiteLib": "2.2.88"
         },
         "runtime": {
-          "lib/net5.0/GetFileAndDirListLib.dll": {
+          "lib/net6.0/GetFileAndDirListLib.dll": {
             "assemblyVersion": "1.1.88.0",
             "fileVersion": "1.1.88.0"
           }
@@ -28,7 +28,7 @@
       },
       "PigObjFsLib/2.0.18": {
         "runtime": {
-          "lib/net5.0/PigObjFsLib.dll": {
+          "lib/net6.0/PigObjFsLib.dll": {
             "assemblyVersion": "2.0.18.0",
             "fileVersion": "2.0.18.0"
           }
@@ -36,7 +36,7 @@
       },
       "PigToolsLiteLib/2.2.88": {
         "runtime": {
-          "lib/net5.0/PigToolsLiteLib.dll": {
+          "lib/net6.0/PigToolsLiteLib.dll": {
             "assemblyVersion": "2.2.68.0",
             "fileVersion": "2.2.68.0"
           }

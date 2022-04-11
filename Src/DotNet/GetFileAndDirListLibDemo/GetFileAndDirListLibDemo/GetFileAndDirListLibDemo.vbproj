@@ -2,16 +2,16 @@
 
   <PropertyGroup>
     <RootNamespace>GetFileAndDirListLibDemo</RootNamespace>
-    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;net6.0;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Demo console program for GetFileAndDirListLib.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.1.30</Version>
+    <Version>1.1.38</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Product>GetFileAndDirListLib Demo Console</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Copyright>Copyright (c) 2021 Seow Phong</Copyright>
+    <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/GetFileAndDirListLibDemo</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
@@ -24,7 +24,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.1.60" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.1.88" />
   </ItemGroup>
 
 </Project>
