@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>PigToolsDemo</RootNamespace>
-	  <TargetFrameworks>net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+	  <TargetFrameworks>net5.0;netcoreapp3.1;net6.0;</TargetFrameworks>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <Authors>Seow Phong</Authors>
 	  <Company>Seow Phong Studio</Company>
@@ -12,11 +12,11 @@
 	  <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
 	  <RepositoryType>GIT</RepositoryType>
 	  <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/master/Src/DotNet/PigToolsDemo</RepositoryUrl>
-	  <Version>2.0.6</Version>
+	  <Version>2.0.8</Version>
 	  <PackageTags>PigToolsLib .net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr</PackageTags>
 	  <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
-	  <AssemblyVersion>2.0.6.0</AssemblyVersion>
-	  <FileVersion>2.0.6.0</FileVersion>
+	  <AssemblyVersion>2.0.8.0</AssemblyVersion>
+	  <FileVersion>2.0.8.0</FileVersion>
 	  <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
   </PropertyGroup>
 
@@ -43,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLib" Version="1.0.15.12" />
+    <PackageReference Include="PigToolsLib" Version="2.0.8" />
   </ItemGroup>
 
 </Project>
