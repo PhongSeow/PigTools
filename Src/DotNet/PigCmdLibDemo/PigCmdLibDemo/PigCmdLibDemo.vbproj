@@ -1,9 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>PigCmdLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>1.5.8</Version>
+    <Version>1.7.2</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigCmdLib.</Description>
@@ -13,12 +13,12 @@
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLibDemo</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>Demo PigCmdLib .net develop shell command windows Linux VB6 password string  cmdShell CallFile StandardOutput StandardError StandardInput</PackageTags>
-    <PackageReleaseNotes>Optimize StandardOutput and  GetParentProc of PigCmdApp.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add new function IsYesOrNo and SimpleMenu of PigConsole.</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.5.38" />
+    <PackageReference Include="PigCmdLib" Version="1.7.28" />
   </ItemGroup>
 
 </Project>
