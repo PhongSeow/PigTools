@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.8
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -12,12 +12,21 @@
 '*1.4 5/2/2022     Modify GetLine.
 '*1.5 6/2/2022     Modify mGetKeyTypeForLine,mGetKeyTypeForPwd,mGetLine
 '*1.6 19/3/2022    Modify mGetLine,GetLine,GetPwdStr, add mGetPwdStr, 
+'*1.7 16/4/2022    Add IsYesOrNo and SimpleMenu.
+'*1.8 17/4/2022    Modify SimpleMenu
 '**********************************
 Imports PigToolsLiteLib
 
 Public Class PigConsole
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.3"
+    Private Const CLS_VERSION As String = "1.8.2"
+    Private moPigFunc As New PigFunc
+
+    Public Enum EnmSimpleMenuExitType
+        Null = 0
+        QtoExit = 1
+        QtoUp = 2
+    End Enum
 
     Friend Enum EnmLineEdit
         Insert = 0
@@ -329,6 +338,104 @@ Public Class PigConsole
     Public Function GetLine(ByRef OutLine As String) As String
         Return Me.mGetLine("", OutLine)
     End Function
+
+    Public Function IsYesOrNo(PromptInf As String) As Boolean
+        Try
+            IsYesOrNo = Nothing
+            Console.Write(PromptInf & ":(Press Y to Yes, N to No)")
+            Do While True
+                Select Case Console.ReadKey(True).Key
+                    Case ConsoleKey.Y
+                        IsYesOrNo = True
+                        Exit Do
+                    Case ConsoleKey.N
+                        IsYesOrNo = False
+                        Exit Do
+                End Select
+            Loop
+        Catch ex As Exception
+            Me.SetSubErrInf("PromptInf", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 简单菜单|Simple Menu
+    ''' </summary>
+    ''' <param name="MenuTitle">菜单标题|Menu title</param>
+    ''' <param name="MenuDefinition">菜单定义，格式：键值1#名称1|键值2#名称2|...|Menu definition, format:Key1#Name1|Key2#Name2|...</param>
+    ''' <param name="OutMenuKey">选择的键值|Selected key value</param>
+    ''' <param name="EnmSimpleMenuExitType">退出方式|Exit mode</param>
+    ''' <returns></returns>
+    Public Function SimpleMenu(MenuTitle As String, MenuDefinition As String, ByRef OutMenuKey As String, Optional MenuExitType As EnmSimpleMenuExitType = EnmSimpleMenuExitType.QtoExit) As String
+        Dim LOG As New PigStepLog("SimpleMenu")
+        Try
+            Dim abMenuName As String(), abMenuKey As String(), abLetter As String()
+            ReDim abMenuName(0)
+            ReDim abMenuKey(0)
+            ReDim abLetter(0)
+            abMenuName(0) = MenuTitle
+            Dim intMaxLen As Integer = Len(MenuTitle), intItems As Integer = 0
+            LOG.StepName = "Handle MenuDefinition"
+            If Right(MenuDefinition, 1) <> "|" Then MenuDefinition &= "|"
+            Do While True
+                Dim strLine As String = moPigFunc.GetStr(MenuDefinition, "", "|")
+                If strLine = "" Then Exit Do
+                intItems += 1
+                ReDim Preserve abMenuKey(intItems)
+                ReDim Preserve abMenuName(intItems)
+                ReDim Preserve abLetter(intItems)
+                abMenuKey(intItems) = moPigFunc.GetStr(strLine, "", "#")
+                abMenuName(intItems) = strLine
+                If Len(abMenuName(intItems)) > intMaxLen Then intMaxLen = Len(abMenuName(intItems))
+                abLetter(intItems) = Chr(64 + intItems)
+                If MenuExitType <> EnmSimpleMenuExitType.Null And abLetter(intItems) >= "Q" Then
+                    abLetter(intItems) += Chr(64 + intItems + 1)
+                End If
+            Loop
+            If intItems <= 0 Then
+                Throw New Exception("No menu item defined")
+            End If
+            intMaxLen += 8
+            LOG.StepName = "Print Menu"
+            Dim strStarLine As String = moPigFunc.GetRepeatStr(intMaxLen, "*")
+            Console.WriteLine(strStarLine)
+            Console.WriteLine("* " & MenuTitle)
+            Console.WriteLine(strStarLine)
+            Select Case MenuExitType
+                Case EnmSimpleMenuExitType.QtoExit
+                    Console.WriteLine("* Q - Exit")
+                Case EnmSimpleMenuExitType.QtoUp
+                    Console.WriteLine("* Q - Up")
+            End Select
+            For i = 1 To intItems
+                Dim strLetter As String = Chr(64 + i)
+                If strLetter = "Q" Then strLetter = Chr(65 + i)
+                Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+            Next
+            Console.WriteLine(strStarLine)
+            LOG.StepName = "Select Menu"
+            Do While True
+                Dim oConsoleKey As ConsoleKey = Console.ReadKey(True).Key
+                Select Case oConsoleKey
+                    Case Asc(abLetter(1)) To Asc(abLetter(intItems)), ConsoleKey.Q
+                        If oConsoleKey = ConsoleKey.Q And MenuExitType <> EnmSimpleMenuExitType.Null Then
+                            OutMenuKey = ""
+                        Else
+                            Dim intKey As Integer = CInt(oConsoleKey) - 64
+                            If MenuExitType <> EnmSimpleMenuExitType.Null And intKey > ConsoleKey.Q Then intKey -= 1
+                            OutMenuKey = abMenuKey(intKey)
+                        End If
+                        Exit Do
+                End Select
+            Loop
+            Return "OK"
+        Catch ex As Exception
+            OutMenuKey = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
     Private Function mGetLine(PromptInf As String, ByRef OutLine As String, Optional IsShowCurrLine As Boolean = True) As String
         Dim LOG As New PigStepLog("mGetLine")

@@ -15,11 +15,11 @@
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process</PackageTags>
     <Description>Application of calling operating system commands and call file.
-Add console functions.
+Get enhancements for parent and child processes
+A series of console functions, including reading lines, whether to select, simple menus, etc.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.6.2</Version>
-    <PackageReleaseNotes>Add GetSubProcs  Gets the child process of the specified process number
-</PackageReleaseNotes>
+    <Version>1.7.28</Version>
+    <PackageReleaseNotes>Add new function IsYesOrNo and SimpleMenu of PigConsole.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,7 +34,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.2.50" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.2.88" />
   </ItemGroup>
 
 </Project>
