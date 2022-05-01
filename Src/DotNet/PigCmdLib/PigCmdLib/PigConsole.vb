@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -14,12 +14,13 @@
 '*1.6 19/3/2022    Modify mGetLine,GetLine,GetPwdStr, add mGetPwdStr, 
 '*1.7 16/4/2022    Add IsYesOrNo and SimpleMenu.
 '*1.8 17/4/2022    Modify SimpleMenu
+'*1.9 29/4/2022    Add DisplayPause,mDisplayPause
 '**********************************
 Imports PigToolsLiteLib
 
 Public Class PigConsole
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.8.2"
+    Private Const CLS_VERSION As String = "1.9.3"
     Private moPigFunc As New PigFunc
 
     Public Enum EnmSimpleMenuExitType
@@ -339,6 +340,35 @@ Public Class PigConsole
         Return Me.mGetLine("", OutLine)
     End Function
 
+
+    ''' <summary>
+    ''' 显示信息并暂停|Display message and pause
+    ''' </summary>
+    ''' <param name="DisplayInf">display information</param>
+    ''' <returns></returns>
+    Public Function DisplayPause(DisplayInf As String) As String
+        Return Me.mDisplayPause(DisplayInf)
+    End Function
+
+    Public Function DisplayPause() As String
+        Return Me.mDisplayPause("")
+    End Function
+
+    Private Function mDisplayPause(DisplayInf As String) As String
+        Try
+            Console.Write(DisplayInf & "(Press any key to continue)")
+            Dim oConsoleKey As ConsoleKey = Console.ReadKey(True).Key
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("mDisplayPause", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 选择是或否|Select Yes or no
+    ''' </summary>
+    ''' <param name="PromptInf">Prompt information</param>
+    ''' <returns></returns>
     Public Function IsYesOrNo(PromptInf As String) As Boolean
         Try
             IsYesOrNo = Nothing
@@ -354,7 +384,7 @@ Public Class PigConsole
                 End Select
             Loop
         Catch ex As Exception
-            Me.SetSubErrInf("PromptInf", ex)
+            Me.SetSubErrInf("IsYesOrNo", ex)
             Return Nothing
         End Try
     End Function

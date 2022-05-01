@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6.2
+'* Version: 1.7.5
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -12,6 +12,7 @@
 '* 1.4    20/3/2022  Modify GetPwdStr
 '* 1.5    1/4/2022  Add PigCmdAppDemo
 '* 1.6    1/4/2022  Modify PigCmdAppDemo
+'* 1.7    29/4/2022  Modify PigCmdAppDemo
 '************************************
 
 Imports PigCmdLib
@@ -34,11 +35,12 @@ Public Class ConsoleDemo
     Public MenuDefinition As String
 
     Public Sub PigCmdAppDemo()
-        Me.MenuDefinition = "HideShell#HideShell|"
-        Me.MenuDefinition &= "CallFile#CallFile|"
-        Me.MenuDefinition &= "CmdShell#CmdShell|"
-        Me.MenuDefinition &= "GetParentProc#GetParentProc|"
         Do While True
+            Console.Clear()
+            Me.MenuDefinition = "HideShell#HideShell|"
+            Me.MenuDefinition &= "CallFile#CallFile|"
+            Me.MenuDefinition &= "CmdShell#CmdShell|"
+            Me.MenuDefinition &= "GetParentProc#GetParentProc|"
             Me.PigConsole.SimpleMenu("PigCmdAppDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
@@ -101,115 +103,20 @@ Public Class ConsoleDemo
                         End If
                     End If
             End Select
+            Me.PigConsole.DisplayPause()
         Loop
-        'Do While True
-        '    Console.WriteLine("*******************")
-        '    Console.WriteLine("PigCmdAppDemo")
-        '    Console.WriteLine("*******************")
-        '    Console.WriteLine("Press Q to Up")
-        '    Console.WriteLine("Press A to HideShell")
-        '    Console.WriteLine("Press B to CallFile")
-        '    Console.WriteLine("Press C to CmdShell")
-        '    Console.WriteLine("Press D to GetParentProc")
-        '    Console.WriteLine("*******************")
-        '    Console.CursorVisible = False
-        '    Select Case Console.ReadKey(True).Key
-        '        Case ConsoleKey.Q
-        '            Exit Do
-        '        Case ConsoleKey.A
-        '            Console.WriteLine("*******************")
-        '            Console.WriteLine("HideShell")
-        '            Console.WriteLine("*******************")
-        '            Console.WriteLine("Cmd=" & Me.Cmd)
-        '            Console.CursorVisible = True
-        '            Me.Line = Console.ReadLine
-        '            If Me.Line <> "" Then
-        '                Me.CmdOrFilePath = Me.Line
-        '            End If
-        '            Me.PID = PigCmdApp.HideShell(Me.CmdOrFilePath)
-        '            Console.WriteLine("LastErr=" & Me.PigCmdApp.LastErr)
-        '            Console.WriteLine("PID=" & Me.PID)
-        '        Case ConsoleKey.B
-        '            Console.WriteLine("*******************")
-        '            Console.WriteLine("CallFile")
-        '            Console.WriteLine("*******************")
-        '            Console.CursorVisible = True
-        '            Console.WriteLine("FilePath=" & Me.CmdOrFilePath)
-        '            Me.Line = Console.ReadLine
-        '            If Me.Line <> "" Then
-        '                Me.CmdOrFilePath = Me.Line
-        '            End If
-        '            Console.WriteLine("Para=" & Me.Para)
-        '            Me.Line = Console.ReadLine
-        '            If Me.Line <> "" Then
-        '                Me.Para = Me.Line
-        '            End If
-        '            Me.Ret = PigCmdApp.CallFile(Me.CmdOrFilePath, Me.Para)
-        '            Console.WriteLine("CallFile=" & Me.Ret)
-        '            If Me.Ret = "OK" Then
-        '                Console.WriteLine("PID=" & Me.PigCmdApp.PID)
-        '                Console.WriteLine("StandardOutput=" & Me.PigCmdApp.StandardOutput)
-        '                Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
-        '            End If
-        '        Case ConsoleKey.C
-        '            Console.WriteLine("*******************")
-        '            Console.WriteLine("CmdShell")
-        '            Console.WriteLine("*******************")
-        '            Console.WriteLine("Cmd=" & Me.Cmd)
-        '            Console.CursorVisible = True
-        '            Me.Line = Console.ReadLine
-        '            If Me.Line <> "" Then
-        '                Me.Cmd = Me.Line
-        '            End If
-        '            Me.Ret = PigCmdApp.CmdShell(Me.Cmd)
-        '            Console.WriteLine("CmdShell=" & Me.Ret)
-        '            If Me.Ret = "OK" Then
-        '                Console.WriteLine("PID=" & Me.PigCmdApp.PID)
-        '                Console.WriteLine("StandardOutput=" & Me.PigCmdApp.StandardOutput)
-        '                Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
-        '            End If
-        '        Case ConsoleKey.D
-        '            Console.WriteLine("*******************")
-        '            Console.WriteLine("GetParentProc")
-        '            Console.WriteLine("*******************")
-        '            Console.WriteLine("Cmd=" & Me.Cmd)
-        '            Console.CursorVisible = True
-        '            Me.PigConsole.GetLine("Input PID", Me.PID)
-        '            If IsNumeric(Me.PID) = False Then
-        '                Console.WriteLine("PID is not Numeric")
-        '            Else
-        '                Dim oParentPigProc As PigProc = PigCmdApp.GetParentProc(CInt(Me.PID))
-        '                If PigCmdApp.LastErr <> "" Then
-        '                    Console.WriteLine(PigCmdApp.LastErr)
-        '                Else
-        '                    Console.WriteLine("ProcessID=" & oParentPigProc.ProcessID)
-        '                    Console.WriteLine("ProcessName=" & oParentPigProc.ProcessName)
-        '                    Console.WriteLine("FilePath=" & oParentPigProc.FilePath)
-        '                    Console.WriteLine("TotalProcessorTime=" & oParentPigProc.TotalProcessorTime.ToString)
-        '                    Console.WriteLine("UserProcessorTime=" & oParentPigProc.UserProcessorTime.ToString)
-        '                    Console.WriteLine("MemoryUse=" & Me.PigFunc.GetHumanSize(oParentPigProc.MemoryUse))
-        '                    Console.WriteLine("StartTime=" & oParentPigProc.StartTime.ToString)
-        '                End If
-        '            End If
-        '    End Select
-        '    Console.CursorVisible = False
-        'Loop
     End Sub
 
     Public Sub PigConsoleDemo()
         Do While True
-            Console.WriteLine("*******************")
-            Console.WriteLine("PigCmdAppDemo")
-            Console.WriteLine("*******************")
-            Console.WriteLine("Press Q to Up")
-            Console.WriteLine("Press A to GetPwdStr")
-            Console.WriteLine("Press B to GetLine")
-            Console.WriteLine("*******************")
-            Console.CursorVisible = False
-            Select Case Console.ReadKey(True).Key
-                Case ConsoleKey.Q
+            Console.Clear()
+            Me.MenuDefinition = "GetPwdStr#GetPwdStr|"
+            Me.MenuDefinition &= "GetLine#GetLine|"
+            Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Select Case Me.MenuKey
+                Case ""
                     Exit Do
-                Case ConsoleKey.A
+                Case "GetPwdStr"
                     Console.WriteLine("*******************")
                     Console.WriteLine("GetPwdStr")
                     Console.WriteLine("*******************")
@@ -221,7 +128,7 @@ Public Class ConsoleDemo
                         Console.WriteLine("Password is ")
                         Console.WriteLine(Me.Pwd)
                     End If
-                Case ConsoleKey.B
+                Case "GetLine"
                     Console.WriteLine("*******************")
                     Console.WriteLine("GetLine")
                     Console.WriteLine("*******************")
@@ -234,7 +141,7 @@ Public Class ConsoleDemo
                         Console.WriteLine(Me.Line)
                     End If
             End Select
-            Console.CursorVisible = False
+            Me.PigConsole.DisplayPause()
         Loop
     End Sub
 

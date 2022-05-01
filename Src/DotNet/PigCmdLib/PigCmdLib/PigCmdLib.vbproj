@@ -18,8 +18,8 @@
 Get enhancements for parent and child processes
 A series of console functions, including reading lines, whether to select, simple menus, etc.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.7.28</Version>
-    <PackageReleaseNotes>Add new function IsYesOrNo and SimpleMenu of PigConsole.</PackageReleaseNotes>
+    <Version>1.7.36</Version>
+    <PackageReleaseNotes>Add new function DisplayPause of PigConsole.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
