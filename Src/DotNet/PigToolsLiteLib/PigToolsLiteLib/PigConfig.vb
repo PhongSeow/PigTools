@@ -4,15 +4,19 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 配置项|Configuration item
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.7
 '* Create Time: 18/12/2021
 '* 1.1    20/12/2021   Add ConfValue,ContentType
 '* 1.2    22/12/2021   Modify ConfValue,mNew
 '* 1.3    2/2/2022   Add IsChange
+'* 1.4    2/5/2022   Modify ConfValue,IsChange
+'* 1.5    3/5/2022   Modify ConfValue,IsChange,mNew, add LastMD5,CurrMD5
+'* 1.6    8/5/2022   Modify fCurrPigMD5
+'* 1.7    9/5/2022   Modify IsChange
 '**********************************
 Public Class PigConfig
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.8"
+    Private Const CLS_VERSION As String = "1.7.1"
 
     Public Enum EnmContentType
         ''' <summary>
@@ -63,7 +67,7 @@ Public Class PigConfig
                 .Parent = Parent
                 .ConfValue = ConfValue
                 .ConfDesc = ConfDesc
-                .IsChange = False
+                .fSaveCurrMD5()
             End With
             Me.ClearErr()
         Catch ex As Exception
@@ -86,6 +90,53 @@ Public Class PigConfig
 
 
     ''' <summary>
+    ''' 当前值的PigMD5
+    ''' </summary>
+    Friend ReadOnly Property fCurrPigMD5 As String
+        Get
+            Try
+                Dim oPigXml As New PigXml(False)
+                With Me
+                    oPigXml.AddEle("ConfName", .ConfName)
+                    oPigXml.AddEle("ConfValue", .ConfValue)
+                    oPigXml.AddEle("ConfDesc", .ConfDesc)
+                End With
+                Dim oPigMD5 As New PigMD5(oPigXml.MainXmlStr, PigMD5.enmTextType.UTF8)
+                fCurrPigMD5 = oPigMD5.PigMD5
+                oPigXml = Nothing
+                oPigMD5 = Nothing
+            Catch ex As Exception
+                Me.SetSubErrInf("fCurrPigMD5", ex)
+                Return ""
+            End Try
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' 上个值的PigMD5
+    ''' </summary>
+    Private mstrLastMD5 As String
+    Friend ReadOnly Property fLastPigMD5 As String
+        Get
+            Return mstrLastMD5
+        End Get
+    End Property
+
+
+    ''' <summary>
+    ''' 保存当前值的PigMD5
+    ''' </summary>
+    ''' <returns></returns>
+    Friend Function fSaveCurrMD5() As String
+        Try
+            mstrLastMD5 = Me.fCurrPigMD5
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("fSaveCurrMD5", ex)
+        End Try
+    End Function
+
+    ''' <summary>
     ''' 配置名
     ''' </summary>
     Private mstrConfName As String
@@ -96,7 +147,6 @@ Public Class PigConfig
         Friend Set(value As String)
             If mstrConfName <> value Then
                 mstrConfName = value
-                Me.IsChange = True
             End If
         End Set
     End Property
@@ -112,7 +162,6 @@ Public Class PigConfig
         Set(value As String)
             If mstrConfDesc <> value Then
                 mstrConfDesc = value
-                Me.IsChange = True
             End If
         End Set
     End Property
@@ -153,7 +202,6 @@ Public Class PigConfig
         Set(value As String)
             If mstrConfValue <> value Then
                 mstrConfValue = value
-                Me.IsChange = True
             End If
             If Mid(mstrConfValue, 1, 5) = "{Enc}" Then
                 mstrUnEncConfValue = ""
@@ -188,19 +236,18 @@ Public Class PigConfig
         Friend Set(value As EnmContentType)
             If mintContentType <> value Then
                 mintContentType = value
-                Me.IsChange = True
             End If
         End Set
     End Property
 
-    Private mbolIsChange As Boolean = False
-    Public Property IsChange As Boolean
+    Public ReadOnly Property IsChange As Boolean
         Get
-            Return mbolIsChange
+            If Me.fLastPigMD5 = Me.fCurrPigMD5 Then
+                Return False
+            Else
+                Return True
+            End If
         End Get
-        Friend Set(value As Boolean)
-            mbolIsChange = value
-        End Set
     End Property
 
 

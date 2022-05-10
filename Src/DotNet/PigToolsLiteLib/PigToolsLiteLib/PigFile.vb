@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.10
+'* Version: 1.1
 '* Create Time: 4/11/2019
 '*1.0.2  2019-11-5   增加mSaveFile
 '*1.0.3  2019-11-20  增加 CopyFileTo
@@ -14,11 +14,12 @@
 '*1.0.8  2020-10-27  修改 LoadFile
 '*1.0.9  1/2/2021 Err.Raise change to Throw New Exception|Err.Raise改为Throw New Exception
 '*1.0.10  26/7/2021 Modify LoadFile
+'*1.1  10/5/2022    Add PigMD5, modify LoadFile
 '**********************************
 Imports System.IO
 Public Class PigFile
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.10"
+    Private Const CLS_VERSION As String = "1.1.2"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
     Public GbMain As PigBytes '主数据数组
@@ -102,29 +103,27 @@ Public Class PigFile
 
     ''' <summary>导入数据</summary>
     Public Function LoadFile() As String
-        Const SUB_NAME As String = "LoadFile"
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("LoadFile")
         Try
-            If Me.GbMain Is Nothing Then
-                strStepName = "New FileStream"
-                Dim sfAny As New FileStream(mstrFilePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.Read)
-                strStepName = "New BinaryReader"
-                Dim brAny = New BinaryReader(sfAny)
-                strStepName = "New PigBytes"
-                Me.GbMain = New PigBytes
-                strStepName = "GbMain ReadBytes"
-                GbMain.Main = brAny.ReadBytes(Me.Size)
-                strStepName = "Close"
-                brAny.Close()
-                sfAny.Close()
-            End If
+            If Me.GbMain IsNot Nothing Then Me.GbMain = Nothing
+            LOG.StepName = "New FileStream"
+            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            LOG.StepName = "New BinaryReader"
+            Dim brAny = New BinaryReader(sfAny)
+            LOG.StepName = "New PigBytes"
+            Me.GbMain = New PigBytes
+            LOG.StepName = "GbMain ReadBytes"
+            GbMain.Main = brAny.ReadBytes(Me.Size)
+            LOG.StepName = "Close"
+            brAny.Close()
+            sfAny.Close()
             Return "OK"
         Catch ex As Exception
-            strStepName &= "(" & mstrFilePath & ")"
+            LOG.AddStepNameInf(mstrFilePath)
             If Me.IsDebug Or Me.IsHardDebug Then
-                Return Me.GetSubErrInf(SUB_NAME, strStepName, ex, True)
+                Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex, True)
             Else
-                Return Me.GetSubErrInf(SUB_NAME, strStepName, ex)
+                Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
             End If
         End Try
     End Function
@@ -359,5 +358,7 @@ Public Class PigFile
             End Try
         End Get
     End Property
+
+
 
 End Class
