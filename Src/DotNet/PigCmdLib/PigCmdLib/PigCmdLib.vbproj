@@ -18,8 +18,8 @@
 Get enhancements for parent and child processes
 A series of console functions, including reading lines, whether to select, simple menus, etc.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.7.36</Version>
-    <PackageReleaseNotes>Add new function DisplayPause of PigConsole.</PackageReleaseNotes>
+    <Version>1.7.38</Version>
+    <PackageReleaseNotes>Reference new class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,7 +34,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.2.88" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.3.16" />
   </ItemGroup>
 
 </Project>
