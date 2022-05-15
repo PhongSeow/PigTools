@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.12.8
+'* Version: 1.13.3
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -18,6 +18,7 @@
 '* 1.10   2/4/2022   Modify PigProcDemo, add GetHumanSize
 '* 1.11   9/4/2022   Modify PigFunc demo
 '* 1.12   10/5/2022   Modify PigConfig demo
+'* 1.13   15/5/2022   Modify PigFuncDemo
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -42,7 +43,7 @@ Public Class ConsoleDemo
     Public FilePart As PigFunc.enmFilePart
     Public Line As String
     Public SaveType As PigConfigApp.EnmSaveType
-    Public PigFunc As New PigFunc
+    Public WithEvents PigFunc As New PigFunc
     Public Url As String
     Public SrcStr As String
     Public Base64EncStr As String
@@ -61,6 +62,7 @@ Public Class ConsoleDemo
     Public MenuDefinition As String
     Public MenuDefinition2 As String
     Public EncKey As String
+    Public ThreadID As Integer
 
     Public Sub Main()
         Do While True
@@ -615,6 +617,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press E To GetEnvVar")
             Console.WriteLine("Press F To PLSqlCsv2Bcp")
             Console.WriteLine("Press G To GetHumanSize")
+            Console.WriteLine("Press H To OptLogInf")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
@@ -671,8 +674,14 @@ Public Class ConsoleDemo
                     Console.CursorVisible = True
                     Me.GetLine("FilePath", Me.FilePath)
                     Me.GetLine("SaveText", Me.SrcStr)
-                    Me.Ret = Me.PigFunc.SaveTextToFile(Me.FilePath, Me.SrcStr)
-                    Console.WriteLine("SaveTextToFile(" & Me.FilePath & ")=" & Me.Ret)
+                    If Me.PigConsole.IsYesOrNo("Is asynchronous processing") = True Then
+                        Me.Ret = Me.PigFunc.ASyncSaveTextToFile(Me.FilePath, Me.SrcStr, Me.ThreadID)
+                        Console.WriteLine("ASyncSaveTextToFile(" & Me.FilePath & ")=" & Me.Ret)
+                        Console.WriteLine("ThreadID=" & Me.ThreadID)
+                    Else
+                        Me.Ret = Me.PigFunc.SaveTextToFile(Me.FilePath, Me.SrcStr)
+                        Console.WriteLine("SaveTextToFile(" & Me.FilePath & ")=" & Me.Ret)
+                    End If
                 Case ConsoleKey.E
                     Console.CursorVisible = True
                     Me.GetLine("EnvVarName", Me.EnvVar)
@@ -693,6 +702,15 @@ Public Class ConsoleDemo
                     Me.GetLine("Input SrcSize", Me.SrcSize)
                     Console.WriteLine("SrcSize is " & Me.SrcSize)
                     Console.WriteLine("GetHumanSize is " & Me.PigFunc.GetHumanSize(CDec(Me.SrcSize)))
+                Case ConsoleKey.H
+                    Console.CursorVisible = True
+                    Me.GetLine("Input SrcStr", Me.SrcStr)
+                    Me.GetLine("Input FilePath", Me.FilePath)
+                    If Me.PigConsole.IsYesOrNo("Is asynchronous processing") = True Then
+                        Me.PigFunc.ASyncOptLogInf(Me.SrcStr, Me.FilePath)
+                    Else
+                        Me.PigFunc.OptLogInf(Me.SrcStr, Me.FilePath)
+                    End If
             End Select
         Loop
     End Sub
@@ -821,4 +839,13 @@ Public Class ConsoleDemo
         End With
     End Sub
 
+    Private Sub PigFunc_ASyncRet_SaveTextToFile(SyncRet As PigToolsLiteLib.PigBaseMini.StruASyncRet) Handles PigFunc.ASyncRet_SaveTextToFile
+        Console.WriteLine("PigFunc_ASyncRet_SaveTextToFile")
+        With SyncRet
+            Console.WriteLine("BeginTime=" & .BeginTime)
+            Console.WriteLine("EndTime=" & .EndTime)
+            Console.WriteLine("Ret=" & .Ret)
+            Console.WriteLine("ThreadID=" & .ThreadID)
+        End With
+    End Sub
 End Class

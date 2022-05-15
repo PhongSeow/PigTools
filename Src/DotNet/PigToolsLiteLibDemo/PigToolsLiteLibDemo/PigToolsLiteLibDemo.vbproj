@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsLiteLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.3.10</Version>
+    <Version>2.5.2</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigToolsLiteLib</Description>
@@ -14,12 +14,12 @@
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLibDemo</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa PigToolsLiteLib</PackageTags>
-    <PackageReleaseNotes>Optimization PigConfig and PigFile</PackageReleaseNotes>
+    <PackageReleaseNotes>Add asynchronous processing in PigFunc.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.7.36" />
-    <PackageReference Include="PigToolsLiteLib" Version="2.3.12" />
+    <PackageReference Include="PigCmdLib" Version="1.7.38" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.5.20" />
   </ItemGroup>
 
   <ItemGroup>
