@@ -9,7 +9,6 @@
 '1.1    18/12/2021  Add TrackID,ErrInf2User, modify mNew,StepName
 '1.2    21/12/2021  Modify TrackID
 '1.3    10/2/2022  Add StepLogInf
-
 '************************************
 Public Class PigStepLog
     Public ReadOnly Property SubName As String

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>2.5.20</Version>
+    <Version>2.5.38</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -19,9 +19,9 @@ It can run on Windows and Linux platforms.
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa UUID EnvironmentVariable PL/SQL BCP</PackageTags>
-    <PackageReleaseNotes>Add asynchronous processing in PigFunc.</PackageReleaseNotes>
-    <AssemblyVersion>2.5.20.0</AssemblyVersion>
+    <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa UUID EnvironmentVariable PL/SQL BCP asynchronous</PackageTags>
+    <PackageReleaseNotes>Add PigAsync class for asynchronous processing</PackageReleaseNotes>
+    <AssemblyVersion>2.5.38.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
