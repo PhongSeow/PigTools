@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.7.5
+'* Version: 1.8.1
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -13,6 +13,7 @@
 '* 1.5    1/4/2022  Add PigCmdAppDemo
 '* 1.6    1/4/2022  Modify PigCmdAppDemo
 '* 1.7    29/4/2022  Modify PigCmdAppDemo
+'* 1.8    19/5/2022  Modify PigCmdAppDemo
 '************************************
 
 Imports PigCmdLib
@@ -22,7 +23,7 @@ Imports PigToolsLiteLib
 Public Class ConsoleDemo
     Public CmdOrFilePath As String
     Public CmdPara As String
-    Public PigCmdApp As New PigCmdApp
+    Public WithEvents PigCmdApp As New PigCmdApp
     Public PID As String
     Public Cmd As String
     Public Para As String
@@ -33,6 +34,7 @@ Public Class ConsoleDemo
     Public PigFunc As New PigFunc
     Public MenuKey As String
     Public MenuDefinition As String
+    Public OutThreadID As Integer
 
     Public Sub PigCmdAppDemo()
         Do While True
@@ -60,24 +62,39 @@ Public Class ConsoleDemo
                     Console.CursorVisible = True
                     Me.PigConsole.GetLine("Input FilePath", Me.CmdOrFilePath)
                     Me.PigConsole.GetLine("Input Para", Me.Para)
-                    Me.Ret = PigCmdApp.CallFile(Me.CmdOrFilePath, Me.Para)
-                    Console.WriteLine("CallFile=" & Me.Ret)
-                    If Me.Ret = "OK" Then
-                        Console.WriteLine("PID=" & Me.PigCmdApp.PID)
-                        Console.WriteLine("StandardOutput=" & Me.PigCmdApp.StandardOutput)
-                        Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
+                    If Me.PigConsole.IsYesOrNo("Is asynchronous processing") = True Then
+                        Me.Ret = PigCmdApp.AsyncCallFile(Me.CmdOrFilePath, Me.Para, Me.OutThreadID)
+                        Console.WriteLine(vbCrLf & "OutThreadID=" & Me.OutThreadID)
+                        Console.WriteLine("Delay(1000)")
+                        Me.PigFunc.Delay(1000)
+                    Else
+                        Me.Ret = PigCmdApp.CallFile(Me.CmdOrFilePath, Me.Para)
+                        Me.Ret = PigCmdApp.CmdShell(Me.Cmd)
+                        Console.WriteLine("CallFile=" & Me.Ret)
+                        If Me.Ret = "OK" Then
+                            Console.WriteLine("PID=" & Me.PigCmdApp.PID)
+                            Console.WriteLine("StandardOutput=" & Me.PigCmdApp.StandardOutput)
+                            Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
+                        End If
                     End If
                 Case "CmdShell"
                     Console.WriteLine("*******************")
                     Console.WriteLine("CmdShell")
                     Console.WriteLine("*******************")
                     Me.PigConsole.GetLine("Input Command", Me.Cmd)
-                    Me.Ret = PigCmdApp.CmdShell(Me.Cmd)
-                    Console.WriteLine("CmdShell=" & Me.Ret)
-                    If Me.Ret = "OK" Then
-                        Console.WriteLine("PID=" & Me.PigCmdApp.PID)
-                        Console.WriteLine("StandardOutput=" & Me.PigCmdApp.StandardOutput)
-                        Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
+                    If Me.PigConsole.IsYesOrNo("Is asynchronous processing") = True Then
+                        Me.Ret = PigCmdApp.AsyncCmdShell(Me.Cmd, Me.OutThreadID)
+                        Console.WriteLine(vbCrLf & "OutThreadID=" & Me.OutThreadID)
+                        Console.WriteLine("Delay(1000)")
+                        Me.PigFunc.Delay(1000)
+                    Else
+                        Me.Ret = PigCmdApp.CmdShell(Me.Cmd)
+                        Console.WriteLine("CmdShell=" & Me.Ret)
+                        If Me.Ret = "OK" Then
+                            Console.WriteLine("PID=" & Me.PigCmdApp.PID)
+                            Console.WriteLine("StandardOutput=" & Me.PigCmdApp.StandardOutput)
+                            Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
+                        End If
                     End If
                 Case "GetParentProc"
                     Console.WriteLine("*******************")
@@ -167,4 +184,28 @@ Public Class ConsoleDemo
         MyBase.Finalize()
     End Sub
 
+
+    Private Sub PigCmdApp_AsyncRet_CmdShell_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String) Handles PigCmdApp.AsyncRet_CmdShell_FullString
+        Console.WriteLine("PigCmdApp_AsyncRet_CmdShell_FullString")
+        With SyncRet
+            Console.WriteLine("BeginTime=" & .AsyncBeginTime)
+            Console.WriteLine("EndTime=" & .AsyncEndTime)
+            Console.WriteLine("Ret=" & .AsyncRet)
+            Console.WriteLine("ThreadID=" & .AsyncThreadID)
+        End With
+        Console.WriteLine("StandardOutput=" & StandardOutput)
+        Console.WriteLine("StandardError=" & StandardError)
+    End Sub
+
+    Private Sub PigCmdApp_AsyncRet_CallFile_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String) Handles PigCmdApp.AsyncRet_CallFile_FullString
+        Console.WriteLine("PigCmdApp_AsyncRet_CallFile_FullString")
+        With SyncRet
+            Console.WriteLine("BeginTime=" & .AsyncBeginTime)
+            Console.WriteLine("EndTime=" & .AsyncEndTime)
+            Console.WriteLine("Ret=" & .AsyncRet)
+            Console.WriteLine("ThreadID=" & .AsyncThreadID)
+        End With
+        Console.WriteLine("StandardOutput=" & StandardOutput)
+        Console.WriteLine("StandardError=" & StandardError)
+    End Sub
 End Class
