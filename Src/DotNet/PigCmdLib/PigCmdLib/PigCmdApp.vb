@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.8
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -12,16 +12,20 @@
 '*1.4  1/4/2022   Modify GetParentProc
 '*1.5  3/4/2022   Add EnmStandardOutputReadType,mCallFile, and modify CallFile
 '*1.6  5/4/2022   Add GetSubProcs
+'*1.7  17/5/2022  Add ASyncRet_CmdShell,mCmdShell,ASyncCmdShell, modify CmdShell
+'*1.8  18/5/2022  Modify mCallFile, add AsyncRet_CallFile_FullString,AsyncRet_CallFile_StringArray,AsyncRet_CmdShell_FullString,AsyncRet_CmdShell_StringArray,AsyncCallFile
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
+Imports System.Threading
 Public Class PigCmdApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.1"
+    Private Const CLS_VERSION As String = "1.8.6"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
-    Private moPigFunc As New PigFunc
+    Private WithEvents moPigFunc As New PigFunc
     Private moPigProcApp As PigProcApp
+
 
     Public Enum EnmStandardOutputReadType
         FullString = 0
@@ -82,15 +86,15 @@ Public Class PigCmdApp
         End Set
     End Property
 
-    Private moStandardOutputStreamReader As StreamReader
-    Public Property StandardOutputStreamReader As StreamReader
-        Get
-            Return moStandardOutputStreamReader
-        End Get
-        Friend Set(value As StreamReader)
-            moStandardOutputStreamReader = value
-        End Set
-    End Property
+    'Private moStandardOutputStreamReader As StreamReader
+    'Public Property StandardOutputStreamReader As StreamReader
+    '    Get
+    '        Return moStandardOutputStreamReader
+    '    End Get
+    '    Friend Set(value As StreamReader)
+    '        moStandardOutputStreamReader = value
+    '    End Set
+    'End Property
 
     Private mabStandardOutputArray As String()
     Public ReadOnly Property StandardOutputArray As String()
@@ -116,7 +120,68 @@ Public Class PigCmdApp
     ''' <param name="Cmd">命令语句|Command statement</param>
     ''' <returns></returns>
     Public Function CmdShell(Cmd As String) As String
-        Dim LOG As New PigStepLog("CmdShell")
+        Dim struMain As mStruCmdShell
+        With struMain
+            .Cmd = Cmd
+            .IsAsync = False
+        End With
+        Return Me.mCmdShell(struMain)
+    End Function
+
+    ''' <summary>
+    ''' 执行操作系统命令|Execute operating system commands
+    ''' </summary>
+    ''' <param name="Cmd">命令语句|Command statement</param>
+    ''' <returns></returns>
+    Public Function AsyncCmdShell(Cmd As String, ByRef OutThreadID As Integer) As String
+        Try
+            Dim struMain As mStruCmdShell
+            With struMain
+                .Cmd = Cmd
+                .IsAsync = True
+            End With
+            Dim oThread As New Thread(AddressOf mCmdShell)
+            oThread.Start(struMain)
+            OutThreadID = oThread.ManagedThreadId
+            oThread = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("ASyncCmdShell", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 调用文件|Call file
+    ''' </summary>
+    ''' <param name="FilePath">调用文件的路径|Path to the calling file</param>
+    ''' <param name="Para">调用文件的参数|Call file parameters</param>
+    ''' <returns></returns>
+    Public Function AsyncCallFile(FilePath As String, Para As String, ByRef OutThreadID As Integer) As String
+        Try
+            Dim struMain As mStruCallFile
+            With struMain
+                .FilePath = FilePath
+                .Para = Para
+                .IsAsync = True
+                .IsCmdShell = False
+            End With
+            Dim oThread As New Thread(AddressOf mCallFile)
+            oThread.Start(struMain)
+            OutThreadID = oThread.ManagedThreadId
+            oThread = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("AsyncCallFile", ex)
+        End Try
+    End Function
+
+
+    Private Structure mStruCmdShell
+        Public Cmd As String
+        Public IsAsync As Boolean
+    End Structure
+    Private Function mCmdShell(StruMain As mStruCmdShell) As String
+        Dim LOG As New PigStepLog("mCmdShell")
         Try
             Dim strShellPath As String
             If Me.IsWindows = True Then
@@ -125,20 +190,27 @@ Public Class PigCmdApp
                 strShellPath = Me.LinuxShPath
             End If
             Dim strCmd As String
-            Cmd = Replace(Cmd, """", """""")
+            StruMain.Cmd = Replace(StruMain.Cmd, """", """""")
             If Me.IsWindows = True Then
                 strCmd = " /c "
             Else
                 strCmd = " -c "
             End If
-            strCmd &= """" & Cmd & """"
-            LOG.StepName = "CallFile"
-            LOG.Ret = Me.CallFile(strShellPath, strCmd)
+            strCmd &= """" & StruMain.Cmd & """"
+            Dim StruCallFile As mStruCallFile
+            With StruCallFile
+                .FilePath = strShellPath
+                .Para = strCmd
+                .IsAsync = StruMain.IsAsync
+                .IsCmdShell = True
+            End With
+            LOG.StepName = "mCallFile"
+            LOG.Ret = Me.mCallFile(StruCallFile)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Return "OK"
         Catch ex As Exception
             If Me.IsDebug = True Then
-                LOG.AddStepNameInf(Cmd)
+                LOG.AddStepNameInf(StruMain.Cmd)
             End If
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
@@ -218,40 +290,85 @@ Public Class PigCmdApp
     ''' <param name="Para">调用文件的参数|Call file parameters</param>
     ''' <returns></returns>
     Public Function CallFile(FilePath As String, Para As String) As String
-        Dim LOG As New PigStepLog("CallFile")
+        Dim struMain As mStruCallFile
+        With struMain
+            .FilePath = FilePath
+            .Para = Para
+            .IsAsync = False
+            .IsCmdShell = False
+        End With
+        Return Me.mCallFile(struMain)
+    End Function
+
+
+    Private Structure mStruCallFile
+        Public FilePath As String
+        Public Para As String
+        Public IsAsync As Boolean
+        Public IsCmdShell As Boolean
+    End Structure
+
+    Public Event AsyncRet_CallFile_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String)
+    Public Event AsyncRet_CallFile_StringArray(SyncRet As PigAsync, StandardOutput As String(), StandardError As String)
+    Public Event AsyncRet_CmdShell_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String)
+    Public Event AsyncRet_CmdShell_StringArray(SyncRet As PigAsync, StandardOutput As String(), StandardError As String)
+
+    Private Function mCallFile(StruMain As mStruCallFile) As String
+        Dim LOG As New PigStepLog("mCallFile")
+        Dim oPigAsync As New PigAsync
         Try
+            If StruMain.IsAsync = True Then
+                Select Case Me.StandardOutputReadType
+                    Case EnmStandardOutputReadType.FullString, EnmStandardOutputReadType.StringArray
+                    Case Else
+                        Throw New Exception("The asynchronous processing mode StandardOutputReadType does not support " & Me.StandardOutputReadType.ToString)
+                End Select
+                oPigAsync.AsyncBegin()
+            End If
             LOG.StepName = "New ProcessStartInfo"
-            Dim moProcessStartInfo As New ProcessStartInfo(FilePath)
+            Dim moProcessStartInfo As New ProcessStartInfo(StruMain.FilePath)
             With moProcessStartInfo
                 .UseShellExecute = False
                 .CreateNoWindow = True
                 .RedirectStandardError = True
                 .RedirectStandardOutput = True
-                .Arguments = Para
+                .Arguments = StruMain.Para
             End With
             LOG.StepName = "Process.Start"
             Dim oProcess As Process = Process.Start(moProcessStartInfo)
             Me.PID = oProcess.Id
             LOG.StepName = "Process.StandardOutput"
-            Me.StandardOutputStreamReader = oProcess.StandardOutput
+            Dim oStreamReader As StreamReader = oProcess.StandardOutput
+            Dim strStandardOutput As String = ""
+            Dim abStandardOutputArray(0) As String
             Select Case Me.StandardOutputReadType
                 Case EnmStandardOutputReadType.FullString
-                    LOG.StepName = "StandardOutputStreamReader.ReadToEnd"
-                    Me.StandardOutput = Me.StandardOutputStreamReader.ReadToEnd
-                    LOG.StepName = "StandardOutputStreamReader.Close"
-                    Me.StandardOutputStreamReader.Close()
+                    LOG.StepName = "StreamReader.ReadToEnd"
+                    strStandardOutput = oStreamReader.ReadToEnd
+                    LOG.StepName = "StreamReader.Close"
+                    oStreamReader.Close()
+                    If StruMain.IsAsync = False Then Me.StandardOutput = strStandardOutput
                 Case EnmStandardOutputReadType.StreamReader
                 Case EnmStandardOutputReadType.StringArray
                     Dim i As Integer = 0
-                    ReDim mabStandardOutputArray(i)
-                    Do While Not Me.StandardOutputStreamReader.EndOfStream
-                        ReDim Preserve mabStandardOutputArray(i)
-                        LOG.StepName = "StandardOutputStreamReader.ReadLine(" & i & ")"
-                        mabStandardOutputArray(i) = Me.StandardOutputStreamReader.ReadLine
-                        i += 1
-                    Loop
-                    LOG.StepName = "StandardOutputStreamReader.Close"
-                    Me.StandardOutputStreamReader.Close()
+                    If StruMain.IsAsync = True Then
+                        Do While Not oStreamReader.EndOfStream
+                            ReDim Preserve abStandardOutputArray(i)
+                            'LOG.StepName = "StreamReader.ReadLine(" & i & ")"
+                            abStandardOutputArray(i) = oStreamReader.ReadLine
+                            i += 1
+                        Loop
+                    Else
+                        ReDim mabStandardOutputArray(i)
+                        Do While Not oStreamReader.EndOfStream
+                            ReDim Preserve mabStandardOutputArray(i)
+                            'LOG.StepName = "StreamReader.ReadLine(" & i & ")"
+                            mabStandardOutputArray(i) = oStreamReader.ReadLine
+                            i += 1
+                        Loop
+                    End If
+                    LOG.StepName = "StreamReader.Close"
+                    oStreamReader.Close()
                 Case Else
                     Throw New Exception("Invalid StandardOutputReadType")
             End Select
@@ -260,7 +377,7 @@ Public Class PigCmdApp
             LOG.StepName = "Process.StandardError"
             Dim srStandardError As StreamReader = oProcess.StandardError
             LOG.StepName = "srStandardError.ReadToEnd"
-            Me.StandardError = srStandardError.ReadToEnd
+            Dim strStandardError = srStandardError.ReadToEnd
             LOG.StepName = "Process.StandardError.WaitForExit"
             oProcess.WaitForExit(Me.CmdWaitForExitTime)
             srStandardError = Nothing
@@ -268,13 +385,36 @@ Public Class PigCmdApp
             oProcess.Close()
             oProcess = Nothing
             moProcessStartInfo = Nothing
+            If StruMain.IsAsync = True Then
+                oPigAsync.AsyncSucc()
+                Select Case Me.StandardOutputReadType
+                    Case EnmStandardOutputReadType.FullString
+                        If StruMain.IsCmdShell = True Then
+                            RaiseEvent AsyncRet_CmdShell_FullString(oPigAsync, strStandardOutput, strStandardError)
+                        Else
+                            RaiseEvent AsyncRet_CallFile_FullString(oPigAsync, strStandardOutput, strStandardError)
+                        End If
+                    Case EnmStandardOutputReadType.StringArray
+                        If StruMain.IsCmdShell = True Then
+                            RaiseEvent AsyncRet_CmdShell_StringArray(oPigAsync, abStandardOutputArray, strStandardError)
+                        Else
+                            RaiseEvent AsyncRet_CallFile_StringArray(oPigAsync, abStandardOutputArray, strStandardError)
+                        End If
+                    Case Else
+                        Throw New Exception("Invalid StandardOutputReadType")
+                End Select
+            Else
+                Me.StandardOutput = strStandardOutput
+            End If
             Return "OK"
         Catch ex As Exception
             If Me.IsDebug = True Then
-                LOG.AddStepNameInf(FilePath)
-                LOG.AddStepNameInf(Para)
+                LOG.AddStepNameInf(StruMain.FilePath)
+                LOG.AddStepNameInf(StruMain.Para)
             End If
-            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Dim strError As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            If StruMain.IsAsync = True Then oPigAsync.AsyncError(strError)
+            Return strError
         End Try
     End Function
 
