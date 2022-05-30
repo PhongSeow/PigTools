@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>PigCmdLib</RootNamespace>
-    <TargetFrameworks>net20;net30;net40;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -19,8 +19,8 @@ Get enhancements for parent and child processes
 A series of console functions, including reading lines, whether to select, simple menus, etc.
 asynchronous processing
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.8.28</Version>
-    <PackageReleaseNotes>Optimize PigCmdApp.CmdShell and PigCmdApp.CallFile</PackageReleaseNotes>
+    <Version>1.8.38</Version>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,7 +35,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.5.38" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.6.28" />
   </ItemGroup>
 
 </Project>
