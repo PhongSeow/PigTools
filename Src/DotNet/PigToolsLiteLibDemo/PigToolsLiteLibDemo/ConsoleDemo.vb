@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.13.3
+'* Version: 1.15.6
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -19,9 +19,12 @@
 '* 1.11   9/4/2022   Modify PigFunc demo
 '* 1.12   10/5/2022   Modify PigConfig demo
 '* 1.13   15/5/2022   Modify PigFuncDemo
+'* 1.14   29/5/2022   Add PigXmlDemo
+'* 1.15   30/5/2022   Modify PigXmlDemo
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
+Imports System.Xml
 
 Public Class ConsoleDemo
     Public ShareMem As ShareMem
@@ -63,7 +66,12 @@ Public Class ConsoleDemo
     Public MenuDefinition2 As String
     Public EncKey As String
     Public ThreadID As Integer
-
+    Public PigXml As New PigXml(False)
+    Public XmlKey As String
+    Public XmlKey2 As String
+    Public XmlStr As String = "<a><b id='1'>b1</b><b id='2'>b2</b><b id='3'>b3</b></a>"
+    Public SkipTimes As String = "0"
+    Public XmlNode As XmlNode
     Public Sub Main()
         Do While True
             Console.Clear()
@@ -521,6 +529,8 @@ Public Class ConsoleDemo
                     Loop
                 Case ConsoleKey.L
                     Me.PigProcDemo()
+                Case ConsoleKey.K
+                    Me.PigXmlDemo()
                 Case Else
                     Console.WriteLine("Coming soon...")
             End Select
@@ -537,6 +547,64 @@ Public Class ConsoleDemo
             Console.WriteLine("TotalProcessorTime=" & .TotalProcessorTime.ToString)
             Console.WriteLine("UserProcessorTime=" & .UserProcessorTime.ToString)
         End With
+    End Sub
+
+    Public Sub PigXmlDemo()
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition2 = "LoadXmlDocumentByFile#Load XmlDocument by file|"
+            Me.MenuDefinition2 &= "LoadXmlDocumentByXml#Load XmlDocument by xml string|"
+            Me.MenuDefinition2 &= "GetXmlDocText#GetXmlDocText|"
+            Me.MenuDefinition2 &= "GetXmlDocAttribute#GetXmlDocAttribute|"
+            Me.MenuDefinition2 &= "GetXmlDocNode#GetXmlDocNode|"
+            Me.PigConsole.SimpleMenu("PigXml", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Select Case Me.MenuKey2
+                Case ""
+                    Exit Do
+                Case "LoadXmlDocumentByFile"
+                    Me.PigConsole.GetLine("Input xml FilePath", Me.FilePath)
+                    Console.WriteLine("InitXmlDocument")
+                    Console.WriteLine(Me.FilePath)
+                    Me.Ret = Me.PigXml.InitXmlDocument(Me.FilePath)
+                    Console.WriteLine(Me.Ret)
+                Case "LoadXmlDocumentByXml"
+                    Me.PigConsole.GetLine("Input xml string", Me.XmlStr)
+                    Me.PigXml.SetMainXml(Me.XmlStr)
+                    Console.WriteLine("InitXmlDocument")
+                    Me.Ret = Me.PigXml.InitXmlDocument()
+                    Console.WriteLine(Me.Ret)
+                Case "GetXmlDocText"
+                    Me.PigConsole.GetLine("Input xml key", Me.XmlKey)
+                    Me.PigConsole.GetLine("Input SkipTimes", Me.SkipTimes)
+                    If IsNumeric(Me.SkipTimes) = False Or Me.SkipTimes <= 0 Then
+                        Console.WriteLine(Me.XmlKey & "=" & Me.PigXml.GetXmlDocText(Me.XmlKey))
+                    Else
+                        Console.WriteLine(Me.XmlKey & "=" & Me.PigXml.GetXmlDocText(Me.XmlKey, CInt(Me.SkipTimes)))
+                    End If
+                Case "GetXmlDocAttribute"
+                    Me.PigConsole.GetLine("Input xml key", Me.XmlKey)
+                    Me.PigConsole.GetLine("Input SkipTimes", Me.SkipTimes)
+                    If IsNumeric(Me.SkipTimes) = False Or Me.SkipTimes <= 0 Then
+                        Console.WriteLine(Me.XmlKey & "=" & Me.PigXml.GetXmlDocAttribute(Me.XmlKey))
+                    Else
+                        Console.WriteLine(Me.XmlKey & "=" & Me.PigXml.GetXmlDocAttribute(Me.XmlKey, CInt(Me.SkipTimes)))
+                    End If
+                Case "GetXmlDocNode"
+                    Me.PigConsole.GetLine("Input xml key", Me.XmlKey)
+                    Me.PigConsole.GetLine("Input SkipTimes", Me.SkipTimes)
+                    If IsNumeric(Me.SkipTimes) = False Or Me.SkipTimes <= 0 Then
+                        Me.XmlNode = Me.PigXml.GetXmlDocNode(Me.XmlKey)
+                    Else
+                        Me.XmlNode = Me.PigXml.GetXmlDocNode(Me.XmlKey, CInt(Me.SkipTimes))
+                    End If
+                    If Me.PigXml.LastErr <> "" Then
+                        Console.WriteLine(Me.PigXml.LastErr)
+                    Else
+                        If Me.XmlNode IsNot Nothing Then Console.WriteLine(Me.XmlNode.OuterXml)
+                    End If
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
     End Sub
 
     Public Sub PigProcDemo()
