@@ -1,8 +1,38 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>PigWebCtrlLib</RootNamespace>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworks>net20;net30;net40;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.2</Version>
+    <Authors>Seow Phong</Authors>
+    <Product>Seow Phong Studio</Product>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageIcon>SeowPhongLogo.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigWebCtrlLib</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>.net develop windows Linux weblogic tomcat nginx web</PackageTags>
+    <Description>An application class library for dealing with mainstream Web Services.
+It can run on Windows and Linux platforms.
+</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="SeowPhongLogo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PigCmdLib" Version="1.8.28" />
+    <PackageReference Include="PigObjFsLib" Version="2.0.18" />
+  </ItemGroup>
 
 </Project>

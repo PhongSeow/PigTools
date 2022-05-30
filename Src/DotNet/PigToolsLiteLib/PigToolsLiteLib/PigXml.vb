@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.5
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -19,14 +19,18 @@
 '1.1 24/8/2021   Modify mGetStr
 '1.2 22/12/2021   Modify mXMLAddStr
 '1.3 3/1/2022   Modify Err.Raise to Throw New Exception
+'1.4 29/2/2022   Remove FillByXmlReader, add XmlDocument,GetXmlDocText
+'1.5 30/2/2022   Add mInitXmlDocument,InitXmlDocument,mGetXmlDoc, modify GetXmlDocText,mGetXmlDoc
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.3"
+    Private Const CLS_VERSION As String = "1.5.68"
     Private mstrMainXml As String
-    Private mslMain As SortedList
+    Public Property XmlDocument As XmlDocument
+    Private ReadOnly Property mPigFunc As New PigFunc
+    'Private mslMain As SortedList
 
     ''' <summary>增加一个XML标记的部分</summary>
     Private Enum xpXMLAddWhere
@@ -38,6 +42,13 @@ Public Class PigXml
         Both = 2
         ''' <summary>只有值</summary>
         ValueOnly = 3
+    End Enum
+
+    ''' <summary>增加一个XML标记的部分</summary>
+    Private Enum EmnGetXmlDoc
+        Text = 0
+        Attribute = 1
+        Node = 2
     End Enum
 
     Private msbMain As System.Text.StringBuilder    '主体的XML
@@ -54,55 +65,55 @@ Public Class PigXml
         mstrMainXml = InXml
     End Sub
 
-    ''' <summary>通过XmlReader填充元素</summary>
-    ''' <param name="oXmlReader">XmlReader对象</param>
-    ''' <param name="DateKeys">日期型的键值，有则转为日期型</param>
-    Public Function FillByXmlReader(ByRef oXmlReader As XmlReader, Optional DateKeys As String = "") As String
-        Dim strStepName As String = ""
-        Try
-            strStepName = "mslMain.Clear"
-            mslMain.Clear()
-            strStepName = "读取XML流"
-            While oXmlReader.Read
-                Select Case oXmlReader.NodeType
-                    Case XmlNodeType.Element
-                        Dim strEleName As String = oXmlReader.Name
-                        Dim intEleIdx As Integer = mslMain.IndexOfKey(strEleName)
-                        strStepName = strEleName & ".Read"
-                        oXmlReader.Read() '读取内容
-                        Dim strValue As String = oXmlReader.Value
-                        Select Case oXmlReader.NodeType
-                            Case XmlNodeType.CDATA
-                                If intEleIdx = -1 Then
-                                    mslMain.Add(strEleName, strValue)
-                                End If
-                            Case Else
-                                If InStr(strValue, ".") > 0 Then
-                                    Dim decValue As Decimal = CDec(strValue)
-                                    If intEleIdx = -1 Then
-                                        mslMain.Add(strEleName, decValue)
-                                    End If
-                                Else
-                                    Dim lngValue As Long = CLng(strValue)
-                                    If InStr(DateKeys, "<" & strEleName & ">") > 0 Then
-                                        Dim dteValue As DateTime = Me.mLng2Date(lngValue)
-                                        If intEleIdx = -1 Then
-                                            mslMain.Add(strEleName, dteValue)
-                                        End If
-                                    Else
-                                        If intEleIdx = -1 Then
-                                            mslMain.Add(strEleName, lngValue)
-                                        End If
-                                    End If
-                                End If
-                        End Select
-                End Select
-            End While
-            Return "OK"
-        Catch ex As Exception
-            Return Me.GetSubErrInf("FillByXmlReader", strStepName, ex)
-        End Try
-    End Function
+    '''' <summary>通过XmlReader填充元素</summary>
+    '''' <param name="oXmlReader">XmlReader对象</param>
+    '''' <param name="DateKeys">日期型的键值，有则转为日期型</param>
+    'Public Function FillByXmlReader(ByRef oXmlReader As XmlReader, Optional DateKeys As String = "") As String
+    '    Dim strStepName As String = ""
+    '    Try
+    '        strStepName = "mslMain.Clear"
+    '        mslMain.Clear()
+    '        strStepName = "读取XML流"
+    '        While oXmlReader.Read
+    '            Select Case oXmlReader.NodeType
+    '                Case XmlNodeType.Element
+    '                    Dim strEleName As String = oXmlReader.Name
+    '                    Dim intEleIdx As Integer = mslMain.IndexOfKey(strEleName)
+    '                    strStepName = strEleName & ".Read"
+    '                    oXmlReader.Read() '读取内容
+    '                    Dim strValue As String = oXmlReader.Value
+    '                    Select Case oXmlReader.NodeType
+    '                        Case XmlNodeType.CDATA
+    '                            If intEleIdx = -1 Then
+    '                                mslMain.Add(strEleName, strValue)
+    '                            End If
+    '                        Case Else
+    '                            If InStr(strValue, ".") > 0 Then
+    '                                Dim decValue As Decimal = CDec(strValue)
+    '                                If intEleIdx = -1 Then
+    '                                    mslMain.Add(strEleName, decValue)
+    '                                End If
+    '                            Else
+    '                                Dim lngValue As Long = CLng(strValue)
+    '                                If InStr(DateKeys, "<" & strEleName & ">") > 0 Then
+    '                                    Dim dteValue As DateTime = Me.mLng2Date(lngValue)
+    '                                    If intEleIdx = -1 Then
+    '                                        mslMain.Add(strEleName, dteValue)
+    '                                    End If
+    '                                Else
+    '                                    If intEleIdx = -1 Then
+    '                                        mslMain.Add(strEleName, lngValue)
+    '                                    End If
+    '                                End If
+    '                            End If
+    '                    End Select
+    '            End Select
+    '        End While
+    '        Return "OK"
+    '    Catch ex As Exception
+    '        Return Me.GetSubErrInf("FillByXmlReader", strStepName, ex)
+    '    End Try
+    'End Function
 
 
     ''' <summary>获取一个元素字符串值</summary>
@@ -478,9 +489,295 @@ Public Class PigXml
 
     Public ReadOnly Property MainXmlStr As String
         Get
-            MainXmlStr = msbMain.ToString
+            If msbMain Is Nothing Then
+                Return mstrMainXml
+            Else
+                Return msbMain.ToString
+            End If
         End Get
     End Property
 
+    ''' <summary>
+    ''' 快速获取一个元素的XML结点|Quickly get the XmlNode of an element
+    ''' </summary>
+    ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N]|Key value, for example: element 1 Element 2 [... Element n]</param>
+    ''' <returns></returns>
+    Public Function GetXmlDocNode(XmlKey As String) As XmlNode
+        Try
+            GetXmlDocNode = Nothing
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Node, XmlKey,, GetXmlDocNode)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocNode", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 快速获取一个元素的XML结点|Quickly get the XmlNode of an element
+    ''' </summary>
+    ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N]|Key value, for example: element 1 Element 2 [... Element n]</param>
+    ''' <param name="SkipTimes">最后一个元素，如有名称重复，此为跳过的次数|If the name of the last element is repeated, this is the number of times to skip</param>
+    ''' <returns></returns>
+    Public Function GetXmlDocNode(XmlKey As String, SkipTimes As Integer) As XmlNode
+        Try
+            GetXmlDocNode = Nothing
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Node, XmlKey, , GetXmlDocNode,, SkipTimes)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocNode", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 快速获取一个元素的值|Get the value of an element quickly
+    ''' </summary>
+    ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N]|Key value, for example: element 1 Element 2 [... Element n]</param>
+    ''' <returns></returns>
+    Public Function GetXmlDocText(XmlKey As String) As String
+        Try
+            GetXmlDocText = ""
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Text, XmlKey,,, GetXmlDocText)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocText", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 快速获取一个元素的值|Get the value of an element quickly
+    ''' </summary>
+    ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N]|Key value, for example: element 1 Element 2 [... Element n]</param>
+    ''' <param name="SkipTimes">最后一个元素，如有名称重复，此为跳过的次数|If the name of the last element is repeated, this is the number of times to skip</param>
+    ''' <returns></returns>
+    Public Function GetXmlDocText(XmlKey As String, SkipTimes As Integer) As String
+        Try
+            GetXmlDocText = ""
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Text, XmlKey,,, GetXmlDocText, SkipTimes)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocText", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 快速获取一个元素的属性|Get the attributes of an element quickly
+    ''' </summary>
+    ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N].属性|Key value, for example: element 1 Element 2 [... Element n].attribute</param>
+    ''' <returns></returns>
+    Public Function GetXmlDocAttribute(XmlKey As String) As String
+        Try
+            GetXmlDocAttribute = ""
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Attribute, XmlKey,,, GetXmlDocAttribute)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocAttribute", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 快速获取一个元素的属性|Get the attributes of an element quickly
+    ''' </summary>
+    ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N].属性|Key value, for example: element 1 Element 2 [... Element n].attribute</param>
+    ''' <param name="SkipTimes">最后一个元素，如有名称重复，此为跳过的次数|If the name of the last element is repeated, this is the number of times to skip</param>
+    ''' <returns></returns>
+    Public Function GetXmlDocAttribute(XmlKey As String, SkipTimes As Integer) As String
+        Try
+            GetXmlDocAttribute = ""
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Attribute, XmlKey,,, GetXmlDocAttribute, SkipTimes)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocAttribute", ex)
+            Return ""
+        End Try
+    End Function
+
+    Private Function mGetDotCnt(XmlKey As String) As Integer
+        Dim intBeginPos As Integer = 1
+        Dim intPos As Integer = 0
+        mGetDotCnt = 0
+        Do While True
+            intPos = InStr(intBeginPos, XmlKey, ".")
+            If intPos = 0 Then Exit Do
+            intBeginPos = intPos + 1
+            mGetDotCnt += 1
+        Loop
+    End Function
+
+    Private Function mGetXmlDoc(WhatGetXmlDoc As EmnGetXmlDoc, XmlKey As String, Optional FromXmlNode As XmlNode = Nothing, Optional ByRef OutNode As XmlNode = Nothing, Optional ByRef OutTextAttribute As String = "", Optional SkipTimes As Integer = 0) As String
+        Dim LOG As New PigStepLog("mGetXmlDocText")
+        Try
+            LOG.StepName = "Check XmlKey"
+            Select Case Right(XmlKey, 1)
+                Case ".", "#"
+                    Throw New Exception("Invalid XmlKey")
+            End Select
+            OutTextAttribute = ""
+            Select Case WhatGetXmlDoc
+                Case EmnGetXmlDoc.Text, EmnGetXmlDoc.Node
+                    XmlKey &= "."
+                Case EmnGetXmlDoc.Attribute
+                    XmlKey &= "#"
+                Case Else
+                    Throw New Exception("Invalid WhatGetXmlDoc is " & WhatGetXmlDoc.ToString)
+            End Select
+            Dim oParentNode As XmlNode = Nothing
+            LOG.StepName = "Set ChildNodes(XmlDocument)"
+            Dim oXmlNodeList As XmlNodeList
+            If FromXmlNode Is Nothing Then
+                oXmlNodeList = Me.XmlDocument.ChildNodes
+            Else
+                oXmlNodeList = FromXmlNode.ChildNodes
+            End If
+            Dim bolIsFind As Boolean = False
+            Do While True
+                Select Case WhatGetXmlDoc
+                    Case EmnGetXmlDoc.Text, EmnGetXmlDoc.Node
+                        If InStr(XmlKey, ".") = 0 Or XmlKey = "." Then Exit Do
+                    Case EmnGetXmlDoc.Attribute
+                        If InStr(XmlKey, "#") = 0 Or XmlKey = "#" Then Exit Do
+                    Case Else
+                        Throw New Exception("Invalid WhatGetXmlDoc is " & WhatGetXmlDoc.ToString)
+                End Select
+                Dim strNode As String = mPigFunc.GetStr(XmlKey, "", ".")
+                If oParentNode IsNot Nothing Then
+                    LOG.StepName = "Set ChildNodes(ParentNode)"
+                    oXmlNodeList = oParentNode.ChildNodes
+                End If
+                LOG.StepName = "Find RootNode"
+                For i = 0 To oXmlNodeList.Count - 1
+                    If oXmlNodeList.Item(i).Name = strNode Then
+                        bolIsFind = True
+                        Select Case WhatGetXmlDoc
+                            Case EmnGetXmlDoc.Text
+                                If Me.mGetDotCnt(XmlKey) = 0 Then
+                                    For j = i To oXmlNodeList.Count - 1
+                                        If oXmlNodeList.Item(j).Name = strNode Then
+                                            If SkipTimes <= 0 Then
+                                                If oXmlNodeList.Item(j).FirstChild IsNot Nothing Then
+                                                    Select Case oXmlNodeList.Item(j).FirstChild.NodeType
+                                                        Case XmlNodeType.Text, XmlNodeType.CDATA
+                                                            OutTextAttribute = oXmlNodeList.Item(j).InnerText
+                                                    End Select
+                                                    Exit For
+                                                End If
+                                            End If
+                                            SkipTimes -= 1
+                                        End If
+                                    Next
+                                    Exit Do
+                                Else
+                                    oParentNode = oXmlNodeList.Item(i)
+                                End If
+                                'If Me.mGetDotCnt(XmlKey) = 0 Then
+                                '    For j = i To oXmlNodeList.Count - 1
+                                '        If SkipTimes <= 0 Then
+                                '            If oXmlNodeList.Item(j).Name = strNode Then
+                                '                If oXmlNodeList.Item(j).FirstChild IsNot Nothing Then
+                                '                    Select Case oXmlNodeList.Item(j).FirstChild.NodeType
+                                '                        Case XmlNodeType.Text, XmlNodeType.CDATA
+                                '                            OutTextAttribute = oXmlNodeList.Item(j).InnerText
+                                '                    End Select
+                                '                    Exit For
+                                '                End If
+                                '            End If
+                                '        End If
+                                '        SkipTimes -= 1
+                                '    Next
+                                'Else
+                                '    oParentNode = oXmlNodeList.Item(i)
+                                'End If
+                            Case EmnGetXmlDoc.Node
+                                If Me.mGetDotCnt(XmlKey) = 0 Then
+                                    For j = i To oXmlNodeList.Count - 1
+                                        If oXmlNodeList.Item(j).Name = strNode Then
+                                            If SkipTimes <= 0 Then
+                                                OutNode = oXmlNodeList.Item(j)
+                                                Exit For
+                                            End If
+                                            SkipTimes -= 1
+                                        End If
+                                    Next
+                                    Exit Do
+                                Else
+                                    oParentNode = oXmlNodeList.Item(i)
+                                End If
+                            Case EmnGetXmlDoc.Attribute
+                                If Me.mGetDotCnt(XmlKey) = 0 Then
+                                    For j = i To oXmlNodeList.Count - 1
+                                        If oXmlNodeList.Item(j).Name = strNode Then
+                                            If SkipTimes <= 0 Then
+                                                If InStr(XmlKey, "#") > 0 Then
+                                                    Dim strName As String = Me.mPigFunc.GetStr(XmlKey, "", "#")
+                                                    If oXmlNodeList.Item(j).Attributes IsNot Nothing Then
+                                                        For k = 0 To oXmlNodeList.Item(j).Attributes.Count - 1
+                                                            If oXmlNodeList.Item(j).Attributes.Item(k).Name = strName Then
+                                                                OutTextAttribute = oXmlNodeList.Item(j).Attributes.Item(k).InnerText
+                                                                Exit For
+                                                            End If
+                                                        Next
+                                                    End If
+                                                End If
+                                            End If
+                                            If XmlKey = "" Then Exit For
+                                            SkipTimes -= 1
+                                        End If
+                                    Next
+                                    Exit Do
+                                Else
+                                    oParentNode = oXmlNodeList.Item(i)
+                                End If
+                            Case Else
+                                Throw New Exception("Invalid WhatGetXmlDoc is " & WhatGetXmlDoc.ToString)
+                        End Select
+                        Exit For
+                    End If
+                Next
+                If bolIsFind = False Then Exit Do
+            Loop
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function InitXmlDocument() As String
+        Return Me.mInitXmlDocument
+    End Function
+
+    Public Function InitXmlDocument(XmlFilePath As String) As String
+        Return Me.mInitXmlDocument(XmlFilePath)
+    End Function
+
+    Private Function mInitXmlDocument(Optional XmlFilePath As String = "") As String
+        Dim LOG As New PigStepLog("mInitXmlDocument")
+        Try
+            LOG.StepName = "Check XmlFilePath"
+            If XmlFilePath = "" Then
+                If Me.mstrMainXml = "" Then
+                    Throw New Exception("Please call SetMainXml设置 to set MainXmlStr first.")
+                Else
+                    LOG.StepName = "XmlDocument.LoadXml"
+                    If Me.IsDebug = True Then LOG.AddStepNameInf(Me.MainXmlStr)
+                    Me.XmlDocument = New XmlDocument
+                    Me.XmlDocument.LoadXml(Me.mstrMainXml)
+                End If
+            ElseIf Me.mPigFunc.IsFileExists(XmlFilePath) = False Then
+                LOG.AddStepNameInf(XmlFilePath)
+                Throw New Exception("File not found.")
+            Else
+                LOG.StepName = "XmlDocument.Load(" & XmlFilePath & ")"
+                Me.XmlDocument = New XmlDocument
+                Me.XmlDocument.Load(XmlFilePath)
+            End If
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 End Class

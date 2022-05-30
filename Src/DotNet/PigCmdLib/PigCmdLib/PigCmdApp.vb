@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -14,13 +14,14 @@
 '*1.6  5/4/2022   Add GetSubProcs
 '*1.7  17/5/2022  Add ASyncRet_CmdShell,mCmdShell,ASyncCmdShell, modify CmdShell
 '*1.8  18/5/2022  Modify mCallFile, add AsyncRet_CallFile_FullString,AsyncRet_CallFile_StringArray,AsyncRet_CmdShell_FullString,AsyncRet_CmdShell_StringArray,AsyncCallFile
+'*1.9  26/5/2022  Modify mCallFile
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
 Imports System.Threading
 Public Class PigCmdApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.8.6"
+    Private Const CLS_VERSION As String = "1.9.2"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private WithEvents moPigFunc As New PigFunc
@@ -308,10 +309,10 @@ Public Class PigCmdApp
         Public IsCmdShell As Boolean
     End Structure
 
-    Public Event AsyncRet_CallFile_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String)
-    Public Event AsyncRet_CallFile_StringArray(SyncRet As PigAsync, StandardOutput As String(), StandardError As String)
-    Public Event AsyncRet_CmdShell_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String)
-    Public Event AsyncRet_CmdShell_StringArray(SyncRet As PigAsync, StandardOutput As String(), StandardError As String)
+    Public Event AsyncRet_CallFile_FullString(AsyncRet As PigAsync, StandardOutput As String, StandardError As String)
+    Public Event AsyncRet_CallFile_StringArray(AsyncRet As PigAsync, StandardOutput As String(), StandardError As String)
+    Public Event AsyncRet_CmdShell_FullString(AsyncRet As PigAsync, StandardOutput As String, StandardError As String)
+    Public Event AsyncRet_CmdShell_StringArray(AsyncRet As PigAsync, StandardOutput As String(), StandardError As String)
 
     Private Function mCallFile(StruMain As mStruCallFile) As String
         Dim LOG As New PigStepLog("mCallFile")
@@ -343,6 +344,8 @@ Public Class PigCmdApp
             Dim abStandardOutputArray(0) As String
             Select Case Me.StandardOutputReadType
                 Case EnmStandardOutputReadType.FullString
+                    LOG.StepName = "Process.StandardOutput.WaitForExit"
+                    oProcess.WaitForExit(Me.CmdWaitForExitTime)
                     LOG.StepName = "StreamReader.ReadToEnd"
                     strStandardOutput = oStreamReader.ReadToEnd
                     LOG.StepName = "StreamReader.Close"
@@ -372,14 +375,16 @@ Public Class PigCmdApp
                 Case Else
                     Throw New Exception("Invalid StandardOutputReadType")
             End Select
-            LOG.StepName = "Process.StandardOutput.WaitForExit"
-            oProcess.WaitForExit(Me.CmdWaitForExitTime)
+            'LOG.StepName = "Process.StandardOutput.WaitForExit"
+            'oProcess.WaitForExit(Me.CmdWaitForExitTime)
+            'LOG.StepName = "Process.StandardError.WaitForExit"
+            'oProcess.WaitForExit(Me.CmdWaitForExitTime)
             LOG.StepName = "Process.StandardError"
             Dim srStandardError As StreamReader = oProcess.StandardError
             LOG.StepName = "srStandardError.ReadToEnd"
             Dim strStandardError = srStandardError.ReadToEnd
-            LOG.StepName = "Process.StandardError.WaitForExit"
-            oProcess.WaitForExit(Me.CmdWaitForExitTime)
+            'LOG.StepName = "Process.StandardError.WaitForExit"
+            'oProcess.WaitForExit(Me.CmdWaitForExitTime)
             srStandardError = Nothing
             LOG.StepName = "Process.Close"
             oProcess.Close()
