@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -21,12 +21,13 @@
 '1.3 3/1/2022   Modify Err.Raise to Throw New Exception
 '1.4 29/2/2022   Remove FillByXmlReader, add XmlDocument,GetXmlDocText
 '1.5 30/2/2022   Add mInitXmlDocument,InitXmlDocument,mGetXmlDoc, modify GetXmlDocText,mGetXmlDoc
+'1.5 31/2/2022   Add XmlDocGetInt,
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.68"
+    Private Const CLS_VERSION As String = "1.6.1"
     Private mstrMainXml As String
     Public Property XmlDocument As XmlDocument
     Private ReadOnly Property mPigFunc As New PigFunc
@@ -777,6 +778,101 @@ Public Class PigXml
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function XmlDocGetInt(XmlKey As String, Optional IsAttribute As Boolean = False) As Integer
+        Try
+            If IsAttribute = True Then
+                Return CInt(Me.GetXmlDocAttribute(XmlKey))
+            Else
+                Return CInt(Me.GetXmlDocText(XmlKey))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetInt", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlDocGetLong(XmlKey As String, Optional IsAttribute As Boolean = False) As Long
+        Try
+            If IsAttribute = True Then
+                Return CLng(Me.GetXmlDocAttribute(XmlKey))
+            Else
+                Return CLng(Me.GetXmlDocText(XmlKey))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetLong", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlDocGetDec(XmlKey As String, Optional IsAttribute As Boolean = False) As Decimal
+        Try
+            If IsAttribute = True Then
+                Return CDec(Me.GetXmlDocAttribute(XmlKey))
+            Else
+                Return CDec(Me.GetXmlDocText(XmlKey))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetDec", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlDocGetBool(XmlKey As String, Optional IsAttribute As Boolean = False) As Boolean
+        Try
+            If IsAttribute = True Then
+                Return CBool(Me.GetXmlDocAttribute(XmlKey))
+            Else
+                Return CBool(Me.GetXmlDocText(XmlKey))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetBool", ex)
+            Return 0
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 获取Xml元素的值或属性转换成布尔型（空表示真）|Gets the value or attribute of an XML element and converts it to Boolean (null means true)
+    ''' </summary>
+    ''' <param name="XmlKey">XML键值|XML key value</param>
+    ''' <param name="IsAttribute">是否属性|Attribute or not</param>
+    ''' <returns></returns>
+    Public Function XmlDocGetBoolEmpTrue(XmlKey As String, Optional IsAttribute As Boolean = False) As Boolean
+        Try
+            Dim strData As String
+            If IsAttribute = True Then
+                strData = Me.GetXmlDocAttribute(XmlKey)
+                If strData = "" Then
+                    Return True
+                Else
+                    Return CBool(strData)
+                End If
+            Else
+                strData = Me.GetXmlDocText(XmlKey)
+                If strData = "" Then
+                    Return True
+                Else
+                    Return CBool(strData)
+                End If
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetBoolEmpTrue", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlDocGetDate(XmlKey As String, Optional IsAttribute As Boolean = False) As DateTime
+        Try
+            If IsAttribute = True Then
+                Return CDate(Me.GetXmlDocAttribute(XmlKey))
+            Else
+                Return CDate(Me.GetXmlDocText(XmlKey))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetDate", ex)
+            Return DateTime.MinValue
         End Try
     End Function
 

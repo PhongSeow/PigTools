@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.13
+'* Version: 1.15
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -24,6 +24,8 @@
 '*1.11   9/4/2022   Add DigitalToChnName,ConvertHtmlStr,GetAlignStr,GetRepeatStr
 '*1.12   14/5/2022  Rename and modify OptLogInfMain to mOptLogInfMain,SaveTextToFile to mSaveTextToFile, add ASyncOptLogInf,ASyncSaveTextToFile
 '*1.13   15/5/2022  Add ASyncRet_SaveTextToFile, modify mASyncSaveTextToFile,ASyncSaveTextToFile
+'*1.14   16/5/2022  Modify mASyncSaveTextToFile,ASyncSaveTextToFile
+'*1.15   31/5/2022  Add GEInt, modify GECBool
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -34,7 +36,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.13.16"
+    Private Const CLS_VERSION As String = "1.15.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -605,9 +607,31 @@ Public Class PigFunc
         End Try
     End Function
 
+    Public Function GECBool(vData As String, IsEmptyTrue As Boolean) As Boolean
+        Try
+            If IsEmptyTrue = True And vData = "" Then
+                Return True
+            Else
+                Return CBool(vData)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("GECBool", ex)
+            Return False
+        End Try
+    End Function
+
+    Public Function GEInt(vData As String) As Integer
+        Try
+            Return CInt(vData)
+        Catch ex As Exception
+            Me.SetSubErrInf("GECLng", ex)
+            Return 0
+        End Try
+    End Function
+
     Public Function GECLng(vData As String) As Long
         Try
-            Return GECLng(vData)
+            Return CLng(vData)
         Catch ex As Exception
             Me.SetSubErrInf("GECLng", ex)
             Return 0

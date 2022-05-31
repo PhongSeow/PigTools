@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>2.6.28</Version>
+    <Version>2.6.88</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -20,8 +20,9 @@ It can run on Windows and Linux platforms.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa UUID EnvironmentVariable PL/SQL BCP asynchronous XmlDocument</PackageTags>
-    <PackageReleaseNotes>Add a simple and convenient method to access the values or attributes of XmlDocument elements through key values. Key values support the writing of multiple elements, such as element1.Element2.Element3[...] or element1.Element2[...].Element3.Attribute</PackageReleaseNotes>
-    <AssemblyVersion>2.6.28.0</AssemblyVersion>
+    <PackageReleaseNotes>Add a simple and convenient method to access the values or attributes of XmlDocument elements through key values. Key values support the writing of multiple elements, such as element1.Element2.Element3[...] or element1.Element2[...].Element3.Attribute.
+Add a system type conversion function in GEXml</PackageReleaseNotes>
+    <AssemblyVersion>2.6.88.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
