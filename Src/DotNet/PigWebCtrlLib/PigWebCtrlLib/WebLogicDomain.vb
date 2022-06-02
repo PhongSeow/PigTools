@@ -4,14 +4,16 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.8
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
 '*1.3  23/5/2022  Add CreateDomain 
 '*1.4  26/5/2022  Add EnmDomainDeployStatus,EnmDomainRunStatus,EnmDomainCtrlStatus
 '*1.5  27/5/2022  Add CreateDomain 
-'*1.6  31/5/2022  Modify CreateDomain 
+'*1.6  31/5/2022  Modify CreateDomain
+'*1.7  1/6/2022  Add StartDomain,StopDomain, modify LogDirPath
+'*1.8  2/6/2022  Modify StopDomain,StartDomain
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -19,11 +21,14 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.18"
+    Private Const CLS_VERSION As String = "1.8.8"
 
-    Friend WithEvents mPigCmdApp As New PigCmdApp
+    Private WithEvents mPigCmdApp As New PigCmdApp
+    Private mPigSysCmd As New PigSysCmd
     Private mFS As New FileSystemObject
     Private mPigFunc As New PigFunc
+    Private mPigProcApp As New PigProcApp
+
 
     ''' <summary>
     ''' 域部署状态|Domain deployment status
@@ -51,10 +56,16 @@ Public Class WebLogicDomain
         CreateProdMode = 3
     End Enum
 
+
+
     ''' <summary>
     ''' 域运行状态|Domain running status
     ''' </summary>
     Public Enum EnmDomainRunStatus
+        ''' <summary>
+        ''' 侦听端口被其他进程占用|Listening port is occupied by other processes
+        ''' </summary>
+        ListenPortByOther = -5
         ''' <summary>
         ''' 部署未就绪|Deployment not ready
         ''' </summary>
@@ -97,35 +108,35 @@ Public Class WebLogicDomain
         CreateDomainOK = 5
     End Enum
 
-    ''' <summary>
-    ''' 控制状态|Control state
-    ''' </summary>
-    Public Enum EnmDomainCtrlStatus
-        ''' <summary>
-        ''' 就绪|ready
-        ''' </summary>
-        Ready = 0
-        ''' <summary>
-        ''' 启动域|Startup domain
-        ''' </summary>
-        StartDomain = 1
-        ''' <summary>
-        ''' 停止域|Stop domain
-        ''' </summary>
-        StopDomain = 2
-        ''' <summary>
-        ''' 重启域|Restart domain
-        ''' </summary>
-        RestartDomain = 3
-        ''' <summary>
-        ''' 创建域|Create domain
-        ''' </summary>
-        CreateDomain = 4
-        ''' <summary>
-        ''' 保存生产模式免输入密启动文件|Save the production mode password free startup file
-        ''' </summary>
-        SaveSecurityBoot = 5
-    End Enum
+    '''' <summary>
+    '''' 控制状态|Control state
+    '''' </summary>
+    'Public Enum EnmDomainCtrlStatus
+    '    ''' <summary>
+    '    ''' 就绪|ready
+    '    ''' </summary>
+    '    Ready = 0
+    '    ''' <summary>
+    '    ''' 启动域|Startup domain
+    '    ''' </summary>
+    '    StartDomain = 1
+    '    ''' <summary>
+    '    ''' 停止域|Stop domain
+    '    ''' </summary>
+    '    StopDomain = 2
+    '    ''' <summary>
+    '    ''' 重启域|Restart domain
+    '    ''' </summary>
+    '    RestartDomain = 3
+    '    ''' <summary>
+    '    ''' 创建域|Create domain
+    '    ''' </summary>
+    '    CreateDomain = 4
+    '    ''' <summary>
+    '    ''' 保存生产模式免输入密启动文件|Save the production mode password free startup file
+    '    ''' </summary>
+    '    SaveSecurityBoot = 5
+    'End Enum
 
     Public ReadOnly Property HomeDirPath As String
     Public Property AdminUserName As String
@@ -133,8 +144,38 @@ Public Class WebLogicDomain
     Friend Property CreateDomainPyPath As String
 
     Private Property mCreateDomainThreadID As Integer
+    Private Property mCreateDomainBeginTime
+    Private Property mStartDomainThreadID As Integer
+    Private Property mStopDomainThreadID As Integer
+
+    Private Property mRefRunStatusThreadID As Integer
+
+    Private Property mConfFileUpdtime As Date
+
+    Private mstrStartDomainRes As String
+
+    Public Property StartDomainRes As String
+        Get
+            Return mstrStartDomainRes
+        End Get
+        Friend Set(value As String)
+            mstrStartDomainRes = value
+        End Set
+    End Property
+
+    Private mstrStopDomainRes As String
+
+    Public Property StopDomainRes As String
+        Get
+            Return mstrStopDomainRes
+        End Get
+        Friend Set(value As String)
+            mstrStopDomainRes = value
+        End Set
+    End Property
 
     Private mstrCreateDomainRes As String
+
     Public Property CreateDomainRes As String
         Get
             Return mstrCreateDomainRes
@@ -165,15 +206,15 @@ Public Class WebLogicDomain
         End Set
     End Property
 
-    Private mintCtrlStatus As EnmDomainCtrlStatus
-    Public Property CtrlStatus As EnmDomainCtrlStatus
-        Get
-            Return mintCtrlStatus
-        End Get
-        Friend Set(value As EnmDomainCtrlStatus)
-            mintCtrlStatus = value
-        End Set
-    End Property
+    'Private mintCtrlStatus As EnmDomainCtrlStatus
+    'Public Property CtrlStatus As EnmDomainCtrlStatus
+    '    Get
+    '        Return mintCtrlStatus
+    '    End Get
+    '    Friend Set(value As EnmDomainCtrlStatus)
+    '        mintCtrlStatus = value
+    '    End Set
+    'End Property
 
     Private mstrDomainVersion As String
     Public Property DomainVersion As String
@@ -306,13 +347,13 @@ Public Class WebLogicDomain
 
     Public ReadOnly Property LogDirPath() As String
         Get
-            Return Me.HomeDirPath & Me.OsPathSep & "AdminServer" & Me.OsPathSep & "logs"
+            Return Me.HomeDirPath & Me.OsPathSep & "servers" & Me.OsPathSep & "AdminServer" & Me.OsPathSep & "logs"
         End Get
     End Property
 
     Public ReadOnly Property ConsolePath() As String
         Get
-            Return Me.LogDirPath & Me.OsPathSep & "AdminServer" & Me.OsPathSep & "Console.log"
+            Return Me.LogDirPath & Me.OsPathSep & "Console.log"
         End Get
     End Property
 
@@ -382,18 +423,149 @@ Public Class WebLogicDomain
         End Try
     End Function
 
-    Public Function CheckDomain() As String
-        Dim LOG As New PigStepLog("CheckDomain")
+    Private Function mRefAll() As String
+        Dim strRet As String
         Try
-            If Me.mIsFolderExists(Me.HomeDirPath) = False Then Throw New Exception("HomeDirPath " & Me.HomeDirPath & " not found.")
-            If Me.mIsFileExists(Me.startWebLogicPath) = False Then Throw New Exception("startWebLogicPath  " & Me.startWebLogicPath & " not found.")
-            If Me.mIsFileExists(Me.stopWebLogicPath) = False Then Throw New Exception("stopWebLogicPath  " & Me.stopWebLogicPath & " not found.")
-            If Me.mIsFileExists(Me.ConfPath) = False Then Throw New Exception("ConfPath  " & Me.ConfPath & " not found.")
+            strRet = Me.RefConf()
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            strRet = Me.RefDeployStatus()
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            strRet = Me.RefRunStatus()
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("mRefAll", ex)
+        End Try
+    End Function
+
+    Private ReadOnly Property mIsRunBusy As Boolean
+        Get
+            Select Case Me.RunStatus
+                Case EnmDomainRunStatus.CreatingDomain, EnmDomainRunStatus.Starting, EnmDomainRunStatus.Stopping
+                    Return True
+                Case Else
+                    Return False
+            End Select
+        End Get
+    End Property
+
+    Private ReadOnly Property mIsDeployReady As Boolean
+        Get
+            Select Case Me.DeployStatus
+                Case EnmDomainDeployStatus.CreateDevMode, EnmDomainDeployStatus.CreateProdMode
+                    Return True
+                Case Else
+                    Return False
+            End Select
+        End Get
+    End Property
+
+    Public Function StartDomain() As String
+        Dim LOG As New PigStepLog("StartDomain")
+        Try
+            LOG.StepName = "mRefAll"
+            LOG.Ret = Me.mRefAll()
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Check Status"
+            If Me.mIsDeployReady = False Then Throw New Exception("The current deployment state(" & Me.DeployStatus.ToString & ") cannot start the domain.")
+            If Me.mIsRunBusy = True Then Throw New Exception("The current run state(" & Me.RunStatus.ToString & ") cannot start the domain.")
+
+            If Me.mIsFileExists(Me.startWebLogicPath) = False Then
+                LOG.AddStepNameInf(Me.startWebLogicPath)
+                Throw New Exception("File not found.")
+            End If
+
+            If Me.RunStatus = EnmDomainRunStatus.Running Then Throw New Exception("Domain instance is already running")
+
+            If Me.mIsFolderExists(Me.LogDirPath) = False Then
+                LOG.StepName = "CreateFolder"
+                LOG.Ret = Me.mPigFunc.CreateFolder(Me.LogDirPath)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(Me.LogDirPath)
+                    Throw New Exception(LOG.Ret)
+                End If
+            End If
+            If Me.mIsFileExists(Me.ConsolePath) = True Then
+                Dim strConsolePath As String = Me.ConsolePath & "." & Me.mPigFunc.GetFmtDateTime(Now, "yyyyMMddHHmmss")
+                LOG.StepName = "MoveFile"
+                LOG.Ret = Me.mPigFunc.MoveFile(Me.ConsolePath, strConsolePath)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(Me.ConsolePath)
+                    LOG.AddStepNameInf(strConsolePath)
+                    Throw New Exception(LOG.Ret)
+                End If
+            End If
+            LOG.StepName = "AsyncCmdShell"
+            Dim strCmd As String
+            If Me.IsWindows = True Then
+                strCmd = "call " & Me.startWebLogicPath & " > " & Me.ConsolePath
+            Else
+                strCmd = "nohup " & Me.startWebLogicPath & " > " & Me.ConsolePath & " &"
+            End If
+            Me.fParent.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
+            Me.RunStatus = EnmDomainRunStatus.Starting
+            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mStartDomainThreadID)
+            Me.StartDomainRes = ""
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+    Public Function StopDomain() As String
+        Dim LOG As New PigStepLog("StopDomain")
+        Try
+            LOG.StepName = "mRefAll"
+            LOG.Ret = Me.mRefAll()
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Check Status"
+            If Me.mIsDeployReady = False Then Throw New Exception("The current deployment state(" & Me.DeployStatus.ToString & ") cannot stop the domain.")
+            If Me.mIsRunBusy = True Then Throw New Exception("The current run state(" & Me.RunStatus.ToString & ") cannot stop the domain.")
+
+            If Me.mIsFileExists(Me.stopWebLogicPath) = False Then
+                LOG.AddStepNameInf(Me.stopWebLogicPath)
+                Throw New Exception("File not found.")
+            End If
+
+            If Me.RunStatus <> EnmDomainRunStatus.Running Then Throw New Exception("Domain instance is not running")
+
+            If Me.mIsFolderExists(Me.LogDirPath) = False Then
+                LOG.StepName = "CreateFolder"
+                LOG.Ret = Me.mPigFunc.CreateFolder(Me.LogDirPath)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(Me.LogDirPath)
+                    Throw New Exception(LOG.Ret)
+                End If
+            End If
+            LOG.StepName = "AsyncCmdShell"
+            Dim strCmd As String
+            If Me.IsWindows = True Then
+                strCmd = "call " & Me.stopWebLogicPath
+            Else
+                strCmd = "nohup " & Me.stopWebLogicPath
+            End If
+            Me.fParent.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
+            Me.RunStatus = EnmDomainRunStatus.Stopping
+            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mStopDomainThreadID)
+            Me.StopDomainRes = ""
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    'Public Function CheckDomain() As String
+    '    Dim LOG As New PigStepLog("CheckDomain")
+    '    Try
+    '        If Me.mIsFolderExists(Me.HomeDirPath) = False Then Throw New Exception("HomeDirPath " & Me.HomeDirPath & " not found.")
+    '        If Me.mIsFileExists(Me.startWebLogicPath) = False Then Throw New Exception("startWebLogicPath  " & Me.startWebLogicPath & " not found.")
+    '        If Me.mIsFileExists(Me.stopWebLogicPath) = False Then Throw New Exception("stopWebLogicPath  " & Me.stopWebLogicPath & " not found.")
+    '        If Me.mIsFileExists(Me.ConfPath) = False Then Throw New Exception("ConfPath  " & Me.ConfPath & " not found.")
+    '        Return "OK"
+    '    Catch ex As Exception
+    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+    '    End Try
+    'End Function
 
     Public Function CreateDomain(ListenPort As Integer, AdminUserName As String, AdminUserPassword As String) As String
         Dim LOG As New PigStepLog("CreateDomain")
@@ -419,9 +591,9 @@ Public Class WebLogicDomain
                 .CreateDomainPyPath = Me.fParent.WorkTmpDirPath & Me.OsPathSep & Me.mPigFunc.GetPKeyValue(.DomainName, False) & ".py"
                 LOG.StepName = "OpenTextFile"
                 Dim tsMain As TextStream = Me.mFS.OpenTextFile(.CreateDomainPyPath, FileSystemObject.IOMode.ForWriting, True)
-                If tsMain.LastErr <> "" Or Me.mFS.LastErr <> "" Then
+                If Me.mFS.LastErr <> "" Then
                     LOG.AddStepNameInf(.CreateDomainPyPath)
-                    Throw New Exception(tsMain.LastErr & "." & Me.mFS.LastErr)
+                    Throw New Exception(Me.mFS.LastErr)
                 End If
                 Dim strLine As String
                 With tsMain
@@ -457,8 +629,9 @@ Public Class WebLogicDomain
             Else
                 strCmd = Me.fParent.WlstPath & " " & Me.CreateDomainPyPath
             End If
-            Me.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
+            Me.fParent.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
             Me.RunStatus = EnmDomainRunStatus.CreatingDomain
+            Me.mCreateDomainBeginTime = Now
             Me.CreateDomainRes = ""
             LOG.StepName = "AsyncCmdShell"
             LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mCreateDomainThreadID)
@@ -477,33 +650,36 @@ Public Class WebLogicDomain
     Public Function RefConf() As String
         Dim LOG As New PigStepLog("RefConf")
         Try
-            If Me.mIsFileExists(Me.ConfPath) = False Then
-                Throw New Exception(Me.ConfPath & " not found.")
+            If Me.mIsFileExists(Me.ConfPath) = False Then Throw New Exception(Me.ConfPath & " not found.")
+            LOG.StepName = "New PigFile"
+            Dim oPigFile As New PigFile(Me.ConfPath)
+            If oPigFile.UpdateTime <> Me.mConfFileUpdtime Then
+                Dim oPigXml As New PigXml(False)
+                With oPigXml
+                    LOG.StepName = "InitXmlDocument"
+                    LOG.Ret = .InitXmlDocument(Me.ConfPath)
+                    If LOG.Ret <> "OK" Then
+                        LOG.AddStepNameInf(Me.ConfPath)
+                        Throw New Exception(LOG.Ret)
+                    End If
+                End With
+                With Me
+                    .DomainName = oPigXml.GetXmlDocText("domain.name")
+                    .DomainVersion = oPigXml.GetXmlDocText("domain.domain-version")
+                    .IsProdMode = oPigXml.XmlDocGetBool("domain.production-mode-enabled")
+                    If oPigXml.GetXmlDocText("domain.server.name") = "AdminServer" Then
+                        .HasAdminServer = True
+                    Else
+                        .HasAdminServer = False
+                    End If
+                    .ListenPort = oPigXml.XmlDocGetInt("domain.server.listen-port")
+                    .IsIIopEnable = oPigXml.XmlDocGetBoolEmpTrue("domain.server.iiop-enabled")
+                    .IsAdminPortEnable = oPigXml.XmlDocGetBool("domain.administration-port-enabled")
+                    .AdminPort = oPigXml.XmlDocGetInt("domain.administration-port")
+                    .mConfFileUpdtime = oPigFile.UpdateTime
+                End With
             End If
-            Dim oPigXml As New PigXml(False)
-            With oPigXml
-                LOG.StepName = "InitXmlDocument"
-                LOG.Ret = .InitXmlDocument(Me.ConfPath)
-                If LOG.Ret <> "OK" Then
-                    LOG.AddStepNameInf(Me.ConfPath)
-                    Throw New Exception(LOG.Ret)
-                End If
-            End With
-            With Me
-
-                .DomainName = oPigXml.GetXmlDocText("domain.name")
-                .DomainVersion = oPigXml.GetXmlDocText("domain.domain-version")
-                .IsProdMode = oPigXml.XmlDocGetBool("domain.production-mode-enabled")
-                If oPigXml.GetXmlDocText("domain.server.name") = "AdminServer" Then
-                    .HasAdminServer = True
-                Else
-                    .HasAdminServer = False
-                End If
-                .ListenPort = oPigXml.XmlDocGetInt("domain.server.listen-port")
-                .IsIIopEnable = oPigXml.XmlDocGetBoolEmpTrue("domain.server.iiop-enabled")
-                .IsAdminPortEnable = oPigXml.XmlDocGetBool("domain.administration-port-enabled")
-                .AdminPort = oPigXml.XmlDocGetInt("domain.administration-port")
-            End With
+            oPigFile = Nothing
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -536,12 +712,38 @@ Public Class WebLogicDomain
         Try
             Select Case Me.RunStatus
                 Case EnmDomainRunStatus.CreatingDomain
+                    If Math.Abs(DateDiff(DateInterval.Second, Me.mCreateDomainBeginTime, Now)) > Me.fParent.CreateDomainTimeout Then
+                        Me.RunStatus = EnmDomainRunStatus.CreateDomainFail
+                        Me.CreateDomainRes = "Create domain timeout."
+                    End If
                 Case Else
                     Select Case Me.DeployStatus
                         Case EnmDomainDeployStatus.CreateProdModeNotSecurity, EnmDomainDeployStatus.IncompleteCreation, EnmDomainDeployStatus.NotCreate
                             Me.RunStatus = EnmDomainRunStatus.DeployNoReady
                         Case Else
-
+                            Dim intPID As Integer
+                            LOG.StepName = "GetListenPortProcID"
+                            LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.ListenPort, intPID)
+                            If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
+                            If intPID >= 0 Then
+                                LOG.StepName = "GetPigProc"
+                                Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
+                                If Me.mPigProcApp.LastErr <> "" Then
+                                    Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
+                                Else
+                                    If UCase(oPigProc.ProcessName) = "JAVA" Then
+                                        Me.RunStatus = EnmDomainRunStatus.Running
+                                    Else
+                                        Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
+                                    End If
+                                End If
+                            Else
+                                Select Case Me.RunStatus
+                                    Case EnmDomainRunStatus.CreatingDomain, EnmDomainRunStatus.Running, EnmDomainRunStatus.Stopping, EnmDomainRunStatus.Starting
+                                    Case Else
+                                        Me.RunStatus = EnmDomainRunStatus.Stopped
+                                End Select
+                            End If
                     End Select
             End Select
             Return "OK"
@@ -552,18 +754,42 @@ Public Class WebLogicDomain
 
     Private Sub mPigCmdApp_AsyncRet_CmdShell_FullString(AsyncRet As PigAsync, StandardOutput As String, StandardError As String) Handles mPigCmdApp.AsyncRet_CmdShell_FullString
         With AsyncRet
-            If .AsyncThreadID = Me.mCreateDomainThreadID Then
-                Me.CreateDomainRes = .AsyncRet & Me.OsCrLf & StandardOutput & Me.OsCrLf & StandardError & Me.OsCrLf
-                If .AsyncRet = "OK" And StandardError = "" Then
-                    Me.RunStatus = EnmDomainRunStatus.CreateDomainOK
-                Else
-                    Me.RunStatus = EnmDomainRunStatus.CreateDomainFail
-                End If
-                If Me.mIsFileExists(Me.CreateDomainPyPath) = True Then
-                    Me.mPigFunc.DeleteFile(Me.CreateDomainPyPath)
-                End If
-            End If
+            Select Case .AsyncThreadID
+                Case Me.mStopDomainThreadID
+                    Me.mStopDomainThreadID = -1
+                    If .AsyncRet = "OK" And StandardError = "" Then
+                        Me.RunStatus = EnmDomainRunStatus.StopFail
+                        Me.StopDomainRes = .AsyncRet & Me.OsCrLf & StandardOutput & Me.OsCrLf & StandardError & Me.OsCrLf
+                    Else
+                        Me.RunStatus = EnmDomainRunStatus.Stopped
+                        Me.StopDomainRes = ""
+                    End If
+                Case Me.mRefRunStatusThreadID
+                    Me.mRefRunStatusThreadID = -1
+                Case Me.mCreateDomainThreadID
+                    Me.mCreateDomainThreadID = -1
+                    If .AsyncRet = "OK" And StandardError = "" Then
+                        Me.RunStatus = EnmDomainRunStatus.CreateDomainOK
+                        Me.CreateDomainRes = .AsyncRet & Me.OsCrLf & StandardOutput & Me.OsCrLf & StandardError & Me.OsCrLf
+                    Else
+                        Me.RunStatus = EnmDomainRunStatus.CreateDomainFail
+                        Me.CreateDomainRes = ""
+                    End If
+                    If Me.mIsFileExists(Me.CreateDomainPyPath) = True Then
+                        Me.mPigFunc.DeleteFile(Me.CreateDomainPyPath)
+                    End If
+                Case Me.mStartDomainThreadID
+                    Me.mStartDomainThreadID = -1
+                    If .AsyncRet = "OK" And StandardError = "" Then
+                        Me.RunStatus = EnmDomainRunStatus.Running
+                        Me.StartDomainRes = ""
+                    Else
+                        Me.StartDomainRes = .AsyncRet & Me.OsCrLf & StandardOutput & Me.OsCrLf & StandardError & Me.OsCrLf
+                        Me.RunStatus = EnmDomainRunStatus.StartFail
+                    End If
+            End Select
 
         End With
+
     End Sub
 End Class

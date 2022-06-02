@@ -13,14 +13,14 @@
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous</PackageTags>
+    <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous system</PackageTags>
     <Description>Application of calling operating system commands and call file.
 Get enhancements for parent and child processes
 A series of console functions, including reading lines, whether to select, simple menus, etc.
 asynchronous processing
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.8.38</Version>
-    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
+    <Version>1.9.10</Version>
+    <PackageReleaseNotes>Add commands for system operation.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,7 +35,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.6.28" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.6.88" />
   </ItemGroup>
 
 </Project>
