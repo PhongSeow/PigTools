@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -20,14 +20,15 @@
 '1.2 22/12/2021   Modify mXMLAddStr
 '1.3 3/1/2022   Modify Err.Raise to Throw New Exception
 '1.4 29/2/2022   Remove FillByXmlReader, add XmlDocument,GetXmlDocText
-'1.5 30/2/2022   Add mInitXmlDocument,InitXmlDocument,mGetXmlDoc, modify GetXmlDocText,mGetXmlDoc
-'1.5 31/2/2022   Add XmlDocGetInt,
+'1.5 30/5/2022   Add mInitXmlDocument,InitXmlDocument,mGetXmlDoc, modify GetXmlDocText,mGetXmlDoc
+'1.6 31/5/2022   Add XmlDocGetInt
+'1.7 3/6/2022   Modify xpXMLAddWhere,AddEleLeftSign,mXMLAddStr, add AddEleLeftAttribute
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.1"
+    Private Const CLS_VERSION As String = "1.7.30"
     Private mstrMainXml As String
     Public Property XmlDocument As XmlDocument
     Private ReadOnly Property mPigFunc As New PigFunc
@@ -43,6 +44,12 @@ Public Class PigXml
         Both = 2
         ''' <summary>只有值</summary>
         ValueOnly = 3
+        ''' <summary>左标记开始</summary>
+        LeftBegin = 4
+        ''' <summary>左标记属性</summary>
+        LeftAttribute = 5
+        ''' <summary>左标记结束</summary>
+        LeftEnd = 5
     End Enum
 
     ''' <summary>增加一个XML标记的部分</summary>
@@ -369,9 +376,13 @@ Public Class PigXml
 
     ''' <summary>增加一个XML左标记</summary>
     ''' <param name="XMLSign">元素标记</param>
-    Public Overloads Function AddEleLeftSign(XMLSign As String) As String
+    Public Function AddEleLeftSign(XMLSign As String, Optional IsBegin As Boolean = False) As String
         Try
-            AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, mbolIsCrLf)
+            If IsBegin = True Then
+                AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.LeftBegin, False)
+            Else
+                AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, mbolIsCrLf)
+            End If
             If AddEleLeftSign <> "OK" Then Throw New Exception(AddEleLeftSign)
             Return "OK"
         Catch ex As Exception
@@ -379,12 +390,37 @@ Public Class PigXml
         End Try
     End Function
 
+    Public Function AddEleLeftAttribute(AttributeName As String, AttributeValue As String) As String
+        Try
+            AddEleLeftAttribute = Me.mXMLAddStr(msbMain, "", "", xpXMLAddWhere.LeftAttribute, False,,, AttributeName, AttributeValue)
+            If AddEleLeftAttribute <> "OK" Then Throw New Exception(AddEleLeftAttribute)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("AddEleLeftAttribute", ex)
+        End Try
+    End Function
+
+    Public Function AddEleLeftSignEnd() As String
+        Try
+            msbMain.Append(">")
+            If Me.mbolIsCrLf = True Then msbMain.Append(Me.OsCrLf)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("AddEleLeftSignEnd", ex)
+        End Try
+    End Function
+
+
     ''' <summary>增加一个XML左标记</summary>
     ''' <param name="XMLSign">元素标记</param>
     ''' <param name="LeftTab">前面缩进的TAB数</param>
-    Public Overloads Function AddEleLeftSign(XMLSign As String, LeftTab As Integer) As String
+    Public Function AddEleLeftSign(XMLSign As String, LeftTab As Integer, Optional IsBegin As Boolean = False) As String
         Try
-            AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, mbolIsCrLf, LeftTab)
+            If IsBegin = True Then
+                AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.LeftBegin, False, LeftTab)
+            Else
+                AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, mbolIsCrLf, LeftTab)
+            End If
             If AddEleLeftSign <> "OK" Then Throw New Exception(AddEleLeftSign)
             Return "OK"
         Catch ex As Exception
@@ -421,7 +457,10 @@ Public Class PigXml
                          Optional ByVal AddWhere As xpXMLAddWhere = xpXMLAddWhere.Both,
                          Optional ByVal IsCrlf As Boolean = False,
                          Optional ByVal LeftTab As Integer = 0,
-                         Optional ByVal IsCData As Boolean = False) As String
+                         Optional ByVal IsCData As Boolean = False,
+                         Optional ByVal AttributeName As String = "",
+                         Optional ByVal AttributeValue As String = ""
+                                ) As String
         Try
             Select Case AddWhere
                 Case xpXMLAddWhere.Left, xpXMLAddWhere.Both, xpXMLAddWhere.Right
@@ -432,8 +471,17 @@ Public Class PigXml
                     End If
             End Select
             Select Case AddWhere
+                Case xpXMLAddWhere.LeftAttribute
+                    sbAny.Append(" ")
+                    sbAny.Append(AttributeName)
+                    sbAny.Append("=""" & AttributeValue & """")
+                Case xpXMLAddWhere.LeftEnd
+                    sbAny.Append(">")
+                Case xpXMLAddWhere.LeftBegin
+                    sbAny.Append("<")
+                    sbAny.Append(XMLSign)
                 Case xpXMLAddWhere.Left
-20:                 sbAny.Append("<")
+                    sbAny.Append("<")
                     sbAny.Append(XMLSign)
                     sbAny.Append(">")
                     If IsCData = True Then
@@ -760,13 +808,13 @@ Public Class PigXml
             LOG.StepName = "Check XmlFilePath"
             If XmlFilePath = "" Then
                 If Me.mstrMainXml = "" Then
-                    Throw New Exception("Please call SetMainXml设置 to set MainXmlStr first.")
-                Else
-                    LOG.StepName = "XmlDocument.LoadXml"
-                    If Me.IsDebug = True Then LOG.AddStepNameInf(Me.MainXmlStr)
-                    Me.XmlDocument = New XmlDocument
-                    Me.XmlDocument.LoadXml(Me.mstrMainXml)
+                    Me.mstrMainXml = Me.MainXmlStr
+                    If Me.mstrMainXml = "" Then Throw New Exception("Please call SetMainXml设置 to set MainXmlStr first.")
                 End If
+                LOG.StepName = "XmlDocument.LoadXml"
+                If Me.IsDebug = True Then LOG.AddStepNameInf(Me.mstrMainXml)
+                Me.XmlDocument = New XmlDocument
+                Me.XmlDocument.LoadXml(Me.mstrMainXml)
             ElseIf Me.mPigFunc.IsFileExists(XmlFilePath) = False Then
                 LOG.AddStepNameInf(XmlFilePath)
                 Throw New Exception("File not found.")
