@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.15.6
+'* Version: 1.16.8
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -21,6 +21,7 @@
 '* 1.13   15/5/2022   Modify PigFuncDemo
 '* 1.14   29/5/2022   Add PigXmlDemo
 '* 1.15   30/5/2022   Modify PigXmlDemo
+'* 1.16   3/6/2022   Modify PigXmlDemo
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -66,7 +67,7 @@ Public Class ConsoleDemo
     Public MenuDefinition2 As String
     Public EncKey As String
     Public ThreadID As Integer
-    Public PigXml As New PigXml(False)
+    Public PigXml As New PigXml(True)
     Public XmlKey As String
     Public XmlKey2 As String
     Public XmlStr As String = "<a><b id='1'>b1</b><b id='2'>b2</b><b id='3'>b3</b></a>"
@@ -557,10 +558,34 @@ Public Class ConsoleDemo
             Me.MenuDefinition2 &= "GetXmlDocText#GetXmlDocText|"
             Me.MenuDefinition2 &= "GetXmlDocAttribute#GetXmlDocAttribute|"
             Me.MenuDefinition2 &= "GetXmlDocNode#GetXmlDocNode|"
+            Me.MenuDefinition2 &= "XmlAddTest#XmlAdd test|"
             Me.PigConsole.SimpleMenu("PigXml", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey2
                 Case ""
                     Exit Do
+                Case "XmlAddTest"
+                    With Me.PigXml
+                        .Clear()
+                        .AddEleLeftSign("Root", True)
+                        .AddEleLeftAttribute("ID", "123")
+                        .AddEleLeftAttribute("Ref", "abc")
+                        .AddEleLeftSignEnd()
+                        .AddEle("a", "aaa")
+                        .AddEle("b", "bbb")
+                        .AddEleLeftSign("c")
+                        .AddEle("c1", "ccc1")
+                        .AddEle("c2", "ccc1")
+                        .AddEleRightSign("c")
+                        .AddEleRightSign("Root")
+                        Console.WriteLine("MainXmlStr=" & .MainXmlStr)
+                        .InitXmlDocument()
+                        Console.WriteLine("Root.a=" & .GetXmlDocText("Root.a"))
+                        Console.WriteLine("Root.b=" & .GetXmlDocText("Root.b"))
+                        Console.WriteLine("Root.c.c1=" & .GetXmlDocText("Root.c.c1"))
+                        Console.WriteLine("Root.c.c2=" & .GetXmlDocText("Root.c.c2"))
+                        Console.WriteLine("Root.ID=" & .GetXmlDocAttribute("Root.ID"))
+                        Console.WriteLine("Root.Ref=" & .GetXmlDocAttribute("Root.Ref"))
+                    End With
                 Case "LoadXmlDocumentByFile"
                     Me.PigConsole.GetLine("Input xml FilePath", Me.FilePath)
                     Console.WriteLine("InitXmlDocument")
