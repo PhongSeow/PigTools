@@ -4,7 +4,7 @@
     <RootNamespace>PigWebCtrlLib</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.28</Version>
+    <Version>1.2.16</Version>
     <Authors>Seow Phong</Authors>
     <Product>Seow Phong Studio</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -17,6 +17,7 @@
     <Description>An application class library for dealing with mainstream Web Services.
 It can run on Windows and Linux platforms.
 </Description>
+    <PackageReleaseNotes>Add weblogicdomain WlstConnect.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,7 +34,7 @@ It can run on Windows and Linux platforms.
   <ItemGroup>
     <PackageReference Include="PigCmdLib" Version="1.9.10" />
     <PackageReference Include="PigObjFsLib" Version="2.0.18" />
-    <PackageReference Include="PigToolsLiteLib" Version="2.6.88" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.7.8" />
   </ItemGroup>
 
 </Project>

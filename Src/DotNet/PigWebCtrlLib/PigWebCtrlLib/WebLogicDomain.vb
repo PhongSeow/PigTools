@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -14,6 +14,7 @@
 '*1.6  31/5/2022  Modify CreateDomain
 '*1.7  1/6/2022  Add StartDomain,StopDomain, modify LogDirPath
 '*1.8  2/6/2022  Modify StopDomain,StartDomain
+'*1.9  4/6/2022  Rename CreateDomainRes to CallWlstRes, CallWlstPyPath to CallWlstPyPath, modify CreateDomain,RefRunStatus, add mCallWlstPyOpenTextFile,mWlstPublicCheck,mRefAll
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -21,7 +22,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.8.8"
+    Private Const CLS_VERSION As String = "1.9.12"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -29,6 +30,24 @@ Public Class WebLogicDomain
     Private mPigFunc As New PigFunc
     Private mPigProcApp As New PigProcApp
 
+
+    ''' <summary>
+    ''' WLST调用命令|WLST call command
+    ''' </summary>
+    Public Enum EnmWlstCallCmd
+        ''' <summary>
+        ''' 未知|unknown
+        ''' </summary>
+        Unknow = 0
+        ''' <summary>
+        ''' 创建域|Create Domain
+        ''' </summary>
+        CreateDomain = 1
+        ''' <summary>
+        ''' 连接控制台|Connect console
+        ''' </summary>
+        Connect = 2
+    End Enum
 
     ''' <summary>
     ''' 域部署状态|Domain deployment status
@@ -79,9 +98,9 @@ Public Class WebLogicDomain
         ''' </summary>
         StartFail = -2
         ''' <summary>
-        ''' 创建域失败|Failed to create domain
+        ''' 执行WLST失败|WLST execution failed
         ''' </summary>
-        CreateDomainFail = -1
+        ExecWLSTFail = -1
         ''' <summary>
         ''' 已停止|Stopped
         ''' </summary>
@@ -99,52 +118,23 @@ Public Class WebLogicDomain
         ''' </summary>
         Running = 3
         ''' <summary>
-        ''' 正在创建域|Creating domain
+        ''' 正在执行WLST|Executing WLST
         ''' </summary>
-        CreatingDomain = 4
+        ExecutingWLST = 4
         ''' <summary>
-        ''' 创建域成功|Domain created successfully
+        ''' 执行WLST成功|WLST executed successfully
         ''' </summary>
-        CreateDomainOK = 5
+        ExecWLSTOK = 5
     End Enum
 
-    '''' <summary>
-    '''' 控制状态|Control state
-    '''' </summary>
-    'Public Enum EnmDomainCtrlStatus
-    '    ''' <summary>
-    '    ''' 就绪|ready
-    '    ''' </summary>
-    '    Ready = 0
-    '    ''' <summary>
-    '    ''' 启动域|Startup domain
-    '    ''' </summary>
-    '    StartDomain = 1
-    '    ''' <summary>
-    '    ''' 停止域|Stop domain
-    '    ''' </summary>
-    '    StopDomain = 2
-    '    ''' <summary>
-    '    ''' 重启域|Restart domain
-    '    ''' </summary>
-    '    RestartDomain = 3
-    '    ''' <summary>
-    '    ''' 创建域|Create domain
-    '    ''' </summary>
-    '    CreateDomain = 4
-    '    ''' <summary>
-    '    ''' 保存生产模式免输入密启动文件|Save the production mode password free startup file
-    '    ''' </summary>
-    '    SaveSecurityBoot = 5
-    'End Enum
 
     Public ReadOnly Property HomeDirPath As String
     Public Property AdminUserName As String
     Public Property AdminUserPassword As String
-    Friend Property CreateDomainPyPath As String
+    Friend Property CallWlstPyPath As String
 
-    Private Property mCreateDomainThreadID As Integer
-    Private Property mCreateDomainBeginTime
+    Private Property mCallWlstThreadID As Integer
+    Private Property mCallWlstBeginTime
     Private Property mStartDomainThreadID As Integer
     Private Property mStopDomainThreadID As Integer
 
@@ -153,6 +143,7 @@ Public Class WebLogicDomain
     Private Property mConfFileUpdtime As Date
 
     Private mstrStartDomainRes As String
+
 
     Public Property StartDomainRes As String
         Get
@@ -174,14 +165,14 @@ Public Class WebLogicDomain
         End Set
     End Property
 
-    Private mstrCreateDomainRes As String
+    Private mstrCallWlstRes As String
 
-    Public Property CreateDomainRes As String
+    Public Property CallWlstRes As String
         Get
-            Return mstrCreateDomainRes
+            Return mstrCallWlstRes
         End Get
         Friend Set(value As String)
-            mstrCreateDomainRes = value
+            mstrCallWlstRes = value
         End Set
     End Property
 
@@ -205,16 +196,6 @@ Public Class WebLogicDomain
             mintRunStatus = value
         End Set
     End Property
-
-    'Private mintCtrlStatus As EnmDomainCtrlStatus
-    'Public Property CtrlStatus As EnmDomainCtrlStatus
-    '    Get
-    '        Return mintCtrlStatus
-    '    End Get
-    '    Friend Set(value As EnmDomainCtrlStatus)
-    '        mintCtrlStatus = value
-    '    End Set
-    'End Property
 
     Private mstrDomainVersion As String
     Public Property DomainVersion As String
@@ -426,8 +407,7 @@ Public Class WebLogicDomain
     Private Function mRefAll() As String
         Dim strRet As String
         Try
-            strRet = Me.RefConf()
-            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.RefConf()
             strRet = Me.RefDeployStatus()
             If strRet <> "OK" Then Throw New Exception(strRet)
             strRet = Me.RefRunStatus()
@@ -441,7 +421,7 @@ Public Class WebLogicDomain
     Private ReadOnly Property mIsRunBusy As Boolean
         Get
             Select Case Me.RunStatus
-                Case EnmDomainRunStatus.CreatingDomain, EnmDomainRunStatus.Starting, EnmDomainRunStatus.Stopping
+                Case EnmDomainRunStatus.ExecutingWLST, EnmDomainRunStatus.Starting, EnmDomainRunStatus.Stopping
                     Return True
                 Case Else
                     Return False
@@ -554,70 +534,111 @@ Public Class WebLogicDomain
         End Try
     End Function
 
-    'Public Function CheckDomain() As String
-    '    Dim LOG As New PigStepLog("CheckDomain")
-    '    Try
-    '        If Me.mIsFolderExists(Me.HomeDirPath) = False Then Throw New Exception("HomeDirPath " & Me.HomeDirPath & " not found.")
-    '        If Me.mIsFileExists(Me.startWebLogicPath) = False Then Throw New Exception("startWebLogicPath  " & Me.startWebLogicPath & " not found.")
-    '        If Me.mIsFileExists(Me.stopWebLogicPath) = False Then Throw New Exception("stopWebLogicPath  " & Me.stopWebLogicPath & " not found.")
-    '        If Me.mIsFileExists(Me.ConfPath) = False Then Throw New Exception("ConfPath  " & Me.ConfPath & " not found.")
-    '        Return "OK"
-    '    Catch ex As Exception
-    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
-    '    End Try
-    'End Function
+    Private mbolIsCreateDomainOK As Boolean
+    Public Property IsCreateDomainOK As Boolean
+        Get
+            Return mbolIsCreateDomainOK
+        End Get
+        Friend Set(value As Boolean)
+            mbolIsCreateDomainOK = value
+        End Set
+    End Property
 
-    Public Function CreateDomain(ListenPort As Integer, AdminUserName As String, AdminUserPassword As String) As String
-        Dim LOG As New PigStepLog("CreateDomain")
+
+
+    Private mbolIsConnectOK As Boolean
+    Public Property IsConnectOK As Boolean
+        Get
+            Return mbolIsConnectOK
+        End Get
+        Friend Set(value As Boolean)
+            mbolIsConnectOK = value
+        End Set
+    End Property
+
+    Private mintWlstCallCmd As EnmWlstCallCmd
+    Public Property WlstCallCmd As EnmWlstCallCmd
+        Get
+            Return mintWlstCallCmd
+        End Get
+        Friend Set(value As EnmWlstCallCmd)
+            mintWlstCallCmd = value
+        End Set
+    End Property
+
+    Private Function mWlstCallMain(WlstCallCmd As EnmWlstCallCmd, Optional ListenPort As Integer = 0) As String
+        Dim LOG As New PigStepLog("mWlstCallMain")
         Try
-            LOG.StepName = "RefDeployStatus"
-            LOG.Ret = Me.RefDeployStatus()
-            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-            LOG.StepName = "Check DeployStatus"
-            If Me.DeployStatus <> EnmDomainDeployStatus.NotCreate Then Throw New Exception("A domain can be created only when DeployStatus is NotCreate")
-            LOG.StepName = "RefRunStatus"
-            LOG.Ret = Me.RefRunStatus()
-            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-            LOG.StepName = "Check RunStatus"
-            If Me.RunStatus <> EnmDomainRunStatus.DeployNoReady Then Throw New Exception("A domain can be created only when RunStatus is DeployNoReady")
+            LOG.StepName = "Check CallWlst"
+            If Me.mCallWlstThreadID > 0 Then Throw New Exception("Busy")
+            LOG.StepName = "Check AdminUser"
+            If Me.AdminUserName = "" Or Me.AdminUserPassword = "" Then Throw New Exception("Administrator user or password not set.")
             LOG.StepName = "Check Wls.Jar"
             If Me.mIsFileExists(Me.fParent.WlsJarPath) = False Then Throw New Exception(Me.fParent.WlsJarPath & " not found.")
+            LOG.StepName = "mRefAll"
+            LOG.Ret = Me.mRefAll()
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Me.WlstCallCmd = WlstCallCmd
+            LOG.StepName = "Check WlstCallCmd"
+            Select Case WlstCallCmd
+                Case EnmWlstCallCmd.Connect
+                    If Me.RunStatus <> EnmDomainRunStatus.Running Then Throw New Exception("The current run state[" & Me.RunStatus.ToString & "] cannot connect.")
+                Case EnmWlstCallCmd.CreateDomain
+                    If Me.mIsDeployReady = True Then Throw New Exception("The current deployment state[" & Me.DeployStatus.ToString & "] cannot create a domain.")
+                Case Else
+                    Me.WlstCallCmd = EnmWlstCallCmd.Unknow
+                    Throw New Exception("Invalid WlstCallCmd " & WlstCallCmd.ToString)
+            End Select
+            LOG.StepName = "WlstCallCmd is " & Me.WlstCallCmd.ToString
             With Me
-                .ListenPort = ListenPort
-                .AdminUserName = AdminUserName
-                .AdminUserPassword = AdminUserPassword
-            End With
-            With Me
-                .CreateDomainPyPath = Me.fParent.WorkTmpDirPath & Me.OsPathSep & Me.mPigFunc.GetPKeyValue(.DomainName, False) & ".py"
+                Dim tsMain As TextStream = Nothing
+                LOG.StepName = "Set CallWlstPyPath"
+                .CallWlstPyPath = Me.fParent.WorkTmpDirPath & Me.OsPathSep & Me.mPigFunc.GetPKeyValue(Me.DomainName, False) & ".py"
                 LOG.StepName = "OpenTextFile"
-                Dim tsMain As TextStream = Me.mFS.OpenTextFile(.CreateDomainPyPath, FileSystemObject.IOMode.ForWriting, True)
+                tsMain = Me.mFS.OpenTextFile(.CallWlstPyPath, FileSystemObject.IOMode.ForWriting, True)
                 If Me.mFS.LastErr <> "" Then
-                    LOG.AddStepNameInf(.CreateDomainPyPath)
+                    LOG.AddStepNameInf(.CallWlstPyPath)
                     Throw New Exception(Me.mFS.LastErr)
+                ElseIf tsMain Is Nothing Then
+                    LOG.AddStepNameInf(.CallWlstPyPath)
+                    Throw New Exception("tsMain Is Nothing")
                 End If
                 Dim strLine As String
                 With tsMain
-                    LOG.StepName = "WriteLine"
-                    strLine = "readTemplate('" & Me.fParent.WlsJarPath & "')"
-                    If Me.IsWindows = True Then
-                        strLine = Replace(strLine, Me.OsPathSep, "//")
-                    End If
-                    .WriteLine(strLine)
-                    .WriteLine("cd('Servers/AdminServer')")
-                    .WriteLine("set('ListenAddress','')")
-                    .WriteLine("set('ListenPort', " & Me.ListenPort & ")")
-                    .WriteLine("cd('/')")
-                    .WriteLine("cd('Security/base_domain/User/weblogic')")
-                    .WriteLine("set('Name','" & Me.AdminUserName & "')")
-                    .WriteLine("cmo.setPassword('" & Me.AdminUserPassword & "')")
-                    .WriteLine("setOption('OverwriteDomain','true')")
-                    .WriteLine("setOption('ServerStartMode','prod')")
-                    strLine = "writeDomain('" & Me.HomeDirPath & "')"
-                    If Me.IsWindows = True Then
-                        strLine = Replace(strLine, Me.OsPathSep, "//")
-                    End If
-                    .WriteLine(strLine)
-                    .WriteLine("closeTemplate()")
+                    Select Case Me.WlstCallCmd
+                        Case EnmWlstCallCmd.CreateDomain
+                            If ListenPort <= 0 Then Throw New Exception("Invalid ListenPort is " & ListenPort.ToString)
+                            Me.ListenPort = ListenPort
+                            LOG.StepName = "WriteLine"
+                            strLine = "readTemplate('" & Me.fParent.WlsJarPath & "')"
+                            If Me.IsWindows = True Then
+                                strLine = Replace(strLine, Me.OsPathSep, "//")
+                            End If
+                            .WriteLine(strLine)
+                            .WriteLine("cd('Servers/AdminServer')")
+                            .WriteLine("set('ListenAddress','')")
+                            .WriteLine("set('ListenPort', " & Me.ListenPort & ")")
+                            .WriteLine("cd('/')")
+                            .WriteLine("cd('Security/base_domain/User/weblogic')")
+                            .WriteLine("set('Name','" & Me.AdminUserName & "')")
+                            .WriteLine("cmo.setPassword('" & Me.AdminUserPassword & "')")
+                            .WriteLine("setOption('OverwriteDomain','true')")
+                            .WriteLine("setOption('ServerStartMode','prod')")
+                            strLine = "writeDomain('" & Me.HomeDirPath & "')"
+                            If Me.IsWindows = True Then
+                                strLine = Replace(strLine, Me.OsPathSep, "//")
+                            End If
+                            .WriteLine(strLine)
+                            .WriteLine("closeTemplate()")
+                        Case EnmWlstCallCmd.Connect
+                            Dim intPort As Integer
+                            If Me.IsAdminPortEnable = True Then
+                                intPort = Me.AdminPort
+                            Else
+                                intPort = Me.ListenPort
+                            End If
+                            .WriteLine("connect('" & Me.AdminUserName & "','" & Me.AdminUserPassword & "','t3://localhost:" & intPort.ToString & "')")
+                    End Select
                     .WriteLine("exit()")
                     LOG.StepName = "Close"
                     .Close()
@@ -625,16 +646,16 @@ Public Class WebLogicDomain
             End With
             Dim strCmd As String
             If Me.IsWindows = True Then
-                strCmd = "call " & Me.fParent.WlstPath & " " & Me.CreateDomainPyPath
+                strCmd = "call " & Me.fParent.WlstPath & " " & Me.CallWlstPyPath
             Else
-                strCmd = Me.fParent.WlstPath & " " & Me.CreateDomainPyPath
+                strCmd = Me.fParent.WlstPath & " " & Me.CallWlstPyPath
             End If
             Me.fParent.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
-            Me.RunStatus = EnmDomainRunStatus.CreatingDomain
-            Me.mCreateDomainBeginTime = Now
-            Me.CreateDomainRes = ""
+            Me.RunStatus = EnmDomainRunStatus.ExecutingWLST
+            Me.mCallWlstBeginTime = Now
+            Me.CallWlstRes = ""
             LOG.StepName = "AsyncCmdShell"
-            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mCreateDomainThreadID)
+            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mCallWlstThreadID)
             If LOG.Ret <> "OK" Then
                 If Me.IsDebug = True Then LOG.AddStepNameInf(strCmd)
                 Throw New Exception(LOG.Ret)
@@ -645,6 +666,34 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+
+    Public Sub ClearAsyncRes()
+        With Me
+            .CallWlstRes = ""
+            .mCallWlstThreadID = -1
+            .StartDomainRes = ""
+            .mStartDomainThreadID = -1
+            .StopDomainRes = ""
+            .mStopDomainThreadID = -1
+            .mRefRunStatusThreadID = -1
+        End With
+    End Sub
+
+    Public Function CreateDomain(ListenPort As Integer) As String
+        Try
+            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    Public Function Connect() As String
+        Try
+            Return Me.mWlstCallMain(EnmWlstCallCmd.Connect)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
 
 
     Public Function RefConf() As String
@@ -711,10 +760,10 @@ Public Class WebLogicDomain
         Dim LOG As New PigStepLog("RefRunStatus")
         Try
             Select Case Me.RunStatus
-                Case EnmDomainRunStatus.CreatingDomain
-                    If Math.Abs(DateDiff(DateInterval.Second, Me.mCreateDomainBeginTime, Now)) > Me.fParent.CreateDomainTimeout Then
-                        Me.RunStatus = EnmDomainRunStatus.CreateDomainFail
-                        Me.CreateDomainRes = "Create domain timeout."
+                Case EnmDomainRunStatus.ExecutingWLST
+                    If Math.Abs(DateDiff(DateInterval.Second, Me.mCallWlstBeginTime, Now)) > Me.fParent.CreateDomainTimeout Then
+                        Me.RunStatus = EnmDomainRunStatus.ExecWLSTFail
+                        Me.CallWlstRes = "WLST execution timeout."
                     End If
                 Case Else
                     Select Case Me.DeployStatus
@@ -739,7 +788,7 @@ Public Class WebLogicDomain
                                 End If
                             Else
                                 Select Case Me.RunStatus
-                                    Case EnmDomainRunStatus.CreatingDomain, EnmDomainRunStatus.Running, EnmDomainRunStatus.Stopping, EnmDomainRunStatus.Starting
+                                    Case EnmDomainRunStatus.ExecutingWLST, EnmDomainRunStatus.Running, EnmDomainRunStatus.Stopping, EnmDomainRunStatus.Starting
                                     Case Else
                                         Me.RunStatus = EnmDomainRunStatus.Stopped
                                 End Select
@@ -766,18 +815,31 @@ Public Class WebLogicDomain
                     End If
                 Case Me.mRefRunStatusThreadID
                     Me.mRefRunStatusThreadID = -1
-                Case Me.mCreateDomainThreadID
-                    Me.mCreateDomainThreadID = -1
+                Case Me.mCallWlstThreadID
+                    Me.mCallWlstThreadID = -1
                     If .AsyncRet = "OK" And StandardError = "" Then
-                        Me.RunStatus = EnmDomainRunStatus.CreateDomainOK
-                        Me.CreateDomainRes = .AsyncRet & Me.OsCrLf & StandardOutput & Me.OsCrLf & StandardError & Me.OsCrLf
+                        Me.RunStatus = EnmDomainRunStatus.ExecWLSTOK
+                        Me.CallWlstRes = StandardOutput
+                        Select Case Me.WlstCallCmd
+                            Case EnmWlstCallCmd.Connect
+                                Me.IsConnectOK = True
+                            Case EnmWlstCallCmd.CreateDomain
+                                Me.IsCreateDomainOK = True
+                        End Select
                     Else
-                        Me.RunStatus = EnmDomainRunStatus.CreateDomainFail
-                        Me.CreateDomainRes = ""
+                        Me.RunStatus = EnmDomainRunStatus.ExecWLSTFail
+                        Me.CallWlstRes = StandardError
+                        Select Case Me.WlstCallCmd
+                            Case EnmWlstCallCmd.Connect
+                                Me.IsConnectOK = False
+                            Case EnmWlstCallCmd.CreateDomain
+                                Me.IsCreateDomainOK = False
+                        End Select
                     End If
-                    If Me.mIsFileExists(Me.CreateDomainPyPath) = True Then
-                        Me.mPigFunc.DeleteFile(Me.CreateDomainPyPath)
+                    If Me.mIsFileExists(Me.CallWlstPyPath) = True Then
+                        Me.mPigFunc.DeleteFile(Me.CallWlstPyPath)
                     End If
+'                    Me.WlstCallCmd = EnmWlstCallCmd.Unknow
                 Case Me.mStartDomainThreadID
                     Me.mStartDomainThreadID = -1
                     If .AsyncRet = "OK" And StandardError = "" Then

@@ -21,7 +21,7 @@ It can run on Windows and Linux platforms.
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa UUID EnvironmentVariable PL/SQL BCP asynchronous XmlDocument</PackageTags>
     <PackageReleaseNotes>Add XML processing function.</PackageReleaseNotes>
-    <AssemblyVersion>2.7.2.0</AssemblyVersion>
+    <AssemblyVersion>2.7.8.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
