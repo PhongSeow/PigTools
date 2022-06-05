@@ -4,11 +4,13 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3.5
+'* Version: 1.5.9
 '* Create Time: 15/2/2022
 '* 1.1    26/5/2022   Add Main
 '* 1.2    30/5/2022   Add WebLogicDemo
 '* 1.3    1/6/2022   Modify WebLogicDemo
+'* 1.4    1/6/2022   Modify WebLogicDemo
+'* 1.5    1/6/2022   Modify WebLogicDemo
 '************************************
 
 Imports PigCmdLib
@@ -45,7 +47,7 @@ Public Class ConsoleDemo
         Else
             Me.HomeDirPath = "/home/mw/weblogic/wls1221"
             Me.WorkTmpDirPath = "/tmp"
-            Me.WorkTmpDirPath = "/tmp/WebLogic8888"
+            Me.DomainHomeDirPath = "/tmp/WebLogic8888"
         End If
     End Sub
 
@@ -55,15 +57,36 @@ Public Class ConsoleDemo
             Me.MenuDefinition = "NewWebLogicApp#New WebLogicApp|"
             Me.MenuDefinition &= "AddNewWebLogicDomain#Add New WebLogicDomain|"
             Me.MenuDefinition &= "ShowParas#Display parameters|"
+            Me.MenuDefinition &= "WebLogicDomainClearAsyncRes#WebLogicDomain.ClearAsyncRes|"
             Me.MenuDefinition &= "SetWebLogicDomain#Select WebLogicDomain|"
             Me.MenuDefinition &= "WebLogicDomainCreateDomain#WebLogicDomain.CreateDomain|"
             Me.MenuDefinition &= "WebLogicDomainSaveSecurityBoot#WebLogicDomain.SaveSecurityBoot|"
             Me.MenuDefinition &= "WebLogicDomainStartDomain#WebLogicDomain.StartDomain|"
             Me.MenuDefinition &= "WebLogicDomainStopDomain#WebLogicDomain.StopDomain|"
+            Me.MenuDefinition &= "WebLogicDomainConnect#WebLogicDomain.Connect|"
             Me.PigConsole.SimpleMenu("WebLogicDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "WebLogicDomainConnect"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("WebLogicDomain.Connect")
+                    Console.WriteLine("*******************")
+                    If Me.WebLogicDomain Is Nothing Then
+                        Console.WriteLine("WebLogicDomain Is Nothing")
+                    Else
+                        Me.Ret = Me.WebLogicDomain.Connect
+                        Console.WriteLine(Me.Ret)
+                    End If
+                Case "WebLogicDomainClearAsyncRes"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("WebLogicDomain.ClearAsyncRes")
+                    Console.WriteLine("*******************")
+                    If Me.WebLogicDomain Is Nothing Then
+                        Console.WriteLine("WebLogicDomain Is Nothing")
+                    Else
+                        Me.WebLogicDomain.ClearAsyncRes()
+                    End If
                 Case "WebLogicDomainStopDomain"
                     Console.WriteLine("*******************")
                     Console.WriteLine("WebLogicDomain.StopDomain")
@@ -105,10 +128,8 @@ Public Class ConsoleDemo
                         Console.WriteLine("WebLogicDomain Is Nothing")
                     Else
                         Me.PigConsole.GetLine("ListPort", Me.ListPort)
-                        Me.PigConsole.GetLine("AdminUserName", Me.AdminUserName)
-                        Me.PigConsole.GetLine("AdminUserPassword", Me.AdminUserPassword)
                         Console.WriteLine("CreateDomain")
-                        Me.Ret = Me.WebLogicDomain.CreateDomain(Me.ListPort, Me.AdminUserName, Me.AdminUserPassword)
+                        Me.Ret = Me.WebLogicDomain.CreateDomain(Me.ListPort)
                         Console.WriteLine(Me.Ret)
                     End If
                 Case "SetWebLogicDomain"
@@ -139,7 +160,11 @@ Public Class ConsoleDemo
                     Console.WriteLine("Add New WebLogicDomain")
                     Console.WriteLine("*******************")
                     Me.PigConsole.GetLine("Input weblogic domain home folder path", Me.DomainHomeDirPath)
-                    Me.WebLogicApp.WebLogicDomains.AddOrGet(Me.DomainHomeDirPath)
+                    Me.WebLogicDomain = Me.WebLogicApp.WebLogicDomains.AddOrGet(Me.DomainHomeDirPath)
+                    Me.PigConsole.GetLine("AdminUserName", Me.AdminUserName)
+                    Me.PigConsole.GetLine("AdminUserPassword", Me.AdminUserPassword)
+                    Me.WebLogicDomain.AdminUserName = Me.AdminUserName
+                    Me.WebLogicDomain.AdminUserPassword = Me.AdminUserPassword
                 Case "ShowParas"
                     Console.WriteLine("*******************")
                     Console.WriteLine("WebLogicApp.JavaVersion=" & Me.WebLogicApp.JavaVersion)
@@ -176,7 +201,10 @@ Public Class ConsoleDemo
                             Console.WriteLine("IsAdminPortEnable=" & .IsAdminPortEnable)
                             Console.WriteLine("IsIIopEnable=" & .IsIIopEnable)
                             Console.WriteLine("IsProdMode=" & .IsProdMode)
-                            Console.WriteLine("CreateDomainRes=" & .CreateDomainRes)
+                            Console.WriteLine("CallWlstRes=" & .CallWlstRes)
+                            Console.WriteLine("WlstCallCmd=" & .WlstCallCmd.ToString)
+                            Console.WriteLine("IsCreateDomainOK=" & .IsCreateDomainOK)
+                            Console.WriteLine("IsConnectOK=" & .IsConnectOK)
                             Console.WriteLine("StartDomainRes=" & .StartDomainRes)
                             Console.WriteLine("StopDomainRes=" & .StopDomainRes)
                         End With
