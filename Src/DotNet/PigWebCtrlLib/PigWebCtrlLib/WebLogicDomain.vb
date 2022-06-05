@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.9
+'* Version: 1.10
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -15,6 +15,7 @@
 '*1.7  1/6/2022  Add StartDomain,StopDomain, modify LogDirPath
 '*1.8  2/6/2022  Modify StopDomain,StartDomain
 '*1.9  4/6/2022  Rename CreateDomainRes to CallWlstRes, CallWlstPyPath to CallWlstPyPath, modify CreateDomain,RefRunStatus, add mCallWlstPyOpenTextFile,mWlstPublicCheck,mRefAll
+'*1.10 5/6/2022  Add CallWlstSucc,CallWlstFail, modify mPigCmdApp_AsyncRet_CmdShell_FullString,StartDomain
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -22,7 +23,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.9.12"
+    Private Const CLS_VERSION As String = "1.10.13"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -30,6 +31,13 @@ Public Class WebLogicDomain
     Private mPigFunc As New PigFunc
     Private mPigProcApp As New PigProcApp
 
+    Public Event CallWlstSucc(WlstCallCmd As EnmWlstCallCmd, ResInf As String)
+
+    Public Event CallWlstFail(WlstCallCmd As EnmWlstCallCmd, ErrInf As String)
+
+    Public Event StopDomainSucc(ResInf As String)
+
+    Public Event StopDomainFail(ErrInf As String)
 
     ''' <summary>
     ''' WLST调用命令|WLST call command
@@ -136,7 +144,10 @@ Public Class WebLogicDomain
     Private Property mCallWlstThreadID As Integer
     Private Property mCallWlstBeginTime
     Private Property mStartDomainThreadID As Integer
+    Private Property mStartDomainBeginTime
+
     Private Property mStopDomainThreadID As Integer
+    Private Property mStopDomainBeginTime
 
     Private Property mRefRunStatusThreadID As Integer
 
@@ -484,6 +495,7 @@ Public Class WebLogicDomain
             End If
             Me.fParent.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
             Me.RunStatus = EnmDomainRunStatus.Starting
+            Me.mStartDomainBeginTime = Now
             LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mStartDomainThreadID)
             Me.StartDomainRes = ""
             Return "OK"
@@ -526,6 +538,7 @@ Public Class WebLogicDomain
             End If
             Me.fParent.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
             Me.RunStatus = EnmDomainRunStatus.Stopping
+            Me.mStopDomainBeginTime = Now
             LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mStopDomainThreadID)
             Me.StopDomainRes = ""
             Return "OK"
@@ -761,7 +774,7 @@ Public Class WebLogicDomain
         Try
             Select Case Me.RunStatus
                 Case EnmDomainRunStatus.ExecutingWLST
-                    If Math.Abs(DateDiff(DateInterval.Second, Me.mCallWlstBeginTime, Now)) > Me.fParent.CreateDomainTimeout Then
+                    If Math.Abs(DateDiff(DateInterval.Second, Me.mCallWlstBeginTime, Now)) > Me.fParent.CallWlstTimeout Then
                         Me.RunStatus = EnmDomainRunStatus.ExecWLSTFail
                         Me.CallWlstRes = "WLST execution timeout."
                     End If
@@ -770,29 +783,38 @@ Public Class WebLogicDomain
                         Case EnmDomainDeployStatus.CreateProdModeNotSecurity, EnmDomainDeployStatus.IncompleteCreation, EnmDomainDeployStatus.NotCreate
                             Me.RunStatus = EnmDomainRunStatus.DeployNoReady
                         Case Else
-                            Dim intPID As Integer
-                            LOG.StepName = "GetListenPortProcID"
-                            LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.ListenPort, intPID)
-                            If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
-                            If intPID >= 0 Then
-                                LOG.StepName = "GetPigProc"
-                                Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
-                                If Me.mPigProcApp.LastErr <> "" Then
-                                    Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
-                                Else
-                                    If UCase(oPigProc.ProcessName) = "JAVA" Then
-                                        Me.RunStatus = EnmDomainRunStatus.Running
-                                    Else
-                                        Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
+                            Select Case Me.RunStatus
+                                Case EnmDomainRunStatus.Stopping
+                                    If Math.Abs(DateDiff(DateInterval.Second, Me.mStopDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                        Me.RunStatus = EnmDomainRunStatus.StopFail
+                                        Me.StopDomainRes = "Stop domain timeout."
                                     End If
-                                End If
-                            Else
-                                Select Case Me.RunStatus
-                                    Case EnmDomainRunStatus.ExecutingWLST, EnmDomainRunStatus.Running, EnmDomainRunStatus.Stopping, EnmDomainRunStatus.Starting
-                                    Case Else
+                                Case Else
+                                    Dim intPID As Integer
+                                    LOG.StepName = "GetListenPortProcID"
+                                    LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.ListenPort, intPID)
+                                    If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
+                                    If intPID >= 0 Then
+                                        LOG.StepName = "GetPigProc"
+                                        Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
+                                        If Me.mPigProcApp.LastErr <> "" Then
+                                            Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
+                                        Else
+                                            If UCase(oPigProc.ProcessName) = "JAVA" Then
+                                                Me.RunStatus = EnmDomainRunStatus.Running
+                                            Else
+                                                Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
+                                            End If
+                                        End If
+                                    ElseIf Me.RunStatus = EnmDomainRunStatus.Starting Then
+                                        If Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                            Me.RunStatus = EnmDomainRunStatus.StartFail
+                                            Me.StartDomainRes = "Start domain timeout."
+                                        End If
+                                    Else
                                         Me.RunStatus = EnmDomainRunStatus.Stopped
-                                End Select
-                            End If
+                                    End If
+                            End Select
                     End Select
             End Select
             Return "OK"
@@ -807,16 +829,21 @@ Public Class WebLogicDomain
                 Case Me.mStopDomainThreadID
                     Me.mStopDomainThreadID = -1
                     If .AsyncRet = "OK" And StandardError = "" Then
+                        Me.RunStatus = EnmDomainRunStatus.Stopped
+                        Me.StopDomainRes = StandardOutput
+                        RaiseEvent StopDomainSucc(StandardOutput)
+                    Else
                         Me.RunStatus = EnmDomainRunStatus.StopFail
                         Me.StopDomainRes = .AsyncRet & Me.OsCrLf & StandardOutput & Me.OsCrLf & StandardError & Me.OsCrLf
-                    Else
-                        Me.RunStatus = EnmDomainRunStatus.Stopped
-                        Me.StopDomainRes = ""
+                        RaiseEvent StopDomainFail(StandardError)
                     End If
                 Case Me.mRefRunStatusThreadID
                     Me.mRefRunStatusThreadID = -1
                 Case Me.mCallWlstThreadID
                     Me.mCallWlstThreadID = -1
+                    If Me.mIsFileExists(Me.CallWlstPyPath) = True Then
+                        Me.mPigFunc.DeleteFile(Me.CallWlstPyPath)
+                    End If
                     If .AsyncRet = "OK" And StandardError = "" Then
                         Me.RunStatus = EnmDomainRunStatus.ExecWLSTOK
                         Me.CallWlstRes = StandardOutput
@@ -826,6 +853,7 @@ Public Class WebLogicDomain
                             Case EnmWlstCallCmd.CreateDomain
                                 Me.IsCreateDomainOK = True
                         End Select
+                        RaiseEvent CallWlstSucc(Me.WlstCallCmd, StandardOutput)
                     Else
                         Me.RunStatus = EnmDomainRunStatus.ExecWLSTFail
                         Me.CallWlstRes = StandardError
@@ -835,20 +863,20 @@ Public Class WebLogicDomain
                             Case EnmWlstCallCmd.CreateDomain
                                 Me.IsCreateDomainOK = False
                         End Select
+                        RaiseEvent CallWlstFail(Me.WlstCallCmd, StandardError)
                     End If
-                    If Me.mIsFileExists(Me.CallWlstPyPath) = True Then
-                        Me.mPigFunc.DeleteFile(Me.CallWlstPyPath)
-                    End If
-'                    Me.WlstCallCmd = EnmWlstCallCmd.Unknow
-                Case Me.mStartDomainThreadID
-                    Me.mStartDomainThreadID = -1
-                    If .AsyncRet = "OK" And StandardError = "" Then
-                        Me.RunStatus = EnmDomainRunStatus.Running
-                        Me.StartDomainRes = ""
-                    Else
-                        Me.StartDomainRes = .AsyncRet & Me.OsCrLf & StandardOutput & Me.OsCrLf & StandardError & Me.OsCrLf
-                        Me.RunStatus = EnmDomainRunStatus.StartFail
-                    End If
+                    'Case Me.mStartDomainThreadID
+                    '    Me.mStartDomainThreadID = -1
+                    '    Me.PrintDebugLog("mPigCmdApp_AsyncRet_CmdShell_FullString", "mStartDomainThreadID")
+                    '    If .AsyncRet = "OK" And StandardError = "" Then
+                    '        Me.RunStatus = EnmDomainRunStatus.Running
+                    '        Me.StartDomainRes = StandardOutput
+                    '        RaiseEvent StartDomainSucc(StandardOutput)
+                    '    Else
+                    '        Me.StartDomainRes = .AsyncRet & Me.OsCrLf & StandardOutput & Me.OsCrLf & StandardError & Me.OsCrLf
+                    '        Me.RunStatus = EnmDomainRunStatus.StartFail
+                    '        RaiseEvent StartDomainFail(StandardError)
+                    '    End If
             End Select
 
         End With

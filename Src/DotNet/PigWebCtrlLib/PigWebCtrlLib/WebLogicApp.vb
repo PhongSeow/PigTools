@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add GetJavaVersion 
 '*1.2  6/3/2022   Add WlstPath 
 '*1.3  26/5/2022  Add SaveSecurityBoot ,modify New
 '*1.4  27/5/2022  Modify SaveSecurityBoot
 '*1.5  1/6/2022  Add IsWindows
+'*1.6  5/6/2022  Add StartOrStopTimeout
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -21,7 +22,9 @@ Public Class WebLogicApp
     Private Const CLS_VERSION As String = "1.5.1"
     Public ReadOnly Property HomeDirPath As String
     Public ReadOnly Property WorkTmpDirPath As String
-    Public ReadOnly Property CreateDomainTimeout As Integer
+    Public ReadOnly Property CallWlstTimeout As Integer = 300
+    Public ReadOnly Property StartOrStopTimeout As Integer = 60
+
     Public Property WebLogicDomains As WebLogicDomains
 
     Private WithEvents mPigCmdApp As New PigCmdApp
@@ -30,14 +33,14 @@ Public Class WebLogicApp
 
     Private mGetJavaVersionThreadID As Integer
 
-    Public Sub New(HomeDirPath As String, WorkTmpDirPath As String, Optional CreateDomainTimeout As Integer = 300)
+    Public Sub New(HomeDirPath As String, WorkTmpDirPath As String)
         MyBase.New(CLS_VERSION)
         Try
             Me.WebLogicDomains = New WebLogicDomains
             Me.WebLogicDomains.fParent = Me
             Me.HomeDirPath = HomeDirPath
             Me.WorkTmpDirPath = WorkTmpDirPath
-            Me.CreateDomainTimeout = CreateDomainTimeout
+            Me.CallWlstTimeout = CallWlstTimeout
         Catch ex As Exception
             Me.SetSubErrInf("New", ex)
         End Try
