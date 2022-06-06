@@ -19,8 +19,8 @@ Get enhancements for parent and child processes
 A series of console functions, including reading lines, whether to select, simple menus, etc.
 asynchronous processing
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.9.18</Version>
-    <PackageReleaseNotes>The result of asynchronous processing increases and returns process number</PackageReleaseNotes>
+    <Version>1.9.28</Version>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,7 +35,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.7.28" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.7.38" />
   </ItemGroup>
 
 </Project>
