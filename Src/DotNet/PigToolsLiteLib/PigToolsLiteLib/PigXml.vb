@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -23,12 +23,13 @@
 '1.5 30/5/2022   Add mInitXmlDocument,InitXmlDocument,mGetXmlDoc, modify GetXmlDocText,mGetXmlDoc
 '1.6 31/5/2022   Add XmlDocGetInt
 '1.7 3/6/2022   Modify xpXMLAddWhere,AddEleLeftSign,mXMLAddStr, add AddEleLeftAttribute
+'1.8 6/6/2022   Add XmlDocGetStr
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.7.30"
+    Private Const CLS_VERSION As String = "1.8.2"
     Private mstrMainXml As String
     Public Property XmlDocument As XmlDocument
     Private ReadOnly Property mPigFunc As New PigFunc
@@ -877,6 +878,19 @@ Public Class PigXml
             End If
         Catch ex As Exception
             Me.SetSubErrInf("XmlDocGetBool", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlDocGetStr(XmlKey As String, Optional IsAttribute As Boolean = False) As Boolean
+        Try
+            If IsAttribute = True Then
+                Return Me.GetXmlDocAttribute(XmlKey)
+            Else
+                Return Me.GetXmlDocText(XmlKey)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetStr", ex)
             Return 0
         End Try
     End Function

@@ -338,6 +338,7 @@ Public Class PigCmdApp
             LOG.StepName = "Process.Start"
             Dim oProcess As Process = Process.Start(moProcessStartInfo)
             Me.PID = oProcess.Id
+            oPigAsync.AsyncCmdPID = oProcess.Id
             LOG.StepName = "Process.StandardOutput"
             Dim oStreamReader As StreamReader = oProcess.StandardOutput
             Dim strStandardOutput As String = ""
