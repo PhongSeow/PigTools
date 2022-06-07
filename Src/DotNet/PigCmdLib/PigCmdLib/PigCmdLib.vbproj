@@ -13,14 +13,15 @@
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous system</PackageTags>
+    <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous system wmic</PackageTags>
     <Description>Application of calling operating system commands and call file.
 Get enhancements for parent and child processes
 A series of console functions, including reading lines, whether to select, simple menus, etc.
-asynchronous processing
+asynchronous processing.
+Wmic calls and operating system commands.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.9.28</Version>
-    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
+    <Version>1.9.38</Version>
+    <PackageReleaseNotes>Add PigSysCmd.GetOSCaption.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
