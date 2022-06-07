@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8.1
+'* Version: 1.10.2
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -14,6 +14,8 @@
 '* 1.6    1/4/2022  Modify PigCmdAppDemo
 '* 1.7    29/4/2022  Modify PigCmdAppDemo
 '* 1.8    19/5/2022  Modify PigCmdAppDemo
+'* 1.9    2/6/2022  Modify Main, add PigSysCmdDemo
+'* 1.10   7/6/2022  Modify PigSysCmdDemo, add GetOSCaption
 '************************************
 
 Imports PigCmdLib
@@ -24,6 +26,7 @@ Public Class ConsoleDemo
     Public CmdOrFilePath As String
     Public CmdPara As String
     Public WithEvents PigCmdApp As New PigCmdApp
+    Public PigSysCmd As New PigSysCmd
     Public PID As String
     Public Cmd As String
     Public Para As String
@@ -35,6 +38,8 @@ Public Class ConsoleDemo
     Public MenuKey As String
     Public MenuDefinition As String
     Public OutThreadID As Integer
+    Public ListenPort As Integer
+    Public OSCaption As String
 
     Public Sub PigCmdAppDemo()
         Do While True
@@ -124,6 +129,96 @@ Public Class ConsoleDemo
         Loop
     End Sub
 
+    Public Sub PigSysCmdDemo()
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition = "GetListenPortProcID#GetListenPortProcID|"
+            Me.MenuDefinition &= "GetOSCaption#GetOSCaption|"
+            Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Select Case Me.MenuKey
+                Case ""
+                    Exit Do
+                Case "GetOSCaption"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("GetOSCaption")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    Me.Ret = Me.PigSysCmd.GetOSCaption(Me.OSCaption)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Console.WriteLine("OSCaption=" & Me.OSCaption)
+                    End If
+                Case "GetListenPortProcID"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("GetListenPortProcID")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    Me.PigConsole.GetLine("Input ListenPort", Me.ListenPort)
+                    Me.Ret = Me.PigSysCmd.GetListenPortProcID(Me.ListenPort, Me.PID)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Console.WriteLine("PID=" & PID)
+                    End If
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
+    Public Sub Main()
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition = "PigCmdAppDemo#PigCmdApp Demo|"
+            Me.MenuDefinition &= "PigConsoleDemo#PigConsole Demo|"
+            Me.MenuDefinition &= "PigSysCmdDemo#PigSysCmdDemo|"
+            Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
+            Select Case Me.MenuKey
+                Case "PigCmdAppDemo"
+                    Me.PigCmdAppDemo()
+                Case "PigConsoleDemo"
+                    Me.PigConsoleDemo()
+                Case "PigSysCmdDemo"
+                    Me.PigSysCmdDemo()
+                Case ""
+                    If Me.PigConsole.IsYesOrNo("Is exit no?") = True Then
+                        Exit Do
+                    End If
+            End Select
+        Loop
+    End Sub
+
+    Protected Overrides Sub Finalize()
+        MyBase.Finalize()
+    End Sub
+
+
+    Private Sub PigCmdApp_AsyncRet_CmdShell_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String) Handles PigCmdApp.AsyncRet_CmdShell_FullString
+        Console.WriteLine("PigCmdApp_AsyncRet_CmdShell_FullString")
+        With SyncRet
+            Console.WriteLine("BeginTime=" & .AsyncBeginTime)
+            Console.WriteLine("EndTime=" & .AsyncEndTime)
+            Console.WriteLine("Ret=" & .AsyncRet)
+            Console.WriteLine("ThreadID=" & .AsyncThreadID)
+            Console.WriteLine("AsyncCmdPID=" & .AsyncCmdPID)
+        End With
+        Console.WriteLine("StandardOutput=" & StandardOutput)
+        Console.WriteLine("StandardError=" & StandardError)
+    End Sub
+
+    Private Sub PigCmdApp_AsyncRet_CallFile_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String) Handles PigCmdApp.AsyncRet_CallFile_FullString
+        Console.WriteLine("PigCmdApp_AsyncRet_CallFile_FullString")
+        With SyncRet
+            Console.WriteLine("BeginTime=" & .AsyncBeginTime)
+            Console.WriteLine("EndTime=" & .AsyncEndTime)
+            Console.WriteLine("Ret=" & .AsyncRet)
+            Console.WriteLine("ThreadID=" & .AsyncThreadID)
+            Console.WriteLine("AsyncCmdPID=" & .AsyncCmdPID)
+        End With
+        Console.WriteLine("StandardOutput=" & StandardOutput)
+        Console.WriteLine("StandardError=" & StandardError)
+    End Sub
+
     Public Sub PigConsoleDemo()
         Do While True
             Console.Clear()
@@ -162,50 +257,5 @@ Public Class ConsoleDemo
         Loop
     End Sub
 
-    Public Sub Main()
-        Do While True
-            Console.Clear()
-            Me.MenuDefinition = "1#PigCmdAppDemo|2#PigConsoleDemo"
-            Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
-            Select Case Me.MenuKey
-                Case "1"
-                    Me.PigCmdAppDemo()
-                Case "2"
-                    Me.PigConsoleDemo()
-                Case ""
-                    If Me.PigConsole.IsYesOrNo("Is exit no?") = True Then
-                        Exit Do
-                    End If
-            End Select
-        Loop
-    End Sub
 
-    Protected Overrides Sub Finalize()
-        MyBase.Finalize()
-    End Sub
-
-
-    Private Sub PigCmdApp_AsyncRet_CmdShell_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String) Handles PigCmdApp.AsyncRet_CmdShell_FullString
-        Console.WriteLine("PigCmdApp_AsyncRet_CmdShell_FullString")
-        With SyncRet
-            Console.WriteLine("BeginTime=" & .AsyncBeginTime)
-            Console.WriteLine("EndTime=" & .AsyncEndTime)
-            Console.WriteLine("Ret=" & .AsyncRet)
-            Console.WriteLine("ThreadID=" & .AsyncThreadID)
-        End With
-        Console.WriteLine("StandardOutput=" & StandardOutput)
-        Console.WriteLine("StandardError=" & StandardError)
-    End Sub
-
-    Private Sub PigCmdApp_AsyncRet_CallFile_FullString(SyncRet As PigAsync, StandardOutput As String, StandardError As String) Handles PigCmdApp.AsyncRet_CallFile_FullString
-        Console.WriteLine("PigCmdApp_AsyncRet_CallFile_FullString")
-        With SyncRet
-            Console.WriteLine("BeginTime=" & .AsyncBeginTime)
-            Console.WriteLine("EndTime=" & .AsyncEndTime)
-            Console.WriteLine("Ret=" & .AsyncRet)
-            Console.WriteLine("ThreadID=" & .AsyncThreadID)
-        End With
-        Console.WriteLine("StandardOutput=" & StandardOutput)
-        Console.WriteLine("StandardError=" & StandardError)
-    End Sub
 End Class

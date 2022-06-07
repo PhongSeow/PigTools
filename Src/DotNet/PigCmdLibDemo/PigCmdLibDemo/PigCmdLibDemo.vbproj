@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigCmdLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>1.8.8</Version>
+    <Version>1.9.6</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigCmdLib.</Description>
@@ -13,12 +13,12 @@
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLibDemo</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>Demo PigCmdLib .net develop shell command windows Linux VB6 password string  cmdShell CallFile StandardOutput StandardError StandardInput</PackageTags>
-    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add PigSysCmd.GetOSCaption.</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.8.38" />
+    <PackageReference Include="PigCmdLib" Version="1.9.38" />
   </ItemGroup>
 
 </Project>
