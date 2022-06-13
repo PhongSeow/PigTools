@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.11
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -14,8 +14,9 @@
 '*1.6  31/5/2022  Modify CreateDomain
 '*1.7  1/6/2022  Add StartDomain,StopDomain, modify LogDirPath
 '*1.8  2/6/2022  Modify StopDomain,StartDomain
-'*1.9  4/6/2022  Rename CreateDomainRes to CallWlstRes, CallWlstPyPath to CallWlstPyPath, modify CreateDomain,RefRunStatus, add mCallWlstPyOpenTextFile,mWlstPublicCheck,mRefAll
+'*1.9  4/6/2022  Rename CreateDomainRes to CallWlstRes, CallWlstPyPath to CallWlstPyPath, modify CreateDomain,RefRunStatus, add mCallWlstPyOpenTextFile,mWlstPublicCheck,RefAll
 '*1.10 5/6/2022  Add CallWlstSucc,CallWlstFail, modify mPigCmdApp_AsyncRet_CmdShell_FullString,StartDomain
+'*1.11 13/6/2022  Rename RefAll to RefAll, modify mWlstCallMain
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -415,7 +416,7 @@ Public Class WebLogicDomain
         End Try
     End Function
 
-    Private Function mRefAll() As String
+    Public Function RefAll() As String
         Dim strRet As String
         Try
             Me.RefConf()
@@ -425,7 +426,7 @@ Public Class WebLogicDomain
             If strRet <> "OK" Then Throw New Exception(strRet)
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mRefAll", ex)
+            Return Me.GetSubErrInf("RefAll", ex)
         End Try
     End Function
 
@@ -454,8 +455,8 @@ Public Class WebLogicDomain
     Public Function StartDomain() As String
         Dim LOG As New PigStepLog("StartDomain")
         Try
-            LOG.StepName = "mRefAll"
-            LOG.Ret = Me.mRefAll()
+            LOG.StepName = "RefAll"
+            LOG.Ret = Me.RefAll()
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             LOG.StepName = "Check Status"
             If Me.mIsDeployReady = False Then Throw New Exception("The current deployment state(" & Me.DeployStatus.ToString & ") cannot start the domain.")
@@ -507,8 +508,8 @@ Public Class WebLogicDomain
     Public Function StopDomain() As String
         Dim LOG As New PigStepLog("StopDomain")
         Try
-            LOG.StepName = "mRefAll"
-            LOG.Ret = Me.mRefAll()
+            LOG.StepName = "RefAll"
+            LOG.Ret = Me.RefAll()
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             LOG.StepName = "Check Status"
             If Me.mIsDeployReady = False Then Throw New Exception("The current deployment state(" & Me.DeployStatus.ToString & ") cannot stop the domain.")
@@ -588,8 +589,8 @@ Public Class WebLogicDomain
             If Me.AdminUserName = "" Or Me.AdminUserPassword = "" Then Throw New Exception("Administrator user or password not set.")
             LOG.StepName = "Check Wls.Jar"
             If Me.mIsFileExists(Me.fParent.WlsJarPath) = False Then Throw New Exception(Me.fParent.WlsJarPath & " not found.")
-            LOG.StepName = "mRefAll"
-            LOG.Ret = Me.mRefAll()
+            LOG.StepName = "RefAll"
+            LOG.Ret = Me.RefAll()
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Me.WlstCallCmd = WlstCallCmd
             LOG.StepName = "Check WlstCallCmd"

@@ -4,7 +4,7 @@
     <RootNamespace>PigWebCtrlLib</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.3.12</Version>
+    <Version>1.3.18</Version>
     <Authors>Seow Phong</Authors>
     <Product>Seow Phong Studio</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -15,9 +15,10 @@
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop windows Linux weblogic tomcat nginx web</PackageTags>
     <Description>An application class library for dealing with mainstream Web Services.
+Manage and control Weblogic.
 It can run on Windows and Linux platforms.
 </Description>
-    <PackageReleaseNotes>Add more WLST functions.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add WebLogicDomain.RefAll and Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,9 +33,9 @@ It can run on Windows and Linux platforms.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.9.10" />
+    <PackageReference Include="PigCmdLib" Version="1.9.38" />
     <PackageReference Include="PigObjFsLib" Version="2.0.18" />
-    <PackageReference Include="PigToolsLiteLib" Version="2.7.8" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.7.38" />
   </ItemGroup>
 
 </Project>
