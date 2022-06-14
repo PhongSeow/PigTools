@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 配置项段落|Configuration session
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.8
 '* Create Time: 21/12/2021
 '* 1.1    22/12/2020   Modify mNew 
 '* 1.2    23/12/2020   Modify mNew 
@@ -12,10 +12,12 @@
 '* 1.4    25/12/2020   Add SessionDesc, modify New,mNew
 '* 1.5    2/2/2022     Add IsChange
 '* 1.6    21/2/2022    Modify IsChange
+'* 1.7    8/5/2022     Modify IsChange,mNew, add LastMD5,fCurrPigMD5
+'* 1.8    9/5/2022     Add fSaveCurrMD5
 '**********************************
 Public Class PigConfigSession
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.2"
+    Private Const CLS_VERSION As String = "1.8.1"
 
     Private moPigConfigs As PigConfigs
     Public Property PigConfigs As PigConfigs
@@ -167,22 +169,77 @@ Public Class PigConfigSession
         End Get
     End Property
 
-    Private mbolIsChange As Boolean
-    Public Property IsChange As Boolean
+    Public ReadOnly Property IsChange As Boolean
         Get
-            For Each oPigConfig As PigConfig In Me.PigConfigs
-                If oPigConfig.IsChange = True Then
-                    If mbolIsChange = False Then
-                        mbolIsChange = True
+            If Me.fLastPigMD5 = Me.fCurrPigMD5 Then
+                IsChange = False
+            Else
+                IsChange = True
+            End If
+            If IsChange = False Then
+                For Each oPigConfig As PigConfig In Me.PigConfigs
+                    If oPigConfig.IsChange = True Then
+                        IsChange = True
+                        Exit For
                     End If
-                    Exit For
+                Next
+            End If
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' 当前值的PigMD5
+    ''' </summary>
+    Friend ReadOnly Property fCurrPigMD5 As String
+        Get
+            Try
+                Dim oPigXml As New PigXml(False)
+                With Me
+                    oPigXml.AddEle("SessionName", .SessionName)
+                    oPigXml.AddEle("SessionDesc", .SessionDesc)
+                End With
+                Dim oPigMD5 As New PigMD5(oPigXml.MainXmlStr, PigMD5.enmTextType.UTF8)
+                fCurrPigMD5 = oPigMD5.PigMD5
+                oPigXml = Nothing
+                oPigMD5 = Nothing
+            Catch ex As Exception
+                Me.SetSubErrInf("fCurrPigMD5", ex)
+                Return ""
+            End Try
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' 上个值的PigMD5
+    ''' </summary>
+    Private mstrLastMD5 As String
+    Friend ReadOnly Property fLastPigMD5 As String
+        Get
+            Return mstrLastMD5
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' 保存当前值的PigMD5
+    ''' </summary>
+    ''' <returns></returns>
+    Friend Function fSaveCurrMD5() As String
+        Dim LOG As New PigStepLog("fSaveCurrMD5")
+        Try
+            Dim strErr As String = ""
+            mstrLastMD5 = Me.fCurrPigMD5
+            LOG.StepName = "For Each oPigConfig"
+            For Each oPigConfig As PigConfig In Me.PigConfigs
+                LOG.Ret = oPigConfig.fSaveCurrMD5()
+                If LOG.Ret <> "OK" Then
+                    strErr &= "fSaveCurrMD5(" & oPigConfig.ConfName & ")" & LOG.Ret & Me.OsCrLf
                 End If
             Next
-            Return mbolIsChange
-        End Get
-        Friend Set(value As Boolean)
-            mbolIsChange = value
-        End Set
-    End Property
+            If strErr <> "" Then Throw New Exception(strErr)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 End Class

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 配置应用类|Configure application classes
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.11
+'* Version: 1.13
 '* Create Time: 18/12/2021
 '* 1.1    20/12/2020   Add mNew,MkEncKey,mLoadConfig,GetEncStr
 '* 1.2    21/12/2020   Modify mLoadConfig,EnmSaveType,mNew, add LoadConfig,LoadConfigFile,SaveConfigFile,SaveConfig,PigConfigSessions,AddNewConfigSession
@@ -17,11 +17,13 @@
 '* 1.9    3/1/2021     Modify mSaveConfig
 '* 1.10   2/2/2022     Add IsChange
 '* 1.11   21/2/2022    Modify mLoadConfig,IsChange,SaveConfigFile,SaveConfig, add fSetIsChangeFalse
+'* 1.12   9/5/2022     Remove fSetIsChangeFalse, modify fSaveCurrMD5
+'* 1.13   10/5/2022    Modify mLoadConfig,IsLoadConfClearFrist
 '**********************************
 Imports Microsoft.VisualBasic
 Public Class PigConfigApp
     Inherits PigBaseMini
-	Private Const CLS_VERSION As String = "1.11.5"
+	Private Const CLS_VERSION As String = "1.13.6"
 	Public Enum EnmSaveType
 		''' <summary>
 		''' XML text
@@ -146,7 +148,7 @@ Public Class PigConfigApp
 
 
 	Public Function LoadConfigFile(FilePath As String, SaveType As EnmSaveType) As String
-		Dim LOG As New PigStepLog("LoadConfig.Base64")
+		Dim LOG As New PigStepLog("LoadConfig")
 		Try
 			LOG.StepName = "New PigFile"
 			Dim oPigFile As New PigFile(FilePath)
@@ -318,6 +320,7 @@ Public Class PigConfigApp
 												LOG.AddStepNameInf(strConfName)
 												Throw New Exception("oPigConfig Is Nothing")
 											End If
+											oPigConfig.ConfValue = strConfValue
 											Select Case Left(strLastLine, 1)
 												Case ";", "#"
 													oPigConfig.ConfDesc = Mid(strLastLine, 2)
@@ -394,8 +397,8 @@ Public Class PigConfigApp
 						Loop
 					Loop
 			End Select
-			LOG.StepName = "fSetIsChangeFalse"
-			LOG.Ret = Me.fSetIsChangeFalse()
+			LOG.StepName = "fSaveCurrMD5"
+			LOG.Ret = Me.fSaveCurrMD5
 			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			ptConfData = Nothing
 			Return "OK"
@@ -529,8 +532,8 @@ Public Class PigConfigApp
 				LOG.AddStepNameInf(FilePath)
 				Throw New Exception(LOG.Ret)
 			End If
-			LOG.StepName = "fSetIsChangeFalse"
-			LOG.Ret = Me.fSetIsChangeFalse()
+			LOG.StepName = "fSaveCurrMD5"
+			LOG.Ret = Me.fSaveCurrMD5()
 			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			Return "OK"
 		Catch ex As Exception
@@ -551,8 +554,8 @@ Public Class PigConfigApp
 			If oPigText.LastErr <> "" Then Throw New Exception(oPigText.LastErr)
 			OutConfData = oPigText.Text
 			oPigText = Nothing
-			LOG.StepName = "fSetIsChangeFalse"
-			LOG.Ret = Me.fSetIsChangeFalse()
+			LOG.StepName = "fSaveCurrMD5"
+			LOG.Ret = Me.fSaveCurrMD5()
 			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			Return "OK"
 		Catch ex As Exception
@@ -569,8 +572,8 @@ Public Class PigConfigApp
 			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			OutConfData = oPigBytes.Main
 			oPigBytes = Nothing
-			LOG.StepName = "fSetIsChangeFalse"
-			LOG.Ret = Me.fSetIsChangeFalse()
+			LOG.StepName = "fSaveCurrMD5"
+			LOG.Ret = Me.fSaveCurrMD5()
 			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			Return "OK"
 		Catch ex As Exception
@@ -744,7 +747,7 @@ Public Class PigConfigApp
 		Get
 			Return mbolIsLoadConfClearFrist
 		End Get
-		Friend Set(value As Boolean)
+		Set(value As Boolean)
 			mbolIsLoadConfClearFrist = value
 		End Set
 	End Property
@@ -767,42 +770,59 @@ Public Class PigConfigApp
 		End Try
 	End Function
 
-	Friend Function fSetIsChangeFalse() As String
-		Try
-			For Each oPigConfigSession As PigConfigSession In Me.PigConfigSessions
-				For Each oPigConfig As PigConfig In oPigConfigSession.PigConfigs
-					If oPigConfig.IsChange = True Then
-						oPigConfig.IsChange = False
-					End If
-				Next
-				If oPigConfigSession.IsChange = True Then
-					oPigConfigSession.IsChange = False
-				End If
-			Next
-			If Me.IsChange = True Then
-				Me.IsChange = False
-			End If
-			Return "OK"
-		Catch ex As Exception
-			Return Me.GetSubErrInf("fSetIsChangeFalse", ex)
-		End Try
-	End Function
-	Private mbolIsChange As Boolean
-	Public Property IsChange As Boolean
+	'Friend Function fSetIsChangeFalse() As String
+	'	Try
+	'		For Each oPigConfigSession As PigConfigSession In Me.PigConfigSessions
+	'			For Each oPigConfig As PigConfig In oPigConfigSession.PigConfigs
+	'				If oPigConfig.IsChange = True Then
+	'					oPigConfig.IsChange = False
+	'				End If
+	'			Next
+	'			If oPigConfigSession.IsChange = True Then
+	'				oPigConfigSession.IsChange = False
+	'			End If
+	'		Next
+	'		If Me.IsChange = True Then
+	'			Me.IsChange = False
+	'		End If
+	'		Return "OK"
+	'	Catch ex As Exception
+	'		Return Me.GetSubErrInf("fSetIsChangeFalse", ex)
+	'	End Try
+	'End Function
+	Public ReadOnly Property IsChange As Boolean
 		Get
+			IsChange = False
 			For Each oPigConfigSession As PigConfigSession In Me.PigConfigSessions
 				If oPigConfigSession.IsChange = True Then
-					If mbolIsChange = False Then
-						mbolIsChange = True
-					End If
+					IsChange = True
 					Exit For
 				End If
 			Next
-			Return mbolIsChange
 		End Get
-		Friend Set(value As Boolean)
-			mbolIsChange = value
-		End Set
 	End Property
+
+	''' <summary>
+	''' 保存当前值的PigMD5
+	''' </summary>
+	''' <returns></returns>
+	Friend Function fSaveCurrMD5() As String
+		Dim LOG As New PigStepLog("fSaveCurrMD5")
+		Try
+			Dim strErr As String = ""
+			LOG.StepName = "For Each oPigConfigSession"
+			For Each oPigConfigSession As PigConfigSession In Me.PigConfigSessions
+				LOG.Ret = oPigConfigSession.fSaveCurrMD5()
+				If LOG.Ret <> "OK" Then
+					strErr &= "fSaveCurrMD5(" & oPigConfigSession.SessionName & ")" & LOG.Ret & Me.OsCrLf
+				End If
+			Next
+			If strErr <> "" Then Throw New Exception(strErr)
+			Return "OK"
+		Catch ex As Exception
+			Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+		End Try
+	End Function
+
 
 End Class

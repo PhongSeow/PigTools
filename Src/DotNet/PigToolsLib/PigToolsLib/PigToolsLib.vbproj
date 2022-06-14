@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLib</RootNamespace>
     <TargetFrameworks>net5.0;netcoreapp3.1;net6.0;</TargetFrameworks>
-    <Version>2.1.8</Version>
+    <Version>2.7.38</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.

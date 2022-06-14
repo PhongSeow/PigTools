@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.11
+'* Version: 1.15
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -22,16 +22,23 @@
 '*1.9    20/3/2022   Modify GetProcThreadID
 '*1.10   2/4/2022   Add GetHumanSize
 '*1.11   9/4/2022   Add DigitalToChnName,ConvertHtmlStr,GetAlignStr,GetRepeatStr
+'*1.12   14/5/2022  Rename and modify OptLogInfMain to mOptLogInfMain,SaveTextToFile to mSaveTextToFile, add ASyncOptLogInf,ASyncSaveTextToFile
+'*1.13   15/5/2022  Add ASyncRet_SaveTextToFile, modify mASyncSaveTextToFile,ASyncSaveTextToFile
+'*1.14   16/5/2022  Modify mASyncSaveTextToFile,ASyncSaveTextToFile
+'*1.15   31/5/2022  Add GEInt, modify GECBool
 '**********************************
 Imports System.IO
 Imports System.Net
 Imports System.Net.Sockets
 Imports System.Environment
+Imports System.Threading
 
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.11.8"
+    Private Const CLS_VERSION As String = "1.15.2"
+
+    Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
     ''' <summary>对齐方式|Alignment</summary>
     Public Enum EnmAlignment
@@ -88,38 +95,120 @@ Public Class PigFunc
         System.Threading.Thread.Sleep(DelayMs)
     End Sub
 
+    ''' <remarks>异步写日志</remarks>
+    Public Overloads Function ASyncOptLogInf(OptStr As String, LogFilePath As String) As String
+        Return Me.mASyncOptLogInfMain(OptStr, LogFilePath)
+    End Function
+
+
     ''' <remarks>写日志</remarks>
     Public Overloads Function OptLogInf(OptStr As String, LogFilePath As String) As String
-        OptLogInf = Me.OptLogInfMain(OptStr, LogFilePath, True)
+        Dim struMain As mStruOptLogInfMain
+        With struMain
+            .OptStr = OptStr
+            .LogFilePath = LogFilePath
+            .IsShowLocalInf = True
+        End With
+        OptLogInf = Me.mOptLogInfMain(struMain)
+    End Function
+
+    ''' <remarks>写日志</remarks>
+    Private Function mASyncOptLogInfMain(OptStr As String, LogFilePath As String, Optional IsShowLocalInf As Boolean = True, Optional LineBufSize As Integer = 10240) As String
+        Try
+            Dim struMain As mStruOptLogInfMain
+            With struMain
+                .OptStr = OptStr
+                .LogFilePath = LogFilePath
+                .IsShowLocalInf = IsShowLocalInf
+                .LineBufSize = LineBufSize
+            End With
+            Dim oThread As New Thread(AddressOf mOptLogInfMain)
+            oThread.Start(struMain)
+            oThread = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("mASyncOptLogInfMain", ex)
+        End Try
+    End Function
+
+    ''' <remarks>异步写日志</remarks>
+    Public Overloads Function ASyncOptLogInf(OptStr As String, LogFilePath As String, IsShowLocalInf As Boolean) As String
+        Return Me.mASyncOptLogInfMain(OptStr, LogFilePath, IsShowLocalInf)
     End Function
 
     ''' <remarks>写日志</remarks>
     Public Overloads Function OptLogInf(OptStr As String, LogFilePath As String, IsShowLocalInf As Boolean) As String
-        OptLogInf = Me.OptLogInfMain(OptStr, LogFilePath, IsShowLocalInf)
+        Dim struMain As mStruOptLogInfMain
+        With struMain
+            .OptStr = OptStr
+            .LogFilePath = LogFilePath
+            .IsShowLocalInf = IsShowLocalInf
+        End With
+        OptLogInf = Me.mOptLogInfMain(struMain)
     End Function
+
+    ''' <remarks>异步写日志</remarks>
+    Public Overloads Function ASyncOptLogInf(OptStr As String, LogFilePath As String, LineBufSize As Integer) As String
+        Return Me.mASyncOptLogInfMain(OptStr, LogFilePath, , LineBufSize)
+    End Function
+
 
     ''' <remarks>写日志</remarks>
     Public Overloads Function OptLogInf(OptStr As String, LogFilePath As String, LineBufSize As Integer) As String
-        OptLogInf = Me.OptLogInfMain(OptStr, LogFilePath, True, LineBufSize)
+        Dim struMain As mStruOptLogInfMain
+        With struMain
+            .OptStr = OptStr
+            .LogFilePath = LogFilePath
+            .IsShowLocalInf = True
+        End With
+        OptLogInf = Me.mOptLogInfMain(struMain)
     End Function
 
+    ''' <remarks>异步写日志</remarks>
+    Public Overloads Function ASyncOptLogInf(OptStr As String, LogFilePath As String, IsShowLocalInf As Boolean, LineBufSize As Integer) As String
+        Return Me.mASyncOptLogInfMain(OptStr, LogFilePath, IsShowLocalInf, LineBufSize)
+    End Function
     ''' <remarks>写日志</remarks>
     Public Overloads Function OptLogInf(OptStr As String, LogFilePath As String, IsShowLocalInf As Boolean, LineBufSize As Integer) As String
-        OptLogInf = Me.OptLogInfMain(OptStr, LogFilePath, IsShowLocalInf, LineBufSize)
+        Dim struMain As mStruOptLogInfMain
+        With struMain
+            .OptStr = OptStr
+            .LogFilePath = LogFilePath
+            .IsShowLocalInf = IsShowLocalInf
+            .LineBufSize = LineBufSize
+        End With
+        OptLogInf = Me.mOptLogInfMain(struMain)
     End Function
 
-    Private Function OptLogInfMain(OptStr As String, LogFilePath As String, Optional IsShowLocalInf As Boolean = True, Optional LineBufSize As Integer = 10240) As String
-        '写日志文件
+    Private Structure mStruOptLogInfMain
+        Public OptStr As String
+        Public LogFilePath As String
+        Public IsShowLocalInf As Boolean
+        Public LineBufSize As Integer
+    End Structure
+
+    Private Function mOptLogInfMain(StruMain As mStruOptLogInfMain) As String
+        Dim LOG As New PigStepLog("mOptLogInfMain")
         Try
-            Dim sfAny As New System.IO.FileStream(LogFilePath, System.IO.FileMode.Append, System.IO.FileAccess.Write, System.IO.FileShare.Write, LineBufSize, False)
-            Dim swAny = New System.IO.StreamWriter(sfAny)
-            If IsShowLocalInf = True Then OptStr = "[" & GENow() & "][" & GetProcThreadID() & "]" & OptStr
-            swAny.WriteLine(OptStr)
+            LOG.StepName = "Check StruOptLogInfMain"
+            With StruMain
+                If .LineBufSize <= 0 Then .LineBufSize = 10240
+                If .LogFilePath = "" Then Throw New Exception("LogFilePath invalid")
+            End With
+            LOG.StepName = "New FileStream"
+            Dim sfAny As New FileStream(StruMain.LogFilePath, System.IO.FileMode.Append, System.IO.FileAccess.Write, System.IO.FileShare.Write, StruMain.LineBufSize, False)
+            LOG.StepName = "New StreamWriter"
+            Dim swAny = New StreamWriter(sfAny)
+            If StruMain.IsShowLocalInf = True Then StruMain.OptStr = "[" & GENow() & "][" & GetProcThreadID() & "]" & StruMain.OptStr
+            LOG.StepName = "WriteLine"
+            swAny.WriteLine(StruMain.OptStr)
+            LOG.StepName = "Close"
             swAny.Close()
             sfAny.Close()
-            OptLogInfMain = "OK"
+            Return "OK"
         Catch ex As Exception
-            OptLogInfMain = ex.Message.ToString
+            LOG.AddStepNameInf(StruMain.LogFilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -518,9 +607,31 @@ Public Class PigFunc
         End Try
     End Function
 
+    Public Function GECBool(vData As String, IsEmptyTrue As Boolean) As Boolean
+        Try
+            If IsEmptyTrue = True And vData = "" Then
+                Return True
+            Else
+                Return CBool(vData)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("GECBool", ex)
+            Return False
+        End Try
+    End Function
+
+    Public Function GEInt(vData As String) As Integer
+        Try
+            Return CInt(vData)
+        Catch ex As Exception
+            Me.SetSubErrInf("GECLng", ex)
+            Return 0
+        End Try
+    End Function
+
     Public Function GECLng(vData As String) As Long
         Try
-            Return GECLng(vData)
+            Return CLng(vData)
         Catch ex As Exception
             Me.SetSubErrInf("GECLng", ex)
             Return 0
@@ -757,18 +868,73 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function SaveTextToFile(FilePath As String, SaveText As String) As String
-        Dim LOG As New PigStepLog("SaveTextToFile")
+    Public Function ASyncSaveTextToFile(FilePath As String, SaveText As String, ByRef OutThreadID As Integer) As String
+        Return Me.mASyncSaveTextToFile(FilePath, SaveText, OutThreadID)
+    End Function
+
+
+    Private Function mASyncSaveTextToFile(FilePath As String, SaveText As String, ByRef OutThreadID As Integer) As String
         Try
-            LOG.StepName = "New StreamWriter"
-            Dim swMain As New StreamWriter(FilePath, False)
-            LOG.StepName = "Write"
-            swMain.Write(SaveText)
-            LOG.StepName = "Close"
-            swMain.Close()
+            Dim struMain As mStruSaveTextToFile
+            With struMain
+                .FilePath = FilePath
+                .SaveText = SaveText
+                .IsAsync = True
+            End With
+            Dim oThread As New Thread(AddressOf mSaveTextToFile)
+            oThread.Start(struMain)
+            OutThreadID = oThread.ManagedThreadId
+            oThread = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(FilePath)
+            Return Me.GetSubErrInf("mASyncSaveTextToFile", ex)
+        End Try
+    End Function
+
+    Public Function SaveTextToFile(FilePath As String, SaveText As String) As String
+        Dim struMain As mStruSaveTextToFile
+        With struMain
+            .FilePath = FilePath
+            .SaveText = SaveText
+        End With
+        Return Me.mSaveTextToFile(struMain)
+    End Function
+
+
+    Private Structure mStruSaveTextToFile
+        Public FilePath As String
+        Public SaveText As String
+        Public IsAsync As Boolean
+    End Structure
+
+    Private Function mSaveTextToFile(StruMain As mStruSaveTextToFile) As String
+        Dim LOG As New PigStepLog("mSaveTextToFile")
+        Dim sarMain As StruASyncRet
+        Try
+            If StruMain.IsAsync = True Then
+                sarMain.BeginTime = Now
+            End If
+            LOG.StepName = "New StreamWriter"
+            Dim swMain As New StreamWriter(StruMain.FilePath, False)
+            LOG.StepName = "Write"
+            swMain.Write(StruMain.SaveText)
+            LOG.StepName = "Close"
+            swMain.Close()
+            If StruMain.IsAsync = True Then
+                sarMain.EndTime = Now
+                sarMain.ThreadID = Thread.CurrentThread.ManagedThreadId
+                sarMain.Ret = "OK"
+                RaiseEvent ASyncRet_SaveTextToFile(sarMain)
+            End If
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(StruMain.FilePath)
+            If StruMain.IsAsync = True Then
+                sarMain.EndTime = Now
+                sarMain.ThreadID = Thread.CurrentThread.ManagedThreadId
+                sarMain.Ret = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+                RaiseEvent ASyncRet_SaveTextToFile(sarMain)
+            End If
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
