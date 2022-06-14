@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.11
+'* Version: 1.12
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -17,6 +17,7 @@
 '*1.9  4/6/2022  Rename CreateDomainRes to CallWlstRes, CallWlstPyPath to CallWlstPyPath, modify CreateDomain,RefRunStatus, add mCallWlstPyOpenTextFile,mWlstPublicCheck,RefAll
 '*1.10 5/6/2022  Add CallWlstSucc,CallWlstFail, modify mPigCmdApp_AsyncRet_CmdShell_FullString,StartDomain
 '*1.11 13/6/2022  Rename RefAll to RefAll, modify mWlstCallMain
+'*1.12 15/6/2022  Add JavaPID
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -24,7 +25,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.10.13"
+    Private Const CLS_VERSION As String = "1.12.2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -163,6 +164,39 @@ Public Class WebLogicDomain
         End Get
         Friend Set(value As String)
             mstrStartDomainRes = value
+        End Set
+    End Property
+
+    Private mintJavaPID As Integer = -1
+
+    Public Property JavaPID As Integer
+        Get
+            Return mintJavaPID
+        End Get
+        Friend Set(value As Integer)
+            mintJavaPID = value
+        End Set
+    End Property
+
+    Private mdteJavaStartTime As DateTime = TEMP_DATE
+
+    Public Property JavaStartTime As DateTime
+        Get
+            Return mdteJavaStartTime
+        End Get
+        Friend Set(value As DateTime)
+            mdteJavaStartTime = value
+        End Set
+    End Property
+
+    Private mtsJavaRunTime As TimeSpan = TimeSpan.Zero
+
+    Public Property JavaRunTime As TimeSpan
+        Get
+            Return mtsJavaRunTime
+        End Get
+        Friend Set(value As TimeSpan)
+            mtsJavaRunTime = value
         End Set
     End Property
 
@@ -803,8 +837,15 @@ Public Class WebLogicDomain
                                         Else
                                             If UCase(oPigProc.ProcessName) = "JAVA" Then
                                                 Me.RunStatus = EnmDomainRunStatus.Running
+                                                Me.JavaPID = oPigProc.ProcessID
+                                                Me.JavaStartTime = oPigProc.StartTime
+                                                Me.JavaRunTime = oPigProc.UserProcessorTime
+                                                oPigProc.MemoryUse
                                             Else
                                                 Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
+                                                Me.JavaPID = -1
+                                                Me.JavaStartTime = TEMP_DATE
+                                                Me.JavaRunTime = TimeSpan.Zero
                                             End If
                                         End If
                                     ElseIf Me.RunStatus = EnmDomainRunStatus.Starting Then
