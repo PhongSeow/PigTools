@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <RootNamespace>GetFileAndDirListLibDemo</RootNamespace>
-    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;net6.0;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net48;net5.0;netcoreapp3.1;net6.0;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Demo console program for GetFileAndDirListLib.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.1.38</Version>
+    <Version>1.2.8</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Product>GetFileAndDirListLib Demo Console</Product>
@@ -24,7 +24,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.1.88" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.2.8" />
   </ItemGroup>
 
 </Project>
