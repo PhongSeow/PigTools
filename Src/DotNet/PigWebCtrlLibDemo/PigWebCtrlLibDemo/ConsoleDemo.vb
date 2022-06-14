@@ -20,7 +20,7 @@ Imports PigWebCtrlLib
 
 Public Class ConsoleDemo
     Public WebLogicApp As WebLogicApp
-    Public WebLogicDomain As WebLogicDomain
+    Public WithEvents WebLogicDomain As WebLogicDomain
     Public PID As String
     Public Cmd As String
     Public Para As String
@@ -147,7 +147,6 @@ Public Class ConsoleDemo
                     Console.WriteLine("*******************")
                     Console.WriteLine("New WebLogicApp")
                     Console.WriteLine("*******************")
-
                     Me.PigConsole.GetLine("Input weblogic home folder path", Me.HomeDirPath)
                     Me.PigConsole.GetLine("Input work temporary folder path", Me.WorkTmpDirPath)
                     Me.WebLogicApp = New WebLogicApp(Me.HomeDirPath, Me.WorkTmpDirPath)
@@ -207,6 +206,11 @@ Public Class ConsoleDemo
                             Console.WriteLine("IsConnectOK=" & .IsConnectOK)
                             Console.WriteLine("StartDomainRes=" & .StartDomainRes)
                             Console.WriteLine("StopDomainRes=" & .StopDomainRes)
+                            Console.WriteLine("###############")
+                            Console.WriteLine("JavaPID=" & .JavaPID)
+                            Console.WriteLine("JavaStartTime=" & .JavaStartTime)
+                            Console.WriteLine("JavaMemoryUse=" & .JavaMemoryUse)
+                            Console.WriteLine("JavaCpuTime=" & .JavaCpuTime.ToString)
                         End With
                         Console.WriteLine("*******************")
                     Next
@@ -240,5 +244,15 @@ Public Class ConsoleDemo
         MyBase.Finalize()
     End Sub
 
+    Private Sub WebLogicDomain_CallWlstSucc(WlstCallCmd As WebLogicDomain.EnmWlstCallCmd, ResInf As String) Handles WebLogicDomain.CallWlstSucc
+        Console.WriteLine("WebLogicDomain_CallWlstSucc")
+        Console.WriteLine("WlstCallCmd=" & WlstCallCmd.ToString)
+        Console.WriteLine("ResInf=" & ResInf)
+    End Sub
 
+    Private Sub WebLogicDomain_CallWlstFail(WlstCallCmd As WebLogicDomain.EnmWlstCallCmd, ErrInf As String) Handles WebLogicDomain.CallWlstFail
+        Console.WriteLine("WebLogicDomain_CallWlstFail")
+        Console.WriteLine("WlstCallCmd=" & WlstCallCmd.ToString)
+        Console.WriteLine("ResInf=" & ErrInf)
+    End Sub
 End Class

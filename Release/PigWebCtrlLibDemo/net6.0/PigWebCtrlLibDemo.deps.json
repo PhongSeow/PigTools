@@ -6,90 +6,90 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v6.0": {
-      "PigWebCtrlLibDemo/1.2.3": {
+      "PigWebCtrlLibDemo/1.3.28": {
         "dependencies": {
-          "PigCmdLib": "1.9.10",
-          "PigWebCtrlLib": "1.2.16"
+          "PigCmdLib": "1.9.38",
+          "PigWebCtrlLib": "1.3.28"
         },
         "runtime": {
           "PigWebCtrlLibDemo.dll": {}
         }
       },
-      "PigCmdLib/1.9.10": {
+      "PigCmdLib/1.9.38": {
         "dependencies": {
-          "PigToolsLiteLib": "2.7.8"
+          "PigToolsLiteLib": "2.7.38"
         },
         "runtime": {
           "lib/net6.0/PigCmdLib.dll": {
-            "assemblyVersion": "1.9.10.0",
-            "fileVersion": "1.9.10.0"
+            "assemblyVersion": "1.9.38.0",
+            "fileVersion": "1.9.38.0"
           }
         }
       },
-      "PigObjFsLib/2.0.18": {
+      "PigObjFsLib/2.0.28": {
         "runtime": {
           "lib/net6.0/PigObjFsLib.dll": {
-            "assemblyVersion": "2.0.18.0",
-            "fileVersion": "2.0.18.0"
+            "assemblyVersion": "2.0.28.0",
+            "fileVersion": "2.0.28.0"
           }
         }
       },
-      "PigToolsLiteLib/2.7.8": {
+      "PigToolsLiteLib/2.7.38": {
         "runtime": {
           "lib/net6.0/PigToolsLiteLib.dll": {
-            "assemblyVersion": "2.7.2.0",
-            "fileVersion": "2.7.2.0"
+            "assemblyVersion": "2.7.38.0",
+            "fileVersion": "2.7.38.0"
           }
         }
       },
-      "PigWebCtrlLib/1.2.16": {
+      "PigWebCtrlLib/1.3.28": {
         "dependencies": {
-          "PigCmdLib": "1.9.10",
-          "PigObjFsLib": "2.0.18",
-          "PigToolsLiteLib": "2.7.8"
+          "PigCmdLib": "1.9.38",
+          "PigObjFsLib": "2.0.28",
+          "PigToolsLiteLib": "2.7.38"
         },
         "runtime": {
           "lib/net6.0/PigWebCtrlLib.dll": {
-            "assemblyVersion": "1.2.16.0",
-            "fileVersion": "1.2.16.0"
+            "assemblyVersion": "1.3.28.0",
+            "fileVersion": "1.3.28.0"
           }
         }
       }
     }
   },
   "libraries": {
-    "PigWebCtrlLibDemo/1.2.3": {
+    "PigWebCtrlLibDemo/1.3.28": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "PigCmdLib/1.9.10": {
+    "PigCmdLib/1.9.38": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-P7CVl/HyncRqtRhUFKlfFINu64iKk8u7ENVzD2LIpuZQ4aMQ79ZCCS1UBmzjiX8Flk/oqsUSd6IawyyYlfxK7g==",
-      "path": "pigcmdlib/1.9.10",
-      "hashPath": "pigcmdlib.1.9.10.nupkg.sha512"
+      "sha512": "sha512-zesKmjMIL1Sc2I3P1lb/qILwbkz9BCMHFz+DmiB+XMDN1GA3G5esxdcqOSVPOrajLhEes4X1MWbWJn9tApxezA==",
+      "path": "pigcmdlib/1.9.38",
+      "hashPath": "pigcmdlib.1.9.38.nupkg.sha512"
     },
-    "PigObjFsLib/2.0.18": {
+    "PigObjFsLib/2.0.28": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-jOGmT72jBBSI9ehAQma0GyuZR88m/aEXlmET9j6TMalb7P6KVEL3TNFV8YMPOzRO13PFDhhRmTkzGAyZuc4yvw==",
-      "path": "pigobjfslib/2.0.18",
-      "hashPath": "pigobjfslib.2.0.18.nupkg.sha512"
+      "sha512": "sha512-kpXrtDDHb2GGxmmZsuG6ec5y2sWjZzQOxqdyAzjXMYwff6gWcySODvwivNO0EdHj+B0mWBpTQeVwlHGaQhJq4A==",
+      "path": "pigobjfslib/2.0.28",
+      "hashPath": "pigobjfslib.2.0.28.nupkg.sha512"
     },
-    "PigToolsLiteLib/2.7.8": {
+    "PigToolsLiteLib/2.7.38": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-p7C1BzE5iFdnN/qY5jex9XrrxdiWEy0osfhJTx4EiutdqElME9hk145EnOOog5nkl9lD4LftgBhVaG4U0JxWOQ==",
-      "path": "pigtoolslitelib/2.7.8",
-      "hashPath": "pigtoolslitelib.2.7.8.nupkg.sha512"
+      "sha512": "sha512-xOlAmUPm6L/eoUz8/Z4SvrB1WU276fukdupBvT2ArgC7zfLzsy21TJwvrMFjpWWMClSI4TiAPiogqSQXjf/RvQ==",
+      "path": "pigtoolslitelib/2.7.38",
+      "hashPath": "pigtoolslitelib.2.7.38.nupkg.sha512"
     },
-    "PigWebCtrlLib/1.2.16": {
+    "PigWebCtrlLib/1.3.28": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-wW9yQX727mgQinYBSZT1fLaYxlNtF2hYVT4f5HSdeh/xb8ATBMAz8Ur3PgytLvAImdlbOR1HYpmqcfpIw1gSVg==",
-      "path": "pigwebctrllib/1.2.16",
-      "hashPath": "pigwebctrllib.1.2.16.nupkg.sha512"
+      "sha512": "sha512-n0Et2OqKbWUaA7wYrBu3oRt21JJB/OmqeODZO6Jdc0LXlGWWQd8UXSAznFwShjGaxJQ0NrI6f0nuq45Ze9mOgg==",
+      "path": "pigwebctrllib/1.3.28",
+      "hashPath": "pigwebctrllib.1.3.28.nupkg.sha512"
     }
   }
 }
