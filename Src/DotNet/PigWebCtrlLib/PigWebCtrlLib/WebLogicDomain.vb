@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.12
+'* Version: 1.13
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -16,8 +16,9 @@
 '*1.8  2/6/2022  Modify StopDomain,StartDomain
 '*1.9  4/6/2022  Rename CreateDomainRes to CallWlstRes, CallWlstPyPath to CallWlstPyPath, modify CreateDomain,RefRunStatus, add mCallWlstPyOpenTextFile,mWlstPublicCheck,RefAll
 '*1.10 5/6/2022  Add CallWlstSucc,CallWlstFail, modify mPigCmdApp_AsyncRet_CmdShell_FullString,StartDomain
-'*1.11 13/6/2022  Rename RefAll to RefAll, modify mWlstCallMain
-'*1.12 15/6/2022  Add JavaPID
+'*1.11 12/6/2022  Rename RefAll to RefAll, modify mWlstCallMain
+'*1.12 13/6/2022  Add JavaPID
+'*1.13 14/6/2022  Add JavaMemoryUse,JavaStartTime
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -25,7 +26,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.12.2"
+    Private Const CLS_VERSION As String = "1.13.6"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -189,14 +190,29 @@ Public Class WebLogicDomain
         End Set
     End Property
 
-    Private mtsJavaRunTime As TimeSpan = TimeSpan.Zero
+    Private mdecJavaMemoryUse As Decimal = 0
 
-    Public Property JavaRunTime As TimeSpan
+    ''' <summary>
+    ''' JAVA进程使用的内存，单位：MB|Memory used by java process, unit: MB
+    ''' </summary>
+    ''' <returns></returns>
+    Public Property JavaMemoryUse As Decimal
         Get
-            Return mtsJavaRunTime
+            Return mdecJavaMemoryUse
+        End Get
+        Friend Set(value As Decimal)
+            mdecJavaMemoryUse = value
+        End Set
+    End Property
+
+    Private mtsJavaCpuTime As TimeSpan = TimeSpan.Zero
+
+    Public Property JavaCpuTime As TimeSpan
+        Get
+            Return mtsJavaCpuTime
         End Get
         Friend Set(value As TimeSpan)
-            mtsJavaRunTime = value
+            mtsJavaCpuTime = value
         End Set
     End Property
 
@@ -839,13 +855,14 @@ Public Class WebLogicDomain
                                                 Me.RunStatus = EnmDomainRunStatus.Running
                                                 Me.JavaPID = oPigProc.ProcessID
                                                 Me.JavaStartTime = oPigProc.StartTime
-                                                Me.JavaRunTime = oPigProc.UserProcessorTime
-                                                oPigProc.MemoryUse
+                                                Me.JavaCpuTime = oPigProc.UserProcessorTime
+                                                Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
                                             Else
                                                 Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
                                                 Me.JavaPID = -1
                                                 Me.JavaStartTime = TEMP_DATE
-                                                Me.JavaRunTime = TimeSpan.Zero
+                                                Me.JavaCpuTime = TimeSpan.Zero
+                                                Me.JavaMemoryUse = 0
                                             End If
                                         End If
                                     ElseIf Me.RunStatus = EnmDomainRunStatus.Starting Then

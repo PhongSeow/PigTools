@@ -6,10 +6,10 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "PigWebCtrlLib/1.3.18": {
+      "PigWebCtrlLib/1.3.28": {
         "dependencies": {
           "PigCmdLib": "1.9.38",
-          "PigObjFsLib": "2.0.18",
+          "PigObjFsLib": "2.0.28",
           "PigToolsLiteLib": "2.7.38"
         },
         "runtime": {
@@ -27,11 +27,11 @@
           }
         }
       },
-      "PigObjFsLib/2.0.18": {
+      "PigObjFsLib/2.0.28": {
         "runtime": {
           "lib/netcoreapp3.1/PigObjFsLib.dll": {
-            "assemblyVersion": "2.0.18.0",
-            "fileVersion": "2.0.18.0"
+            "assemblyVersion": "2.0.28.0",
+            "fileVersion": "2.0.28.0"
           }
         }
       },
@@ -46,7 +46,7 @@
     }
   },
   "libraries": {
-    "PigWebCtrlLib/1.3.18": {
+    "PigWebCtrlLib/1.3.28": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -58,12 +58,12 @@
       "path": "pigcmdlib/1.9.38",
       "hashPath": "pigcmdlib.1.9.38.nupkg.sha512"
     },
-    "PigObjFsLib/2.0.18": {
+    "PigObjFsLib/2.0.28": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-jOGmT72jBBSI9ehAQma0GyuZR88m/aEXlmET9j6TMalb7P6KVEL3TNFV8YMPOzRO13PFDhhRmTkzGAyZuc4yvw==",
-      "path": "pigobjfslib/2.0.18",
-      "hashPath": "pigobjfslib.2.0.18.nupkg.sha512"
+      "sha512": "sha512-kpXrtDDHb2GGxmmZsuG6ec5y2sWjZzQOxqdyAzjXMYwff6gWcySODvwivNO0EdHj+B0mWBpTQeVwlHGaQhJq4A==",
+      "path": "pigobjfslib/2.0.28",
+      "hashPath": "pigobjfslib.2.0.28.nupkg.sha512"
     },
     "PigToolsLiteLib/2.7.38": {
       "type": "package",
