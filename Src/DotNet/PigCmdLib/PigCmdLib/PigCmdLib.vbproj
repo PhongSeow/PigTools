@@ -20,8 +20,8 @@ A series of console functions, including reading lines, whether to select, simpl
 asynchronous processing.
 Wmic calls and operating system commands.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.9.38</Version>
-    <PackageReleaseNotes>Add PigSysCmd.GetOSCaption.</PackageReleaseNotes>
+    <Version>1.9.50</Version>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,7 +36,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.7.38" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.7.50" />
   </ItemGroup>
 
 </Project>
