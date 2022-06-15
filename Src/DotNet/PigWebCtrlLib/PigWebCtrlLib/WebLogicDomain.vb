@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.13
+'* Version: 1.15
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -19,14 +19,17 @@
 '*1.11 12/6/2022  Rename RefAll to RefAll, modify mWlstCallMain
 '*1.12 13/6/2022  Add JavaPID
 '*1.13 14/6/2022  Add JavaMemoryUse,JavaStartTime
+'*1.14 14/6/2022  Modify AdminPort
+'*1.15 15/6/2022  Add ConnectionFilterImpl, modify RefConf,RefRunStatus
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
 Imports PigObjFsLib
+Imports System.xm
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.13.6"
+    Private Const CLS_VERSION As String = "1.15.5"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -320,7 +323,7 @@ Public Class WebLogicDomain
     End Property
 
 
-    Private mintListenPort As String
+    Private mintListenPort As Integer
     Public Property ListenPort As Integer
         Get
             Return mintListenPort
@@ -330,13 +333,23 @@ Public Class WebLogicDomain
         End Set
     End Property
 
-    Private mintAdminPort As String
+    Private mintAdminPort As Integer
     Public Property AdminPort As Integer
         Get
             Return mintAdminPort
         End Get
         Friend Set(value As Integer)
             mintAdminPort = value
+        End Set
+    End Property
+
+    Private mstrConnectionFilterImpl As String
+    Public Property ConnectionFilterImpl As String
+        Get
+            Return mstrConnectionFilterImpl
+        End Get
+        Friend Set(value As String)
+            mstrConnectionFilterImpl = value
         End Set
     End Property
 
@@ -789,6 +802,16 @@ Public Class WebLogicDomain
                     .IsIIopEnable = oPigXml.XmlDocGetBoolEmpTrue("domain.server.iiop-enabled")
                     .IsAdminPortEnable = oPigXml.XmlDocGetBool("domain.administration-port-enabled")
                     .AdminPort = oPigXml.XmlDocGetInt("domain.administration-port")
+                    If oPigXml.XmlDocGetStr("domain.security-configuration.connection-filter") = "weblogic.security.net.ConnectionFilterImpl" Then
+                        Dim intSkipTimes As Integer = 0
+                        Me.ConnectionFilterImpl = ""
+                        Do While True
+                            Dim strLine As String = oPigXml.GetXmlDocText("domain.security-configuration.connection-filter-rule", intSkipTimes)
+                            If strLine Is Nothing Then Exit Do
+                            Me.ConnectionFilterImpl &= strLine & Me.OsCrLf
+                            intSkipTimes += 1
+                        Loop
+                    End If
                     .mConfFileUpdtime = oPigFile.UpdateTime
                 End With
             End If
@@ -859,10 +882,6 @@ Public Class WebLogicDomain
                                                 Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
                                             Else
                                                 Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
-                                                Me.JavaPID = -1
-                                                Me.JavaStartTime = TEMP_DATE
-                                                Me.JavaCpuTime = TimeSpan.Zero
-                                                Me.JavaMemoryUse = 0
                                             End If
                                         End If
                                     ElseIf Me.RunStatus = EnmDomainRunStatus.Starting Then
@@ -876,6 +895,12 @@ Public Class WebLogicDomain
                             End Select
                     End Select
             End Select
+            If Me.RunStatus <> EnmDomainRunStatus.Running Then
+                Me.JavaPID = -1
+                Me.JavaStartTime = TEMP_DATE
+                Me.JavaCpuTime = TimeSpan.Zero
+                Me.JavaMemoryUse = 0
+            End If
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
