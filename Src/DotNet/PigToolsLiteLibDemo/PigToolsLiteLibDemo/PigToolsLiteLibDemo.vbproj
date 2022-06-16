@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsLiteLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.7.8</Version>
+    <Version>2.8.2</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigToolsLiteLib</Description>
@@ -14,12 +14,12 @@
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLibDemo</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa PigToolsLiteLib</PackageTags>
-    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add PigVBCode to generate collection class code.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.9.38" />
-    <PackageReference Include="PigToolsLiteLib" Version="2.7.38" />
+    <PackageReference Include="PigCmdLib" Version="1.9.50" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.8.8" />
   </ItemGroup>
 
   <ItemGroup>

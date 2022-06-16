@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.16.8
+'* Version: 1.17.6
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -22,6 +22,7 @@
 '* 1.14   29/5/2022   Add PigXmlDemo
 '* 1.15   30/5/2022   Modify PigXmlDemo
 '* 1.16   3/6/2022   Modify PigXmlDemo
+'* 1.17   16/6/2022   Add  PigVBCode Demo
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -73,6 +74,9 @@ Public Class ConsoleDemo
     Public XmlStr As String = "<a><b id='1'>b1</b><b id='2'>b2</b><b id='3'>b3</b></a>"
     Public SkipTimes As String = "0"
     Public XmlNode As XmlNode
+    Public PigVBCode As New PigVBCode
+    Public ClassName As String
+    Public KeyName As String
     Public Sub Main()
         Do While True
             Console.Clear()
@@ -92,11 +96,26 @@ Public Class ConsoleDemo
             Console.WriteLine("Press J to PigConfig")
             Console.WriteLine("Press K to PigXml")
             Console.WriteLine("Press L to PigProc")
+            Console.WriteLine("Press M to PigVBCode")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
                     Exit Do
+                Case ConsoleKey.M
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("ShareMem")
+                    Console.WriteLine("*******************")
+                    Me.PigConsole.GetLine("Input Member Class Name", Me.ClassName）
+                    Me.PigConsole.GetLine("Input Member Class KeyName", Me.KeyName）
+                    Me.PigConsole.GetLine("Input save file path", Me.FilePath）
+                    Dim strData As String = ""
+                    Me.Ret = Me.PigVBCode.MkCollectionClass(strData, Me.ClassName, Me.KeyName)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Me.PigFunc.SaveTextToFile(Me.FilePath, strData)
+                    End If
                 Case ConsoleKey.A
                     Me.PigCompressorDemo()
                 Case ConsoleKey.B
