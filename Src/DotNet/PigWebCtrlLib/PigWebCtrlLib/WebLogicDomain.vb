@@ -25,11 +25,11 @@
 Imports PigCmdLib
 Imports PigToolsLiteLib
 Imports PigObjFsLib
-Imports System.xm
+
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.15.5"
+    Private Const CLS_VERSION As String = "1.15.10"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -807,7 +807,7 @@ Public Class WebLogicDomain
                         Me.ConnectionFilterImpl = ""
                         Do While True
                             Dim strLine As String = oPigXml.GetXmlDocText("domain.security-configuration.connection-filter-rule", intSkipTimes)
-                            If strLine Is Nothing Then Exit Do
+                            If strLine = "" Then Exit Do
                             Me.ConnectionFilterImpl &= strLine & Me.OsCrLf
                             intSkipTimes += 1
                         Loop
