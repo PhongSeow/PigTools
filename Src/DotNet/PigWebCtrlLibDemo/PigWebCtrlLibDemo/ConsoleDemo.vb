@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5.9
+'* Version: 1.6.2
 '* Create Time: 15/2/2022
 '* 1.1    26/5/2022   Add Main
 '* 1.2    30/5/2022   Add WebLogicDemo
 '* 1.3    1/6/2022   Modify WebLogicDemo
 '* 1.4    1/6/2022   Modify WebLogicDemo
 '* 1.5    1/6/2022   Modify WebLogicDemo
+'* 1.6    15/6/2022   Modify WebLogicDemo
 '************************************
 
 Imports PigCmdLib
@@ -206,6 +207,7 @@ Public Class ConsoleDemo
                             Console.WriteLine("IsConnectOK=" & .IsConnectOK)
                             Console.WriteLine("StartDomainRes=" & .StartDomainRes)
                             Console.WriteLine("StopDomainRes=" & .StopDomainRes)
+                            Console.WriteLine("ConnectionFilterImpl=" & .ConnectionFilterImpl)
                             Console.WriteLine("###############")
                             Console.WriteLine("JavaPID=" & .JavaPID)
                             Console.WriteLine("JavaStartTime=" & .JavaStartTime)
