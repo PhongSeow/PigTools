@@ -4,7 +4,7 @@
     <RootNamespace>GetFileAndDirListLib</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;netcoreapp3.1;net6.0;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.2.8</Version>
+    <Version>1.2.18</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
@@ -24,7 +24,7 @@ It can run on Windows and Linux platforms.
 
   <ItemGroup>
     <PackageReference Include="PigObjFsLib" Version="2.0.28" />
-    <PackageReference Include="PigToolsLiteLib" Version="2.7.38" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.8.8" />
   </ItemGroup>
 
   <ItemGroup>
