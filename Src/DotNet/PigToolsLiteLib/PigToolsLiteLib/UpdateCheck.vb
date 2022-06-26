@@ -5,6 +5,7 @@
 '* Describe: Whether the processing attribute has been updated
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.0.3
+'*1.1  26/6/2022    Add HasUpdated
 '* Create Time: 25/6/2019
 '************************************
 
@@ -39,4 +40,13 @@ Public Class UpdateCheck
             Return False
         End If
     End Function
+
+    Public Function HasUpdated() As Boolean
+        If Me.mKeyList = "" Then
+            Return False
+        Else
+            Return True
+        End If
+    End Function
+
 End Class
