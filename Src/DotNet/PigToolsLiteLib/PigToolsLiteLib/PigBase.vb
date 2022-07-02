@@ -4,14 +4,21 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: External interface class of PigBaseMini
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.7.1
+'* Version: 1.8.18
 '* Create Time: 31/8/2019
+'* The following is the code for creating PigBaseLocal
+'* Public Class PigBaseLocal
+'*     Inherits PigToolsLiteLib.PigBase
+'*     Public Sub New(Version As String)
+'*         MyBase.New(Version, System.Reflection.Assembly.GetExecutingAssembly().GetName.Version.ToString, System.Reflection.Assembly.GetExecutingAssembly().GetName.Name)
+'*     End Sub
+'* End Class
 '************************************
 Public Class PigBase
     Inherits PigBaseMini
 
-    Public Sub New(Version As String)
-        MyBase.New(Version)
+    Public Sub New(Version As String, AppVersion As String, AppTitle As String)
+        MyBase.New(Version, AppVersion, AppTitle)
     End Sub
 
     Public Shadows Function PrintDebugLog(SubName As String, LogInf As String) As String
@@ -59,6 +66,17 @@ Public Class PigBase
         Return MyBase.GetSubErrInf(SubName, StepName, exIn, IsStackTrace)
     End Function
 
+    Public Shadows ReadOnly Property AppVersion() As String
+        Get
+            Return MyBase.AppVersion
+        End Get
+    End Property
+
+    Public Shadows ReadOnly Property AppTitle() As String
+        Get
+            Return MyBase.AppTitle
+        End Get
+    End Property
 
     Public Shadows ReadOnly Property AppPath() As String
         Get
