@@ -4,7 +4,7 @@
     <RootNamespace>PigWebCtrlLib</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.3.38</Version>
+    <Version>1.3.50</Version>
     <Authors>Seow Phong</Authors>
     <Product>Seow Phong Studio</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -18,7 +18,7 @@
 Manage and control Weblogic.
 It can run on Windows and Linux platforms.
 </Description>
-    <PackageReleaseNotes>Get more Weblogic domain properties.</PackageReleaseNotes>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,9 +33,8 @@ It can run on Windows and Linux platforms.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.9.68" />
+    <PackageReference Include="PigCmdLib" Version="1.9.88" />
     <PackageReference Include="PigObjFsLib" Version="2.0.28" />
-    <PackageReference Include="PigToolsLiteLib" Version="2.8.30" />
   </ItemGroup>
 
 </Project>
