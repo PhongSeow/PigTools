@@ -207,14 +207,14 @@ Public Class PigFile
     ''' <summary>本文件MD5</summary>
     Public ReadOnly Property MD5 As String
         Get
-            MD5 = Me.mGetMyMD5(False)
+            Return Me.mGetMyMD5(False)
         End Get
     End Property
 
     ''' <summary>本文件豚豚MD5</summary>
     Public ReadOnly Property PigMD5 As String
         Get
-            PigMD5 = Me.mGetMyMD5(True)
+            Return Me.mGetMyMD5(True)
         End Get
     End Property
 

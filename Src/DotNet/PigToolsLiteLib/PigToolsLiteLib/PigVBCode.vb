@@ -4,12 +4,14 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: And generate VB code|且于生成VB的代码
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0
+'* Version: 1.2
 '* Create Time: 16/6/2021
+'* 1.1  1/7/2022    Modify MkCollectionClass
+'* 1.2  6/7/2022    Modify MkCollectionClass
 '**********************************
 Public Class PigVBCode
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1.2.8"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
@@ -25,7 +27,7 @@ Public Class PigVBCode
         Try
             OutVBCode = "Imports PigToolsLiteLib" & vbCrLf
             OutVBCode &= "Public Class " & MemberClassName & "s" & vbCrLf
-            OutVBCode &= vbTab & "Inherits PigBaseMini" & vbCrLf
+            OutVBCode &= vbTab & "Inherits PigBaseLocal" & vbCrLf
             OutVBCode &= vbTab & "Implements IEnumerable(Of " & MemberClassName & ")" & vbCrLf
             OutVBCode &= vbTab & "Private Const CLS_VERSION As String = ""1.0.0""" & vbCrLf
             OutVBCode &= vbTab & "Private ReadOnly moList As New List(Of " & MemberClassName & ")" & vbCrLf
@@ -91,7 +93,7 @@ Public Class PigVBCode
             OutVBCode &= vbTab & vbTab & "End Try" & vbCrLf
             OutVBCode &= vbTab & "End Function" & vbCrLf
 
-            OutVBCode &= vbTab & "Private Sub mAdd(NewItem As " & MemberClassKeyName & ")" & vbCrLf
+            OutVBCode &= vbTab & "Private Sub mAdd(NewItem As " & MemberClassName & ")" & vbCrLf
             OutVBCode &= vbTab & vbTab & "Try" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "If Me.IsItemExists(NewItem." & MemberClassKeyName & ") = True Then Throw New Exception(NewItem." & MemberClassKeyName & " & ""Already exists"")" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "moList.Add(NewItem)" & vbCrLf
@@ -101,7 +103,7 @@ Public Class PigVBCode
             OutVBCode &= vbTab & vbTab & "End Try" & vbCrLf
             OutVBCode &= vbTab & "End Sub" & vbCrLf
 
-            OutVBCode &= vbTab & "Public Sub Add(NewItem As " & MemberClassKeyName & ")" & vbCrLf
+            OutVBCode &= vbTab & "Public Sub Add(NewItem As " & MemberClassName & ")" & vbCrLf
             OutVBCode &= vbTab & vbTab & "Me.mAdd(NewItem)" & vbCrLf
             OutVBCode &= vbTab & "End Sub" & vbCrLf
 
@@ -122,13 +124,13 @@ Public Class PigVBCode
             OutVBCode &= vbTab & "Public Function Add(" & MemberClassKeyName & " As String) As " & MemberClassName & vbCrLf
             OutVBCode &= vbTab & vbTab & "Dim LOG As New PigStepLog(""Add"")" & vbCrLf
             OutVBCode &= vbTab & vbTab & "Try" & vbCrLf
-            OutVBCode &= vbTab & vbTab & vbTab & "LOG.StepName = ""New " & MemberClassKeyName & """" & vbCrLf
-            OutVBCode &= vbTab & vbTab & vbTab & "Dim o" & MemberClassKeyName & " As New " & MemberClassKeyName & "(" & MemberClassKeyName & ")" & vbCrLf
-            OutVBCode &= vbTab & vbTab & vbTab & "If o" & MemberClassKeyName & ".LastErr <> """" Then Throw New Exception(o" & MemberClassKeyName & ".LastErr)" & vbCrLf
+            OutVBCode &= vbTab & vbTab & vbTab & "LOG.StepName = ""New " & MemberClassName & """" & vbCrLf
+            OutVBCode &= vbTab & vbTab & vbTab & "Dim o" & MemberClassName & " As New " & MemberClassName & "(" & MemberClassKeyName & ")" & vbCrLf
+            OutVBCode &= vbTab & vbTab & vbTab & "If o" & MemberClassName & ".LastErr <> """" Then Throw New Exception(o" & MemberClassName & ".LastErr)" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "LOG.StepName = ""mAdd""" & vbCrLf
-            OutVBCode &= vbTab & vbTab & vbTab & "Me.mAdd(o" & MemberClassKeyName & ")" & vbCrLf
+            OutVBCode &= vbTab & vbTab & vbTab & "Me.mAdd(o" & MemberClassName & ")" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "If Me.LastErr <> """" Then Throw New Exception(Me.LastErr)" & vbCrLf
-            OutVBCode &= vbTab & vbTab & vbTab & "Add = o" & MemberClassKeyName & "" & vbCrLf
+            OutVBCode &= vbTab & vbTab & vbTab & "Add = o" & MemberClassName & "" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "Me.ClearErr()" & vbCrLf
             OutVBCode &= vbTab & vbTab & "Catch ex As Exception" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)" & vbCrLf
@@ -158,7 +160,6 @@ Public Class PigVBCode
             OutVBCode &= vbTab & vbTab & "Try" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "strStepName = ""Index="" & Index.ToString" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "moList.RemoveAt(Index)" & vbCrLf
-            OutVBCode &= vbTab & vbTab & vbTab & "Next" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "Me.ClearErr()" & vbCrLf
             OutVBCode &= vbTab & vbTab & "Catch ex As Exception" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "Me.SetSubErrInf(""Remove.Index"", strStepName, ex)" & vbCrLf
