@@ -36,7 +36,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.8.102" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.9.2" />
   </ItemGroup>
 
 </Project>
