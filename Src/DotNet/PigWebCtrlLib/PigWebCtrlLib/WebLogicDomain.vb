@@ -21,6 +21,7 @@
 '*1.13 14/6/2022  Add JavaMemoryUse,JavaStartTime
 '*1.14 14/6/2022  Modify AdminPort
 '*1.15 15/6/2022  Add ConnectionFilterImpl, modify RefConf,RefRunStatus
+'*1.15 7/7/2022  Add AdminServerLogPath,DomainLogPath,AdminServerLogPath,AccessLogPath
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -410,6 +411,24 @@ Public Class WebLogicDomain
     Public ReadOnly Property ConsolePath() As String
         Get
             Return Me.LogDirPath & Me.OsPathSep & "Console.log"
+        End Get
+    End Property
+
+    Public ReadOnly Property DomainLogPath() As String
+        Get
+            Return Me.LogDirPath & Me.OsPathSep & "Domain" & Me.ListenPort.ToString & ".log"
+        End Get
+    End Property
+
+    Public ReadOnly Property AdminServerLogPath() As String
+        Get
+            Return Me.LogDirPath & Me.OsPathSep & "AdminServer.log"
+        End Get
+    End Property
+
+    Public ReadOnly Property AccessLogPath() As String
+        Get
+            Return Me.LogDirPath & Me.OsPathSep & "access.log"
         End Get
     End Property
 
