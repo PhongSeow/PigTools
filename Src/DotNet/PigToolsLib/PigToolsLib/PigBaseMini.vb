@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Basic lightweight Edition
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.7.1
+'* Version: 1.8.18
 '* Create Time: 31/8/2019
 '*1.0.2  1/10/2019   Add mGetSubErrInf 
 '*1.0.3  4/11/2019   Add LastErr
@@ -31,18 +31,19 @@
 '*1.0.24 14/7/2021   Modify mPrintDebugLog
 '*1.0.25 15/7/2021   Modify mPrintDebugLog,PrintDebugLog,mGetSubErrInf
 '*1.0.26 23/7/2021   Modify mPrintDebugLog,mGetSubErrInf,FullSubName add AppVersion
-'*1.0.27 25/7/2021   Add mOpenDebug,OpenDebug, remove GetSubStepDebugInf, Modify mstrAppTitle
+'*1.0.27 25/7/2021   Add mOpenDebug,OpenDebug, remove GetSubStepDebugInf, Modify me.AppTitle
 '*1.1.1 31/8/2021    Modify MyClassName
 '*1.2 7/12/2021      Add MyPID, modify mGetSubErrInf,MyClassName,mGetSubErrInf, remove mstrKeyInf
 '*1.3 8/12/2021      Add StruSubLog
 '*1.5 17/12/2021     Modify StruSubLog
 '*1.6 10/2/2022     Modify fMyPID
 '*1.7 15/5/2022     Add StruASyncRet
+'*1.8 15/5/2022     Modify New
 '************************************
 Imports System.Runtime.InteropServices
 Public Class PigBaseMini
-    Private mstrClsName As String
-    Private ReadOnly mstrClsVersion As String
+    Private ReadOnly Property ClsName As String
+    Private ReadOnly Property ClsVersion As String
     Private mstrLastErr As String = ""
     Private mbolIsDebug As Boolean
     Private mbolIsHardDebug As Boolean
@@ -61,23 +62,34 @@ Public Class PigBaseMini
         Dim Ret As String
     End Structure
 
-    Public Sub New(Version As String)
-        mstrClsName = Me.GetType.Name.ToString()
-        mstrClsVersion = Version
 
-#If NETCOREAPP Or NET5_0_OR_GREATER Then
-        mbolIsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-#Else
-        mbolIsWindows = True
-#End If
-        If mbolIsWindows = True Then
-            mstrOsCrLf = vbCrLf
-            mstrOsPathSep = "\"
+    Public Sub New(Version As String, Optional AppVersion As String = "", Optional AppTitle As String = "")
+        Me.ClsName = Me.GetType.Name.ToString()
+        Me.ClsVersion = Version
+        If AppVersion = "" Then
+            Me.AppVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName.Version.ToString
         Else
-            mstrOsCrLf = vbLf
-            mstrOsPathSep = "/"
+            Me.AppVersion = AppVersion
+        End If
+        If AppTitle = "" Then
+            Me.AppTitle = System.Reflection.Assembly.GetExecutingAssembly().GetName.Name
+        Else
+            Me.AppTitle = AppTitle
+        End If
+#If NETCOREAPP Or NET5_0_OR_GREATER Then
+        me.IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+#Else
+        Me.IsWindows = True
+#End If
+        If Me.IsWindows = True Then
+            Me.OsCrLf = vbCrLf
+            Me.OsPathSep = "\"
+        Else
+            Me.OsCrLf = vbLf
+            Me.OsPathSep = "/"
         End If
     End Sub
+
 
     Friend Sub ClearErr()
         mstrLastErr = ""
@@ -146,7 +158,7 @@ Public Class PigBaseMini
             Else
                 sbAny.Append("[Debug]")
             End If
-            sbAny.Append("[" & Me.AppTitle & "(" & Me.AppVersion & ")][" & Me.MyClassName & "(" & Me.mstrClsVersion & ")." & SubName)
+            sbAny.Append("[" & Me.AppTitle & "(" & Me.AppVersion & ")][" & Me.MyClassName & "(" & Me.ClsVersion & ")." & SubName)
             If StepName <> "" Then
                 sbAny.Append("{" & StepName & "}")
             End If
@@ -161,21 +173,18 @@ Public Class PigBaseMini
         End Try
     End Function
 
-    Public Overloads Property MyClassName() As String
+    Public Overloads ReadOnly Property MyClassName() As String
         Get
-            MyClassName = mstrClsName
+            Return Me.ClsName
         End Get
-        Friend Set(value As String)
-            mstrClsName = value
-        End Set
     End Property
 
     Public Overloads ReadOnly Property MyClassName(IsIncAppTitle As Boolean) As String
         Get
             If IsIncAppTitle = True Then
-                MyClassName = System.Reflection.Assembly.GetExecutingAssembly().GetName.Name & "." & mstrClsName
+                Return Me.AppTitle & "." & Me.ClsName
             Else
-                MyClassName = mstrClsName
+                Return Me.ClsName
             End If
         End Get
     End Property
@@ -192,21 +201,9 @@ Public Class PigBaseMini
         End Get
     End Property
 
-    Private mstrAppTitle As String = ""
-    Friend ReadOnly Property AppTitle() As String
-        Get
-            If mstrAppTitle = "" Then mstrAppTitle = System.Reflection.Assembly.GetExecutingAssembly().GetName.Name
-            Return mstrAppTitle
-        End Get
-    End Property
+    Friend ReadOnly Property AppTitle As String
 
-    Private mstrAppVersion As String = ""
-    Friend ReadOnly Property AppVersion() As String
-        Get
-            If mstrAppVersion = "" Then mstrAppVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName.Version.ToString
-            Return mstrAppVersion
-        End Get
-    End Property
+    Friend ReadOnly Property AppVersion As String
 
     Private mstrAppPath As String = ""
     Friend ReadOnly Property AppPath() As String
@@ -230,7 +227,7 @@ Public Class PigBaseMini
 
     Friend ReadOnly Property FullSubName(SubName As String) As String
         Get
-            FullSubName = mstrClsName & "(" & Me.mstrClsVersion & ")." & SubName
+            Return Me.ClsName & "(" & Me.ClsVersion & ")." & SubName
         End Get
     End Property
 
@@ -283,32 +280,17 @@ Public Class PigBaseMini
     End Function
 
 
-    Private ReadOnly mbolIsWindows As Boolean
-    Friend ReadOnly Property IsWindows() As Boolean
-        Get
-            Return mbolIsWindows
-        End Get
-    End Property
+    Friend ReadOnly IsWindows As Boolean
 
     ''' <summary>
     ''' Cross platform line feed, automatically identifying windows and Linux
     ''' </summary>
-    Private ReadOnly mstrOsCrLf As String
-    Friend ReadOnly Property OsCrLf() As String
-        Get
-            Return mstrOsCrLf
-        End Get
-    End Property
+    Friend ReadOnly Property OsCrLf As String
 
     ''' <summary>
     ''' Cross platform path separator, automatically identifying Windows and Linux
     ''' </summary>
-    Private ReadOnly mstrOsPathSep As String
-    Friend ReadOnly Property OsPathSep() As String
-        Get
-            Return mstrOsPathSep
-        End Get
-    End Property
+    Friend ReadOnly Property OsPathSep As String
 
     Public Sub OpenDebug()
         Me.mOpenDebug()

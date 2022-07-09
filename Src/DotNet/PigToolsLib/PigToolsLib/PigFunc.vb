@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.15
+'* Version: 1.17
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -26,6 +26,8 @@
 '*1.13   15/5/2022  Add ASyncRet_SaveTextToFile, modify mASyncSaveTextToFile,ASyncSaveTextToFile
 '*1.14   16/5/2022  Modify mASyncSaveTextToFile,ASyncSaveTextToFile
 '*1.15   31/5/2022  Add GEInt, modify GECBool
+'*1.16   5/7/2022   Modify GetHostIp
+'*1.17   6/7/2022   Add GetFileVersion
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -36,7 +38,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.15.2"
+    Private Const CLS_VERSION As String = "1.17.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -264,9 +266,34 @@ Public Class PigFunc
         Return mGetHostIpList(IsIPv6)
     End Function
 
-    Public Function GetHostIp(IpHead As String) As String
-        Return mGetHostIp(False, IpHead)
+    ''' <summary>
+    ''' 获取主机的IP|Get the IP of the host
+    ''' </summary>
+    ''' <param name="PriorityIpHead">优先匹配的IP地址开头，如果匹配不到则取第一个IP|The first IP address to be matched first. If it cannot be matched, the first IP will be taken</param>
+    ''' <returns></returns>
+    Public Function GetHostIp(PriorityIpHead As String) As String
+        Try
+            Dim strIpList As String = Me.mGetHostIpList(False)
+            Dim strFirstIp As String = ""
+            GetHostIp = ""
+            Do While True
+                Dim strIp As String = Me.GetStr(strIpList, "", ";")
+                If strIp = "" Then Exit Do
+                If strIp <> "127.0.0.1" Then
+                    If strFirstIp = "" Then strFirstIp = strIp
+                    If Left(strIp, Len(PriorityIpHead)) = PriorityIpHead Then
+                        GetHostIp = strIp
+                        Exit Do
+                    End If
+                End If
+            Loop
+            If GetHostIp = "" Then GetHostIp = strFirstIp
+        Catch ex As Exception
+            Me.SetSubErrInf("GetHostIp", ex)
+            Return ""
+        End Try
     End Function
+
 
     Public Function GetHostIp(IsIPv6 As Boolean) As String
         Return mGetHostIp(IsIPv6)
@@ -849,6 +876,21 @@ Public Class PigFunc
     End Function
     Public Function MyOsPathSep() As String
         Return Me.OsPathSep
+    End Function
+
+    Public Function GetFileVersion(FilePath As String, ByRef FileVersion As String) As String
+        Dim LOG As New PigStepLog("GetFileVersion")
+        Try
+            LOG.StepName = "GetVersionInfo"
+            Dim oGetVersionInfo As FileVersionInfo = FileVersionInfo.GetVersionInfo(FilePath)
+            FileVersion = oGetVersionInfo.FileVersion
+            oGetVersionInfo = Nothing
+            Return "OK"
+        Catch ex As Exception
+            FileVersion = ""
+            LOG.AddStepNameInf(FilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
     End Function
 
     Public Function GetFileText(FilePath As String, ByRef FileText As String) As String
