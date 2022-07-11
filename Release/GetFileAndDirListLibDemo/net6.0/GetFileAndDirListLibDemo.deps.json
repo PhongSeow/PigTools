@@ -6,23 +6,23 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v6.0": {
-      "GetFileAndDirListLibDemo/1.2.18": {
+      "GetFileAndDirListLibDemo/1.2.20": {
         "dependencies": {
-          "GetFileAndDirListLib": "1.2.28"
+          "GetFileAndDirListLib": "1.2.30"
         },
         "runtime": {
           "GetFileAndDirListLibDemo.dll": {}
         }
       },
-      "GetFileAndDirListLib/1.2.28": {
+      "GetFileAndDirListLib/1.2.30": {
         "dependencies": {
           "PigObjFsLib": "2.0.28",
           "PigToolsLiteLib": "2.9.2"
         },
         "runtime": {
           "lib/net6.0/GetFileAndDirListLib.dll": {
-            "assemblyVersion": "1.2.28.0",
-            "fileVersion": "1.2.28.0"
+            "assemblyVersion": "1.2.30.0",
+            "fileVersion": "1.2.30.0"
           }
         }
       },
@@ -45,17 +45,17 @@
     }
   },
   "libraries": {
-    "GetFileAndDirListLibDemo/1.2.18": {
+    "GetFileAndDirListLibDemo/1.2.20": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "GetFileAndDirListLib/1.2.28": {
+    "GetFileAndDirListLib/1.2.30": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-dS8htjOOWkGHXuctfqyiIuU89nq2C1XGUs2SKBc9HlpPgHf8w83Jw+Icy86m3ZQ54leqG3o/IuiogYlCxFF6qA==",
-      "path": "getfileanddirlistlib/1.2.28",
-      "hashPath": "getfileanddirlistlib.1.2.28.nupkg.sha512"
+      "sha512": "sha512-Gs6xenYKWzKp58SgDp8nqMFrl+ta8LfvlKhWvE28Rr+ZiNT7AotypEwxGDYvGlhvzFRbjTCjSgxdPdYx794HGg==",
+      "path": "getfileanddirlistlib/1.2.30",
+      "hashPath": "getfileanddirlistlib.1.2.30.nupkg.sha512"
     },
     "PigObjFsLib/2.0.28": {
       "type": "package",

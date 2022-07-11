@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigCmdLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>1.9.10</Version>
+    <Version>1.9.12</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigCmdLib.</Description>
@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.9.92" />
+    <PackageReference Include="PigCmdLib" Version="1.9.98" />
   </ItemGroup>
 
   <ItemGroup>
