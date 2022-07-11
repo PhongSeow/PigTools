@@ -78,6 +78,7 @@ Public Class ConsoleDemo
     Public ClassName As String
     Public KeyName As String
     Public Sub Main()
+        Debug.Print(IsNumeric("True"))
         Do While True
             Console.Clear()
             Console.WriteLine("*******************")
@@ -572,6 +573,7 @@ Public Class ConsoleDemo
     Public Sub PigXmlDemo()
         Do While True
             Console.Clear()
+            Me.MenuDefinition2 = "NewPigXml#New PigXml|"
             Me.MenuDefinition2 = "LoadXmlDocumentByFile#Load XmlDocument by file|"
             Me.MenuDefinition2 &= "LoadXmlDocumentByXml#Load XmlDocument by xml string|"
             Me.MenuDefinition2 &= "GetXmlDocText#GetXmlDocText|"
@@ -582,6 +584,10 @@ Public Class ConsoleDemo
             Select Case Me.MenuKey2
                 Case ""
                     Exit Do
+                Case "NewPigXml"
+                    Dim bolIsCrLf As Boolean = Me.PigConsole.IsYesOrNo("Is need CrLf")
+
+                    Me.PigXml = New PigXml(bolIsCrLf)
                 Case "XmlAddTest"
                     With Me.PigXml
                         .Clear()
@@ -743,6 +749,7 @@ Public Class ConsoleDemo
                         Console.WriteLine("GetHostIp=" & .GetHostIp)
                         Console.WriteLine("GetHostIp(True)=" & .GetHostIp(True))
                         Console.WriteLine("GetHostIp(False, ""169.254.79."")=" & .GetHostIp(False, "169.254.79."))
+                        Console.WriteLine("GetHostIp(""192."")=" & .GetHostIp("192."))
                         Console.WriteLine("GetUserName=" & .GetUserName)
                         Console.WriteLine("GetEnvVar(""Path"")=" & .GetEnvVar("Path"))
                         'Console.WriteLine("GetFilePart(""c: \temp\aaa"", PigFunc.enmFilePart.FileTitle)=" & .GetFilePart("c:\temp\aaa", PigFunc.enmFilePart.FileTitle))
