@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>2.9.2</Version>
+    <Version>2.9.38</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -20,9 +20,8 @@ It can run on Windows and Linux platforms.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa UUID EnvironmentVariable PL/SQL BCP asynchronous XmlDocument</PackageTags>
-    <PackageReleaseNotes>Add function of PigFunc.
-Fix bugs of PigVBCode.</PackageReleaseNotes>
-    <AssemblyVersion>2.9.2.0</AssemblyVersion>
+    <PackageReleaseNotes>Optimize PigXml and fix bugs.</PackageReleaseNotes>
+    <AssemblyVersion>2.9.38.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

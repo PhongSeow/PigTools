@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.9
+'* Version: 1.10
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -25,15 +25,17 @@
 '1.7 3/6/2022   Modify xpXMLAddWhere,AddEleLeftSign,mXMLAddStr, add AddEleLeftAttribute
 '1.8 6/6/2022   Add XmlDocGetStr
 '1.9 15/6/2022  Modify XmlDocGetStr
+'1.10 11/7/2022  Add AddXmlFragment,mSrc2CtlStr,mCtlStr2Src,mUnEscapeXmlValue,mEscapeXmlValue, modify mXMLAddStr,mGetXmlDoc
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.9.2"
+    Private Const CLS_VERSION As String = "1.10.8"
     Private mstrMainXml As String
     Public Property XmlDocument As XmlDocument
     Private ReadOnly Property mPigFunc As New PigFunc
+
     'Private mslMain As SortedList
 
     ''' <summary>增加一个XML标记的部分</summary>
@@ -62,12 +64,22 @@ Public Class PigXml
     End Enum
 
     Private msbMain As System.Text.StringBuilder    '主体的XML
-    Private mbolIsCrLf As Boolean
+    ''' <summary>
+    ''' 生成的XML是否加入回车符|Whether carriage return is added to the generated XML
+    ''' </summary>
+    ''' <returns></returns>
+    Public ReadOnly Property IsCrLf As Boolean
+    ''' <summary>
+    ''' 生成的XML的值是否转义控制字符|Whether the value of the generated XML escapes the control character
+    ''' </summary>
+    ''' <returns></returns>
+    Public ReadOnly Property IsChgCtrlChar As Boolean
 
 
-    Public Sub New(IsCrLf As Boolean)
+    Public Sub New(IsCrLf As Boolean, Optional IsChgCtrlChar As Boolean = True)
         MyBase.New(CLS_VERSION)
-        mbolIsCrLf = IsCrLf
+        Me.IsCrLf = IsCrLf
+        Me.IsChgCtrlChar = IsChgCtrlChar
         Me.Clear()
     End Sub
 
@@ -312,7 +324,7 @@ Public Class PigXml
     ''' <param name="XMLValue">元素值</param>
     Public Overloads Function AddEle(XMLSign As String, XMLValue As String) As String
         Try
-            AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, mbolIsCrLf)
+            AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, Me.IsCrLf)
             If AddEle <> "OK" Then Throw New Exception(AddEle)
             Return "OK"
         Catch ex As Exception
@@ -326,7 +338,7 @@ Public Class PigXml
     ''' <param name="IsCData">是否CDATA</param>
     Public Overloads Function AddEle(XMLSign As String, XMLValue As String, IsCData As Boolean) As String
         Try
-            AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, mbolIsCrLf, , IsCData)
+            AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, Me.IsCrLf, , IsCData)
             If AddEle <> "OK" Then Throw New Exception(AddEle)
             Return "OK"
         Catch ex As Exception
@@ -341,7 +353,7 @@ Public Class PigXml
     ''' <remarks></remarks>
     Public Overloads Function AddEle(XMLSign As String, XMLValue As String, LeftTab As Integer) As String
         Try
-            AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, mbolIsCrLf, LeftTab)
+            AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, Me.IsCrLf, LeftTab)
             If AddEle <> "OK" Then Throw New Exception(AddEle)
             Return "OK"
         Catch ex As Exception
@@ -357,7 +369,7 @@ Public Class PigXml
     ''' <remarks></remarks>
     Public Overloads Function AddEle(XMLSign As String, XMLValue As String, LeftTab As Integer, IsCData As Boolean) As String
         Try
-            AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, mbolIsCrLf, LeftTab, IsCData)
+            AddEle = Me.mXMLAddStr(msbMain, XMLSign, XMLValue, xpXMLAddWhere.Both, Me.IsCrLf, LeftTab, IsCData)
             If AddEle <> "OK" Then Throw New Exception(AddEle)
             Return "OK"
         Catch ex As Exception
@@ -365,14 +377,88 @@ Public Class PigXml
         End Try
     End Function
 
-    ''' <summary>增加一个XML值</summary>
-    Public Function AddEleValue(XMLValue As String) As String
+
+    ''' <summary>
+    ''' 增加一个XML值|Add an XML value
+    ''' </summary>
+    ''' <param name="XMLValue"></param>
+    ''' <param name="IsCData">是否使用<![CDATA[]]>是则不对内容转义|Whether to use <![CDATA[]]> if yes, the content will not be escaped</param>
+    ''' <returns></returns>
+    Public Function AddEleValue(XMLValue As String, Optional IsCData As Boolean = False) As String
         Try
-            AddEleValue = Me.mXMLAddStr(msbMain, "", XMLValue, xpXMLAddWhere.ValueOnly)
-            If AddEleValue <> "OK" Then Throw New Exception(AddEleValue)
+            If Me.IsChgCtrlChar = True Then Me.mSrc2CtlStr(XMLValue)
+            If IsCData = True Then
+                Me.msbMain.Append("<![CDATA[" & XMLValue & "]]>")
+            Else
+                Dim strRet As String = Me.mEscapeXmlValue(XMLValue)
+                If strRet <> "OK" Then Throw New Exception(strRet)
+                Me.msbMain.Append(XMLValue)
+            End If
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEleValue", ex)
+        End Try
+    End Function
+
+
+    ''' <summary>
+    ''' 增加一个XML片段，对片段的内容不作转义和控制字符转换处理。|Add an XML fragment, and do not escape the contents of the fragment and control character conversion.
+    ''' </summary>
+    ''' <param name="XmlFragment"></param>
+    ''' <returns></returns>
+    Public Function AddXmlFragment(XmlFragment As String) As String
+        Try
+            Me.msbMain.Append(XmlFragment)
+            If Me.IsCrLf = True Then Me.msbMain.Append(Me.OsCrLf)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("AddXmlFragment", ex)
+        End Try
+    End Function
+
+    Private Sub mSrc2CtlStr(ByRef SrcStr As String)
+        Try
+            If SrcStr.IndexOf(vbCrLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\r\n")
+            If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
+            If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
+            If SrcStr.IndexOf(vbBack) > 0 Then SrcStr = Replace(SrcStr, vbBack, "\b")
+            If SrcStr.IndexOf(vbFormFeed) > 0 Then SrcStr = Replace(SrcStr, vbFormFeed, "\f")
+            If SrcStr.IndexOf(vbVerticalTab) > 0 Then SrcStr = Replace(SrcStr, vbVerticalTab, "\v")
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("mSrc2CtlStr", ex)
+        End Try
+    End Sub
+
+
+    ''' <summary>
+    ''' 转义XML值|Escape XML value
+    ''' </summary>
+    ''' <param name="InXmlStr"></param>
+    ''' <returns></returns>
+    Private Function mEscapeXmlValue(ByRef InXmlStr As String) As String
+        Try
+            If InStr(InXmlStr, "<") > 0 Then InXmlStr = Replace(InXmlStr, "<", "&lt;")
+            If InStr(InXmlStr, ">") > 0 Then InXmlStr = Replace(InXmlStr, ">", "&gt;")
+            If InStr(InXmlStr, "&") > 0 Then InXmlStr = Replace(InXmlStr, "&", "&apos;")
+            '            If InStr(InXmlStr, "'") > 0 Then InXmlStr = Replace(InXmlStr, "'", "&lt;")
+            If InStr(InXmlStr, """") > 0 Then InXmlStr = Replace(InXmlStr, """", "&quot")
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("mEscapeXmlValue", ex)
+        End Try
+    End Function
+
+    Private Function mUnEscapeXmlValue(ByRef InXmlStr As String) As String
+        Try
+            If InStr(InXmlStr, "&lt;") > 0 Then InXmlStr = Replace(InXmlStr, "&lt;", "<")
+            If InStr(InXmlStr, "&gt;") > 0 Then InXmlStr = Replace(InXmlStr, "&gt;", ">")
+            If InStr(InXmlStr, "&apos;") > 0 Then InXmlStr = Replace(InXmlStr, "&apos;", "&")
+            'If InStr(InXmlStr, "&lt;") > 0 Then InXmlStr = Replace(InXmlStr, "&lt;", "'")
+            'If InStr(InXmlStr, "&quot") > 0 Then InXmlStr = Replace(InXmlStr, "&quot", """")
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("mUnEscapeXmlValue", ex)
         End Try
     End Function
 
@@ -383,7 +469,7 @@ Public Class PigXml
             If IsBegin = True Then
                 AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.LeftBegin, False)
             Else
-                AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, mbolIsCrLf)
+                AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, Me.IsCrLf)
             End If
             If AddEleLeftSign <> "OK" Then Throw New Exception(AddEleLeftSign)
             Return "OK"
@@ -405,7 +491,7 @@ Public Class PigXml
     Public Function AddEleLeftSignEnd() As String
         Try
             msbMain.Append(">")
-            If Me.mbolIsCrLf = True Then msbMain.Append(Me.OsCrLf)
+            If Me.IsCrLf = True Then msbMain.Append(Me.OsCrLf)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddEleLeftSignEnd", ex)
@@ -421,7 +507,7 @@ Public Class PigXml
             If IsBegin = True Then
                 AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.LeftBegin, False, LeftTab)
             Else
-                AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, mbolIsCrLf, LeftTab)
+                AddEleLeftSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Left, Me.IsCrLf, LeftTab)
             End If
             If AddEleLeftSign <> "OK" Then Throw New Exception(AddEleLeftSign)
             Return "OK"
@@ -434,7 +520,7 @@ Public Class PigXml
     ''' <param name="XMLSign">元素标记</param>
     Public Overloads Function AddEleRightSign(XMLSign As String) As String
         Try
-            AddEleRightSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Right, mbolIsCrLf)
+            AddEleRightSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Right, Me.IsCrLf)
             If AddEleRightSign <> "OK" Then Throw New Exception(AddEleRightSign)
             Return "OK"
         Catch ex As Exception
@@ -447,7 +533,7 @@ Public Class PigXml
     ''' <param name="LeftTab">前面缩进的TAB数</param>
     Public Overloads Function AddEleRightSign(XMLSign As String, LeftTab As Integer) As String
         Try
-            AddEleRightSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Right, mbolIsCrLf, LeftTab)
+            AddEleRightSign = Me.mXMLAddStr(msbMain, XMLSign, "", xpXMLAddWhere.Right, Me.IsCrLf, LeftTab)
             If AddEleRightSign <> "OK" Then Throw New Exception(AddEleRightSign)
             Return "OK"
         Catch ex As Exception
@@ -500,13 +586,7 @@ Public Class PigXml
 40:                 sbAny.Append("<")
                     sbAny.Append(XMLSign)
                     sbAny.Append(">")
-                    If IsCData = True Then
-                        sbAny.Append("<![CDATA[")
-                    End If
-                    sbAny.Append(XMLValue)
-                    If IsCData = True Then
-                        sbAny.Append("]]>")
-                    End If
+                    Me.AddEleValue(XMLValue, IsCData)
                     sbAny.Append("</")
                     sbAny.Append(XMLSign)
                     sbAny.Append(">")
@@ -790,8 +870,15 @@ Public Class PigXml
                 Next
                 If bolIsFind = False Then Exit Do
             Loop
+            If OutTextAttribute <> "" Then
+                LOG.StepName = "mUnEscapeXmlValue"
+                LOG.Ret = Me.mUnEscapeXmlValue(OutTextAttribute)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                If Me.IsChgCtrlChar = True Then Me.mCtlStr2Src(OutTextAttribute)
+            End If
             Return "OK"
         Catch ex As Exception
+            OutTextAttribute = ""
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -938,5 +1025,19 @@ Public Class PigXml
             Return DateTime.MinValue
         End Try
     End Function
+
+    Private Sub mCtlStr2Src(ByRef CtlStr As String)
+        Try
+            If CtlStr.IndexOf("\r\n") > 0 Then CtlStr = Replace(CtlStr, "\r\n", vbCrLf)
+            If CtlStr.IndexOf("\r") > 0 Then CtlStr = Replace(CtlStr, "\r", vbCr)
+            If CtlStr.IndexOf("\t") > 0 Then CtlStr = Replace(CtlStr, "\t", vbTab)
+            If CtlStr.IndexOf("\b") > 0 Then CtlStr = Replace(CtlStr, "\b", vbBack)
+            If CtlStr.IndexOf(vbFormFeed) > 0 Then CtlStr = Replace(CtlStr, "\f", vbFormFeed)
+            If CtlStr.IndexOf(vbVerticalTab) > 0 Then CtlStr = Replace(CtlStr, "\v", vbVerticalTab)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("mCtlStr2Src", ex)
+        End Try
+    End Sub
 
 End Class
