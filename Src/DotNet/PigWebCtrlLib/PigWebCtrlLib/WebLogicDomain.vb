@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.15
+'* Version: 1.16
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -21,7 +21,8 @@
 '*1.13 14/6/2022  Add JavaMemoryUse,JavaStartTime
 '*1.14 14/6/2022  Modify AdminPort
 '*1.15 15/6/2022  Add ConnectionFilterImpl, modify RefConf,RefRunStatus
-'*1.15 7/7/2022  Add AdminServerLogPath,DomainLogPath,AdminServerLogPath,AccessLogPath
+'*1.15 7/7/2022   Add AdminServerLogPath,DomainLogPath,AdminServerLogPath,AccessLogPath
+'*1.16 16/7/2022  Modify mWlstCallMain,CreateDomain
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -30,7 +31,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.15.10"
+    Private Const CLS_VERSION As String = "1.16.6"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -662,7 +663,7 @@ Public Class WebLogicDomain
         End Set
     End Property
 
-    Private Function mWlstCallMain(WlstCallCmd As EnmWlstCallCmd, Optional ListenPort As Integer = 0) As String
+    Private Function mWlstCallMain(WlstCallCmd As EnmWlstCallCmd, Optional ListenPort As Integer = 0, Optional AdminPort As Integer = 0) As String
         Dim LOG As New PigStepLog("mWlstCallMain")
         Try
             LOG.StepName = "Check CallWlst"
@@ -715,6 +716,10 @@ Public Class WebLogicDomain
                             .WriteLine("set('ListenAddress','')")
                             .WriteLine("set('ListenPort', " & Me.ListenPort & ")")
                             .WriteLine("cd('/')")
+                            If AdminPort > 0 Then
+                                .WriteLine("cmo.setAdministrationPort(" & AdminPort.ToString & ")")
+                                .WriteLine("cmo.setAdministrationPortEnabled(true)")
+                            End If
                             .WriteLine("cd('Security/base_domain/User/weblogic')")
                             .WriteLine("set('Name','" & Me.AdminUserName & "')")
                             .WriteLine("cmo.setPassword('" & Me.AdminUserPassword & "')")
@@ -775,9 +780,28 @@ Public Class WebLogicDomain
         End With
     End Sub
 
+    ''' <summary>
+    ''' 创建域|Create domain
+    ''' </summary>
+    ''' <param name="ListenPort">Listening port</param>
+    ''' <returns></returns>
     Public Function CreateDomain(ListenPort As Integer) As String
         Try
             Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 创建域|Create domain
+    ''' </summary>
+    ''' <param name="ListenPort">侦听端口|Listening port</param>
+    ''' <param name="AdminPort">管理端口|Administrator port</param>
+    ''' <returns></returns>
+    Public Function CreateDomain(ListenPort As Integer, AdminPort As Integer) As String
+        Try
+            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort)
         Catch ex As Exception
             Return ex.Message.ToString
         End Try

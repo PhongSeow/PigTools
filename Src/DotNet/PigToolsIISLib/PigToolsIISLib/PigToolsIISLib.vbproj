@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PigToolsIISLib</RootNamespace>
+    <TargetFrameworks>net40;net45;</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1.1</Version>
+    <Authors>Seow Phong</Authors>
+    <Company>Seow Phong Studio</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Copyright (c) 2021 Seow Phong</Copyright>
+    <PackageProjectUrl>http://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageIcon>SeowPhongLogo.png</PackageIcon>
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsIISLib</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <Description>A tool set class library that simplifies the .net development interface for IIS.
+It is an extension of PigToolsLib and provides some interfaces that can only be used on Windows platform.
+</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ObjAdoDBLib" Version="1.0.8.15" />
+    <PackageReference Include="ObjScriptingLib" Version="1.0.5.5" />
+    <PackageReference Include="PigWxWorkLib" Version="1.0.1.20" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="SeowPhongLogo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
