@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.16
+'* Version: 1.17
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -22,7 +22,8 @@
 '*1.14 14/6/2022  Modify AdminPort
 '*1.15 15/6/2022  Add ConnectionFilterImpl, modify RefConf,RefRunStatus
 '*1.15 7/7/2022   Add AdminServerLogPath,DomainLogPath,AdminServerLogPath,AccessLogPath
-'*1.16 16/7/2022  Modify mWlstCallMain,CreateDomain
+'*1.16 16/7/2022  Modify mWlstCallMain,CreateDomain,EnmWlstCallCmd, add UpdateCheck
+'*1.17 17/7/2022  Modify AdminPort,IsAdminPortEnable
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -31,13 +32,36 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.16.6"
+    Private Const CLS_VERSION As String = "1.17.6"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
     Private mFS As New FileSystemObject
     Private mPigFunc As New PigFunc
     Private mPigProcApp As New PigProcApp
+
+    Private mUpdateCheck As New UpdateCheck
+    Public ReadOnly Property LastUpdateTime() As DateTime
+        Get
+            Return mUpdateCheck.LastUpdateTime
+        End Get
+    End Property
+
+    Public ReadOnly Property IsUpdate(PropertyName As String) As Boolean
+        Get
+            Return mUpdateCheck.IsUpdated(PropertyName)
+        End Get
+    End Property
+
+    Public ReadOnly Property HasUpdated() As Boolean
+        Get
+            Return mUpdateCheck.HasUpdated
+        End Get
+    End Property
+
+    Public Sub UpdateCheckClear()
+        mUpdateCheck.Clear()
+    End Sub
 
     Public Event CallWlstSucc(WlstCallCmd As EnmWlstCallCmd, ResInf As String)
 
@@ -63,6 +87,10 @@ Public Class WebLogicDomain
         ''' 连接控制台|Connect console
         ''' </summary>
         Connect = 2
+        ''' <summary>
+        ''' 修改配置|Modify configuration
+        ''' </summary>
+        Edit = 3
     End Enum
 
     ''' <summary>
@@ -284,15 +312,7 @@ Public Class WebLogicDomain
         End Set
     End Property
 
-    Private mbolIsIIopEnable As Boolean
     Public Property IsIIopEnable As Boolean
-        Get
-            Return mbolIsIIopEnable
-        End Get
-        Friend Set(value As Boolean)
-            mbolIsIIopEnable = value
-        End Set
-    End Property
 
     Private mbolHasAdminServer As Boolean
     Public Property HasAdminServer As Boolean
@@ -303,17 +323,18 @@ Public Class WebLogicDomain
             mbolHasAdminServer = value
         End Set
     End Property
-
-    Private mbolIsAdminPortEnable As Boolean
+    Private mIsAdminPortEnable As Boolean
     Public Property IsAdminPortEnable As Boolean
         Get
-            Return mbolIsAdminPortEnable
+            Return mIsAdminPortEnable
         End Get
-        Friend Set(value As Boolean)
-            mbolIsAdminPortEnable = value
+        Set(value As Boolean)
+            mIsAdminPortEnable = value
+            If mIsAdminPortEnable = False Then
+                If Me.AdminPort <> 0 Then Me.AdminPort = 0
+            End If
         End Set
     End Property
-
     Private mdteLastOperationTime As DateTime
     Public Property LastOperationTime As DateTime
         Get
@@ -325,26 +346,32 @@ Public Class WebLogicDomain
     End Property
 
 
-    Private mintListenPort As Integer
     Public Property ListenPort As Integer
-        Get
-            Return mintListenPort
-        End Get
-        Friend Set(value As Integer)
-            mintListenPort = value
-        End Set
-    End Property
 
-    Private mintAdminPort As Integer
+    Private mAdminPort As Integer
     Public Property AdminPort As Integer
         Get
-            Return mintAdminPort
+            Return mAdminPort
         End Get
-        Friend Set(value As Integer)
-            mintAdminPort = value
+        Set(value As Integer)
+            Try
+                Select Case value
+                    Case 1 To 65535
+                        If value = Me.ListenPort Then Throw New Exception("The administrator port cannot be the same as the listening port")
+                        mAdminPort = value
+                        If Me.IsAdminPortEnable = False Then Me.IsAdminPortEnable = True
+                    Case 0
+                        mAdminPort = 0
+                        If Me.IsAdminPortEnable = True Then Me.IsAdminPortEnable = False
+                    Case Else
+                        Throw New Exception("Invalid port")
+                End Select
+            Catch ex As Exception
+                mAdminPort = 0
+                Me.SetSubErrInf("AdminPort.Set", ex)
+            End Try
         End Set
     End Property
-
     Private mstrConnectionFilterImpl As String
     Public Property ConnectionFilterImpl As String
         Get
@@ -856,6 +883,7 @@ Public Class WebLogicDomain
                         Loop
                     End If
                     .mConfFileUpdtime = oPigFile.UpdateTime
+                    Me.mUpdateCheck.Clear()
                 End With
             End If
             oPigFile = Nothing

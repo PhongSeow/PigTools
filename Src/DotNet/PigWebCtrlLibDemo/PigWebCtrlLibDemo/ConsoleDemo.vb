@@ -37,6 +37,7 @@ Public Class ConsoleDemo
     Public WorkTmpDirPath As String
     Public DomainHomeDirPath As String
     Public ListPort As Integer = 8888
+    Public AdminPort As Integer = 10888
     Public AdminUserName As String = "weblogic"
     Public AdminUserPassword As String = "PigWebCtrl8888"
 
@@ -128,9 +129,14 @@ Public Class ConsoleDemo
                     If Me.WebLogicDomain Is Nothing Then
                         Console.WriteLine("WebLogicDomain Is Nothing")
                     Else
-                        Me.PigConsole.GetLine("ListPort", Me.ListPort)
+                        Me.PigConsole.GetLine("Input ListPort", Me.ListPort)
+                        If Me.PigConsole.IsYesOrNo("Is Enable administrator port?") = True Then
+                            Me.PigConsole.GetLine("Input AdminPort", Me.AdminPort)
+                        Else
+                            Me.AdminPort = 0
+                        End If
                         Console.WriteLine("CreateDomain")
-                        Me.Ret = Me.WebLogicDomain.CreateDomain(Me.ListPort)
+                        Me.Ret = Me.WebLogicDomain.CreateDomain(Me.ListPort, Me.AdminPort)
                         Console.WriteLine(Me.Ret)
                     End If
                 Case "SetWebLogicDomain"
@@ -199,6 +205,9 @@ Public Class ConsoleDemo
                             Console.WriteLine("DomainVersion=" & .DomainVersion)
                             Console.WriteLine("ListenPort=" & .ListenPort)
                             Console.WriteLine("IsAdminPortEnable=" & .IsAdminPortEnable)
+                            If .IsAdminPortEnable = True Then
+                                Console.WriteLine("AdminPort=" & .AdminPort)
+                            End If
                             Console.WriteLine("IsIIopEnable=" & .IsIIopEnable)
                             Console.WriteLine("IsProdMode=" & .IsProdMode)
                             Console.WriteLine("CallWlstRes=" & .CallWlstRes)
