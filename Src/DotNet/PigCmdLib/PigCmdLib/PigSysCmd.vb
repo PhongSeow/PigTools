@@ -4,21 +4,91 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022   Add GetListenPortProcID
 '*1.2  7/6/2022   Add GetOSCaption
+'*1.3  17/6/2022   Add GetProcListenPortList
 '**********************************
 Imports PigToolsLiteLib
 Public Class PigSysCmd
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.3"
+    Private Const CLS_VERSION As String = "1.3.6"
 
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
     End Sub
+
+    ''' <summary>
+    ''' 获取进程的侦听端口数组|Get the listening port array of the process
+    ''' </summary>
+    ''' <param name="PID">进程号|Process number</param>
+    ''' <param name="OutListPort">输出的侦听端口|Listening port for output</param>
+    ''' <returns></returns>
+    Public Function GetProcListenPortList(PID As Integer, ByRef OutListPort As Integer()) As String
+        Dim LOG As New PigStepLog("GetProcListenPortList")
+        Try
+            Dim oPigCmdApp As New PigCmdApp, strCmd As String
+            With oPigCmdApp
+                .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
+                If Me.IsWindows = True Then
+                    strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr " & PID.ToString
+                Else
+                    strCmd = "netstat -apn|grep tcp|grep LISTEN|grep " & PID.ToString
+                End If
+                LOG.StepName = "CmdShell"
+                LOG.Ret = .CmdShell(strCmd)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(strCmd)
+                    Throw New Exception(LOG.Ret)
+                End If
+                ReDim OutListPort(0)
+                OutListPort(0) = 0
+                For i = 0 To .StandardOutputArray.Length - 1
+                    Dim strLine As String = Trim(.StandardOutputArray(i)) & "}", strPort As String = "", strMat As String = ""
+                    Do While True
+                        If InStr(strLine, "  ") = 0 Then Exit Do
+                        strLine = Replace(strLine, "  ", " ")
+                    Loop
+                    If Me.IsWindows = True Then
+                        strMat = "LISTENING " & PID.ToString & "}"
+                    Else
+                        strMat = "LISTEN " & PID.ToString & "/"
+                    End If
+                    If InStr(strLine, strMat) > 0 Then strPort = Trim(mPigFunc.GetStr(strLine, ":", " "))
+                    If IsNumeric(strPort) Then
+                        Dim intPort As Integer = CInt(strPort)
+                        If intPort > 0 Then
+                            Dim bolIsFind As Boolean = False, intLen As Integer = 0
+                            intLen = OutListPort.Length
+                            For j = 0 To intLen - 1
+                                If OutListPort(j) = intPort Then
+                                    bolIsFind = True
+                                    Exit For
+                                End If
+                            Next
+                            If bolIsFind = False Then
+                                If OutListPort(0) = 0 Then
+                                    OutListPort(0) = intPort
+                                Else
+                                    ReDim Preserve OutListPort(intLen)
+                                    OutListPort(intLen) = intPort
+                                End If
+                            End If
+                        End If
+                    End If
+                Next
+                If OutListPort(0) = 0 Then Throw New Exception("Process has no listening port")
+            End With
+            Return "OK"
+        Catch ex As Exception
+            ReDim OutListPort(0)
+            OutListPort(0) = 0
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 
     ''' <summary>
