@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.17
+'* Version: 1.18
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -28,6 +28,7 @@
 '*1.15   31/5/2022  Add GEInt, modify GECBool
 '*1.16   5/7/2022   Modify GetHostIp
 '*1.17   6/7/2022   Add GetFileVersion
+'*1.18   19/7/2022  Add GetFileUpdateTime,GetFileCreateTime,GetFileMD5
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -38,7 +39,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.17.2"
+    Private Const CLS_VERSION As String = "1.18.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -888,6 +889,74 @@ Public Class PigFunc
             Return "OK"
         Catch ex As Exception
             FileVersion = ""
+            LOG.AddStepNameInf(FilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetFileMD5(FilePath As String, ByRef FileMD5 As Date) As String
+        Dim LOG As New PigStepLog("GetFileMD5")
+        Try
+            LOG.StepName = "New PigFile"
+            Dim oPigFile As New PigFile(FilePath)
+            LOG.StepName = "LoadFile"
+            LOG.Ret = oPigFile.LoadFile()
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            FileMD5 = oPigFile.MD5
+            oPigFile = Nothing
+            Return "OK"
+        Catch ex As Exception
+            GetFileMD5 = ""
+            LOG.AddStepNameInf(FilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetFilePigMD5(FilePath As String, ByRef FilePigMD5 As Date) As String
+        Dim LOG As New PigStepLog("GetFileCreateTime")
+        Try
+            LOG.StepName = "New PigFile"
+            Dim oPigFile As New PigFile(FilePath)
+            LOG.StepName = "LoadFile"
+            LOG.Ret = oPigFile.LoadFile()
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            FilePigMD5 = oPigFile.PigMD5
+            oPigFile = Nothing
+            Return "OK"
+        Catch ex As Exception
+            FilePigMD5 = ""
+            LOG.AddStepNameInf(FilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetFileCreateTime(FilePath As String, ByRef FileCreateTime As Date) As String
+        Dim LOG As New PigStepLog("GetFileCreateTime")
+        Try
+            LOG.StepName = "New FileInfo"
+            Dim oFileInfo As New FileInfo(FilePath)
+            LOG.StepName = "CreationTime"
+            FileCreateTime = oFileInfo.CreationTime
+            oFileInfo = Nothing
+            Return "OK"
+        Catch ex As Exception
+            FileCreateTime = #1/1/1900#
+            LOG.AddStepNameInf(FilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetFileUpdateTime(FilePath As String, ByRef FileUpdateTime As Date) As String
+        Dim LOG As New PigStepLog("GetFileUpdateTime")
+        Try
+            LOG.StepName = "New FileInfo"
+            Dim oFileInfo As New FileInfo(FilePath)
+            LOG.StepName = "LastWriteTime"
+            FileUpdateTime = oFileInfo.LastWriteTime
+            oFileInfo = Nothing
+            Return "OK"
+        Catch ex As Exception
+            FileUpdateTime = #1/1/1900#
             LOG.AddStepNameInf(FilePath)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try

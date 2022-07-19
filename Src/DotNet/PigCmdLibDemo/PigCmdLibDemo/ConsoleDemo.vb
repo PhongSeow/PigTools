@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10.2
+'* Version: 1.11.2
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -16,6 +16,7 @@
 '* 1.8    19/5/2022  Modify PigCmdAppDemo
 '* 1.9    2/6/2022  Modify Main, add PigSysCmdDemo
 '* 1.10   7/6/2022  Modify PigSysCmdDemo, add GetOSCaption
+'* 1.11   17/6/2022  Modify PigSysCmdDemo, add GetProcListenPortList
 '************************************
 
 Imports PigCmdLib
@@ -133,11 +134,28 @@ Public Class ConsoleDemo
         Do While True
             Console.Clear()
             Me.MenuDefinition = "GetListenPortProcID#GetListenPortProcID|"
+            Me.MenuDefinition &= "GetProcListenPortList#GetProcListenPortList|"
             Me.MenuDefinition &= "GetOSCaption#GetOSCaption|"
             Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "GetProcListenPortList"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("GetProcListenPortList")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    Me.PigConsole.GetLine("Input PID", Me.PID)
+                    Dim abPort(0) As Integer
+                    Me.Ret = Me.PigSysCmd.GetProcListenPortList(Me.PID, abPort)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Console.WriteLine("ListenPortList is ")
+                        For i = 0 To abPort.Length - 1
+                            Console.WriteLine(abPort(i))
+                        Next
+                    End If
                 Case "GetOSCaption"
                     Console.WriteLine("*******************")
                     Console.WriteLine("GetOSCaption")
