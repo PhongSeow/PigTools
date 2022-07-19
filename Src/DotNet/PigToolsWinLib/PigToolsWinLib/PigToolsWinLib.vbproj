@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsWinLib</RootNamespace>
     <TargetFrameworks>net20;net30;net48;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.6.30</Version>
+    <Version>1.6.32</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
@@ -35,7 +35,7 @@ It can run on Windows platforms only.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="2.9.38" />
+    <PackageReference Include="PigToolsLiteLib" Version="2.9.60" />
   </ItemGroup>
 
   <ItemGroup>

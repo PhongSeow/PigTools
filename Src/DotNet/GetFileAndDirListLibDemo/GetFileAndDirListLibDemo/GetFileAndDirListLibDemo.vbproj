@@ -6,7 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Demo console program for GetFileAndDirListLib.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.2.20</Version>
+    <Version>1.2.22</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Product>GetFileAndDirListLib Demo Console</Product>
@@ -24,7 +24,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.2.30" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.2.32" />
   </ItemGroup>
 
 </Project>
