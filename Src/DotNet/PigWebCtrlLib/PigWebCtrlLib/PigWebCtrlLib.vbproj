@@ -33,7 +33,7 @@ It can run on Windows and Linux platforms.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.9.98" />
+    <PackageReference Include="PigCmdLib" Version="1.10.8" />
     <PackageReference Include="PigObjFsLib" Version="2.0.28" />
   </ItemGroup>
 

@@ -335,15 +335,15 @@ Public Class WebLogicDomain
             End If
         End Set
     End Property
-    Private mdteLastOperationTime As DateTime
-    Public Property LastOperationTime As DateTime
-        Get
-            Return mdteLastOperationTime
-        End Get
-        Friend Set(value As DateTime)
-            mdteLastOperationTime = value
-        End Set
-    End Property
+    'Private mdteLastOperationTime As DateTime
+    'Public Property LastOperationTime As DateTime
+    '    Get
+    '        Return mdteLastOperationTime
+    '    End Get
+    '    Friend Set(value As DateTime)
+    '        mdteLastOperationTime = value
+    '    End Set
+    'End Property
 
 
     Public Property ListenPort As Integer
@@ -709,6 +709,11 @@ Public Class WebLogicDomain
                     If Me.RunStatus <> EnmDomainRunStatus.Running Then Throw New Exception("The current run state[" & Me.RunStatus.ToString & "] cannot connect.")
                 Case EnmWlstCallCmd.CreateDomain
                     If Me.mIsDeployReady = True Then Throw New Exception("The current deployment state[" & Me.DeployStatus.ToString & "] cannot create a domain.")
+                Case EnmWlstCallCmd.Edit
+
+                    If Me.mConfFileUpdtime Then
+
+                    End If
                 Case Else
                     Me.WlstCallCmd = EnmWlstCallCmd.Unknow
                     Throw New Exception("Invalid WlstCallCmd " & WlstCallCmd.ToString)
