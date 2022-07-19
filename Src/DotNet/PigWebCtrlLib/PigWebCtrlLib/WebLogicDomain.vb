@@ -710,9 +710,9 @@ Public Class WebLogicDomain
                 Case EnmWlstCallCmd.CreateDomain
                     If Me.mIsDeployReady = True Then Throw New Exception("The current deployment state[" & Me.DeployStatus.ToString & "] cannot create a domain.")
                 Case EnmWlstCallCmd.Edit
-                    If Me.mConfFileUpdtime Then
+                    'If Me.mConfFileUpdtime Then
 
-                    End If
+                    'End If
                 Case Else
                     Me.WlstCallCmd = EnmWlstCallCmd.Unknow
                     Throw New Exception("Invalid WlstCallCmd " & WlstCallCmd.ToString)
