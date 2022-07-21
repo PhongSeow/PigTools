@@ -4,7 +4,7 @@
     <RootNamespace>PigWebCtrlLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.5.10</Version>
+    <Version>1.5.60</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -13,7 +13,7 @@
     <RepositoryType>GIT</RepositoryType>
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigWebCtrlLibDemo</RepositoryUrl>
     <PackageTags>Demo PigWebCtrlLib .net develop windows linux weblogic tomcat nginx apache web administration-port-enabled</PackageTags>
-    <PackageReleaseNotes>Add the option of separating the administrator port from the listening port for the domain under construction.</PackageReleaseNotes>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.9.98" />
-    <PackageReference Include="PigWebCtrlLib" Version="1.5.10" />
+    <PackageReference Include="PigCmdLib" Version="1.10.12" />
+    <PackageReference Include="PigWebCtrlLib" Version="1.5.38" />
   </ItemGroup>
 
 </Project>
