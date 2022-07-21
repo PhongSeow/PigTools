@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.17
+'* Version: 1.18
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -24,6 +24,7 @@
 '*1.15 7/7/2022   Add AdminServerLogPath,DomainLogPath,AdminServerLogPath,AccessLogPath
 '*1.16 16/7/2022  Modify mWlstCallMain,CreateDomain,EnmWlstCallCmd, add UpdateCheck
 '*1.17 17/7/2022  Modify AdminPort,IsAdminPortEnable
+'*1.18 21/7/2022  Modify AdminPort,IsAdminPortEnable
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -32,7 +33,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.17.6"
+    Private Const CLS_VERSION As String = "1.18.6"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -330,9 +331,6 @@ Public Class WebLogicDomain
         End Get
         Set(value As Boolean)
             mIsAdminPortEnable = value
-            If mIsAdminPortEnable = False Then
-                If Me.AdminPort <> 0 Then Me.AdminPort = 0
-            End If
         End Set
     End Property
     'Private mdteLastOperationTime As DateTime
@@ -359,10 +357,8 @@ Public Class WebLogicDomain
                     Case 1 To 65535
                         If value = Me.ListenPort Then Throw New Exception("The administrator port cannot be the same as the listening port")
                         mAdminPort = value
-                        If Me.IsAdminPortEnable = False Then Me.IsAdminPortEnable = True
                     Case 0
                         mAdminPort = 0
-                        If Me.IsAdminPortEnable = True Then Me.IsAdminPortEnable = False
                     Case Else
                         Throw New Exception("Invalid port")
                 End Select
