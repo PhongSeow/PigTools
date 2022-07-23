@@ -1,23 +1,24 @@
 ﻿'**********************************
-'* Name: PigDisks
+'* Name: PigHosts
 '* Author: Seow Phong
 '* License: Copyright (c) 2021-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: PigDisk 的集合类|Collection class of PigDisk
+'* Describe: PigHost 的集合类|Collection class of PigHost
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
-'* Create Time: 3/12/2021
-'* 1.1    10/12/2020   Modify Add 
+'* Version: 1.2
+'* Create Time: 30/10/2021
+'* 1.1    3/11/2021   Modify Add 
+'* 1.2    3/1/2022   Modify Item 
 '************************************
 Imports PigToolsLiteLib
 
-Friend Class PigDisks
-    Inherits PigBaseLocal
-    Implements IEnumerable(Of PigDisk)
-    Private Const CLS_VERSION As String = "1.1.6"
-    Friend ReadOnly Property Parent As PigHost
-    Private ReadOnly moList As New List(Of PigDisk)
+Public Class PigHosts
+    Inherits PigBaseMini
+    Implements IEnumerable(Of PigHost)
+    Private Const CLS_VERSION As String = "1.2.5"
+    Friend Property Parent As PigHostApp
+    Private ReadOnly moList As New List(Of PigHost)
 
-    Public Sub New(Parent As PigHost)
+    Public Sub New(Parent As PigHostApp)
         MyBase.New(CLS_VERSION)
         Me.Parent = Parent
     End Sub
@@ -32,7 +33,7 @@ Friend Class PigDisks
             End Try
         End Get
     End Property
-    Public Function GetEnumerator() As IEnumerator(Of PigDisk) Implements IEnumerable(Of PigDisk).GetEnumerator
+    Public Function GetEnumerator() As IEnumerator(Of PigHost) Implements IEnumerable(Of PigHost).GetEnumerator
         Return moList.GetEnumerator()
     End Function
 
@@ -40,7 +41,7 @@ Friend Class PigDisks
         Return Me.GetEnumerator()
     End Function
 
-    Public ReadOnly Property Item(Index As Integer) As PigDisk
+    Public ReadOnly Property Item(Index As Integer) As PigHost
         Get
             Try
                 Return moList.Item(Index)
@@ -51,28 +52,28 @@ Friend Class PigDisks
         End Get
     End Property
 
-    Public ReadOnly Property Item(DiskName As String) As PigDisk
+    Public ReadOnly Property Item(HostID As String) As PigHost
         Get
             Try
                 Item = Nothing
-                For Each oPigDisk As PigDisk In moList
-                    If oPigDisk.DiskName = DiskName Then
-                        Item = oPigDisk
+                For Each oPigHost As PigHost In moList
+                    If oPigHost.HostID = HostID Then
+                        Item = oPigHost
                         Exit For
                     End If
                 Next
             Catch ex As Exception
-                Me.SetSubErrInf("Item.DiskName", ex)
+                Me.SetSubErrInf("Item.HostID", ex)
                 Return Nothing
             End Try
         End Get
     End Property
 
-    Public Function IsItemExists(DiskName) As Boolean
+    Public Function IsItemExists(HostID) As Boolean
         Try
             IsItemExists = False
-            For Each oPigDisk As PigDisk In moList
-                If oPigDisk.DiskName = DiskName Then
+            For Each oPigHost As PigHost In moList
+                If oPigHost.HostID = HostID Then
                     IsItemExists = True
                     Exit For
                 End If
@@ -83,9 +84,9 @@ Friend Class PigDisks
         End Try
     End Function
 
-    Private Function mAdd(NewItem As PigDisk) As String
+    Private Function mAdd(NewItem As PigHost) As String
         Try
-            If Me.IsItemExists(NewItem.DiskName) = True Then Throw New Exception(NewItem.DiskName & " already exists.")
+            If Me.IsItemExists(NewItem.HostID) = True Then Throw New Exception(NewItem.HostID & " already exists.")
             moList.Add(NewItem)
             Return "OK"
         Catch ex As Exception
@@ -95,21 +96,19 @@ Friend Class PigDisks
 
 
 
-
-
-    Public Function Add(DiskName As String, Parent As PigHost) As PigDisk
-        Dim LOG As New PigStepLog("Remove.DiskName")
+    Public Function Add(HostID As String) As PigHost
+        Dim LOG As New PigStepLog("Remove.HostID")
         Try
-            LOG.StepName = "New PigDisk"
-            Add = New PigDisk(DiskName, Me.Parent)
+            LOG.StepName = "New PigHost"
+            Add = New PigHost(HostID)
             If Add.LastErr <> "" Then
-                LOG.AddStepNameInf(DiskName)
+                LOG.AddStepNameInf(HostID)
                 Throw New Exception(Add.LastErr)
             End If
             LOG.StepName = "mAdd"
             LOG.Ret = Me.mAdd(Add)
             If LOG.Ret <> "OK" Then
-                LOG.AddStepNameInf(DiskName)
+                LOG.AddStepNameInf(HostID)
                 Throw New Exception(LOG.Ret)
             End If
             Me.ClearErr()
@@ -120,14 +119,14 @@ Friend Class PigDisks
     End Function
 
 
-    Public Function Remove(DiskName As String) As String
-        Dim LOG As New PigStepLog("Remove.DiskName")
+    Public Function Remove(HostID As String) As String
+        Dim LOG As New PigStepLog("Remove.HostID")
         Try
             LOG.StepName = "For Each"
-            For Each oPigDisk As PigDisk In moList
-                If oPigDisk.DiskName = DiskName Then
-                    LOG.AddStepNameInf(DiskName)
-                    moList.Remove(oPigDisk)
+            For Each oPigHost As PigHost In moList
+                If oPigHost.HostID = HostID Then
+                    LOG.AddStepNameInf(HostID)
+                    moList.Remove(oPigHost)
                     Exit For
                 End If
             Next
@@ -148,13 +147,13 @@ Friend Class PigDisks
         End Try
     End Function
 
-    Public Function AddOrGet(DiskName As String) As PigDisk
+    Public Function AddOrGet(HostID As String) As PigHost
         Dim LOG As New PigStepLog("AddOrGet")
         Try
-            If Me.IsItemExists(DiskName) = True Then
-                AddOrGet = Me.Item(DiskName)
+            If Me.IsItemExists(HostID) = True Then
+                AddOrGet = Me.Item(HostID)
             Else
-                AddOrGet = Me.Add(DiskName, Me.Parent)
+                AddOrGet = Me.Add(HostID)
             End If
             Me.ClearErr()
         Catch ex As Exception

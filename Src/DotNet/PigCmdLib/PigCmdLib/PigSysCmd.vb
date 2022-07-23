@@ -4,16 +4,17 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022   Add GetListenPortProcID
 '*1.2  7/6/2022   Add GetOSCaption
 '*1.3  17/6/2022   Add GetProcListenPortList
+'*1.5  23/7/2022   Add GetWmicSimpleXml
 '**********************************
 Imports PigToolsLiteLib
 Public Class PigSysCmd
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.6"
+    Private Const CLS_VERSION As String = "1.5.20"
 
     Private ReadOnly Property mPigFunc As New PigFunc
 
@@ -135,6 +136,95 @@ Public Class PigSysCmd
             Return "OK"
         Catch ex As Exception
             OutPID = -1
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetUUID(ByRef OutUUID As String) As String
+        Dim LOG As New PigStepLog("GetUUID")
+        Try
+            If Me.IsWindows = False Then
+                LOG.StepName = "mPigFunc.GetUUID"
+                Return Me.mPigFunc.GetUUID
+            Else
+                LOG.StepName = "GetWmicSimpleXml"
+                LOG.Ret = Me.GetWmicSimpleXml("csproduct get uuid", OutUUID)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                Dim oPigXml As New PigXml(False)
+                LOG.StepName = "SetMainXml"
+                oPigXml.SetMainXml(OutUUID)
+                If oPigXml.LastErr <> "" Then Throw New Exception(oPigXml.LastErr)
+                LOG.StepName = "InitXmlDocument"
+                LOG.Ret = oPigXml.InitXmlDocument()
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                LOG.StepName = "XmlDocGetStr"
+                OutUUID = oPigXml.XmlDocGetStr("WmicXml.Row1.UUID")
+                oPigXml = Nothing
+            End If
+            Return "OK"
+        Catch ex As Exception
+            OutUUID = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 将Wmic查询结果转换成简单的XML，Wmic /Format:xml 输出的XML过于复杂|Convert wmic query results into simple XML. Wmic /format:xml output XML is too complex
+    ''' </summary>
+    ''' <param name="WmicCmd">Wmic 命令|Wmic command</param>
+    ''' <param name="OutXml">输出的XML|Output XML</param>
+    ''' <returns></returns>
+    Public Function GetWmicSimpleXml(WmicCmd As String, ByRef OutXml As String, Optional IsCrLf As Boolean = False) As String
+        Dim LOG As New PigStepLog("GetWmicSimpleXml")
+        Try
+            If Me.IsWindows = False Then Throw New Exception("Only windows is supported")
+            If Left(UCase(WmicCmd), 5) <> "WMIC " Then WmicCmd = "wmic " & WmicCmd
+            If InStr(UCase(WmicCmd), "/FORMAT:") > 0 Then Throw New Exception("Wmiccmd cannot take /Format parameter")
+            WmicCmd &= " /Format:textvaluelist"
+            Dim oPigCmdApp As New PigCmdApp, intTotalRows As Integer = 0, bolIsNewRow As Boolean = False
+            Dim oPigXml As New PigXml(IsCrLf)
+            With oPigCmdApp
+                .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
+                LOG.StepName = "CmdShell"
+                LOG.Ret = .CmdShell(WmicCmd)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                OutXml = ""
+                bolIsNewRow = False
+                oPigXml.AddEleLeftSign("WmicXml")
+                LOG.StepName = "Add Rows"
+                Dim intRowNo As Integer = 0, intBlankCnt As Integer = 0
+                For i = 0 To .StandardOutputArray.Length - 1
+                    Dim strLine As String = Trim(.StandardOutputArray(i))
+                    Me.mPigFunc.OptLogInf(strLine, "c:\temp\bbb.txt")
+                    If strLine <> "" Then
+                        If bolIsNewRow = False Then
+                            bolIsNewRow = True
+                            intRowNo += 1
+                            oPigXml.AddEleLeftSign("Row" & intRowNo.ToString, 1)
+                            intTotalRows += 1
+                        End If
+                        Dim strColName As String = Me.mPigFunc.GetStr(strLine, "", "=")
+                        oPigXml.AddEle(strColName, strLine, 2)
+                        intBlankCnt = 0
+                    Else
+                        If bolIsNewRow = True And intBlankCnt > 2 Then
+                            oPigXml.AddEleRightSign("Row" & intRowNo, 1)
+                            bolIsNewRow = False
+                        End If
+                        intBlankCnt += 1
+                    End If
+                Next
+                With oPigXml
+                    .AddEle("TotalRows", intTotalRows.ToString)
+                    .AddEleRightSign("WmicXml")
+                    OutXml = .MainXmlStr
+                End With
+                oPigXml = Nothing
+            End With
+            Return "OK"
+        Catch ex As Exception
+            OutXml = ""
+            LOG.AddStepNameInf(WmicCmd)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function

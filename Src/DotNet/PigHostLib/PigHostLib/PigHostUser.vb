@@ -9,8 +9,8 @@
 '* 1.1    2/4/2022   Add 
 '**********************************
 Public Class PigHostUser
-	Inherits PigBaseMini
-	Private Const CLS_VERSION As String = "1.1.2"
+    Inherits PigBaseLocal
+    Private Const CLS_VERSION As String = "1.1.2"
 
 	Public ReadOnly Property HostUserID As String
 	Public ReadOnly Property Parent As PigHost

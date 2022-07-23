@@ -18,6 +18,9 @@ It can run on Windows and Linux platforms.
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageIconUrl />
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigHostLib</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>host user file disk windows linux</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,7 +35,7 @@ It can run on Windows and Linux platforms.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.9.92" />
+    <PackageReference Include="PigCmdLib" Version="1.10.12" />
   </ItemGroup>
 
 </Project>

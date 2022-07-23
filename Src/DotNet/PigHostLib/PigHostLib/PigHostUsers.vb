@@ -12,7 +12,7 @@
 Imports PigToolsLiteLib
 
 Friend Class PigHostUsers
-    Inherits PigBaseMini
+    Inherits PigBaseLocal
     Implements IEnumerable(Of PigHostUser)
     Private Const CLS_VERSION As String = "1.2.6"
     Friend Property Parent As PigHost

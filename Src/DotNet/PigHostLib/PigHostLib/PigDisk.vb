@@ -9,7 +9,7 @@
 '* 1.1    8/1/2022   Modif New 
 '**********************************
 Friend Class PigDisk
-    Inherits PigBaseMini
+    Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1.1.2"
 
     Public ReadOnly Property Parent As PigHost
