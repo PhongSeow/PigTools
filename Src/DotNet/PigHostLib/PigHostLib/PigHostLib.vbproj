@@ -5,13 +5,11 @@
     <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
-    <Version>1.2.8</Version>
+    <Version>1.0.8</Version>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>Host information collection.
-Host user information collection.
-Disk information collection
+    <Description>Get local information
 It can run on Windows and Linux platforms.
 
 </Description>
@@ -35,7 +33,7 @@ It can run on Windows and Linux platforms.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.10.12" />
+    <PackageReference Include="PigCmdLib" Version="1.10.68" />
   </ItemGroup>
 
 </Project>

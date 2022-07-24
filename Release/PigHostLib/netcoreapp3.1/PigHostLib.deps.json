@@ -1,17 +1,17 @@
 {
   "runtimeTarget": {
-    "name": ".NETCoreApp,Version=v6.0",
+    "name": ".NETCoreApp,Version=v3.1",
     "signature": ""
   },
   "compilationOptions": {},
   "targets": {
-    ".NETCoreApp,Version=v6.0": {
-      "PigCmdLibDemo/1.10.68": {
+    ".NETCoreApp,Version=v3.1": {
+      "PigHostLib/1.0.8": {
         "dependencies": {
           "PigCmdLib": "1.10.68"
         },
         "runtime": {
-          "PigCmdLibDemo.dll": {}
+          "PigHostLib.dll": {}
         }
       },
       "PigCmdLib/1.10.68": {
@@ -19,7 +19,7 @@
           "PigToolsLiteLib": "2.9.60"
         },
         "runtime": {
-          "lib/net6.0/PigCmdLib.dll": {
+          "lib/netcoreapp3.1/PigCmdLib.dll": {
             "assemblyVersion": "1.10.68.0",
             "fileVersion": "1.10.68.0"
           }
@@ -27,7 +27,7 @@
       },
       "PigToolsLiteLib/2.9.60": {
         "runtime": {
-          "lib/net6.0/PigToolsLiteLib.dll": {
+          "lib/netcoreapp3.1/PigToolsLiteLib.dll": {
             "assemblyVersion": "2.9.60.0",
             "fileVersion": "2.9.60.0"
           }
@@ -36,7 +36,7 @@
     }
   },
   "libraries": {
-    "PigCmdLibDemo/1.10.68": {
+    "PigHostLib/1.0.8": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

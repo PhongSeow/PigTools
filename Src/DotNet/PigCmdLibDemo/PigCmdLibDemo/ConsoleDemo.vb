@@ -17,6 +17,7 @@
 '* 1.9    2/6/2022  Modify Main, add PigSysCmdDemo
 '* 1.10   7/6/2022  Modify PigSysCmdDemo, add GetOSCaption
 '* 1.11   17/6/2022  Modify PigSysCmdDemo, add GetProcListenPortList
+'* 1.12   23/7/2022  Modify PigSysCmdDemo, add GetWmicSimpleXml
 '************************************
 
 Imports PigCmdLib
@@ -41,6 +42,8 @@ Public Class ConsoleDemo
     Public OutThreadID As Integer
     Public ListenPort As Integer
     Public OSCaption As String
+    Public WmicCmd As String
+    Public UUID As String
 
     Public Sub PigCmdAppDemo()
         Do While True
@@ -136,10 +139,36 @@ Public Class ConsoleDemo
             Me.MenuDefinition = "GetListenPortProcID#GetListenPortProcID|"
             Me.MenuDefinition &= "GetProcListenPortList#GetProcListenPortList|"
             Me.MenuDefinition &= "GetOSCaption#GetOSCaption|"
+            Me.MenuDefinition &= "GetUUID#GetUUID|"
+            Me.MenuDefinition &= "GetWmicSimpleXml#GetWmicSimpleXml|"
             Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "GetUUID"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("GetUUID")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    Me.Ret = Me.PigSysCmd.GetUUID(Me.UUID)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Console.WriteLine(Me.UUID)
+                    End If
+                Case "GetWmicSimpleXml"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("GetWmicSimpleXml")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    Me.PigConsole.GetLine("Input WmicCmd", Me.WmicCmd)
+                    Dim strXml As String = ""
+                    Me.Ret = Me.PigSysCmd.GetWmicSimpleXml(Me.WmicCmd, strXml)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Console.WriteLine(strXml)
+                    End If
                 Case "GetProcListenPortList"
                     Console.WriteLine("*******************")
                     Console.WriteLine("GetProcListenPortList")

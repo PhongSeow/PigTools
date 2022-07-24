@@ -6,12 +6,12 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v6.0": {
-      "PigCmdLibDemo/1.10.68": {
+      "PigHostLib/1.0.8": {
         "dependencies": {
           "PigCmdLib": "1.10.68"
         },
         "runtime": {
-          "PigCmdLibDemo.dll": {}
+          "PigHostLib.dll": {}
         }
       },
       "PigCmdLib/1.10.68": {
@@ -36,7 +36,7 @@
     }
   },
   "libraries": {
-    "PigCmdLibDemo/1.10.68": {
+    "PigHostLib/1.0.8": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
