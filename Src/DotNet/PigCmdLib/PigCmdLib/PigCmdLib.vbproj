@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>PigCmdLib</RootNamespace>
-    <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -20,8 +20,8 @@ A series of console functions, including reading lines, whether to select, simpl
 asynchronous processing.
 Wmic calls and operating system commands.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.10.68</Version>
-    <PackageReleaseNotes>Add wmic function and GetUUID.</PackageReleaseNotes>
+    <Version>1.10.78</Version>
+    <PackageReleaseNotes>Remove the support for NetFramework, and the required reference PigCmdFwkLib.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

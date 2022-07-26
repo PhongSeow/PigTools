@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PigCmdFwkLib</RootNamespace>
+    <TargetFrameworks>net20;net30;net40;</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.10.78</Version>
+    <Authors>Seow Phong</Authors>
+    <Company>Seow Phong Studio</Company>
+    <Description>Application of calling operating system commands and call file.
+Get enhancements for parent and child processes
+A series of console functions, including reading lines, whether to select, simple menus, etc.
+asynchronous processing.
+Wmic calls and operating system commands.
+It can run on Windows only.</Description>
+    <Copyright>Copyright (c) 2022 Seow Phong</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageIcon>SeowPhongLogo.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdFwkLib</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>.net develop shell command windows VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous system wmic</PackageTags>
+    <PackageReleaseNotes>This is the exclusive version of .Net Framework.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="SeowPhongLogo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PigToolsWinLib" Version="2.9.68" />
+  </ItemGroup>
+
+</Project>
