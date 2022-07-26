@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PigHostFwkLib</RootNamespace>
+    <TargetFrameworks>net20;net30;net40;</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.18</Version>
+    <Authors>Seow Phong</Authors>
+    <Company>Seow Phong Studio</Company>
+    <Description>Get local information
+It can run on Windows only.
+
+</Description>
+    <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageIcon>SeowPhongLogo.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigHostFwkLib</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>host user file disk windows</PackageTags>
+    <PackageReleaseNotes>This is the exclusive version of .Net Framework.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="SeowPhongLogo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PigCmdFwkLib" Version="1.10.78" />
+  </ItemGroup>
+
+</Project>

@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <RootNamespace>PigWebCtrlLib</RootNamespace>
-    <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.5.60</Version>
+    <Version>1.5.68</Version>
     <Authors>Seow Phong</Authors>
     <Product>Seow Phong Studio</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -18,7 +18,8 @@
 Manage and control Weblogic.
 It can run on Windows and Linux platforms.
 </Description>
-    <PackageReleaseNotes>Fix bugs of WebLogicDomain.</PackageReleaseNotes>
+    <PackageReleaseNotes>Remove the support for NetFramework, and the required reference PigWebCtrlFwkLib.</PackageReleaseNotes>
+    <Copyright>Copyright (c) 2022 Seow Phong</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
