@@ -4,25 +4,21 @@
 '* License: Copyright (c) 2021-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 主机信息处理|Host information processing
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 8/10/2021
 '* 1.1    12/10/2021   Add New
 '* 1.2    18/10/2021   Modify New
 '* 1.3    23/7/2022   Modify New
 '* 1.5    24/7/2022   Rename MyHost,
 '* 1.6    26/7/2022   Modify Imports
+'* 1.7    29/7/2022   Modify Imports
 '**********************************
-#If NETFRAMEWORK Then
-Imports PigToolsWinLib
-Imports PigCmdFwkLib
-#Else
 Imports PigToolsLiteLib
 Imports PigCmdLib
-#End If
 
 Public Class MyHost
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.6.2"
+    Private Const CLS_VERSION As String = "1.7.2"
 
     Public ReadOnly Property HostID As String
 

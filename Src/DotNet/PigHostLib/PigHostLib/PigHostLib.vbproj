@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <RootNamespace>PigHostLib</RootNamespace>
-    <TargetFrameworks>net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
-    <Version>1.0.18</Version>
+    <Version>1.0.28</Version>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -19,7 +19,7 @@ It can run on Windows and Linux platforms.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigHostLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>host user file disk windows linux</PackageTags>
-    <PackageReleaseNotes>Remove the support for NetFramework, and the required reference PigHostFwkLib.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adjust to be more compatible with .net core and .net framework at the same time.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

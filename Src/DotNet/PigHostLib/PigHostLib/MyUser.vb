@@ -8,15 +8,10 @@
 '* Create Time: 30/10/2021
 '* 1.1    2/4/2022   Add 
 '* 1.2    24/7/2022   Change name and initialization
-'* 1.6    26/7/2022   Modify Imports
+'* 1.3    29/7/2022   Modify Imports
 '**********************************
-#If NETFRAMEWORK Then
-Imports PigToolsWinLib
-Imports PigCmdFwkLib
-#Else
 Imports PigToolsLiteLib
 Imports PigCmdLib
-#End If
 
 Public Class MyUser
     Inherits PigBaseLocal
