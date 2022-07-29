@@ -6,20 +6,17 @@
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.6
 '* Create Time: 2/6/2022
-'*1.1  3/6/2022   Add GetListenPortProcID
-'*1.2  7/6/2022   Add GetOSCaption
-'*1.3  17/6/2022   Add GetProcListenPortList
-'*1.5  23/7/2022   Add GetWmicSimpleXml
-'*1.6 26/7/2022  Modify Imports
+'*1.1  3/6/2022  Add GetListenPortProcID
+'*1.2  7/6/2022  Add GetOSCaption
+'*1.3  17/6/2022 Add GetProcListenPortList
+'*1.4  23/7/2022 Add GetWmicSimpleXml
+'*1.5 26/7/2022  Modify Imports
+'*1.6 29/7/2022  Modify Imports
 '**********************************
-#If NETFRAMEWORK Then
-Imports PigToolsWinLib
-#Else
 Imports PigToolsLiteLib
-#End If
 Public Class PigSysCmd
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.2"
+    Private Const CLS_VERSION As String = "1.6.8"
 
     Private ReadOnly Property mPigFunc As New PigFunc
 

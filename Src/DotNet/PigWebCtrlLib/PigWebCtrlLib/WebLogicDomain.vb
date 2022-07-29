@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.19
+'* Version: 1.20
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -26,20 +26,16 @@
 '*1.17 17/7/2022  Modify AdminPort,IsAdminPortEnable
 '*1.18 21/7/2022  Modify AdminPort,IsAdminPortEnable
 '*1.19  26/7/2022 Modify Imports
+'*1.20  29/7/2022 Modify Imports
 '************************************
-#If NETFRAMEWORK Then
-Imports PigCmdFwkLib
-Imports PigToolsWinLib
-#Else
 Imports PigCmdLib
 Imports PigToolsLiteLib
-#End If
 Imports PigObjFsLib
 
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.19.2"
+    Private Const CLS_VERSION As String = "1.20.2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd

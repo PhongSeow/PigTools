@@ -4,21 +4,18 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: WebLogicDomain 的集合类|Collection class of WebLogicDomain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 12/2/2022
 '* 1.1  22/12/2022   Modify Add 
 '* 1.2  26/5/2022   Modify Add 
 '* 1.3  26/7/2022 Modify Imports
+'* 1.5  29/7/2022 Modify Imports
 '************************************
-#If NETFRAMEWORK Then
-Imports PigToolsWinLib
-#Else
 Imports PigToolsLiteLib
-#End If
 Public Class WebLogicDomains
     Inherits PigBaseMini
     Implements IEnumerable(Of WebLogicDomain)
-    Private Const CLS_VERSION As String = "1.3.2"
+    Private Const CLS_VERSION As String = "1.5.2"
     Private ReadOnly moList As New List(Of WebLogicDomain)
 
     Friend fParent As WebLogicApp

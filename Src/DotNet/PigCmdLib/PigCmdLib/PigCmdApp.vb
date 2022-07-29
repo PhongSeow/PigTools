@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.11
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -16,17 +16,14 @@
 '*1.8  18/5/2022  Modify mCallFile, add AsyncRet_CallFile_FullString,AsyncRet_CallFile_StringArray,AsyncRet_CmdShell_FullString,AsyncRet_CmdShell_StringArray,AsyncCallFile
 '*1.9  26/5/2022  Modify mCallFile
 '*1.10 26/7/2022  Modify Imports
+'*1.11 29/7/2022  Modify Imports
 '**********************************
-#If NETFRAMEWORK Then
-Imports PigToolsWinLib
-#Else
 Imports PigToolsLiteLib
-#End If
 Imports System.IO
 Imports System.Threading
 Public Class PigCmdApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.10.2"
+    Private Const CLS_VERSION As String = "1.11.2"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private WithEvents moPigFunc As New PigFunc

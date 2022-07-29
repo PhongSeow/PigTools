@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.11
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -15,17 +15,14 @@
 '*1.7 16/4/2022    Add IsYesOrNo and SimpleMenu.
 '*1.8 17/4/2022    Modify SimpleMenu
 '*1.9 29/4/2022    Add DisplayPause,mDisplayPause
-'*1.10 26/7/2022  Modify Imports
+'*1.10 26/7/2022   Modify Imports
+'*1.11 29/7/2022   Modify Imports,mGetLine
 '**********************************
-#If NETFRAMEWORK Then
-Imports PigToolsWinLib
-#Else
 Imports PigToolsLiteLib
-#End If
 
 Public Class PigConsole
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.10.3"
+    Private Const CLS_VERSION As String = "1.11.3"
     Private moPigFunc As New PigFunc
 
     Public Enum EnmSimpleMenuExitType
@@ -282,11 +279,11 @@ Public Class PigConsole
     Private Function mGetPwdStr(PromptInf As String) As String
         Try
             Dim strPwd As String = ""
-            Dim bolCurrCursorVisible As Boolean
-            If Me.IsWindows = True Then
-                bolCurrCursorVisible = Console.CursorVisible
-                If bolCurrCursorVisible = False Then Console.CursorVisible = True
-            End If
+            '            Dim bolCurrCursorVisible As Boolean
+            'If Me.IsWindows = True Then
+            '    bolCurrCursorVisible = Console.CursorVisible
+            '    If bolCurrCursorVisible = False Then Console.CursorVisible = True
+            'End If
             If PromptInf <> "" Then Console.Write(PromptInf & ":")
             Do While True
                 Dim oConsoleKeyInfo As ConsoleKeyInfo = Console.ReadKey(True)
@@ -304,9 +301,9 @@ Public Class PigConsole
                         Exit Do
                 End Select
             Loop
-            If Me.IsWindows = True Then
-                If bolCurrCursorVisible = Console.CursorVisible Then Console.CursorVisible = bolCurrCursorVisible
-            End If
+            'If Me.IsWindows = True Then
+            '    If bolCurrCursorVisible = Console.CursorVisible Then Console.CursorVisible = bolCurrCursorVisible
+            'End If
             Return strPwd
         Catch ex As Exception
             Me.SetSubErrInf("mGetPwdStr", ex)
@@ -476,12 +473,12 @@ Public Class PigConsole
         Dim LOG As New PigStepLog("mGetLine")
         Try
             Dim strOldLine As String = OutLine
-            Dim bolCurrCursorVisible As Boolean
-            If Me.IsWindows = True Then
-                LOG.StepName = "Save CursorVisible"
-                bolCurrCursorVisible = Console.CursorVisible
-                If bolCurrCursorVisible = False Then Console.CursorVisible = True
-            End If
+            '            Dim bolCurrCursorVisible As Boolean
+            'If Me.IsWindows = True Then
+            '    LOG.StepName = "Save CursorVisible"
+            '    bolCurrCursorVisible = Console.CursorVisible
+            '    If bolCurrCursorVisible = False Then Console.CursorVisible = True
+            'End If
             Dim intBeginLeft As Integer = Console.CursorLeft, intBeginTop As Integer = Console.CursorTop
             If OutLine <> "" And IsShowCurrLine = True Then
                 Console.WriteLine("(Press ENTER to set the current value to the following text)")
@@ -492,9 +489,9 @@ Public Class PigConsole
             If strLine <> "" Then
                 OutLine = strLine
             End If
-            If Me.IsWindows = True Then
-                If bolCurrCursorVisible = Console.CursorVisible Then Console.CursorVisible = bolCurrCursorVisible
-            End If
+            'If Me.IsWindows = True Then
+            '    If bolCurrCursorVisible = Console.CursorVisible Then Console.CursorVisible = bolCurrCursorVisible
+            'End If
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
