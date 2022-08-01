@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>PigHostLib.SQLServer</RootNamespace>
@@ -23,7 +23,8 @@ It can run on Windows only.
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigHostLib" Version="1.0.18" />
+    <PackageReference Include="PigHostLib" Version="1.0.28" />
+    <PackageReference Include="PigSQLSrvLib" Version="2.6.68" />
   </ItemGroup>
 
   <ItemGroup>

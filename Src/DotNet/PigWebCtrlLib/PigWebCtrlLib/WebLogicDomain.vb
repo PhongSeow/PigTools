@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.20
+'* Version: 1.21
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -27,6 +27,7 @@
 '*1.18 21/7/2022  Modify AdminPort,IsAdminPortEnable
 '*1.19  26/7/2022 Modify Imports
 '*1.20  29/7/2022 Modify Imports
+'*1.21  1/8/2022  Add HardStopDomain
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -35,7 +36,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.20.2"
+    Private Const CLS_VERSION As String = "1.21.2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -607,6 +608,49 @@ Public Class WebLogicDomain
             Me.mStartDomainBeginTime = Now
             LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mStartDomainThreadID)
             Me.StartDomainRes = ""
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function HardStopDomain() As String
+        Dim LOG As New PigStepLog("HardStopDomain")
+        Try
+            LOG.StepName = "RefAll"
+            LOG.Ret = Me.RefAll()
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "Check Status"
+            If Me.mIsDeployReady = False Then Throw New Exception("The current deployment state(" & Me.DeployStatus.ToString & ") cannot stop the domain.")
+            If Me.mIsRunBusy = True Then Throw New Exception("The current run state(" & Me.RunStatus.ToString & ") cannot stop the domain.")
+
+            If Me.mIsFileExists(Me.stopWebLogicPath) = False Then
+                LOG.AddStepNameInf(Me.stopWebLogicPath)
+                Throw New Exception("File not found.")
+            End If
+
+            If Me.RunStatus <> EnmDomainRunStatus.Running Then Throw New Exception("Domain instance is not running")
+
+            If Me.mIsFolderExists(Me.LogDirPath) = False Then
+                LOG.StepName = "CreateFolder"
+                LOG.Ret = Me.mPigFunc.CreateFolder(Me.LogDirPath)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(Me.LogDirPath)
+                    Throw New Exception(LOG.Ret)
+                End If
+            End If
+            LOG.StepName = "AsyncCmdShell"
+            Dim strCmd As String
+            If Me.IsWindows = True Then
+                strCmd = "call " & Me.stopWebLogicPath
+            Else
+                strCmd = "nohup " & Me.stopWebLogicPath
+            End If
+            Me.fParent.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
+            Me.RunStatus = EnmDomainRunStatus.Stopping
+            Me.mStopDomainBeginTime = Now
+            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mStopDomainThreadID)
+            Me.StopDomainRes = ""
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
