@@ -20,8 +20,8 @@ A series of console functions, including reading lines, whether to select, simpl
 asynchronous processing.
 Wmic calls and operating system commands.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.0.8</Version>
-    <PackageReleaseNotes>Adjust to be more compatible with .net core and .net framework at the same time.</PackageReleaseNotes>
+    <Version>2.0.18</Version>
+    <PackageReleaseNotes>Add KillSubProcs of PigCmdApp</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,7 +36,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.0.8" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.0.18" />
   </ItemGroup>
 
 </Project>

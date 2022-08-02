@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Basic lightweight Edition
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8.18
+'* Version: 1.9.2
 '* Create Time: 31/8/2019
 '*1.0.2  1/10/2019   Add mGetSubErrInf 
 '*1.0.3  4/11/2019   Add LastErr
@@ -39,6 +39,7 @@
 '*1.6 10/2/2022     Modify fMyPID
 '*1.7 15/5/2022     Add StruASyncRet
 '*1.8 15/5/2022     Modify New
+'*1.9 2/8/2022      Modify PrintDebugLog
 '************************************
 Imports System.Runtime.InteropServices
 Public Class PigBaseMini
@@ -142,6 +143,10 @@ Public Class PigBaseMini
 
     Friend Overloads Function PrintDebugLog(SubName As String, LogInf As String) As String
         PrintDebugLog = Me.mPrintDebugLog(SubName, "", LogInf, False)
+    End Function
+
+    Friend Overloads Function PrintDebugLog(LOG As PigStepLog, LogInf As String) As String
+        PrintDebugLog = Me.mPrintDebugLog(LOG.SubName, LOG.StepName, LogInf, False)
     End Function
 
     Private Function mPrintDebugLog(SubName As String, StepName As String, LogInf As String, IsHardDebug As Boolean) As String

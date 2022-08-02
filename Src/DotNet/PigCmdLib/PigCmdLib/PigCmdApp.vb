@@ -478,6 +478,32 @@ Public Class PigCmdApp
     End Function
 
     ''' <summary>
+    ''' 结束指定进程号的子进程|Kill the child process with the specified process number
+    ''' </summary>
+    ''' <param name="PID">进程号|Process number</param>
+    ''' <returns></returns>
+    Public Function KillSubProcs(PID As Integer) As String
+        Dim LOG As New PigStepLog("KillSubProcs")
+        Try
+            LOG.StepName = "GetSubProcs"
+            Dim oPigProcs As PigProcs = Me.GetSubProcs(PID)
+            If oPigProcs Is Nothing Then Throw New Exception("Unable to get child process")
+            Dim strErr As String = ""
+            LOG.StepName = "GetSubProcs"
+            For Each oPigProc As PigProc In oPigProcs
+                Dim intPID As String = oPigProc.ProcessID
+                LOG.Ret = oPigProc.Close()
+                If LOG.Ret <> "OK" Then strErr &= LOG.Ret & "[" & intPID.ToString & "]"
+            Next
+            oPigProcs = Nothing
+            If strErr <> "OK" Then Throw New Exception(strErr)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
     ''' 获取指定进程号的子进程|Gets the child process of the specified process number
     ''' </summary>
     ''' <param name="PID">进程号|Process number</param>
@@ -518,7 +544,6 @@ Public Class PigCmdApp
                     End If
                 End If
             Next
-
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing

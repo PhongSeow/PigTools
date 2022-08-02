@@ -78,7 +78,7 @@ Public Class PigProcApp
                 LOG.Ret = oPigProc.Close
                 If LOG.Ret <> "OK" Then strErr &= LOG.Ret
             Next
-            If strErr <> "" Then Throw New Exception(LOG.Ret)
+            If strErr <> "" Then Throw New Exception(strErr)
             oPigProcs = Nothing
             Return "OK"
         Catch ex As Exception

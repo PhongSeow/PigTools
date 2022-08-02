@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.21
+'* Version: 1.22
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -28,6 +28,7 @@
 '*1.19  26/7/2022 Modify Imports
 '*1.20  29/7/2022 Modify Imports
 '*1.21  1/8/2022  Add HardStopDomain
+'*1.22  2/8/2022  Modify mWlstCallMain,CreateDomain
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -36,7 +37,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.21.2"
+    Private Const CLS_VERSION As String = "1.22.2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -614,6 +615,25 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    Private Function mKillProc(PID As Integer) As String
+        Dim LOG As New PigStepLog("mKillProc")
+        Try
+            Dim strCmd As String = ""
+            If Me.IsWindows = True Then
+                strCmd = "taskkill /pid " & PID.ToString & " /f"
+            Else
+                strCmd = "kill -9 " & PID.ToString
+            End If
+            Dim intOutPID As Integer = -1
+            LOG.StepName = "AsyncCmdShell"
+            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, intOutPID)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
     Public Function HardStopDomain() As String
         Dim LOG As New PigStepLog("HardStopDomain")
         Try
@@ -639,20 +659,23 @@ Public Class WebLogicDomain
                     Throw New Exception(LOG.Ret)
                 End If
             End If
-            LOG.StepName = "AsyncCmdShell"
-            Dim strCmd As String
-            If Me.IsWindows = True Then
-                strCmd = "call " & Me.stopWebLogicPath
-            Else
-                strCmd = "nohup " & Me.stopWebLogicPath
-            End If
-            Me.fParent.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
             Me.RunStatus = EnmDomainRunStatus.Stopping
-            Me.mStopDomainBeginTime = Now
-            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mStopDomainThreadID)
+            Dim oPigProcs As PigProcs = Me.mPigCmdApp.GetSubProcs(Me.JavaPID)
+            If oPigProcs IsNot Nothing Then
+                For Each oPigProc As PigProc In oPigProcs
+                    Me.mKillProc(oPigProc.ProcessID)
+                    Me.mPigFunc.Delay(200)
+                Next
+            End If
+            LOG.StepName = "mKillProc"
+            LOG.Ret = Me.mKillProc(Me.JavaPID)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Me.mPigFunc.Delay(500)
             Me.StopDomainRes = ""
+            Me.RunStatus = EnmDomainRunStatus.Stopped
             Return "OK"
         Catch ex As Exception
+            Me.RunStatus = EnmDomainRunStatus.StartFail
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -732,7 +755,7 @@ Public Class WebLogicDomain
         End Set
     End Property
 
-    Private Function mWlstCallMain(WlstCallCmd As EnmWlstCallCmd, Optional ListenPort As Integer = 0, Optional AdminPort As Integer = 0) As String
+    Private Function mWlstCallMain(WlstCallCmd As EnmWlstCallCmd, Optional ListenPort As Integer = 0, Optional AdminPort As Integer = 0, Optional IsDisableIIOP As Boolean = True) As String
         Dim LOG As New PigStepLog("mWlstCallMain")
         Try
             LOG.StepName = "Check CallWlst"
@@ -788,6 +811,9 @@ Public Class WebLogicDomain
                             .WriteLine("cd('Servers/AdminServer')")
                             .WriteLine("set('ListenAddress','')")
                             .WriteLine("set('ListenPort', " & Me.ListenPort & ")")
+                            If IsDisableIIOP = True Then
+                                .WriteLine("set('iiop','false')")
+                            End If
                             .WriteLine("cd('/')")
                             If AdminPort > 0 Then
                                 .WriteLine("cmo.setAdministrationPort(" & AdminPort.ToString & ")")
@@ -875,6 +901,21 @@ Public Class WebLogicDomain
     Public Function CreateDomain(ListenPort As Integer, AdminPort As Integer) As String
         Try
             Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 创建域|Create domain
+    ''' </summary>
+    ''' <param name="ListenPort">侦听端口|Listening port</param>
+    ''' <param name="AdminPort">管理端口|Administrator port</param>
+    ''' <param name="IsDisableIIOP">是禁用IIOP|Is Disable IIOP</param>
+    ''' <returns></returns>
+    Public Function CreateDomain(ListenPort As Integer, AdminPort As Integer, IsDisableIIOP As Boolean) As String
+        Try
+            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort, IsDisableIIOP)
         Catch ex As Exception
             Return ex.Message.ToString
         End Try
