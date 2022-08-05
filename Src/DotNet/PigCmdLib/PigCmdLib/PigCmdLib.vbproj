@@ -20,8 +20,8 @@ A series of console functions, including reading lines, whether to select, simpl
 asynchronous processing.
 Wmic calls and operating system commands.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.0.18</Version>
-    <PackageReleaseNotes>Add KillSubProcs of PigCmdApp</PackageReleaseNotes>
+    <Version>2.0.28</Version>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,7 +36,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.0.18" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.1.28" />
   </ItemGroup>
 
 </Project>

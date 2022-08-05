@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.18
+'* Version: 1.19
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -29,6 +29,7 @@
 '*1.16   5/7/2022   Modify GetHostIp
 '*1.17   6/7/2022   Add GetFileVersion
 '*1.18   19/7/2022  Add GetFileUpdateTime,GetFileCreateTime,GetFileMD5
+'*1.19   4/8/2022  Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -39,7 +40,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.18.2"
+    Private Const CLS_VERSION As String = "1.19.8"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -894,7 +895,7 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function GetFileMD5(FilePath As String, ByRef FileMD5 As Date) As String
+    Public Function GetFileMD5(FilePath As String, ByRef FileMD5 As String) As String
         Dim LOG As New PigStepLog("GetFileMD5")
         Try
             LOG.StepName = "New PigFile"
@@ -912,19 +913,44 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function GetFilePigMD5(FilePath As String, ByRef FilePigMD5 As Date) As String
-        Dim LOG As New PigStepLog("GetFileCreateTime")
+    Public Function GetBytesPigMD5(ByRef InBytes As Byte(), ByRef OutPigMD5 As String) As String
+        Try
+            Dim oPigMD5 As New PigMD5(InBytes)
+            OutPigMD5 = oPigMD5.PigMD5
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            OutPigMD5 = ""
+            Return Me.GetSubErrInf("GetBytesPigMD5", ex)
+        End Try
+    End Function
+
+    Public Function GetTextPigMD5(SrcText As String, TextType As PigMD5.enmTextType, ByRef OutPigMD5 As String) As String
+        Dim LOG As New PigStepLog("GetTextPigMD5")
+        Try
+            Dim oPigMD5 As New PigMD5(SrcText, TextType)
+            OutPigMD5 = oPigMD5.PigMD5
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            OutPigMD5 = ""
+            Return Me.GetSubErrInf("GetTextPigMD5", ex)
+        End Try
+    End Function
+
+    Public Function GetFilePigMD5(FilePath As String, ByRef OutPigMD5 As String) As String
+        Dim LOG As New PigStepLog("GetFilePigMD5")
         Try
             LOG.StepName = "New PigFile"
             Dim oPigFile As New PigFile(FilePath)
             LOG.StepName = "LoadFile"
             LOG.Ret = oPigFile.LoadFile()
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-            FilePigMD5 = oPigFile.PigMD5
+            OutPigMD5 = oPigFile.PigMD5
             oPigFile = Nothing
             Return "OK"
         Catch ex As Exception
-            FilePigMD5 = ""
+            OutPigMD5 = ""
             LOG.AddStepNameInf(FilePath)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
@@ -1341,5 +1367,122 @@ Public Class PigFunc
             Return ""
         End Try
     End Function
+
+    Public Function SaveShareMem(SMName As String, InBytes As Byte()) As String
+        Dim LOG As New PigStepLog("SaveShareMem")
+        Const SM_HEAD_LEN As Integer = 28
+        Try
+            If InBytes Is Nothing Then Throw New Exception("InBytes Is Nothing")
+            LOG.StepName = "GetTextPigMD5"
+            LOG.Ret = Me.GetTextPigMD5("~PigShareMem." & SMName & ">PigShareMem,", PigMD5.enmTextType.UTF8, SMName)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Dim intDataLen As Integer = InBytes.Length
+            Dim dteCreate As Date = Now
+            LOG.StepName = "New PigMD5"
+            Dim pbHead As New PigBytes
+            Dim oPigMD5 As New PigMD5(InBytes)
+            If oPigMD5.LastErr <> "" Then Throw New Exception(oPigMD5.LastErr)
+            With pbHead
+                LOG.StepName = "pbHead.SetValue"
+                .SetValue(intDataLen)
+                .SetValue(dteCreate)
+                .SetValue(oPigMD5.PigMD5Bytes)
+                If .LastErr <> "" Then Throw New Exception(.LastErr)
+            End With
+            LOG.StepName = "New ShareMem(Head)"
+            Dim smHead As New ShareMem
+            With smHead
+                LOG.StepName = "Init(Head)"
+                LOG.Ret = .Init(SMName, SM_HEAD_LEN)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                LOG.StepName = "Write(Head)"
+                LOG.Ret = .Write(pbHead.Main)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End With
+            smHead = Nothing
+            LOG.StepName = "New ShareMem(Body)"
+            Dim smBody As New ShareMem
+            With smBody
+                LOG.StepName = "Init(Body)"
+                LOG.Ret = .Init(oPigMD5.PigMD5, intDataLen)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                LOG.StepName = "Write(Body)"
+                LOG.Ret = .Write(InBytes)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End With
+            smBody = Nothing
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetPigMD5OrMD5(PigMD5OrMD5Bytes As Byte()) As String
+        Try
+            GetPigMD5OrMD5 = ""
+            For i = 0 To 15
+                GetPigMD5OrMD5 &= Right("00" & Hex(PigMD5OrMD5Bytes(i)).ToLower, 2)
+            Next
+        Catch ex As Exception
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetShareMem(SMName As String, ByRef OutBytes As Byte(), ByRef CreateTime As Date) As String
+        Dim LOG As New PigStepLog("GetShareMem")
+        Const SM_HEAD_LEN As Integer = 28
+        Try
+            LOG.StepName = "GetTextPigMD5"
+            LOG.Ret = Me.GetTextPigMD5("~PigShareMem." & SMName & ">PigShareMem,", PigMD5.enmTextType.UTF8, SMName)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "New ShareMem(Head)"
+            Dim abHead(0) As Byte
+            Dim smHead As New ShareMem
+            With smHead
+                LOG.StepName = "Init(Head)"
+                LOG.Ret = .Init(SMName, SM_HEAD_LEN)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                LOG.StepName = "Read(Head)"
+                LOG.Ret = .Read(abHead)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End With
+            Dim intDataLen As Integer, abMD5(0) As Byte
+            Dim pbHead As New PigBytes(abHead)
+            With pbHead
+                LOG.StepName = "pbHead.GetValue"
+                intDataLen = .GetInt32Value
+                If intDataLen <= 0 Then Throw New Exception("No data")
+                CreateTime = .GetDateTimeValue
+                abMD5 = .GetBytesValue(16)
+                If .LastErr <> "" Then Throw New Exception(.LastErr)
+            End With
+            Dim strDataMD5 As String = Me.GetPigMD5OrMD5(abMD5)
+            If strDataMD5 = "" Then Throw New Exception("Invalid data")
+            smHead = Nothing
+            LOG.StepName = "New ShareMem(Body)"
+            Dim smBody As New ShareMem
+            With smBody
+                LOG.StepName = "Init(Body)"
+                LOG.Ret = .Init(strDataMD5, intDataLen)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                ReDim OutBytes(0)
+                LOG.StepName = "Read(Body)"
+                LOG.Ret = .Read(OutBytes)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End With
+            smBody = Nothing
+            Dim oPigMD5 As New PigMD5(OutBytes)
+            If oPigMD5.LastErr <> "" Then Throw New Exception(oPigMD5.LastErr)
+            If oPigMD5.PigMD5 <> strDataMD5 Then Throw New Exception("Data mismatch")
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            ReDim OutBytes(0)
+            CreateTime = Date.MinValue
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
 End Class
