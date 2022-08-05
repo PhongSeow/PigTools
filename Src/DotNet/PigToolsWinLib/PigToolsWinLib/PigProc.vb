@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 进程|Process
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 20/3/2022
-'* 1.1    2/4/2022   Add 
+'* 1.1    2/4/2022   Modify new
+'* 1.2    1/8/2022   Add Close
 '**********************************
 Public Class PigProc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1.2.2"
 
     Private moProcess As Process
 
@@ -21,7 +22,6 @@ Public Class PigProc
         Catch ex As Exception
             Me.SetSubErrInf("New", ex)
         End Try
-
     End Sub
 
 
@@ -112,5 +112,14 @@ Public Class PigProc
             End Try
         End Get
     End Property
+
+    Public Function Close() As String
+        Try
+            moProcess.Close()
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("Close", ex)
+        End Try
+    End Function
 
 End Class

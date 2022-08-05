@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>PigToolsWinLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.9.68</Version>
+    <Version>3.1.28</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
@@ -20,7 +20,7 @@ It can run on Windows platforms only.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsWinLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows JSon Register HttpContext</PackageTags>
-    <PackageReleaseNotes>In order to make the compatibility of older Windows versions better, support .Net 4.0 again.</PackageReleaseNotes>
+    <PackageReleaseNotes>Update the new function of PigToolsLiteLib synchronously.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
