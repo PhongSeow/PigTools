@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.11
+'* Version: 1.12
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -17,12 +17,13 @@
 '*1.9 29/4/2022    Add DisplayPause,mDisplayPause
 '*1.10 26/7/2022   Modify Imports
 '*1.11 29/7/2022   Modify Imports,mGetLine
+'*1.12 12/8/2022   Modify IsYesOrNo
 '**********************************
 Imports PigToolsLiteLib
 
 Public Class PigConsole
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.11.3"
+    Private Const CLS_VERSION As String = "1.12.1"
     Private moPigFunc As New PigFunc
 
     Public Enum EnmSimpleMenuExitType
@@ -374,7 +375,7 @@ Public Class PigConsole
     Public Function IsYesOrNo(PromptInf As String) As Boolean
         Try
             IsYesOrNo = Nothing
-            Console.Write(PromptInf & ":(Press Y to Yes, N to No)")
+            Console.Write(Me.OsCrLf & PromptInf & ":(Press Y to Yes, N to No)")
             Do While True
                 Select Case Console.ReadKey(True).Key
                     Case ConsoleKey.Y

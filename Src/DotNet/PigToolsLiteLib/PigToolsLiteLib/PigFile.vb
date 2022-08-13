@@ -15,6 +15,7 @@
 '*1.0.9  1/2/2021 Err.Raise change to Throw New Exception|Err.Raise改为Throw New Exception
 '*1.0.10  26/7/2021 Modify LoadFile
 '*1.1  10/5/2022    Add PigMD5, modify LoadFile
+'*1.2  10/8/2022    Add GetFastPigMD5
 '**********************************
 Imports System.IO
 Public Class PigFile
@@ -360,5 +361,58 @@ Public Class PigFile
     End Property
 
 
+    Public Function GetFastPigMD5(ByRef FastPigMD5 As PigMD5, Optional ScanSize As Integer = 20480) As String
+        Dim LOG As New PigStepLog("GetFastPigMD5")
+        Dim i As Long
+        Dim intSize As Long = Me.Size, intStep As Integer
+        Try
+            FastPigMD5 = Nothing
+            If intSize <= ScanSize Then ScanSize = intSize
+            Dim abData(0) As Byte
+            ReDim abData(ScanSize - 1)
+            intStep = intSize / ScanSize + 1
+            Dim intPos As Integer
+            If Me.GbMain IsNot Nothing Then
+                If GbMain.Main IsNot Nothing Then
+                    If GbMain.Main.Length <> Me.Size Then Throw New Exception("GbMain.Main.Length not equal Size")
+                    intPos = 0
+                    For i = 0 To intSize - 1 Step intStep
+                        abData(intPos) = Me.GbMain.Main(i)
+                        intPos += 1
+                    Next
+                    LOG.StepName = "New PigMD5.1"
+                    FastPigMD5 = New PigMD5(abData)
+                    If FastPigMD5.LastErr <> "" Then Throw New Exception(FastPigMD5.LastErr)
+                End If
+            Else
+                LOG.StepName = "Check file"
+                If Me.IsExists(Me.FilePath) = False Then Throw New Exception("File not found")
+                LOG.StepName = "New FileStream"
+                Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                LOG.StepName = "New BinaryReader"
+                Dim brAny = New BinaryReader(sfAny)
+                LOG.StepName = "Read"
+                Dim abStep(intStep - 1) As Byte, intRead As Integer
+                intPos = 0
+                For i = 0 To intSize - 1 Step intStep
+                    intRead = brAny.Read(abStep, 0, intStep)
+                    If intRead < 0 Then Exit For
+                    abData(intPos) = abStep(0)
+                    intPos += 1
+                Next
+                LOG.StepName = "New PigMD5.2"
+                FastPigMD5 = New PigMD5(abData)
+                If FastPigMD5.LastErr <> "" Then Throw New Exception(FastPigMD5.LastErr)
+                LOG.StepName = "Close"
+                brAny.Close()
+                sfAny.Close()
+            End If
+            Return "OK"
+        Catch ex As Exception
+            FastPigMD5 = Nothing
+            LOG.AddStepNameInf(Me.FilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 End Class

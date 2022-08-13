@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.11
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -26,6 +26,7 @@
 '1.8 6/6/2022   Add XmlDocGetStr
 '1.9 15/6/2022  Modify XmlDocGetStr
 '1.10 11/7/2022  Add AddXmlFragment,mSrc2CtlStr,mCtlStr2Src,mUnEscapeXmlValue,mEscapeXmlValue, modify mXMLAddStr,mGetXmlDoc
+'1.11 12/8/2022  Add XmdDocMainStr
 '*******************************************************
 
 Imports System.Xml
@@ -898,7 +899,7 @@ Public Class PigXml
             If XmlFilePath = "" Then
                 If Me.mstrMainXml = "" Then
                     Me.mstrMainXml = Me.MainXmlStr
-                    If Me.mstrMainXml = "" Then Throw New Exception("Please call SetMainXml设置 to set MainXmlStr first.")
+                    If Me.mstrMainXml = "" Then Throw New Exception("Please call SetMainXml to set MainXmlStr first.")
                 End If
                 LOG.StepName = "XmlDocument.LoadXml"
                 If Me.IsDebug = True Then LOG.AddStepNameInf(Me.mstrMainXml)
@@ -1039,5 +1040,20 @@ Public Class PigXml
             Me.SetSubErrInf("mCtlStr2Src", ex)
         End Try
     End Sub
+
+    Public ReadOnly Property XmdDocMainStr As String
+        Get
+            Try
+                If Me.XmlDocument IsNot Nothing Then
+                    Return Me.XmlDocument.InnerXml
+                Else
+                    Return ""
+                End If
+            Catch ex As Exception
+                Me.SetSubErrInf("XmdDocMainStr", ex)
+                Return ""
+            End Try
+        End Get
+    End Property
 
 End Class
