@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.22
+'* Version: 1.23
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -29,6 +29,7 @@
 '*1.20  29/7/2022 Modify Imports
 '*1.21  1/8/2022  Add HardStopDomain
 '*1.22  2/8/2022  Modify mWlstCallMain,CreateDomain
+'*1.23  13/8/2022 Modify mWlstCallMain,CreateDomain, and add AsyncCreateDomain,SetT3Deny
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -37,7 +38,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.22.2"
+    Private Const CLS_VERSION As String = "1.23.5"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -96,6 +97,14 @@ Public Class WebLogicDomain
         ''' 修改配置|Modify configuration
         ''' </summary>
         Edit = 3
+        ''' <summary>
+        ''' 设置管理端口|Set management port
+        ''' </summary>
+        SetAdminPort = 5
+        ''' <summary>
+        ''' 设置T3拒绝|Set T3 deny
+        ''' </summary>
+        SetT3Deny = 6
     End Enum
 
     ''' <summary>
@@ -755,7 +764,7 @@ Public Class WebLogicDomain
         End Set
     End Property
 
-    Private Function mWlstCallMain(WlstCallCmd As EnmWlstCallCmd, Optional ListenPort As Integer = 0, Optional AdminPort As Integer = 0, Optional IsDisableIIOP As Boolean = True) As String
+    Private Function mWlstCallMain(WlstCallCmd As EnmWlstCallCmd, Optional ListenPort As Integer = 0, Optional AdminPort As Integer = 0, Optional IsDisableIIOP As Boolean = True, Optional IsAsync As Boolean = False, Optional ByRef CmdRes As String = "", Optional IsEnableAdminPort As Boolean = False) As String
         Dim LOG As New PigStepLog("mWlstCallMain")
         Try
             LOG.StepName = "Check CallWlst"
@@ -770,14 +779,10 @@ Public Class WebLogicDomain
             Me.WlstCallCmd = WlstCallCmd
             LOG.StepName = "Check WlstCallCmd"
             Select Case WlstCallCmd
-                Case EnmWlstCallCmd.Connect
-                    If Me.RunStatus <> EnmDomainRunStatus.Running Then Throw New Exception("The current run state[" & Me.RunStatus.ToString & "] cannot connect.")
+                Case EnmWlstCallCmd.Connect, EnmWlstCallCmd.Edit, EnmWlstCallCmd.SetT3Deny, EnmWlstCallCmd.SetAdminPort
+                    If Me.RunStatus <> EnmDomainRunStatus.Running Then Throw New Exception("The current run state[" & Me.RunStatus.ToString & "] cannot do " & WlstCallCmd.ToString)
                 Case EnmWlstCallCmd.CreateDomain
                     If Me.mIsDeployReady = True Then Throw New Exception("The current deployment state[" & Me.DeployStatus.ToString & "] cannot create a domain.")
-                Case EnmWlstCallCmd.Edit
-                    'If Me.mConfFileUpdtime Then
-
-                    'End If
                 Case Else
                     Me.WlstCallCmd = EnmWlstCallCmd.Unknow
                     Throw New Exception("Invalid WlstCallCmd " & WlstCallCmd.ToString)
@@ -786,7 +791,7 @@ Public Class WebLogicDomain
             With Me
                 Dim tsMain As TextStream = Nothing
                 LOG.StepName = "Set CallWlstPyPath"
-                .CallWlstPyPath = Me.fParent.WorkTmpDirPath & Me.OsPathSep & Me.mPigFunc.GetPKeyValue(Me.DomainName, False) & ".py"
+                .CallWlstPyPath = Me.fParent.WorkTmpDirPath & Me.OsPathSep & Me.mPigFunc.GetPKeyValue(Me.DomainName, False) ' & ".py"
                 LOG.StepName = "OpenTextFile"
                 tsMain = Me.mFS.OpenTextFile(.CallWlstPyPath, FileSystemObject.IOMode.ForWriting, True)
                 If Me.mFS.LastErr <> "" Then
@@ -799,6 +804,31 @@ Public Class WebLogicDomain
                 Dim strLine As String
                 With tsMain
                     Select Case Me.WlstCallCmd
+                        Case EnmWlstCallCmd.SetAdminPort
+                            If Me.IsAdminPortEnable = True Then Throw New Exception("Can not Enable AdminPort.")
+                            .WriteLine("connect('" & Me.AdminUserName & "','" & Me.AdminUserPassword & "','t3://localhost:" & Me.ListenPort & "')")
+                            .WriteLine("edit()")
+                            .WriteLine("startEdit()")
+                            .WriteLine("cd('/')")
+                            If IsEnableAdminPort = True Then
+                                .WriteLine("cmo.setAdministrationPort(" & AdminPort & ")")
+                                .WriteLine("cmo.setAdministrationPortEnabled(true)")
+                            Else
+                                .WriteLine("cmo.setAdministrationPortEnabled(false)")
+                            End If
+                            .WriteLine("save()")
+                            .WriteLine("activate()")
+                        Case EnmWlstCallCmd.SetT3Deny
+                            If Me.IsAdminPortEnable = True Then Throw New Exception("Can not Enable AdminPort.")
+                            .WriteLine("connect('" & Me.AdminUserName & "','" & Me.AdminUserPassword & "','t3://localhost:" & Me.ListenPort & "')")
+                            .WriteLine("edit()")
+                            .WriteLine("startEdit()")
+                            .WriteLine("cd('/SecurityConfiguration/" + Me.DomainName + "')")
+                            .WriteLine("cmo.setConnectionLoggerEnabled(true)")
+                            .WriteLine("cmo.setConnectionFilter('weblogic.security.net.ConnectionFilterImpl')")
+                            .WriteLine("set ('ConnectionFilterRules',jarray.array([String('127.0.0.1 127.0.0.1 " & Me.ListenPort & " allow t3 t3s'),String('0.0.0.0/0 * * deny t3 t3s')], String))")
+                            .WriteLine("save()")
+                            .WriteLine("activate()")
                         Case EnmWlstCallCmd.CreateDomain
                             If ListenPort <= 0 Then Throw New Exception("Invalid ListenPort is " & ListenPort.ToString)
                             Me.ListenPort = ListenPort
@@ -854,14 +884,26 @@ Public Class WebLogicDomain
             Me.RunStatus = EnmDomainRunStatus.ExecutingWLST
             Me.mCallWlstBeginTime = Now
             Me.CallWlstRes = ""
-            LOG.StepName = "AsyncCmdShell"
-            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mCallWlstThreadID)
-            If LOG.Ret <> "OK" Then
-                If Me.IsDebug = True Then LOG.AddStepNameInf(strCmd)
-                Throw New Exception(LOG.Ret)
+            If IsAsync = True Then
+                LOG.StepName = "AsyncCmdShell"
+                LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mCallWlstThreadID)
+                If LOG.Ret <> "OK" Then
+                    If Me.IsDebug = True Then LOG.AddStepNameInf(strCmd)
+                    Throw New Exception(LOG.Ret)
+                End If
+            Else
+                LOG.StepName = "CmdShell"
+                LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd)
+                CmdRes = Me.mPigCmdApp.StandardOutput & Me.OsCrLf & Me.mPigCmdApp.StandardError
+                If LOG.Ret <> "OK" Then
+                    If Me.IsDebug = True Then LOG.AddStepNameInf(strCmd)
+                    Throw New Exception(LOG.Ret)
+                End If
+                Me.RunStatus = EnmDomainRunStatus.ExecWLSTOK
             End If
             Return "OK"
         Catch ex As Exception
+            Me.RunStatus = EnmDomainRunStatus.ExecWLSTFail
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -884,9 +926,17 @@ Public Class WebLogicDomain
     ''' </summary>
     ''' <param name="ListenPort">Listening port</param>
     ''' <returns></returns>
-    Public Function CreateDomain(ListenPort As Integer) As String
+    Public Function CreateDomain(ByRef CmdRes As String, ListenPort As Integer) As String
         Try
-            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort)
+            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort,,,, CmdRes)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    Public Function AsyncCreateDomain(ListenPort As Integer) As String
+        Try
+            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort,,, True)
         Catch ex As Exception
             Return ex.Message.ToString
         End Try
@@ -898,9 +948,17 @@ Public Class WebLogicDomain
     ''' <param name="ListenPort">侦听端口|Listening port</param>
     ''' <param name="AdminPort">管理端口|Administrator port</param>
     ''' <returns></returns>
-    Public Function CreateDomain(ListenPort As Integer, AdminPort As Integer) As String
+    Public Function CreateDomain(ByRef CmdRes As String, ListenPort As Integer, AdminPort As Integer) As String
         Try
-            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort)
+            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort,,, CmdRes)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    Public Function AsyncCreateDomain(ListenPort As Integer, AdminPort As Integer) As String
+        Try
+            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort,, True)
         Catch ex As Exception
             Return ex.Message.ToString
         End Try
@@ -913,9 +971,17 @@ Public Class WebLogicDomain
     ''' <param name="AdminPort">管理端口|Administrator port</param>
     ''' <param name="IsDisableIIOP">是禁用IIOP|Is Disable IIOP</param>
     ''' <returns></returns>
-    Public Function CreateDomain(ListenPort As Integer, AdminPort As Integer, IsDisableIIOP As Boolean) As String
+    Public Function CreateDomain(ByRef CmdRes As String, ListenPort As Integer, AdminPort As Integer, IsDisableIIOP As Boolean) As String
         Try
-            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort, IsDisableIIOP)
+            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort, IsDisableIIOP,, CmdRes)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    Public Function AsyncCreateDomain(ListenPort As Integer, AdminPort As Integer, IsDisableIIOP As Boolean) As String
+        Try
+            Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort, IsDisableIIOP, True)
         Catch ex As Exception
             Return ex.Message.ToString
         End Try
@@ -1122,6 +1188,26 @@ Public Class WebLogicDomain
             End Select
 
         End With
-
     End Sub
+
+    Public Function SetT3Deny(ByRef CmdRes As String) As String
+        Try
+            Return Me.mWlstCallMain(EnmWlstCallCmd.SetT3Deny, ,,,, CmdRes)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    Public Function SetSetAdminPort(ByRef CmdRes As String, IsEnableAdminPort As Boolean, Optional AdminPort As Integer = 0) As String
+        Try
+            If IsEnableAdminPort = True Then
+                If AdminPort <= 0 Then Throw New Exception("Invalid administrator port.")
+                If AdminPort = Me.ListenPort Then Throw New Exception("The administrator port cannot be the same as the listening port.")
+            End If
+            Return Me.mWlstCallMain(EnmWlstCallCmd.SetAdminPort, , AdminPort,,, CmdRes, IsEnableAdminPort)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
 End Class
