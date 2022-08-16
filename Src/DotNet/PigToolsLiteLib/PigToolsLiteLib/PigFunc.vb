@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.19
+'* Version: 1.20
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -29,7 +29,8 @@
 '*1.16   5/7/2022   Modify GetHostIp
 '*1.17   6/7/2022   Add GetFileVersion
 '*1.18   19/7/2022  Add GetFileUpdateTime,GetFileCreateTime,GetFileMD5
-'*1.19   4/8/2022  Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
+'*1.19   4/8/2022   Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
+'*1.20   16/8/2022  Add GetMyExeName
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -1484,5 +1485,17 @@ Public Class PigFunc
         End Try
     End Function
 
+    Public Function GetMyExeName() As String
+        Try
+            Dim intPID As Integer = Me.fMyPID
+            Dim oPigProc As New PigProc(Me.fMyPID)
+            If oPigProc.LastErr <> "" Then Throw New Exception(oPigProc.LastErr)
+            GetMyExeName = oPigProc.ProcessName & ".exe"
+            oPigProc = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("", ex)
+            Return ""
+        End Try
+    End Function
 
 End Class

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6.2
+'* Version: 1.7.2
 '* Create Time: 15/2/2022
 '* 1.1    26/5/2022   Add Main
 '* 1.2    30/5/2022   Add WebLogicDemo
@@ -12,6 +12,7 @@
 '* 1.4    1/6/2022   Modify WebLogicDemo
 '* 1.5    1/6/2022   Modify WebLogicDemo
 '* 1.6    15/6/2022   Modify WebLogicDemo
+'* 1.7    1/8/2022   Modify WebLogicDemo 
 '************************************
 
 Imports PigCmdLib
@@ -65,11 +66,53 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "WebLogicDomainSaveSecurityBoot#WebLogicDomain.SaveSecurityBoot|"
             Me.MenuDefinition &= "WebLogicDomainStartDomain#WebLogicDomain.StartDomain|"
             Me.MenuDefinition &= "WebLogicDomainStopDomain#WebLogicDomain.StopDomain|"
+            Me.MenuDefinition &= "WebLogicDomainHardStopDomain#WebLogicDomain.HardStopDomain|"
             Me.MenuDefinition &= "WebLogicDomainConnect#WebLogicDomain.Connect|"
+            Me.MenuDefinition &= "WebLogicDomainSetT3Deny#WebLogicDomain.SetT3Deny|"
+            Me.MenuDefinition &= "WebLogicDomainSetAdminPort#WebLogicDomain.SetAdminPort|"
             Me.PigConsole.SimpleMenu("WebLogicDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "WebLogicDomainSetAdminPort"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("WebLogicDomain.SetAdminPort")
+                    Console.WriteLine("*******************")
+                    If Me.WebLogicDomain Is Nothing Then
+                        Console.WriteLine("WebLogicDomain Is Nothing")
+                    Else
+                        Dim bolIsEnableAdminPort As Boolean = Me.PigConsole.IsYesOrNo("Is Enable AdminPort?")
+                        If bolIsEnableAdminPort = True Then
+                            Me.PigConsole.GetLine("Input administrator port", Me.Line)
+                            Me.AdminPort = CInt(Me.Line)
+                        End If
+                        Dim strCmdRes As String = ""
+                        Me.Ret = Me.WebLogicDomain.SetSetAdminPort(strCmdRes, bolIsEnableAdminPort, Me.AdminPort)
+                        Console.WriteLine(Me.Ret)
+                        Console.WriteLine(strCmdRes)
+                    End If
+                Case "WebLogicDomainSetT3Deny"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("WebLogicDomain.SetT3Deny")
+                    Console.WriteLine("*******************")
+                    If Me.WebLogicDomain Is Nothing Then
+                        Console.WriteLine("WebLogicDomain Is Nothing")
+                    Else
+                        Dim strCmdRes As String = ""
+                        Me.Ret = Me.WebLogicDomain.SetT3Deny(strCmdRes)
+                        Console.WriteLine(Me.Ret)
+                        Console.WriteLine(strCmdRes)
+                    End If
+                Case "WebLogicDomainHardStopDomain"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("WebLogicDomain.HardStopDomain")
+                    Console.WriteLine("*******************")
+                    If Me.WebLogicDomain Is Nothing Then
+                        Console.WriteLine("WebLogicDomain Is Nothing")
+                    Else
+                        Me.Ret = Me.WebLogicDomain.HardStopDomain
+                        Console.WriteLine(Me.Ret)
+                    End If
                 Case "WebLogicDomainConnect"
                     Console.WriteLine("*******************")
                     Console.WriteLine("WebLogicDomain.Connect")
@@ -136,8 +179,16 @@ Public Class ConsoleDemo
                             Me.AdminPort = 0
                         End If
                         Console.WriteLine("CreateDomain")
-                        Me.Ret = Me.WebLogicDomain.CreateDomain(Me.ListPort, Me.AdminPort)
-                        Console.WriteLine(Me.Ret)
+                        If Me.PigConsole.IsYesOrNo("Whether to execute asynchronously") = True Then
+                            Me.Ret = Me.WebLogicDomain.AsyncCreateDomain(Me.ListPort, Me.AdminPort)
+                            Console.WriteLine(Me.Ret)
+                        Else
+                            Console.WriteLine("Please wait a moment...")
+                            Dim strCmdRes As String = ""
+                            Me.Ret = Me.WebLogicDomain.CreateDomain(strCmdRes, Me.ListPort, Me.AdminPort)
+                            Console.WriteLine(Me.Ret)
+                            Console.WriteLine(strCmdRes)
+                        End If
                     End If
                 Case "SetWebLogicDomain"
                     Console.WriteLine("*******************")

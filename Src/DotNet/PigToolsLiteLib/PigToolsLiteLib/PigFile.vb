@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.3
 '* Create Time: 4/11/2019
 '*1.0.2  2019-11-5   增加mSaveFile
 '*1.0.3  2019-11-20  增加 CopyFileTo
@@ -16,11 +16,12 @@
 '*1.0.10  26/7/2021 Modify LoadFile
 '*1.1  10/5/2022    Add PigMD5, modify LoadFile
 '*1.2  10/8/2022    Add GetFastPigMD5
+'*1.3  16/8/2022    Add SegLoadFile, modify GetFastPigMD5,mGetMyMD5
 '**********************************
 Imports System.IO
 Public Class PigFile
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1.3.28"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
     Public GbMain As PigBytes '主数据数组
@@ -98,6 +99,55 @@ Public Class PigFile
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("SetData", ex, False)
+        End Try
+    End Function
+
+    Public Event EnvSegLoadFile(SegNo As Integer, SegBytes As Byte(), IsEnd As Boolean)
+
+    ''' <summary>
+    ''' 异步分段导入文件|Asynchronous segmented load file
+    ''' </summary>
+    ''' <param name="SegmentSize">一段大小|Segment size</param>
+    ''' <returns></returns>
+    Public Function SegLoadFile(SegmentSize As Long) As String
+        Dim LOG As New PigStepLog("SegLoadFile")
+        Try
+            LOG.StepName = "New FileStream"
+            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            LOG.StepName = "New BinaryReader"
+            Dim brAny = New BinaryReader(sfAny)
+            LOG.StepName = "New PigBytes"
+            Dim abSegFile(0) As Byte, intRetSize As Integer = 0, intSegNo As Integer = 0, lngPos As Long = 0
+            Dim lngFileSize As Long = Me.Size, intGetBytes As Integer = SegmentSize, bolIsEnd As Boolean = False
+            Do While True
+                If (lngPos + SegmentSize) > lngFileSize Then
+                    intGetBytes = lngFileSize - lngPos
+                    bolIsEnd = True
+                End If
+                ReDim abSegFile(intGetBytes - 1)
+                LOG.StepName = "Read"
+                intRetSize = brAny.Read(abSegFile, 0, intGetBytes)
+                If intRetSize <= 0 Then
+                    Throw New Exception("RetSize is " & intRetSize)
+                ElseIf intRetSize <> intGetBytes Then
+                    Throw New Exception("RetSize not equal to GetBytes")
+                End If
+                lngPos += intGetBytes
+                RaiseEvent EnvSegLoadFile(intSegNo, abSegFile, bolIsEnd)
+                If bolIsEnd = True Then Exit Do
+                intSegNo += 1
+            Loop
+            LOG.StepName = "Close"
+            brAny.Close()
+            sfAny.Close()
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(mstrFilePath)
+            If Me.IsDebug Or Me.IsHardDebug Then
+                Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex, True)
+            Else
+                Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            End If
         End Try
     End Function
 
@@ -208,38 +258,90 @@ Public Class PigFile
     ''' <summary>本文件MD5</summary>
     Public ReadOnly Property MD5 As String
         Get
-            Return Me.mGetMyMD5(False)
+            If mPigMD5 IsNot Nothing Then
+                Return mPigMD5.MD5
+            Else
+                Dim strRet As String = Me.mGetMyMD5()
+                If strRet = "OK" Then
+                    Return mPigMD5.MD5
+                Else
+                    Return ""
+                End If
+            End If
         End Get
     End Property
 
     ''' <summary>本文件豚豚MD5</summary>
     Public ReadOnly Property PigMD5 As String
         Get
-            Return Me.mGetMyMD5(True)
+            If mPigMD5 IsNot Nothing Then
+                Return mPigMD5.PigMD5
+            Else
+                Dim strRet As String = Me.mGetMyMD5()
+                If strRet = "OK" Then
+                    Return mPigMD5.PigMD5
+                Else
+                    Return ""
+                End If
+            End If
         End Get
     End Property
 
-    ''' <summary>获取本文件MD5</summary>
-    ''' <param name="IsPigMD5">是否豚豚MD5</param>
-    Private Function mGetMyMD5(IsPigMD5 As Boolean) As String
+    Public Function GetFullPigMD5() As PigMD5
+        Return Me.mPigMD5
+    End Function
+
+    Private mPigMD5 As PigMD5
+    Private Function mGetMyMD5() As String
+        Dim LOG As New PigStepLog("mGetMyMD5")
+        Const SEGMENTSIZE As Integer = 20971520
         Try
-            If Me.GbMain Is Nothing Then
-                Dim strRet As String = Me.LoadFile
-                If strRet <> "OK" Then Throw New Exception(strRet)
+            If mPigMD5 Is Nothing Then
+                LOG.StepName = "New FileStream"
+                Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                LOG.StepName = "New BinaryReader"
+                Dim brAny = New BinaryReader(sfAny)
+                LOG.StepName = "New PigBytes"
+                Dim pbMD5 As New PigBytes
+                Dim abSegFile(0) As Byte, intRetSize As Integer = 0, intSegNo As Integer = 0, lngPos As Long = 0
+                Dim lngFileSize As Long = Me.Size, intGetBytes As Integer = SEGMENTSIZE, bolIsEnd As Boolean = False
+                Do While True
+                    If (lngPos + SEGMENTSIZE) > lngFileSize Then
+                        intGetBytes = lngFileSize - lngPos
+                        bolIsEnd = True
+                    End If
+                    ReDim abSegFile(intGetBytes - 1)
+                    LOG.StepName = "Read"
+                    intRetSize = brAny.Read(abSegFile, 0, intGetBytes)
+                    If intRetSize <= 0 Then
+                        Throw New Exception("RetSize is " & intRetSize)
+                    ElseIf intRetSize <> intGetBytes Then
+                        Throw New Exception("RetSize not equal to GetBytes")
+                    End If
+                    lngPos += intGetBytes
+                    Dim oPigMD5 As New PigMD5(abSegFile)
+                    pbMD5.SetValue(oPigMD5.PigMD5Bytes)
+                    oPigMD5 = Nothing
+                    If bolIsEnd = True Then Exit Do
+                    intSegNo += 1
+                Loop
+                LOG.StepName = "Close"
+                brAny.Close()
+                sfAny.Close()
+                Me.mPigMD5 = New PigMD5(pbMD5.Main)
             End If
-            Dim oMD5 As New PigMD5(Me.GbMain.Main)
-            If IsPigMD5 = True Then
-                mGetMyMD5 = oMD5.PigMD5
-            Else
-                mGetMyMD5 = oMD5.MD5
-            End If
-            oMD5 = Nothing
-            Me.ClearErr()
+            Return "OK"
         Catch ex As Exception
-            Me.SetSubErrInf("mGetMyMD5", ex, False)
-            Return ""
+            mPigMD5 = Nothing
+            LOG.AddStepNameInf(mstrFilePath)
+            If Me.IsDebug Or Me.IsHardDebug Then
+                Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex, True)
+            Else
+                Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            End If
         End Try
     End Function
+
 
 
     ''' <summary>文件完整路径</summary>
@@ -364,49 +466,41 @@ Public Class PigFile
     Public Function GetFastPigMD5(ByRef FastPigMD5 As PigMD5, Optional ScanSize As Integer = 20480) As String
         Dim LOG As New PigStepLog("GetFastPigMD5")
         Dim i As Long
-        Dim intSize As Long = Me.Size, intStep As Integer
+        Dim intSize As Long = Me.Size
         Try
             FastPigMD5 = Nothing
-            If intSize <= ScanSize Then ScanSize = intSize
-            Dim abData(0) As Byte
+            Dim abData(0) As Byte, intAdd As Integer = 0
+            LOG.StepName = "Check file"
+            If Me.IsExists(Me.FilePath) = False Then Throw New Exception("File not found")
+            LOG.StepName = "New FileStream"
+            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            LOG.StepName = "New BinaryReader"
+            Dim brAny = New BinaryReader(sfAny)
+            If ScanSize > Me.Size Then ScanSize = Me.Size
+            LOG.StepName = "Set abData"
             ReDim abData(ScanSize - 1)
-            intStep = intSize / ScanSize + 1
-            Dim intPos As Integer
-            If Me.GbMain IsNot Nothing Then
-                If GbMain.Main IsNot Nothing Then
-                    If GbMain.Main.Length <> Me.Size Then Throw New Exception("GbMain.Main.Length not equal Size")
-                    intPos = 0
-                    For i = 0 To intSize - 1 Step intStep
-                        abData(intPos) = Me.GbMain.Main(i)
-                        intPos += 1
-                    Next
-                    LOG.StepName = "New PigMD5.1"
-                    FastPigMD5 = New PigMD5(abData)
-                    If FastPigMD5.LastErr <> "" Then Throw New Exception(FastPigMD5.LastErr)
+            intAdd = Me.Size / ScanSize - 1
+            If intAdd <= 0 Then intAdd = 1
+            Dim intPos As Integer = 1
+            LOG.StepName = "Read"
+            Dim abOne(Me.Size - 1) As Byte, intRet As Integer
+            For i = 0 To ScanSize - 1
+                intPos = i * intAdd
+                intRet = brAny.Read(abOne, intPos, 1)
+                If intRet < 0 Then
+                    LOG.AddStepNameInf("i=" & i.ToString)
+                    LOG.AddStepNameInf("Pos=" & intPos.ToString)
+                    LOG.AddStepNameInf("Ret=" & intRet.ToString)
+                    Throw New Exception("Error")
                 End If
-            Else
-                LOG.StepName = "Check file"
-                If Me.IsExists(Me.FilePath) = False Then Throw New Exception("File not found")
-                LOG.StepName = "New FileStream"
-                Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
-                LOG.StepName = "New BinaryReader"
-                Dim brAny = New BinaryReader(sfAny)
-                LOG.StepName = "Read"
-                Dim abStep(intStep - 1) As Byte, intRead As Integer
-                intPos = 0
-                For i = 0 To intSize - 1 Step intStep
-                    intRead = brAny.Read(abStep, 0, intStep)
-                    If intRead < 0 Then Exit For
-                    abData(intPos) = abStep(0)
-                    intPos += 1
-                Next
-                LOG.StepName = "New PigMD5.2"
-                FastPigMD5 = New PigMD5(abData)
-                If FastPigMD5.LastErr <> "" Then Throw New Exception(FastPigMD5.LastErr)
-                LOG.StepName = "Close"
-                brAny.Close()
-                sfAny.Close()
-            End If
+                abData(i) = abOne(intPos)
+            Next
+            LOG.StepName = "New PigMD5.3"
+            FastPigMD5 = New PigMD5(abData)
+            If FastPigMD5.LastErr <> "" Then Throw New Exception(FastPigMD5.LastErr)
+            LOG.StepName = "Close"
+            brAny.Close()
+            sfAny.Close()
             Return "OK"
         Catch ex As Exception
             FastPigMD5 = Nothing
