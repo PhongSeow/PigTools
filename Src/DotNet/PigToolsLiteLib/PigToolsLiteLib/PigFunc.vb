@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.20
+'* Version: 1.21
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -30,7 +30,8 @@
 '*1.17   6/7/2022   Add GetFileVersion
 '*1.18   19/7/2022  Add GetFileUpdateTime,GetFileCreateTime,GetFileMD5
 '*1.19   4/8/2022   Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
-'*1.20   16/8/2022  Add GetMyExeName
+'*1.20   16/8/2022  Add GetMyExeName,GetMyPigProc,GetMyExePath
+'*1.21   17/8/2022  Add GetMyPigProc,GetMyExePath
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -41,7 +42,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.19.8"
+    Private Const CLS_VERSION As String = "1.21.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -794,14 +795,21 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function IsFolderExists(FolderPath As String) As Boolean
+    Public Function IsFolderExists(FolderPath As String, Optional IsNotExistsCreate As Boolean = False) As Boolean
         Try
-            Return Directory.Exists(FolderPath)
+            If Directory.Exists(FolderPath) = True Then
+                Return True
+            Else
+                Dim strRet As String = Me.CreateFolder(FolderPath)
+                If strRet <> "OK" Then Throw New Exception(strRet)
+                Return Directory.Exists(FolderPath)
+            End If
         Catch ex As Exception
             Me.SetSubErrInf("IsFolderExists", ex)
-            Return Nothing
+            Return False
         End Try
     End Function
+
 
     Public Function GetEnvVar(EnvVarName As String) As String
         Return GetEnvironmentVariable(EnvVarName)
@@ -1490,12 +1498,41 @@ Public Class PigFunc
             Dim intPID As Integer = Me.fMyPID
             Dim oPigProc As New PigProc(Me.fMyPID)
             If oPigProc.LastErr <> "" Then Throw New Exception(oPigProc.LastErr)
-            GetMyExeName = oPigProc.ProcessName & ".exe"
+            If Me.IsWindows = True Then
+                GetMyExeName = oPigProc.ProcessName & ".exe"
+            Else
+                GetMyExeName = oPigProc.ProcessName
+            End If
             oPigProc = Nothing
         Catch ex As Exception
-            Me.SetSubErrInf("", ex)
+            Me.SetSubErrInf("GetMyExeName", ex)
             Return ""
         End Try
     End Function
+
+    Public Function GetMyExePath() As String
+        Try
+            Dim intPID As Integer = Me.fMyPID
+            Dim oPigProc As New PigProc(Me.fMyPID)
+            If oPigProc.LastErr <> "" Then Throw New Exception(oPigProc.LastErr)
+            GetMyExePath = oPigProc.FilePath
+            oPigProc = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMyExePath", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetMyPigProc() As PigProc
+        Try
+            Dim intPID As Integer = Me.fMyPID
+            GetMyPigProc = New PigProc(Me.fMyPID)
+            If GetMyPigProc.LastErr <> "" Then Throw New Exception(GetMyPigProc.LastErr)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMyPigProc", ex)
+            Return Nothing
+        End Try
+    End Function
+
 
 End Class

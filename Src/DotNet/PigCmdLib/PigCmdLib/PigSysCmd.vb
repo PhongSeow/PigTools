@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -12,13 +12,15 @@
 '*1.4  23/7/2022 Add GetWmicSimpleXml
 '*1.5 26/7/2022  Modify Imports
 '*1.6 29/7/2022  Modify Imports
+'*1.7 17/8/2022  Add KillProc
 '**********************************
 Imports PigToolsLiteLib
 Public Class PigSysCmd
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.8"
+    Private Const CLS_VERSION As String = "1.7.2"
 
     Private ReadOnly Property mPigFunc As New PigFunc
+    Private ReadOnly Property mPigCmdApp As New PigCmdApp
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
@@ -267,6 +269,25 @@ Public Class PigSysCmd
             Return "OK"
         Catch ex As Exception
             OutOSCaption = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Private Function KillProc(PID As Integer) As String
+        Dim LOG As New PigStepLog("KillProc")
+        Try
+            Dim strCmd As String = ""
+            If Me.IsWindows = True Then
+                strCmd = "taskkill /pid " & PID.ToString & " /f"
+            Else
+                strCmd = "kill -9 " & PID.ToString
+            End If
+            Dim intOutPID As Integer = -1
+            LOG.StepName = "AsyncCmdShell"
+            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, intOutPID)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Return "OK"
+        Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
