@@ -4,16 +4,19 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Http Web Request operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.3
+'* Version: 1.2
 '* Create Time: 5/2/2021
-'*1.0.2  25/2/2021   Add Me.ClearErr()
-'*1.0.3  9/3/2021   Modify GetText,GetTextAuth,PostText,PostTextAuth
+'*1.0  25/2/2021   Add Me.ClearErr()
+'*1.1  9/3/2021   Modify GetText,GetTextAuth,PostText,PostTextAuth
+'*1.2  19/8/2022  Use PigBaseLocal
 '**********************************
 Imports System.Net
 Imports System.IO
 Imports System.Text
+Imports PigToolsLiteLib
+
 Public Class PigWebReq
-    Inherits PigBaseMini
+    Inherits PigBaseLocal
     Const CLS_VERSION As String = "1.0.3"
     Private mstrUrl As String
     Private mstrPara As String

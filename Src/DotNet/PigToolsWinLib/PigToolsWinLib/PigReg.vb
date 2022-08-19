@@ -12,7 +12,7 @@
 '************************************
 Imports Microsoft.Win32
 Public Class PigReg
-    Inherits PigBaseMini
+    Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1.1.1"
     ''' <summary>注册表的根区</summary>
     Public Enum EmnRegRoot

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 给 HttpContext 加壳，实现一系统功能
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 31/8/2019
 '1.0.2  2020-1-29   改用fGEBaseMini
 '1.0.3  2020-1-31   BinaryRead，BinaryWrite
@@ -15,19 +15,21 @@
 '1.0.9  26/7/2021  Modify BinaryWrite,BinaryRead
 '1.1    28/28/2021  Modify for not NETFRAMEWORK
 '1.2    15/12/2021  Use LOG
+'1.3    26/7/2022  Modify Imports
+'1.5    19/8/2022  Use PigBaseLocal
 '************************************
 #If NETFRAMEWORK Then
 Imports System.Web
-Imports PigToolsLiteLib
 #Else
 Imports Microsoft.AspNetCore.Http
 #End If
+Imports PigToolsLiteLib
 
 
 
 Public Class PigHttpContext
-    Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.8"
+    Inherits PigBaseLocal
+    Private Const CLS_VERSION As String = "1.5.1"
 
     Public Enum enmWhatHtmlEle '什么HTML元素
         Table = 1 '表格
@@ -321,7 +323,7 @@ Public Class PigHttpContext
         Dim LOG As New PigStepLog("WriteFileMain")
         Try
             If ContentType = "" Then
-                Dim strExtName As String = LCase(moPigFunc.GetFilePart(FilePath, PigFunc.enmFilePart.ExtName))
+                Dim strExtName As String = LCase(moPigFunc.GetFilePart(FilePath, PigFunc.EnmFilePart.ExtName))
                 WriteFileMain = "Automatically identify the corresponding contenttype"
                 Select Case strExtName
                     Case "css"
@@ -360,7 +362,7 @@ Public Class PigHttpContext
             Dim oFile As New System.IO.FileInfo(FilePath)
             With HcMain
                 .Response.WriteFile(FilePath, IsWrite2Memory)
-                .Response.AddHeader("Content-Disposition", "attachment; filename=" + .Server.UrlEncode(moPigFunc.GetFilePart(FilePath, PigFunc.enmFilePart.FileTitle)))
+                .Response.AddHeader("Content-Disposition", "attachment; filename=" + .Server.UrlEncode(moPigFunc.GetFilePart(FilePath, PigFunc.EnmFilePart.FileTitle)))
                 .Response.AddHeader("Content-Length", oFile.Length.ToString())
                 .Response.ContentType = ContentType
                 .Response.WriteFile(FilePath)

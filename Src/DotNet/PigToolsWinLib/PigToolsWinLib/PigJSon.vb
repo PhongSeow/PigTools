@@ -25,10 +25,11 @@
 '* 1.3      15/12/2021 Use LOG
 '*******************************************************
 Imports System.Text
+Imports PigToolsLiteLib
 
 Public Class PigJSon
-    Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.8"
+    Inherits PigBaseLocal
+    Private Const CLS_VERSION As String = "1.3.10"
 
     ''' <summary>The type of the JSON element</summary>
     Public Enum xpJSonEleType

@@ -9,12 +9,13 @@
 '* 1.1    26/3/2022  Modify GetPigProc(PID), Add GetPigProcs
 '* 1.2    1/8/2022   Add KillProc,KillProcs
 '* 1.3    1/8/2022   Modify KillProc
-'* 1.5    17/8/2022  Add IsOtherExeExists
+'* 1.4    16/8/2022  Add IsOtherExeExists
+'* 1.5    17/8/2022  Add KillOtherExe
 '**********************************
 
 Public Class PigProcApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.2"
+    Private Const CLS_VERSION As String = "1.5.3"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
@@ -112,6 +113,35 @@ Public Class PigProcApp
             LOG.AddStepNameInf(ExeName)
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
+        End Try
+    End Function
+
+    Public Function KillOtherExe(ExeName As String) As String
+        Dim LOG As New PigStepLog("KillOtherExe")
+        Try
+            LOG.StepName = "GetPigProcs"
+            Dim oPigProcs As PigProcs = Me.GetPigProcs(ExeName)
+            If oPigProcs Is Nothing Then
+                Throw New Exception("oPigProcs Is Nothing")
+            ElseIf oPigProcs.LastErr <> "" Then
+                Throw New Exception(oPigProcs.LastErr)
+            Else
+                LOG.StepName = "For Each"
+                Dim intPID As Integer = Me.fMyPID
+                Dim strError As String = ""
+                For Each oPigProc As PigProc In oPigProcs
+                    If oPigProc.ProcessID <> intPID Then
+                        LOG.StepName = "Kill"
+                        LOG.Ret = oPigProc.Kill()
+                        If LOG.Ret <> "OK" Then strError &= LOG.Ret & ";"
+                    End If
+                Next
+                If strError <> "" Then Throw New Exception(strError)
+            End If
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(ExeName)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
