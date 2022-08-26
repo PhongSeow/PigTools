@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLibDemo</RootNamespace>
-    <TargetFrameworks>net20;net30;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.9.60</Version>
+    <Version>3.0.8</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigToolsLiteLib</Description>
@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.10.12" />
-    <PackageReference Include="PigToolsLiteLib" Version="2.9.60" />
+    <PackageReference Include="PigCmdLib" Version="2.0.50" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.2.28" />
   </ItemGroup>
 
   <ItemGroup>

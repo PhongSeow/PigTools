@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.21
+'* Version: 1.23
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -32,6 +32,8 @@
 '*1.19   4/8/2022   Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
 '*1.20   16/8/2022  Add GetMyExeName,GetMyPigProc,GetMyExePath
 '*1.21   17/8/2022  Add GetMyPigProc,GetMyExePath
+'*1.22   20/8/2022  Add Is64Bit,GetMachineGUID
+'*1.23   25/8/2022  Modify CtlStr2Src,Src2CtlStr
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -42,7 +44,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.21.2"
+    Private Const CLS_VERSION As String = "1.23.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -745,6 +747,7 @@ Public Class PigFunc
 
     Public Function Src2CtlStr(ByRef SrcStr As String) As String
         Try
+            If SrcStr Is Nothing Then SrcStr = ""
             If SrcStr.IndexOf(vbCrLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\r\n")
             If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
             If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
@@ -759,6 +762,7 @@ Public Class PigFunc
 
     Public Function CtlStr2Src(ByRef CtlStr As String) As String
         Try
+            If CtlStr Is Nothing Then CtlStr = ""
             If CtlStr.IndexOf("\r\n") > 0 Then CtlStr = Replace(CtlStr, "\r\n", vbCrLf)
             If CtlStr.IndexOf("\r") > 0 Then CtlStr = Replace(CtlStr, "\r", vbCr)
             If CtlStr.IndexOf("\t") > 0 Then CtlStr = Replace(CtlStr, "\t", vbTab)
@@ -1274,12 +1278,47 @@ Public Class PigFunc
         End Try
     End Function
 
+    Public Function GetWindowsProductId() As String
+        Dim LOG As New PigStepLog("GetWindowsProductId")
+        Try
+            If Me.IsWindows = True Then
+                LOG.StepName = "New PigReg"
+                Dim oPigReg As New PigReg
+                LOG.StepName = "GetRegValue"
+                GetWindowsProductId = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductId", "")
+                If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
+            Else
+                Return ""
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetMachineGUID() As String
+        Dim LOG As New PigStepLog("GetMachineGUID")
+        Try
+            If Me.IsWindows = True Then
+                LOG.StepName = "New PigReg"
+                Dim oPigReg As New PigReg
+                LOG.StepName = "GetRegValue"
+                GetMachineGUID = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Cryptography", "MachineGuid", "")
+                If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
+            Else
+                Return Me.GetUUID
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
 
     Public Function GetUUID() As String
         Dim LOG As New PigStepLog("GetUUID")
         Try
             If Me.IsWindows = True Then
-                GetUUID = ""
+                Return Me.GetMachineGUID
             Else
                 Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
                 LOG.StepName = "New PigFile"
@@ -1532,6 +1571,14 @@ Public Class PigFunc
             Me.SetSubErrInf("GetMyPigProc", ex)
             Return Nothing
         End Try
+    End Function
+
+    Public Function Is64Bit() As Boolean
+        If System.Runtime.InteropServices.Marshal.SizeOf(IntPtr.Zero) * 8 = 64 Then
+            Return True
+        Else
+            Return False
+        End If
     End Function
 
 
