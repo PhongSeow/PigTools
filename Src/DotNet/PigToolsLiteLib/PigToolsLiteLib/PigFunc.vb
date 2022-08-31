@@ -33,7 +33,7 @@
 '*1.20   16/8/2022  Add GetMyExeName,GetMyPigProc,GetMyExePath
 '*1.21   17/8/2022  Add GetMyPigProc,GetMyExePath
 '*1.22   20/8/2022  Add Is64Bit,GetMachineGUID
-'*1.23   25/8/2022  Modify CtlStr2Src,Src2CtlStr
+'*1.23   25/8/2022  Modify CtlStr2Src,Src2CtlStr,IsFolderExists
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -44,7 +44,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.23.2"
+    Private Const CLS_VERSION As String = "1.23.6"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -803,10 +803,12 @@ Public Class PigFunc
         Try
             If Directory.Exists(FolderPath) = True Then
                 Return True
-            Else
+            ElseIf IsNotExistsCreate = True Then
                 Dim strRet As String = Me.CreateFolder(FolderPath)
                 If strRet <> "OK" Then Throw New Exception(strRet)
                 Return Directory.Exists(FolderPath)
+            Else
+                Return False
             End If
         Catch ex As Exception
             Me.SetSubErrInf("IsFolderExists", ex)
