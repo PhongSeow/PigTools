@@ -287,8 +287,18 @@ Public Class PigFile
         End Get
     End Property
 
-    Public Function GetFullPigMD5() As PigMD5
-        Return Me.mPigMD5
+    Public Function GetFullPigMD5(ByRef FullPigMD5 As PigMD5) As String
+        Try
+            If Me.mPigMD5 Is Nothing Then
+                Dim strRet As String = Me.mGetMyMD5()
+                If strRet <> "OK" Then Throw New Exception（strRet)
+            End If
+            FullPigMD5 = Me.mPigMD5
+            Return "OK"
+        Catch ex As Exception
+            FullPigMD5 = Nothing
+            Return Me.GetSubErrInf("GetFullPigMD5", ex)
+        End Try
     End Function
 
     Private mPigMD5 As PigMD5

@@ -6,51 +6,55 @@
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.0
 '* Create Time: 20/8/2022
+'1.1  6/9/2022  Add EnmEncKeySaveType,EnmEncType
 '**********************************
 Friend Class PigEnc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.8"
+    Private Const CLS_VERSION As String = "1.1.2"
 
     ''' <summary>
-    ''' 加密程度|Encryption level
+    ''' 密钥保存方式|Key storage method
     ''' </summary>
-    Public Enum EnmEncLevel
-        ''' <summary>最低</summary>
-        Minimum = 0
-        ''' <summary>较低</summary>
-        Low = 1
-        ''' <summary>较高</summary>
-        Higher = 2
-        ''' <summary>最高</summary>
-        Supreme = 3
-        ''' <summary>左标记开始</summary>
+    Public Enum EnmEncKeySaveType
+        Rsa_TripleDES = 0
+        Rsa_AES = 1
+        UserDefined1 = 10
+        UserDefined2 = 20
+        UserDefined3 = 30
     End Enum
 
-    Public ReadOnly Property EncLevel As Boolean
+    ''' <summary>
+    ''' 加密方式|Encryption method
+    ''' </summary>
+    Public Enum EnmEncType
+        TripleDES = 0
+        Aes = 1
+        Rsa = 2
+        CompressTripleDES = 3
+        CompressAes = 3
+        CompressRsa = 4
+        Compress2TripleDES = 5
+        Compress2Aes = 6
+        Compress2Rsa = 7
+        UserDefined1 = 10
+        UserDefined2 = 20
+        UserDefined3 = 30
+    End Enum
+
     Private Property mPigRsa As PigRsa
     Private Property mPigAes As PigAes
+    Private Property mPigTripleDES As PigTripleDES
 
-    Public Sub New(EncLevel As EnmEncLevel)
+    Public Sub New()
         MyBase.New(CLS_VERSION)
-        Try
-#If NETCOREAPP Then
-        Me.EncLevel = EncLevel
-#ElseIf NET40_OR_GREATER Then
-        Me.EncLevel = EncLevel
-#Else
-            Select Case EncLevel
-                Case EnmEncLevel.Low, EnmEncLevel.Supreme
-                    Throw New Exception("This level of encryption only supports .net 4.0 or higher frameworks.")
-                Case EnmEncLevel.Minimum, EnmEncLevel.Higher
-                    Me.EncLevel = EncLevel
-                Case Else
-                    Throw New Exception("Unknown encryption level.")
-            End Select
-#End If
-            Me.mPigAes = New PigAes
-        Catch ex As Exception
-            Me.EncLevel = EnmEncLevel.Minimum
-            Me.SetSubErrInf("New", ex)
-        End Try
     End Sub
+
+    Public Function MkEncKey() As String
+        Try
+
+        Catch ex As Exception
+
+        End Try
+    End Function
+
 End Class

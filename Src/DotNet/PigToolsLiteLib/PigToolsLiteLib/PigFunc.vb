@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.23
+'* Version: 1.26
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -34,6 +34,8 @@
 '*1.21   17/8/2022  Add GetMyPigProc,GetMyExePath
 '*1.22   20/8/2022  Add Is64Bit,GetMachineGUID
 '*1.23   25/8/2022  Modify CtlStr2Src,Src2CtlStr,IsFolderExists
+'*1.25   2/9/2022   Add CheckFileDiff
+'*1.26   6/9/2022   Add IsMathDate,IsMathDecimal
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -44,7 +46,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.23.6"
+    Private Const CLS_VERSION As String = "1.26.1"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -55,6 +57,14 @@ Public Class PigFunc
         Center = 3
     End Enum
 
+    ''' <summary>
+    ''' 检查不同的方式|Check different ways
+    ''' </summary>
+    Public Enum EnmCheckDiffType
+        Size_Date = 1
+        Size_Date_FastPigMD5 = 2
+        Size_FullPigMD5 = 3
+    End Enum
 
     ''' <summary>文件的部分</summary>
     Public Enum EnmFilePart
@@ -1583,5 +1593,134 @@ Public Class PigFunc
         End If
     End Function
 
+    Public Function CheckFileDiff(SrcFile As String, TarFile As String, ByRef IsDiff As Boolean, Optional CheckDiffType As EnmCheckDiffType = EnmCheckDiffType.Size_Date_FastPigMD5) As String
+        Dim strStepName As String = "", strRet As String = ""
+        Try
+            strStepName = "New SrcFile"
+            Dim pfSrc As New PigFile(SrcFile)
+            strStepName = "New SrcFile"
+            Dim pfTar As New PigFile(TarFile)
+            Dim lngSrcSize As Long = pfSrc.Size
+            If lngSrcSize < 0 Then Throw New Exception("SrcFile size invalid")
+            Dim lngTarSize As Long = pfTar.Size
+            If lngTarSize < 0 Then Throw New Exception("TarFile size invalid")
+            If lngSrcSize <> lngTarSize Then
+                IsDiff = True
+            Else
+                Select Case CheckDiffType
+                    Case EnmCheckDiffType.Size_Date, EnmCheckDiffType.Size_Date_FastPigMD5
+                        If pfSrc.UpdateTime <> pfTar.UpdateTime Then
+                            IsDiff = True
+                        ElseIf CheckDiffType = EnmCheckDiffType.Size_Date Then
+                            IsDiff = False
+                        Else
+                            Dim pmSrc As PigMD5 = Nothing, pmTar As PigMD5 = Nothing
+                            strStepName = "GetFastPigMD5(pmSrc)"
+                            strRet = pfSrc.GetFastPigMD5(pmSrc)
+                            If strRet <> "OK" Then Throw New Exception(strRet)
+                            strStepName = "GetFastPigMD5(pmTar)"
+                            strRet = pfTar.GetFastPigMD5(pmTar)
+                            If strRet <> "OK" Then Throw New Exception(strRet)
+                            strStepName = "Check Diff"
+                            If pmSrc.PigMD5 <> pmTar.PigMD5 Then
+                                IsDiff = True
+                            Else
+                                IsDiff = False
+                            End If
+                            pmSrc = Nothing
+                            pmTar = Nothing
+                        End If
+                    Case EnmCheckDiffType.Size_FullPigMD5
+                        Dim pmSrc As PigMD5 = Nothing, pmTar As PigMD5 = Nothing
+                        strStepName = "GetFullPigMD5(pmSrc)"
+                        strRet = pfSrc.GetFullPigMD5(pmSrc)
+                        If strRet <> "OK" Then Throw New Exception(strRet)
+                        strStepName = "GetFullPigMD5(pmTar)"
+                        strRet = pfTar.GetFullPigMD5(pmTar)
+                        If strRet <> "OK" Then Throw New Exception(strRet)
+                        strStepName = "Check Diff"
+                        If pmSrc.PigMD5 <> pmTar.PigMD5 Then
+                            IsDiff = True
+                        Else
+                            IsDiff = False
+                        End If
+                        pmSrc = Nothing
+                        pmTar = Nothing
+                    Case Else
+                        Throw New Exception("Invalid CheckDiffType" & CheckDiffType.ToString)
+                End Select
+            End If
+            Return "OK"
+        Catch ex As Exception
+            IsDiff = Nothing
+            Return Me.GetSubErrInf("IsFileDiff", strStepName, ex)
+        End Try
+    End Function
+
+    Public Function IsMathDate(Date1 As Date, Date2 As Date, Optional DateFmt As String = "yyyy-MM-dd HH:mm.ss.f") As Boolean
+        Try
+            Dim strDate1 As String = Format(Date1, DateFmt)
+            Dim strDate2 As String = Format(Date2, DateFmt)
+            If strDate1 = strDate2 Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsMathDate", ex)
+            Return False
+        End Try
+    End Function
+
+    Public Function IsMathDecimal(Dec1 As Decimal, Dec2 As Decimal, Optional Decimals As Integer = 4) As Boolean
+        Try
+            Dim strDec1 As String = Math.Round(Dec1, Decimals)
+            Dim strDec2 As String = Math.Round(Dec2, Decimals)
+            If strDec1 = strDec2 Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsMathDecimal", ex)
+            Return False
+        End Try
+    End Function
+
+    Public Function GetMaxStr(SrcStr As String, Optional LineSeparator As String = vbCrLf) As String
+        Try
+            If LineSeparator = "" Then LineSeparator = Me.OsCrLf
+            Dim oList As New List(Of String)
+            Do While True
+                Dim strLine As String = Me.GetStr(SrcStr, "", LineSeparator)
+                If strLine = "" Then Exit Do
+                oList.Add(strLine)
+            Loop
+            oList.Sort()
+            GetMaxStr = oList.Item(oList.Count - 1)
+            oList = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMaxStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetMinStr(SrcStr As String, Optional LineSeparator As String = vbCrLf) As String
+        Try
+            If LineSeparator = "" Then LineSeparator = Me.OsCrLf
+            Dim oList As New List(Of String)
+            Do While True
+                Dim strLine As String = Me.GetStr(SrcStr, "", LineSeparator)
+                If strLine = "" Then Exit Do
+                oList.Add(strLine)
+            Loop
+            oList.Sort()
+            GetMinStr = oList.Item(0)
+            oList = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMinStr", ex)
+            Return ""
+        End Try
+    End Function
 
 End Class
