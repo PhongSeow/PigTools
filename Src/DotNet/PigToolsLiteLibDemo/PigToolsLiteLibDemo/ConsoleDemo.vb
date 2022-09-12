@@ -46,7 +46,8 @@ Public Class ConsoleDemo
     Public ConfDesc As String
     Public ConfData As String
     Public FilePath As String
-    Public FilePart As PigFunc.enmFilePart
+    Public FilePath2 As String
+    Public FilePart As PigFunc.EnmFilePart
     Public Line As String
     Public SaveType As PigConfigApp.EnmSaveType
     Public WithEvents PigFunc As New PigFunc
@@ -84,6 +85,10 @@ Public Class ConsoleDemo
     Public TarFile As String
     Public PigSort As PigSort
     Public SortWhat As PigSort.EnmSortWhat
+    Public ComprssType As SeowEnc.EmnComprssType
+    Public CompressRate As Decimal
+    Public UseTime As New UseTime
+
 
     Public Sub Main()
         Debug.Print(IsNumeric("True"))
@@ -108,6 +113,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press M to PigVBCode")
             Console.WriteLine("Press N to PigTripleDES")
             Console.WriteLine("Press O to PigSort")
+            Console.WriteLine("Press P to SeowEnc")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
@@ -691,6 +697,95 @@ Public Class ConsoleDemo
                                 Console.WriteLine("Decrypt string=" & vbCrLf & Me.SrcStr)
                         End Select
                     Loop
+                Case ConsoleKey.P
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("SeowEnc")
+                    Console.WriteLine("*******************")
+                    Me.Line = Me.PigFunc.GetEnmDispStr(SeowEnc.EmnComprssType.NoComprss, False)
+                    Me.Line &= Me.PigFunc.GetEnmDispStr(SeowEnc.EmnComprssType.AutoComprss)
+                    Me.Line &= Me.PigFunc.GetEnmDispStr(SeowEnc.EmnComprssType.Over328ToComprss)
+                    Me.Line &= Me.PigFunc.GetEnmDispStr(SeowEnc.EmnComprssType.PigCompressor)
+                    Me.PigConsole.GetLine("ComprssType=(" & Me.Line & ")", Me.ComprssType)
+                    Dim oSeowEnc As New SeowEnc(Me.ComprssType)
+                    Console.CursorVisible = False
+                    Do While True
+                        Console.WriteLine("*******************")
+                        Console.WriteLine("Press Q to Up")
+                        Console.WriteLine("Press A to MkEncKey")
+                        Console.WriteLine("Press B to LoadEncKey")
+                        Console.WriteLine("Press C to Encrypt")
+                        Console.WriteLine("Press D to Decrypt")
+                        Console.WriteLine("Press E to Encrypt file")
+                        Console.WriteLine("Press F to Decrypt file")
+                        Console.WriteLine("*******************")
+                        Select Case Console.ReadKey(True).Key
+                            Case ConsoleKey.Q
+                                Exit Do
+                            Case ConsoleKey.A
+                                Dim ptInit As New PigText("123456", PigText.enmTextType.UTF8)
+                                Me.Ret = oSeowEnc.MkEncKey(24, ptInit.Base64, Me.Base64EncKey)
+                                Console.WriteLine("MkEncKey=" & Me.Ret)
+                                Console.WriteLine("Base64EncKey=" & Me.Base64EncKey)
+                            Case ConsoleKey.B
+                                Console.WriteLine("Inupt Base64EncKey:" & vbCrLf & Me.Base64EncKey)
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.Base64EncKey = Me.Line
+                                End If
+                                Me.Ret = oSeowEnc.LoadEncKey(Me.Base64EncKey)
+                                Console.WriteLine("LoadEncKey=" & Me.Ret)
+                            Case ConsoleKey.C
+                                Console.WriteLine("Enter the string to encrypt:" & Me.SrcStr)
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.SrcStr = Me.Line
+                                End If
+                                Dim oPigText As New PigText(Me.SrcStr, PigText.enmTextType.UTF8)
+                                Dim decRate As Decimal = 0
+                                Me.Ret = oSeowEnc.Encrypt(oPigText.TextBytes, Me.Base64EncStr, decRate)
+                                Console.WriteLine("Encrypt=" & Me.Ret)
+                                Console.WriteLine("Base64EncStr=" & vbCrLf & Me.Base64EncStr)
+                                Console.WriteLine("CompressRate=" & vbCrLf & decRate)
+                            Case ConsoleKey.D
+                                Console.WriteLine("Enter the Base64EncStr:")
+                                Me.Line = Console.ReadLine
+                                If Me.Line <> "" Then
+                                    Me.Base64EncStr = Me.Line
+                                End If
+                                Me.SrcStr = ""
+                                Me.Ret = oSeowEnc.Decrypt(Me.Base64EncStr, Me.SrcStr, PigText.enmTextType.UTF8)
+                                Console.WriteLine("Decrypt=" & Me.Ret)
+                                Console.WriteLine("Decrypt string=" & vbCrLf & Me.SrcStr)
+                            Case ConsoleKey.E
+                                Me.PigConsole.GetLine("Input srouce file", Me.FilePath)
+                                Me.FilePath2 = Me.FilePath & ".se"
+                                Me.PigConsole.GetLine("Input SeowEnc file", Me.FilePath2)
+                                Dim pfSrc As New PigFile(Me.FilePath)
+                                pfSrc.LoadFile()
+                                Me.UseTime.GoBegin()
+                                Dim pfEnc As New PigFile(Me.FilePath2)
+                                Console.WriteLine("")
+                                Me.Ret = oSeowEnc.Encrypt(pfSrc.GbMain.Main, pfEnc.GbMain.Main, Me.CompressRate)
+                                Console.WriteLine(Me.Ret)
+                                Console.WriteLine("CompressRate=" & Me.CompressRate)
+                                pfEnc.SaveFile()
+                                Me.UseTime.ToEnd()
+                                Console.WriteLine("UseTime=" & Me.UseTime.AllDiffSeconds)
+                            Case ConsoleKey.F
+                                Me.PigConsole.GetLine("Input SeowEnc file", Me.FilePath2)
+                                Me.PigConsole.GetLine("Input srouce file", Me.FilePath)
+                                Dim pfEnc As New PigFile(Me.FilePath2)
+                                pfEnc.LoadFile()
+                                Dim pfSrc As New PigFile(Me.FilePath)
+                                Me.UseTime.GoBegin()
+                                Console.WriteLine("")
+                                Me.Ret = oSeowEnc.Decrypt(pfEnc.GbMain.Main, pfSrc.GbMain.Main)
+                                Console.WriteLine(Me.Ret)
+                                pfSrc.SaveFile()
+                                Me.UseTime.ToEnd()
+                                Console.WriteLine("UseTime=" & Me.UseTime.AllDiffSeconds)
+                        End Select
+                    Loop
                 Case Else
                     Console.WriteLine("Coming soon...")
             End Select
@@ -935,6 +1030,7 @@ Public Class ConsoleDemo
                         Console.WriteLine(".GetAlignStr(Right Alignment)=" & vbCrLf & "*" & .GetAlignStr("Right Alignment", PigFunc.EnmAlignment.Right, 80) & "*")
                         Console.WriteLine(".GetAlignStr(Center Alignment)=" & vbCrLf & "*" & .GetAlignStr("Center Alignment", PigFunc.EnmAlignment.Center, 80) & "*")
                         Console.WriteLine(".GetMyExeName()=" & .GetMyExeName)
+                        Console.WriteLine(".GetEnmDispStr(PigText.enmTextType.Unicode)=" & .GetEnmDispStr(PigText.enmTextType.Unicode))
                     End With
                 Case ConsoleKey.B
                     Console.CursorVisible = True
