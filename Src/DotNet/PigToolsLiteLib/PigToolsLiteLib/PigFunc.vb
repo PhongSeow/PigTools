@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.26
+'* Version: 1.28
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -36,6 +36,7 @@
 '*1.23   25/8/2022  Modify CtlStr2Src,Src2CtlStr,IsFolderExists
 '*1.25   2/9/2022   Add CheckFileDiff
 '*1.26   6/9/2022   Add IsMathDate,IsMathDecimal
+'*1.27   12/9/2022  Add GetEnmDispStr
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -46,7 +47,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.26.1"
+    Private Const CLS_VERSION As String = "1.27.1"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -1722,5 +1723,20 @@ Public Class PigFunc
             Return ""
         End Try
     End Function
+
+    Public Function GetEnmDispStr(EnmValue As Object, Optional IsCommaFirst As Boolean = True) As String
+        Try
+            If IsCommaFirst = True Then
+                GetEnmDispStr = ","
+            Else
+                GetEnmDispStr = ""
+            End If
+            GetEnmDispStr &= CInt(EnmValue) & "-" & EnmValue.ToString
+        Catch ex As Exception
+            Me.SetSubErrInf("GetEnmDispStr", ex)
+            Return ""
+        End Try
+    End Function
+
 
 End Class

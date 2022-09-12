@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 4/11/2019
 '*1.0.2  2019-11-5   增加mSaveFile
 '*1.0.3  2019-11-20  增加 CopyFileTo
@@ -17,6 +17,7 @@
 '*1.1  10/5/2022    Add PigMD5, modify LoadFile
 '*1.2  10/8/2022    Add GetFastPigMD5
 '*1.3  16/8/2022    Add SegLoadFile, modify GetFastPigMD5,mGetMyMD5
+'*1.5  12/9/2022    Modify New
 '**********************************
 Imports System.IO
 Public Class PigFile
@@ -32,6 +33,8 @@ Public Class PigFile
     Public Sub New(FilePath As String)
         MyBase.New(CLS_VERSION)
         mstrFilePath = FilePath
+        Me.GbMain = New PigBytes
+        ReDim Me.GbMain.Main(0)
     End Sub
 
     ''' <summary>保留文件的时间，以天为单位。</summary>

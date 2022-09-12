@@ -4,12 +4,17 @@
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.2.50</Version>
+    <Version>3.2.68</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
-A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared memory and compression.
+A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared Memory and compression.
+AES, 3DES and RSA encryption processing.
 Configuration file management supporting configuration item encryption.
+Simple sorting processing.
+HTTP request processing.
+Registry processing.
+Xml processing.
 It can run on Windows and Linux platforms.
 </Description>
     <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
@@ -20,8 +25,7 @@ It can run on Windows and Linux platforms.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa UUID EnvironmentVariable PL/SQL BCP asynchronous XmlDocument</PackageTags>
-    <PackageReleaseNotes>Add new function of PigFunc.
-Fix bugs of PigProc.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add SeowEnc, This is a simple compression and shift encryption algorithm, which can reduce the length of the ciphertext, and the ciphertext of each encryption result is different. Do not use this encryption algorithm alone, because it is easy to crack. It is recommended to use it together with other encryption algorithms, such as AES, RSA and 3DES.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

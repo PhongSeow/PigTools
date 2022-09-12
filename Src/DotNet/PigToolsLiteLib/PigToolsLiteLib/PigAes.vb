@@ -1,24 +1,24 @@
 ﻿'**********************************
 '* Name: PigAes
 '* Author: Seow Phong
-'* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Handle operations related to byte array division 【处理除字节数组相关的操作】
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 2019-10-27
 '1.0.2  2019-10-29
 '1.0.3  2019-10-31  稳定版本，去掉 EncriptStr 和 DecriptStr
 '1.0.5  2019-12-8   修改LoadEncKey
 '1.0.6  24/8/2021   Modify mDecrypt,mEncrypt,mMkEncKey
 '1.1  16/10/2021   Modify mDecrypt,mEncrypt,LoadEncKey,LoadEncKey,Decrypt
+'1.2  11/9/2021   Modify mMkEncKey
 '************************************
 Imports System.Security.Cryptography
 Imports System.Text
 Public Class PigAes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.8"
+    Private Const CLS_VERSION As String = "1.2.3"
     Private mabEncKey As Byte()
-    Private mbolIsLoadEncKey As Boolean
 
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
     Private maesMain As System.Security.Cryptography.Aes = System.Security.Cryptography.Aes.Create("AES")
@@ -31,9 +31,10 @@ Public Class PigAes
 
 
     ''' <remarks>是否已导入密钥</remarks>
+    Private mIsLoadEncKey As Boolean
     Public ReadOnly Property IsLoadEncKey As Boolean
         Get
-            IsLoadEncKey = mbolIsLoadEncKey
+            IsLoadEncKey = mIsLoadEncKey
         End Get
     End Property
 
@@ -88,7 +89,7 @@ Public Class PigAes
     Private Function mDecrypt(EncBytes As Byte(), ByRef UnEncBytes As Byte()) As String
         Dim strStepName As String = ""
         Try
-            If mbolIsLoadEncKey = False Then
+            If Me.mIsLoadEncKey = False Then
                 Throw New Exception("Key not imported")
             End If
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
@@ -132,7 +133,7 @@ Public Class PigAes
     ''' <remarks>加密数据（内部）</remarks>
     Private Function mEncrypt(SrcBytes As Byte(), ByRef EncBytes As Byte()) As String
         Try
-            If mbolIsLoadEncKey = False Then
+            If Me.mIsLoadEncKey = False Then
                 Throw New Exception("Key not imported")
             End If
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
@@ -166,16 +167,24 @@ Public Class PigAes
         End Try
     End Function
 
-    ''' <remarks>生成密钥</remarks>
+
+    Public Function MkEncKey(ByRef EncKey As Byte()) As String
+        Return Me.mMkEncKey(256, EncKey)
+    End Function
+
     Public Function MkEncKey(ByRef Base64EncKey As String) As String
         Try
-            Return Me.mMkEncKey(256, Base64EncKey)
+            Dim abEncKey(0) As Byte
+            Dim strRet As String = Me.mMkEncKey(256, abEncKey)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Base64EncKey = Convert.ToBase64String(mabEncKey)
+            Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("MkEncKey", ex, False)
+            Return Me.GetSubErrInf("MkEncKey", ex)
         End Try
     End Function
 
-    Private Function mMkEncKey(EncKeyLen As Integer, ByRef Base64EncKey As String) As String
+    Private Function mMkEncKey(EncKeyLen As Integer, ByRef EncKey As Byte()) As String
         Try
             Select Case EncKeyLen
                 Case 128, 192, 256
@@ -183,18 +192,49 @@ Public Class PigAes
                     Throw New Exception("Key length cannot be greater than " & EncKeyLen.ToString)
             End Select
             Dim i As Integer
-            ReDim mabEncKey(EncKeyLen - 1)
+            ReDim EncKey(EncKeyLen - 1)
             For i = 0 To EncKeyLen - 1
-                mabEncKey(i) = Me.mGetRandNum(0, 255)
+                EncKey(i) = Me.mGetRandNum(0, 255)
             Next
-            Dim oPigText As New PigText(mabEncKey)
-            Base64EncKey = oPigText.Base64
-            oPigText = Nothing
+            If Me.IsLoadEncKey = False Then
+                mabEncKey = EncKey
+                Me.mIsLoadEncKey = True
+            End If
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("MkEncKey", ex)
+            Return Me.GetSubErrInf("mMkEncKey", ex)
         End Try
     End Function
+
+    '''' <remarks>生成密钥</remarks>
+    'Public Function MkEncKey(ByRef Base64EncKey As String) As String
+    '    Try
+    '        Return Me.mMkEncKey(256, Base64EncKey)
+    '    Catch ex As Exception
+    '        Return Me.GetSubErrInf("MkEncKey", ex, False)
+    '    End Try
+    'End Function
+
+    'Private Function mMkEncKey(EncKeyLen As Integer, ByRef Base64EncKey As String) As String
+    '    Try
+    '        Select Case EncKeyLen
+    '            Case 128, 192, 256
+    '            Case Else
+    '                Throw New Exception("Key length cannot be greater than " & EncKeyLen.ToString)
+    '        End Select
+    '        Dim i As Integer
+    '        ReDim mabEncKey(EncKeyLen - 1)
+    '        For i = 0 To EncKeyLen - 1
+    '            mabEncKey(i) = Me.mGetRandNum(0, 255)
+    '        Next
+    '        Dim oPigBytes As New PigBytes(mabEncKey)
+    '        Base64EncKey = oPigBytes.Base64Str
+    '        oPigBytes = Nothing
+    '        Return "OK"
+    '    Catch ex As Exception
+    '        Return Me.GetSubErrInf("MkEncKey", ex)
+    '    End Try
+    'End Function
 
     ''' <remarks>导入密钥</remarks>
     Public Overloads Function LoadEncKey(Base64EncKey As String) As String
@@ -209,13 +249,13 @@ Public Class PigAes
                 .Mode = CipherMode.CBC
                 .Padding = PaddingMode.PKCS7
             End With
-            mbolIsLoadEncKey = True
+            me.mIsLoadEncKey = True
 #Else
             Throw New Exception("Need to run in .net 4.0 or higher framework")
 #End If
             Return "OK"
         Catch ex As Exception
-            mbolIsLoadEncKey = False
+            Me.mIsLoadEncKey = False
             Return Me.GetSubErrInf("LoadEncKey", ex, False)
         End Try
     End Function
@@ -232,13 +272,13 @@ Public Class PigAes
                 .Mode = CipherMode.CBC
                 .Padding = PaddingMode.PKCS7
             End With
-            mbolIsLoadEncKey = True
+            me.mIsLoadEncKey = True
 #Else
             Throw New Exception("Need to run in .net 4.0 or higher framework")
 #End If
             Return "OK"
         Catch ex As Exception
-            mbolIsLoadEncKey = False
+            Me.mIsLoadEncKey = False
             Return Me.GetSubErrInf("LoadEncKey", ex, False)
         End Try
     End Function

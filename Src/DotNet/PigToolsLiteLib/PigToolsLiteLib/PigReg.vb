@@ -207,7 +207,7 @@ Public Class PigReg
                     rkAny = Registry.Users
                 Case Else
                     rkAny = Nothing
-                    Err.Raise(-1, , "无效RegRoot")
+                    Err.Raise(-1, , "Invalid RegRoot")
             End Select
             strStepName = "CreateSubKey(" & RegPath & ")"
             rkAny.CreateSubKey(RegPath)

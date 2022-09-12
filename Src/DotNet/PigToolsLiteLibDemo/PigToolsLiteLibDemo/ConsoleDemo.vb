@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.17.6
+'* Version: 1.18.1
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -23,6 +23,7 @@
 '* 1.15   30/5/2022   Modify PigXmlDemo
 '* 1.16   3/6/2022   Modify PigXmlDemo
 '* 1.17   16/6/2022   Add  PigVBCode Demo
+'* 1.18   2/9/2022   Modify PigFunc demo
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -79,6 +80,11 @@ Public Class ConsoleDemo
     Public KeyName As String
     Public WithEvents PigFile As PigFile
     Public PigFile2 As PigFile
+    Public SrcFile As String
+    Public TarFile As String
+    Public PigSort As PigSort
+    Public SortWhat As PigSort.EnmSortWhat
+
     Public Sub Main()
         Debug.Print(IsNumeric("True"))
         Do While True
@@ -101,11 +107,54 @@ Public Class ConsoleDemo
             Console.WriteLine("Press L to PigProc")
             Console.WriteLine("Press M to PigVBCode")
             Console.WriteLine("Press N to PigTripleDES")
+            Console.WriteLine("Press O to PigSort")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
                     Exit Do
+                Case ConsoleKey.O
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("PigSort")
+                    Console.WriteLine("*******************")
+                    Me.Line = "Select SortWhat=("
+                    Me.Line &= PigSort.EnmSortWhat.SortByte.ToString & "=" & PigSort.EnmSortWhat.SortByte
+                    Me.Line &= "," & PigSort.EnmSortWhat.SortDate.ToString & "=" & PigSort.EnmSortWhat.SortDate
+                    Me.Line &= "," & PigSort.EnmSortWhat.SortDecimal.ToString & "=" & PigSort.EnmSortWhat.SortDecimal
+                    Me.Line &= "," & PigSort.EnmSortWhat.SortLong.ToString & "=" & PigSort.EnmSortWhat.SortLong
+                    Me.Line &= "," & PigSort.EnmSortWhat.SortString.ToString & "=" & PigSort.EnmSortWhat.SortString
+                    Me.Line &= ")"
+                    Me.PigConsole.GetLine(Me.Line, Me.SortWhat）
+                    Me.PigSort = New PigSort(Me.SortWhat)
+                    Select Case Me.SortWhat
+                        Case PigSort.EnmSortWhat.SortByte
+                            Me.PigSort.AddByteValue(168)
+                            Me.PigSort.AddByteValue(18)
+                            Me.PigSort.AddByteValue(218)
+                        Case PigSort.EnmSortWhat.SortDate
+                            Me.PigSort.AddValue(#2023-12-1#)
+                            Me.PigSort.AddValue(Now)
+                            Me.PigSort.AddValue(#2022-1-1#)
+                        Case PigSort.EnmSortWhat.SortDecimal
+                            Me.PigSort.AddDecValue(168.88)
+                            Me.PigSort.AddDecValue(18.88)
+                            Me.PigSort.AddDecValue(888.888)
+                        Case PigSort.EnmSortWhat.SortLong
+                            Me.PigSort.AddValue(168)
+                            Me.PigSort.AddValue(1888)
+                            Me.PigSort.AddValue(8888)
+                        Case PigSort.EnmSortWhat.SortString
+                            Me.PigSort.AddValue("aaaaaa")
+                            Me.PigSort.AddValue("cccccc")
+                            Me.PigSort.AddValue("dddddd")
+                    End Select
+                    Me.PigSort.Sort()
+                    Console.WriteLine("GetMaxValue=" & Me.PigSort.GetMaxValue)
+                    Console.WriteLine("GetMinValue=" & Me.PigSort.GetMinValue)
+                    For i = 0 To Me.PigSort.MaxSortNo
+                        Console.WriteLine(i & "=" & Me.PigSort.GetValue(i))
+                    Next
+                    Me.PigConsole.DisplayPause()
                 Case ConsoleKey.M
                     Console.WriteLine("*******************")
                     Console.WriteLine("ShareMem")
@@ -848,6 +897,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press H To OptLogInf")
             Console.WriteLine("Press I To SaveShareMem")
             Console.WriteLine("Press J To GetShareMem")
+            Console.WriteLine("Press K To CheckFileDiff")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
@@ -962,6 +1012,23 @@ Public Class ConsoleDemo
                     Else
                         Console.WriteLine(Me.Ret)
                     End If
+                Case ConsoleKey.K
+                    Me.PigConsole.GetLine("Input source file", Me.SrcFile)
+                    Me.PigConsole.GetLine("Input targe file", Me.TarFile)
+                    Dim strDisp As String = "CheckDiffType=("
+                    strDisp &= PigFunc.EnmCheckDiffType.Size_Date & "=Size_Date,"
+                    strDisp &= PigFunc.EnmCheckDiffType.Size_Date_FastPigMD5 & "=Size_Date_FastPigMD5,"
+                    strDisp &= PigFunc.EnmCheckDiffType.Size_FullPigMD5 & "=Size_FullPigMD5)"
+                    Me.PigConsole.GetLine(strDisp, Me.Line)
+                    Dim bolIsDiff As Boolean
+                    Dim intCheckDiffType As PigFunc.EnmCheckDiffType = CInt(Me.Line)
+                    Dim oUseTime As New UseTime
+                    oUseTime.GoBegin()
+                    Me.Ret = Me.PigFunc.CheckFileDiff(Me.SrcFile, Me.TarFile, bolIsDiff, intCheckDiffType)
+                    oUseTime.ToEnd()
+                    Console.WriteLine("CheckFileDiff=" & Me.Ret)
+                    Console.WriteLine("IsDiff=" & bolIsDiff)
+                    Console.WriteLine("UseTime=" & oUseTime.AllDiffSeconds)
             End Select
         Loop
     End Sub

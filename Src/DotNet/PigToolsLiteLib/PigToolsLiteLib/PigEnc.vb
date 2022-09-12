@@ -51,9 +51,9 @@ Friend Class PigEnc
 
     Public Function MkEncKey() As String
         Try
-
+            Return "OK"
         Catch ex As Exception
-
+            Return Me.GetSubErrInf("MkEncKey", ex)
         End Try
     End Function
 
