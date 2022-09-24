@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 这是一个简单的压缩和移位加密算法，可以减少密文的长度，以及每次加密结果的密文都不相同，不要单独使用本加密算法，因为很容易破解，建议与其他加密算法一起使用，如AES、RSA和3DES等。|This is a simple compression and shift encryption algorithm, which can reduce the length of the ciphertext, and the ciphertext of each encryption result is different. Do not use this encryption algorithm alone, because it is easy to crack. It is recommended to use it together with other encryption algorithms, such as AES, RSA and 3DES.
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 11/9/2022
 '* 1.1  12/9/2022   Modify EmnComprssType,Encrypt
+'* 1.2  24/9/2022   Add IsRandAdd
 '************************************
 Public Class SeowEnc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.8"
+    Private Const CLS_VERSION As String = "1.2.8"
 
     Private mabEncKey As Byte()
     Public Sub New(ComprssType As EmnComprssType)
@@ -24,6 +25,12 @@ Public Class SeowEnc
         Over328ToComprss = 2
         PigCompressor = 3
     End Enum
+
+    ''' <summary>
+    ''' 是否随机增加位移，是否每次产生的密文长度不同|Whether the displacement is increased randomly, and whether the length of ciphertext generated each time is different
+    ''' </summary>
+    ''' <returns></returns>
+    Public Property IsRandAdd As Boolean = True
 
     Public ReadOnly Property ComprssType As EmnComprssType
 
@@ -190,7 +197,12 @@ Public Class SeowEnc
                 Case Else
                     Throw New Exception("Invalid ComprssType is " & Me.ComprssType.ToString)
             End Select
-            Dim strRet As String = "", bytAdd As Byte = Me.mGetRandNum(0, 255)
+            Dim strRet As String = "", bytAdd As Byte
+            If Me.IsRandAdd = True Then
+                bytAdd = Me.mGetRandNum(0, 255)
+            Else
+                bytAdd = 163
+            End If
             Select Case intComprssType
                 Case EmnComprssType.PigCompressor
                     Dim pcSrc As New PigCompressor
