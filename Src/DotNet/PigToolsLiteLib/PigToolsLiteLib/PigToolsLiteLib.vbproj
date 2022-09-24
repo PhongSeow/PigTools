@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.2.68</Version>
+    <Version>3.2.88</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
@@ -15,6 +15,7 @@ Simple sorting processing.
 HTTP request processing.
 Registry processing.
 Xml processing.
+Key value and cache processing.
 It can run on Windows and Linux platforms.
 </Description>
     <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
@@ -25,7 +26,9 @@ It can run on Windows and Linux platforms.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows Linux JSon PigAes Aes PigRsa Rsa UUID EnvironmentVariable PL/SQL BCP asynchronous XmlDocument</PackageTags>
-    <PackageReleaseNotes>Add SeowEnc, This is a simple compression and shift encryption algorithm, which can reduce the length of the ciphertext, and the ciphertext of each encryption result is different. Do not use this encryption algorithm alone, because it is easy to crack. It is recommended to use it together with other encryption algorithms, such as AES, RSA and 3DES.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add PigKeyValue for Key value and cache processing.
+Add new functions of PigFunc.
+</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -401,7 +401,9 @@ Public Class ConsoleDemo
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
-                                Me.Ret = oPigRsa.MkPubKey(True, Me.Base64EncKey)
+                                Dim bolIsIncPriKey As Boolean = True
+                                bolIsIncPriKey = Me.PigConsole.IsYesOrNo("Include private key")
+                                Me.Ret = oPigRsa.MkPubKey(bolIsIncPriKey, Me.Base64EncKey)
                                 Me.Base64EncKey = Me.Base64EncKey
                                 Console.WriteLine("MkPubKey=" & Me.Ret)
                                 Console.WriteLine("Base64EncKey=" & Me.Base64EncKey)
@@ -1031,6 +1033,10 @@ Public Class ConsoleDemo
                         Console.WriteLine(".GetAlignStr(Center Alignment)=" & vbCrLf & "*" & .GetAlignStr("Center Alignment", PigFunc.EnmAlignment.Center, 80) & "*")
                         Console.WriteLine(".GetMyExeName()=" & .GetMyExeName)
                         Console.WriteLine(".GetEnmDispStr(PigText.enmTextType.Unicode)=" & .GetEnmDispStr(PigText.enmTextType.Unicode))
+                        Console.WriteLine(".GetCompMinutePart(Now)=" & .GetCompMinutePart(Now))
+                        Dim strPwd As String = ""
+                        Me.PigConsole.GetLine("Input the password", strPwd)
+                        Console.WriteLine(".IsStrongPassword(" & strPwd & ")=" & .IsStrongPassword(strPwd))
                     End With
                 Case ConsoleKey.B
                     Console.CursorVisible = True

@@ -13,14 +13,37 @@ Friend Class PigEnc
     Private Const CLS_VERSION As String = "1.1.2"
 
     ''' <summary>
-    ''' 密钥保存方式|Key storage method
+    ''' 密钥使用方式|How to use the key
     ''' </summary>
     Public Enum EnmEncKeySaveType
-        Rsa_TripleDES = 0
-        Rsa_AES = 1
-        UserDefined1 = 10
-        UserDefined2 = 20
-        UserDefined3 = 30
+        ''' <summary>
+        ''' 可以在不同机器使用
+        ''' </summary>
+        Multifocal = 0
+        ''' <summary>
+        ''' 只能在本机使用
+        ''' </summary>
+        LocalHost = 1
+        ''' <summary>
+        ''' 只能在本机用户使用
+        ''' </summary>
+        LocalUser = 2
+        ''' <summary>
+        ''' 密钥需要导入到本机后才能使用
+        ''' </summary>
+        LocalHostLoad = 3
+        ''' <summary>
+        ''' 密钥需要导入到本机用户后才能使用
+        ''' </summary>
+        LocalUserLoad = 4
+        ''' <summary>
+        ''' 密钥需要在客户端向服务器端注册后才能使用，
+        ''' </summary>
+        Register = 5
+        ''' <summary>
+        ''' 密钥需要在客户端向服务器端注册，每次通讯时需要由客户端向服务器商登录获取动态的短期密钥。
+        ''' </summary>
+        RegisterDynamic = 6
     End Enum
 
     ''' <summary>
@@ -30,15 +53,6 @@ Friend Class PigEnc
         TripleDES = 0
         Aes = 1
         Rsa = 2
-        CompressTripleDES = 3
-        CompressAes = 3
-        CompressRsa = 4
-        Compress2TripleDES = 5
-        Compress2Aes = 6
-        Compress2Rsa = 7
-        UserDefined1 = 10
-        UserDefined2 = 20
-        UserDefined3 = 30
     End Enum
 
     Private Property mPigRsa As PigRsa

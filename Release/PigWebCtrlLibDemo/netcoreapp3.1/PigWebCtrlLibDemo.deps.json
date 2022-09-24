@@ -6,23 +6,44 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "PigWebCtrlLibDemo/2.0.68": {
+      "PigWebCtrlLibDemo/2.0.92": {
         "dependencies": {
-          "PigCmdLib": "2.0.30",
-          "PigWebCtrlLib": "2.0.68"
+          "PigCmdLib": "2.0.70",
+          "PigWebCtrlLib": "2.0.92"
         },
         "runtime": {
           "PigWebCtrlLibDemo.dll": {}
         }
       },
-      "PigCmdLib/2.0.30": {
+      "Microsoft.NETCore.Platforms/5.0.0": {},
+      "Microsoft.Win32.Registry/5.0.0": {
         "dependencies": {
-          "PigToolsLiteLib": "3.1.38"
+          "System.Security.AccessControl": "5.0.0",
+          "System.Security.Principal.Windows": "5.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Win32.Registry.dll": {
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/netstandard2.0/Microsoft.Win32.Registry.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
+          }
+        }
+      },
+      "PigCmdLib/2.0.70": {
+        "dependencies": {
+          "PigToolsLiteLib": "3.2.88"
         },
         "runtime": {
           "lib/netcoreapp3.1/PigCmdLib.dll": {
-            "assemblyVersion": "2.0.30.0",
-            "fileVersion": "2.0.30.0"
+            "assemblyVersion": "2.0.70.0",
+            "fileVersion": "2.0.70.0"
           }
         }
       },
@@ -34,40 +55,99 @@
           }
         }
       },
-      "PigToolsLiteLib/3.1.38": {
+      "PigToolsLiteLib/3.2.88": {
+        "dependencies": {
+          "Microsoft.Win32.Registry": "5.0.0"
+        },
         "runtime": {
           "lib/netcoreapp3.1/PigToolsLiteLib.dll": {
-            "assemblyVersion": "3.1.38.0",
-            "fileVersion": "3.1.38.0"
+            "assemblyVersion": "3.2.88.0",
+            "fileVersion": "3.2.88.0"
           }
         }
       },
-      "PigWebCtrlLib/2.0.68": {
+      "PigWebCtrlLib/2.0.92": {
         "dependencies": {
-          "PigCmdLib": "2.0.30",
+          "PigCmdLib": "2.0.70",
           "PigObjFsLib": "2.0.28"
         },
         "runtime": {
           "lib/netcoreapp3.1/PigWebCtrlLib.dll": {
-            "assemblyVersion": "2.0.68.0",
-            "fileVersion": "2.0.68.0"
+            "assemblyVersion": "2.0.92.0",
+            "fileVersion": "2.0.92.0"
+          }
+        }
+      },
+      "System.Security.AccessControl/5.0.0": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "5.0.0",
+          "System.Security.Principal.Windows": "5.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Security.AccessControl.dll": {
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/netcoreapp2.0/System.Security.AccessControl.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
+          }
+        }
+      },
+      "System.Security.Principal.Windows/5.0.0": {
+        "runtime": {
+          "lib/netstandard2.0/System.Security.Principal.Windows.dll": {
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/unix/lib/netcoreapp2.1/System.Security.Principal.Windows.dll": {
+            "rid": "unix",
+            "assetType": "runtime",
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
+          },
+          "runtimes/win/lib/netcoreapp2.1/System.Security.Principal.Windows.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
           }
         }
       }
     }
   },
   "libraries": {
-    "PigWebCtrlLibDemo/2.0.68": {
+    "PigWebCtrlLibDemo/2.0.92": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "PigCmdLib/2.0.30": {
+    "Microsoft.NETCore.Platforms/5.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-MoqiIOKvzj3rfbB6uii4bWpfh5ovfqdtZrndbF6RksBmfbsDEs9eeXbnlL0ZsDvnZpDNCmw2sL1VBo/OGrpH4A==",
-      "path": "pigcmdlib/2.0.30",
-      "hashPath": "pigcmdlib.2.0.30.nupkg.sha512"
+      "sha512": "sha512-VyPlqzH2wavqquTcYpkIIAQ6WdenuKoFN0BdYBbCWsclXacSOHNQn66Gt4z5NBqEYW0FAPm5rlvki9ZiCij5xQ==",
+      "path": "microsoft.netcore.platforms/5.0.0",
+      "hashPath": "microsoft.netcore.platforms.5.0.0.nupkg.sha512"
+    },
+    "Microsoft.Win32.Registry/5.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg==",
+      "path": "microsoft.win32.registry/5.0.0",
+      "hashPath": "microsoft.win32.registry.5.0.0.nupkg.sha512"
+    },
+    "PigCmdLib/2.0.70": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-HRFvpGEXoBDB0V6aYFDTwtTyCikKUjP3Htk7OGcCg53thBdtjkXB0u6B811V47G+NmDpXoANBHKY8AqrIuaq6A==",
+      "path": "pigcmdlib/2.0.70",
+      "hashPath": "pigcmdlib.2.0.70.nupkg.sha512"
     },
     "PigObjFsLib/2.0.28": {
       "type": "package",
@@ -76,19 +156,33 @@
       "path": "pigobjfslib/2.0.28",
       "hashPath": "pigobjfslib.2.0.28.nupkg.sha512"
     },
-    "PigToolsLiteLib/3.1.38": {
+    "PigToolsLiteLib/3.2.88": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-qXtt7m1un2/wRS8lBpaKRcBIML+c7pdZp3vEyHAXwIENAi3Gs4cOTFCXKagdWNSngZYVGOAyazYb9Hc3p7yD5A==",
-      "path": "pigtoolslitelib/3.1.38",
-      "hashPath": "pigtoolslitelib.3.1.38.nupkg.sha512"
+      "sha512": "sha512-4vfk7PZ+PM8XCooUE1IpRR2pCPkgNflp27bkHPuSLCBAJmYfL/ktxCzH6noPy2+VRWn0OUhGNRFT1ikjPfXHRA==",
+      "path": "pigtoolslitelib/3.2.88",
+      "hashPath": "pigtoolslitelib.3.2.88.nupkg.sha512"
     },
-    "PigWebCtrlLib/2.0.68": {
+    "PigWebCtrlLib/2.0.92": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-f5o41POVWW1B6HgVqt1Wjaybf/3+5icQ+UeuMo9IfCJJnbf4KAsL3FHlLlHUj36UTJHgCdpDnKJGiYilpwHKaQ==",
-      "path": "pigwebctrllib/2.0.68",
-      "hashPath": "pigwebctrllib.2.0.68.nupkg.sha512"
+      "sha512": "sha512-2fxDxxvy3gs/qHaGPRaEtt4azZozVSpamrPCSH87xpqRf4wxZcC7ku25892e5nUCmxMIwYVGZqcfuDbmo22B2w==",
+      "path": "pigwebctrllib/2.0.92",
+      "hashPath": "pigwebctrllib.2.0.92.nupkg.sha512"
+    },
+    "System.Security.AccessControl/5.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-dagJ1mHZO3Ani8GH0PHpPEe/oYO+rVdbQjvjJkBRNQkX4t0r1iaeGn8+/ybkSLEan3/slM0t59SVdHzuHf2jmw==",
+      "path": "system.security.accesscontrol/5.0.0",
+      "hashPath": "system.security.accesscontrol.5.0.0.nupkg.sha512"
+    },
+    "System.Security.Principal.Windows/5.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-t0MGLukB5WAVU9bO3MGzvlGnyJPgUlcwerXn1kzBRjwLKixT96XV0Uza41W49gVd8zEMFu9vQEFlv0IOrytICA==",
+      "path": "system.security.principal.windows/5.0.0",
+      "hashPath": "system.security.principal.windows.5.0.0.nupkg.sha512"
     }
   }
 }

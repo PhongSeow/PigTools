@@ -37,6 +37,7 @@
 '*1.25   2/9/2022   Add CheckFileDiff
 '*1.26   6/9/2022   Add IsMathDate,IsMathDecimal
 '*1.27   12/9/2022  Add GetEnmDispStr
+'*1.28   17/9/2022  Add IsStrongPassword,GetCompMinutePart
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -1734,6 +1735,71 @@ Public Class PigFunc
             GetEnmDispStr &= CInt(EnmValue) & "-" & EnmValue.ToString
         Catch ex As Exception
             Me.SetSubErrInf("GetEnmDispStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function IsStrongPassword(SrcPwd As String, Optional NeedLen As Integer = 8, Optional IsNeedSymbol As Boolean = True)
+        Try
+            Dim intPwdLen As Integer = Len(SrcPwd)
+            If intPwdLen < 6 Or intPwdLen < NeedLen Then Throw New Exception("Password is too short")
+            Const SYMBOL_LIST As String = "~!@#$%^&*()_+{}|:""<>?`-=[]\;',./"
+            Dim bolUpperLetter As Boolean = False, bolLowerLetter As Boolean = False, bolNumber As Boolean = False, bolIsSymbol As Boolean = False
+            For i = 0 To SrcPwd.Length - 1
+                Dim strChar As String = SrcPwd.Substring(i, 1)
+                If bolIsSymbol = False Then
+                    If InStr(SYMBOL_LIST, strChar) > 0 Then
+                        bolIsSymbol = True
+                    End If
+                End If
+                If bolNumber = False Then
+                    Select Case strChar
+                        Case "0" To "9"
+                            bolNumber = True
+                    End Select
+                End If
+                If bolUpperLetter = False Then
+                    Select Case strChar
+                        Case "A" To "Z"
+                            bolUpperLetter = True
+                    End Select
+                End If
+                If bolLowerLetter = False Then
+                    Select Case strChar
+                        Case "a" To "z"
+                            bolLowerLetter = True
+                    End Select
+                End If
+            Next
+            If IsNeedSymbol = True Then
+                If bolIsSymbol And bolLowerLetter And bolNumber And bolLowerLetter Then
+                    Return True
+                Else
+                    Return False
+                End If
+            ElseIf bolLowerLetter And bolNumber And bolLowerLetter Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsStrongPassword", ex)
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 获取一个格林威治时间最接近的分钟部分|Get the nearest minute part of Greenwich Mean Time
+    ''' </summary>
+    ''' <param name="SrcTime"></param>
+    ''' <returns></returns>
+    Public Function GetCompMinutePart(SrcTime As DateTime) As String
+        Try
+            Dim dteComp As DateTime = SrcTime.ToUniversalTime()
+            If dteComp.Second > 30 Then dteComp.AddMinutes(1)
+            GetCompMinutePart = Format(dteComp, "yyyyMMddHHmm")
+        Catch ex As Exception
+            Me.SetSubErrInf("", ex)
             Return ""
         End Try
     End Function
