@@ -30,6 +30,7 @@
 '*1.21  1/8/2022  Add HardStopDomain
 '*1.22  2/8/2022  Modify mWlstCallMain,CreateDomain
 '*1.23  13/8/2022 Modify mWlstCallMain,CreateDomain, and add AsyncCreateDomain,SetT3Deny
+'*1.25  28/9/2022 Add ConsoleLogTime,AccessLogTime,GetConsoleLogHasRunMode
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -38,7 +39,7 @@ Imports PigObjFsLib
 
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.23.5"
+    Private Const CLS_VERSION As String = "1.25.10"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -198,6 +199,7 @@ Public Class WebLogicDomain
 
     Private Property mStopDomainThreadID As Integer
     Private Property mStopDomainBeginTime
+    'Private Property mGetConsoleLogHasRunModeThreadID As Integer
 
     Private Property mRefRunStatusThreadID As Integer
 
@@ -448,6 +450,28 @@ Public Class WebLogicDomain
     Public ReadOnly Property ConsolePath() As String
         Get
             Return Me.LogDirPath & Me.OsPathSep & "Console.log"
+        End Get
+    End Property
+
+    Public ReadOnly Property AccessLogTime() As Date
+        Get
+            Try
+                Me.mPigFunc.GetFileUpdateTime(Me.AccessLogPath, AccessLogTime)
+            Catch ex As Exception
+                Me.SetSubErrInf("AccessLogTime", ex)
+                Return Date.MinValue
+            End Try
+        End Get
+    End Property
+
+    Public ReadOnly Property ConsoleLogTime() As Date
+        Get
+            Try
+                Me.mPigFunc.GetFileUpdateTime(Me.ConsolePath, ConsoleLogTime)
+            Catch ex As Exception
+                Me.SetSubErrInf("ConsoleLogTime", ex)
+                Return Date.MinValue
+            End Try
         End Get
     End Property
 
@@ -1209,5 +1233,32 @@ Public Class WebLogicDomain
             Return ex.Message.ToString
         End Try
     End Function
+
+    'Public Function GetConsoleLogHasRunMode(ByRef IsHasRunMode As Boolean) As String
+    '    Dim LOG As New PigStepLog("IsConsoleLogHasRunMode")
+    '    Const RUN_MODE As String = "<The server started in RUNNING mode.>"
+    '    Dim strCmd As String = ""
+    '    Try
+    '        If Me.IsWindows = True Then
+    '            strCmd = "type """ & Me.ConsolePath & """|find """ & RUN_MODE & """"
+    '        Else
+    '            strCmd = "cat " & Me.ConsolePath & "|grep """ & RUN_MODE & """"
+    '        End If
+    '        LOG.StepName = "CmdShell"
+    '        LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd)
+    '        If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+    '        Me.mPigFunc.Delay(500)
+    '        If InStr(Me.mPigCmdApp.StandardOutput, RUN_MODE) > 0 Then
+    '            IsHasRunMode = True
+    '        Else
+    '            IsHasRunMode = False
+    '        End If
+    '        Return "OK"
+    '    Catch ex As Exception
+    '        IsHasRunMode = False
+    '        LOG.AddStepNameInf(strCmd)
+    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+    '    End Try
+    'End Function
 
 End Class

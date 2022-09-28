@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.9
+'* Version: 1.10
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add GetJavaVersion 
 '*1.2  6/3/2022   Add WlstPath 
@@ -15,6 +15,7 @@
 '*1.7  26/7/2022 Modify Imports
 '*1.8  29/7/2022 Modify Imports
 '*1.9  7/9/2022  Add RunOpatch
+'*1.10 28/9/2022 Modify StartOrStopTimeout
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -22,11 +23,11 @@ Imports PigObjFsLib
 
 Public Class WebLogicApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.9.2"
+    Private Const CLS_VERSION As String = "1.10.2"
     Public ReadOnly Property HomeDirPath As String
     Public ReadOnly Property WorkTmpDirPath As String
     Public ReadOnly Property CallWlstTimeout As Integer = 300
-    Public ReadOnly Property StartOrStopTimeout As Integer = 60
+    Public ReadOnly Property StartOrStopTimeout As Integer = 300
 
     Public Property WebLogicDomains As WebLogicDomains
 

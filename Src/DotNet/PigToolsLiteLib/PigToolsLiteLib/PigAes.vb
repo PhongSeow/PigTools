@@ -169,13 +169,34 @@ Public Class PigAes
 
 
     Public Function MkEncKey(ByRef EncKey As Byte()) As String
-        Return Me.mMkEncKey(256, EncKey)
+        Return Me.mMkEncKey(Nothing, 256, EncKey)
+    End Function
+
+    Public Function MkEncKey(InitKey As Byte(), ByRef EncKey As Byte()) As String
+        Return Me.mMkEncKey(InitKey, 256, EncKey)
+    End Function
+
+    Public Function MkEncKey(Base64InitKey As String, ByRef Base64EncKey As String) As String
+        Dim LOG As New PigStepLog("MkEncKey")
+        Try
+            LOG.StepName = "Base64InitKey to bytes"
+            Dim oPigBytes As New PigBytes(Base64InitKey)
+            If oPigBytes.LastErr <> "" Then Throw New Exception(oPigBytes.LastErr)
+            Dim abEncKey(0) As Byte
+            LOG.StepName = "mMkEncKey"
+            LOG.Ret = Me.mMkEncKey(oPigBytes.Main, 256, abEncKey)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Base64EncKey = Convert.ToBase64String(mabEncKey)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("MkEncKey", ex)
+        End Try
     End Function
 
     Public Function MkEncKey(ByRef Base64EncKey As String) As String
         Try
             Dim abEncKey(0) As Byte
-            Dim strRet As String = Me.mMkEncKey(256, abEncKey)
+            Dim strRet As String = Me.mMkEncKey(Nothing, 256, abEncKey)
             If strRet <> "OK" Then Throw New Exception(strRet)
             Base64EncKey = Convert.ToBase64String(mabEncKey)
             Return "OK"
@@ -184,7 +205,7 @@ Public Class PigAes
         End Try
     End Function
 
-    Private Function mMkEncKey(EncKeyLen As Integer, ByRef EncKey As Byte()) As String
+    Private Function mMkEncKey(InitKey As Byte(), EncKeyLen As Integer, ByRef EncKey As Byte()) As String
         Try
             Select Case EncKeyLen
                 Case 128, 192, 256
@@ -193,9 +214,18 @@ Public Class PigAes
             End Select
             Dim i As Integer
             ReDim EncKey(EncKeyLen - 1)
-            For i = 0 To EncKeyLen - 1
-                EncKey(i) = Me.mGetRandNum(0, 255)
-            Next
+            If InitKey IsNot Nothing Then
+                For i = 0 To InitKey.Length - 1
+                    EncKey(i) = InitKey(i)
+                Next
+                For i = InitKey.Length To EncKeyLen - 1
+                    EncKey(i) = Me.mGetRandNum(0, 255)
+                Next
+            Else
+                For i = 0 To EncKeyLen - 1
+                    EncKey(i) = Me.mGetRandNum(0, 255)
+                Next
+            End If
             If Me.IsLoadEncKey = False Then
                 mabEncKey = EncKey
                 Me.mIsLoadEncKey = True

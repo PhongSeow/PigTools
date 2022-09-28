@@ -85,9 +85,9 @@ Public Class PigXml
         Me.Clear()
     End Sub
 
-    Public Sub SetMainXml(InXml As String)
+    Public Function SetMainXml(InXml As String) As String
         mstrMainXml = InXml
-    End Sub
+    End Function
 
     '''' <summary>通过XmlReader填充元素</summary>
     '''' <param name="oXmlReader">XmlReader对象</param>
@@ -444,8 +444,8 @@ Public Class PigXml
             If InStr(InXmlStr, "<") > 0 Then InXmlStr = Replace(InXmlStr, "<", "&lt;")
             If InStr(InXmlStr, ">") > 0 Then InXmlStr = Replace(InXmlStr, ">", "&gt;")
             If InStr(InXmlStr, "&") > 0 Then InXmlStr = Replace(InXmlStr, "&", "&apos;")
-            '            If InStr(InXmlStr, "'") > 0 Then InXmlStr = Replace(InXmlStr, "'", "&lt;")
-            If InStr(InXmlStr, """") > 0 Then InXmlStr = Replace(InXmlStr, """", "&quot")
+            'If InStr(InXmlStr, "'") > 0 Then InXmlStr = Replace(InXmlStr, "'", "&lt;")
+            'If InStr(InXmlStr, """") > 0 Then InXmlStr = Replace(InXmlStr, """", "&quot")
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("mEscapeXmlValue", ex)
@@ -614,6 +614,7 @@ Public Class PigXml
         Try
             msbMain = Nothing
             msbMain = New System.Text.StringBuilder("")
+            Me.mstrMainXml = ""
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("Clear", ex)
@@ -626,7 +627,8 @@ Public Class PigXml
             If msbMain Is Nothing Then
                 Return mstrMainXml
             Else
-                Return msbMain.ToString
+                MainXmlStr = msbMain.ToString
+                If MainXmlStr = "" Then Return mstrMainXml
             End If
         End Get
     End Property
