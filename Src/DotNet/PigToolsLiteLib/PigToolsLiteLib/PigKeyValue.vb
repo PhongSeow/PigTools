@@ -348,7 +348,6 @@ Public Class PigKeyValue
                 Case > 128
                     Throw New Exception("KeyName length cannot exceed 128")
             End Select
-            If Len(KeyName) > 128 Then Throw New Exception("KeyName length cannot exceed 128")
             If DataBytes Is Nothing Then Throw New Exception("DataBytes Is Nothing")
             If DataBytes.Length = 0 Then Throw New Exception("DataBytes Is empty")
             LOG.StepName = "mGetKeyNamePigMD5"
