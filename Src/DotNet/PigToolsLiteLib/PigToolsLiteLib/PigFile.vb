@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 4/11/2019
 '*1.0.2  2019-11-5   增加mSaveFile
 '*1.0.3  2019-11-20  增加 CopyFileTo
@@ -18,11 +18,12 @@
 '*1.2  10/8/2022    Add GetFastPigMD5
 '*1.3  16/8/2022    Add SegLoadFile, modify GetFastPigMD5,mGetMyMD5
 '*1.5  12/9/2022    Modify New
+'*1.6  30/9/2022    Add GetTailText,GetTopText
 '**********************************
 Imports System.IO
 Public Class PigFile
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.28"
+    Private Const CLS_VERSION As String = "1.6.10"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
     Public GbMain As PigBytes '主数据数组
@@ -151,6 +152,64 @@ Public Class PigFile
             Else
                 Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
             End If
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 读取文本文件的尾部|Read the tail of a text file
+    ''' </summary>
+    ''' <param name="Rows"></param>
+    ''' <returns></returns>
+    Public Function GetTailText(Rows As Integer) As String
+        Dim LOG As New PigStepLog("GetTailText")
+        Try
+            Dim alMain As New ArrayList
+            LOG.StepName = "New FileStream"
+            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            LOG.StepName = "New StreamReader"
+            Dim srAny = New StreamReader(sfAny)
+            Do While Not srAny.EndOfStream
+                If alMain.Count > Rows Then alMain.RemoveAt(0)
+                Dim strLine As String = srAny.ReadLine
+                alMain.Add(strLine)
+            Loop
+            srAny.Close()
+            sfAny.Close()
+            GetTailText = ""
+            Dim strCrLf As String = Me.OsCrLf
+            For i = 0 To alMain.Count - 1
+                GetTailText &= alMain.Item(i) & strCrLf
+            Next
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 读取文本文件的顶部|Read the top of a text file
+    ''' </summary>
+    ''' <param name="Rows"></param>
+    ''' <returns></returns>
+    Public Function GetTopText(Rows As Integer) As String
+        Dim LOG As New PigStepLog("GetTopText")
+        Try
+            LOG.StepName = "New FileStream"
+            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            LOG.StepName = "New StreamReader"
+            Dim srAny = New StreamReader(sfAny)
+            GetTopText = ""
+            Dim i As Integer = 0
+            Do While Not srAny.EndOfStream
+                GetTopText &= srAny.ReadLine
+                i += 1
+                If i >= Rows Then Exit Do
+            Loop
+            srAny.Close()
+            sfAny.Close()
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
         End Try
     End Function
 

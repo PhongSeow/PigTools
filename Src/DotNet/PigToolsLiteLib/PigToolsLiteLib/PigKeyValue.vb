@@ -4,20 +4,22 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 豚豚键值|Pig key value
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 3/8/2022
 '* 1.1		5/8/2022	Modify SortedList,mSaveKeyValue, add mSaveBodyToFile
 '* 1.2		18/9/2022	Add to PigToolsLiteLib
 '* 1.3		24/9/2022	Add SaveKeyValue,IsCompress,mNew,mListKeyValues, modify New
+'* 1.5		3/10/2022	Modify mSaveKeyValue,mSaveKeyValueToList
 '************************************
 Public Class PigKeyValue
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.18"
+    Private Const CLS_VERSION As String = "1.5.10"
     Public Enum HitCacheEnum
         Null = 0
         List = 1
         ShareMem = 2
         File = 3
+        DB = 5
     End Enum
 
     Private ReadOnly Property mPigFunc As New PigFunc
@@ -83,16 +85,24 @@ Public Class PigKeyValue
             LOG.StepName = "Check ValueBytes"
             If ValueBytes Is Nothing Then Throw New Exception("ValueBytes Is Nothing")
             If ValueBytes.Length = 0 Then Throw New Exception("ValueBytes Is empty")
-            If Me.mListKeyValues.IsItemExists(KeyName) = False Then
+            If Me.mListKeyValues.IsItemExists(KeyName) = True Then
+                LOG.Ret = Me.mListKeyValues.Remove(KeyName)
+                If LOG.Ret <> "OK" Then
+                    LOG.StepName = "mListKeyValues.Remove(" & KeyName & ")"
+                    Throw New Exception(LOG.Ret)
+                End If
+            End If
+            Me.mListKeyValues.Add(KeyName, ValueBytes)
+            If Me.mListKeyValues.LastErr <> "" Then
                 LOG.StepName = "ListKeyValues.Add"
-                Me.mListKeyValues.Add(KeyName, ValueBytes)
-                If Me.mListKeyValues.LastErr <> "" Then Throw New Exception(Me.mListKeyValues.LastErr)
-            Else
-                LOG.StepName = "ListKeyValues.Item"
-                With Me.mListKeyValues.Item(KeyName)
-                    .CreateTime = Now
-                    .KeyValue = ValueBytes
-                End With
+                Throw New Exception(Me.mListKeyValues.LastErr)
+            End If
+            If Me.mListKeyValues.Count > Me.MaxWorkList Then
+                LOG.Ret = Me.mListKeyValues.Remove(0)
+                If LOG.Ret <> "OK" Then
+                    LOG.StepName = "mListKeyValues.Remove(0)"
+                    Me.PrintDebugLog(LOG.SubName, LOG.StepLogInf)
+                End If
             End If
             Return "OK"
         Catch ex As Exception
@@ -151,7 +161,9 @@ Public Class PigKeyValue
                 ElseIf oListKeyValue.CreateTime.AddSeconds(CacheTimeSec) < Now Then
                     bolIsNeedGetFromShareMem = True
                 Else
-                    ValueBytes = oListKeyValue.KeyValue
+                    LOG.StepName = "KeyValue.CopyTo"
+                    ReDim ValueBytes(oListKeyValue.KeyValue.Length - 1)
+                    oListKeyValue.KeyValue.CopyTo(ValueBytes, 0)
                     HitCache = HitCacheEnum.List
                 End If
             End If
@@ -329,6 +341,14 @@ Public Class PigKeyValue
         Dim LOG As New PigStepLog("mSaveKeyValue")
         Try
             LOG.StepName = "Check DataBytes"
+            Select Case Len(KeyName)
+                Case = 0
+                    Throw New Exception("KeyName not specified")
+                Case 1 To 128
+                Case > 128
+                    Throw New Exception("KeyName length cannot exceed 128")
+            End Select
+            If Len(KeyName) > 128 Then Throw New Exception("KeyName length cannot exceed 128")
             If DataBytes Is Nothing Then Throw New Exception("DataBytes Is Nothing")
             If DataBytes.Length = 0 Then Throw New Exception("DataBytes Is empty")
             LOG.StepName = "mGetKeyNamePigMD5"

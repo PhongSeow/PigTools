@@ -1234,31 +1234,31 @@ Public Class WebLogicDomain
         End Try
     End Function
 
-    'Public Function GetConsoleLogHasRunMode(ByRef IsHasRunMode As Boolean) As String
-    '    Dim LOG As New PigStepLog("IsConsoleLogHasRunMode")
-    '    Const RUN_MODE As String = "<The server started in RUNNING mode.>"
-    '    Dim strCmd As String = ""
-    '    Try
-    '        If Me.IsWindows = True Then
-    '            strCmd = "type """ & Me.ConsolePath & """|find """ & RUN_MODE & """"
-    '        Else
-    '            strCmd = "cat " & Me.ConsolePath & "|grep """ & RUN_MODE & """"
-    '        End If
-    '        LOG.StepName = "CmdShell"
-    '        LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd)
-    '        If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-    '        Me.mPigFunc.Delay(500)
-    '        If InStr(Me.mPigCmdApp.StandardOutput, RUN_MODE) > 0 Then
-    '            IsHasRunMode = True
-    '        Else
-    '            IsHasRunMode = False
-    '        End If
-    '        Return "OK"
-    '    Catch ex As Exception
-    '        IsHasRunMode = False
-    '        LOG.AddStepNameInf(strCmd)
-    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
-    '    End Try
-    'End Function
+    Public Function GetConsoleLogHasRunMode(ByRef IsHasRunMode As Boolean) As String
+        Dim LOG As New PigStepLog("IsConsoleLogHasRunMode")
+        Const RUN_MODE As String = "<The server started in RUNNING mode.>"
+        Dim strCmd As String = ""
+        Try
+            If Me.IsWindows = True Then
+                strCmd = "type """ & Me.ConsolePath & """|findstr """ & RUN_MODE & """"
+            Else
+                strCmd = "cat " & Me.ConsolePath & "|grep """ & RUN_MODE & """"
+            End If
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Me.mPigFunc.Delay(500)
+            If InStr(Me.mPigCmdApp.StandardOutput, RUN_MODE) > 0 Then
+                IsHasRunMode = True
+            Else
+                IsHasRunMode = False
+            End If
+            Return "OK"
+        Catch ex As Exception
+            IsHasRunMode = False
+            LOG.AddStepNameInf(strCmd)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 End Class
