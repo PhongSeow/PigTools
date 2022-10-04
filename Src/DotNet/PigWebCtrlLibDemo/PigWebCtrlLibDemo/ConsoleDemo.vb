@@ -59,6 +59,7 @@ Public Class ConsoleDemo
             Console.Clear()
             Me.MenuDefinition = "NewWebLogicApp#New WebLogicApp|"
             Me.MenuDefinition &= "AddNewWebLogicDomain#Add New WebLogicDomain|"
+            Me.MenuDefinition &= "WebLogicAppRunOpatch#WebLogicApp.RunOpatch|"
             Me.MenuDefinition &= "ShowParas#Display parameters|"
             Me.MenuDefinition &= "WebLogicDomainClearAsyncRes#WebLogicDomain.ClearAsyncRes|"
             Me.MenuDefinition &= "SetWebLogicDomain#Select WebLogicDomain|"
@@ -74,6 +75,19 @@ Public Class ConsoleDemo
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "WebLogicAppRunOpatch"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("WebLogicApp.RunOpatch")
+                    Console.WriteLine("*******************")
+                    If Me.WebLogicApp Is Nothing Then
+                        Console.WriteLine("WebLogicApp Is Nothing")
+                    Else
+                        Dim strCmd As String = "lsinv", strResInf As String = ""
+                        Me.PigConsole.GetLine("Input command", strCmd)
+                        Me.Ret = Me.WebLogicApp.RunOpatch(strCmd, strResInf)
+                        Console.WriteLine(Me.Ret)
+                        Console.WriteLine(strResInf)
+                    End If
                 Case "WebLogicDomainSetAdminPort"
                     Console.WriteLine("*******************")
                     Console.WriteLine("WebLogicDomain.SetAdminPort")
@@ -273,6 +287,12 @@ Public Class ConsoleDemo
                             Console.WriteLine("JavaStartTime=" & .JavaStartTime)
                             Console.WriteLine("JavaMemoryUse=" & .JavaMemoryUse)
                             Console.WriteLine("JavaCpuTime=" & .JavaCpuTime.ToString)
+                            Dim bolIsHasRunMode As Boolean
+                            Me.Ret = .GetConsoleLogHasRunMode(bolIsHasRunMode)
+                            If Me.Ret <> "OK" Then Throw New Exception(Me.Ret)
+                            Console.WriteLine("IsHasRunMode=" & bolIsHasRunMode)
+                            Console.WriteLine("ConsoleLogTime=" & .ConsoleLogTime)
+                            Console.WriteLine("AccessLogTime=" & .AccessLogTime)
                         End With
                         Console.WriteLine("*******************")
                     Next
