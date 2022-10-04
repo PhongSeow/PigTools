@@ -35,18 +35,7 @@ It can run on Windows and Linux platforms.
 
   <ItemGroup>
     <PackageReference Include="PigCmdLib" Version="2.0.78" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-    <PackageReference Include="PigKeyCacheCoreLib.SQLServer">
-      <Version>3.3.38</Version>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <PackageReference Include="PigKeyCacheCoreLib.SQLServer">
-      <Version>3.3.38</Version>
-    </PackageReference>
+    <PackageReference Include="PigSQLSrvLib" Version="2.8.6" />
   </ItemGroup>
 
 </Project>

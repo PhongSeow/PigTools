@@ -9,11 +9,11 @@
 '* 1.1		5/8/2022	Modify SortedList,mSaveKeyValue, add mSaveBodyToFile
 '* 1.2		18/9/2022	Add to PigToolsLiteLib
 '* 1.3		24/9/2022	Add SaveKeyValue,IsCompress,mNew,mListKeyValues, modify New
-'* 1.5		3/10/2022	Modify mSaveKeyValue,mSaveKeyValueToList
+'* 1.5		3/10/2022	Modify mSaveKeyValue,mSaveKeyValueToList, add RemoveKeyValue,mRemoveKeyValue
 '************************************
 Public Class PigKeyValue
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.10"
+    Private Const CLS_VERSION As String = "1.5.28"
     Public Enum HitCacheEnum
         Null = 0
         List = 1
@@ -274,26 +274,12 @@ Public Class PigKeyValue
             Return "OK"
         Catch ex As Exception
             ReDim ValueBytes(0)
+            HitCache = HitCacheEnum.Null
             LOG.AddStepNameInf(KeyName)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
-
-    'Private Function mGetKeyValueFromList(KeyName As String, ByRef ValueBytes As Byte(), ByRef CreateTime As Date) As String
-    '    Try
-    '        If Me.mListKeyValues.IsItemExists(KeyName) = False Then Throw New Exception("Item not Exists")
-    '        With Me.mListKeyValues.Item(KeyName)
-    '            ValueBytes = .KeyValue
-    '            CreateTime = .CreateTime
-    '        End With
-    '        Return "OK"
-    '    Catch ex As Exception
-    '        ReDim ValueBytes(0)
-    '        CreateTime = Date.MinValue
-    '        Return ex.Message.ToString
-    '    End Try
-    'End Function
 
     Public Function SaveKeyValue(KeyName As String, DataBytes As Byte()) As String
         Return Me.mSaveKeyValue(KeyName, DataBytes)
@@ -335,8 +321,6 @@ Public Class PigKeyValue
         End Try
     End Function
 
-
-
     Private Function mSaveKeyValue(KeyName As String, DataBytes As Byte()) As String
         Dim LOG As New PigStepLog("mSaveKeyValue")
         Try
@@ -373,6 +357,8 @@ Public Class PigKeyValue
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             '---------
             pbMain = Nothing
+            '---------
+            Me.mRemoveKeyValue(KeyName, False)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -385,6 +371,7 @@ Public Class PigKeyValue
         Try
             LOG.StepName = "New PigFile"
             Dim oPigFile As New PigFile(strFilePath)
+            If oPigFile.IsExists = False Then Throw New Exception("No data")
             LOG.StepName = "LoadFile"
             LOG.Ret = oPigFile.LoadFile
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -394,7 +381,7 @@ Public Class PigKeyValue
             oPigFile = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strFilePath)
+            If Me.IsDebug = True Then LOG.AddStepNameInf(strFilePath)
             ReDim HeadBytes(0)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
@@ -406,6 +393,7 @@ Public Class PigKeyValue
         Try
             LOG.StepName = "New PigFile"
             Dim oPigFile As New PigFile(strFilePath)
+            If oPigFile.IsExists = False Then Throw New Exception("No data")
             LOG.StepName = "LoadFile"
             LOG.Ret = oPigFile.LoadFile
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -413,7 +401,7 @@ Public Class PigKeyValue
             OutData = oPigFile.GbMain.Main
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strFilePath)
+            If Me.IsDebug = True Then LOG.AddStepNameInf(strFilePath)
             ReDim OutData(0)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
@@ -472,6 +460,47 @@ Public Class PigKeyValue
                     Throw New Exception(LOG.Ret)
                 End If
             End If
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function RemoveKeyValue(KeyName As String) As String
+        Return Me.mRemoveKeyValue(KeyName， True)
+    End Function
+
+    Private Function mRemoveKeyValue(KeyName As String, IsIncFile As Boolean) As String
+        Dim LOG As New PigStepLog("mRemoveKeyValue")
+        Try
+            Dim strError As String = ""
+            Dim strKeyNamePigMD5 As String = Me.mGetKeyNamePigMD5(KeyName)
+            If IsIncFile = True Then
+                Dim strHeadFile As String = Me.CacheWorkDir & Me.OsPathSep & strKeyNamePigMD5
+                If Me.mPigFunc.IsFileExists(strHeadFile) = True Then
+                    LOG.StepName = "DeleteFile"
+                    LOG.Ret = Me.mPigFunc.DeleteFile(strHeadFile)
+                    If LOG.Ret <> "OK" Then
+                        LOG.AddStepNameInf(strHeadFile)
+                        strError &= LOG.StepLogInf
+                    End If
+                End If
+            End If
+            '---------
+            If Me.IsWindows = True Then
+                Dim abHead(0) As Byte
+                LOG.StepName = "SaveShareMem(Head)"
+                LOG.Ret = Me.mPigFunc.SaveShareMem(strKeyNamePigMD5, abHead)
+                If LOG.Ret <> "OK" Then strError &= LOG.StepLogInf
+            End If
+            '---------
+            If Me.mListKeyValues.IsItemExists(KeyName) = True Then
+                LOG.StepName = "mListKeyValues.Remove"
+                LOG.Ret = Me.mListKeyValues.Remove(KeyName)
+                If LOG.Ret <> "OK" Then strError &= LOG.StepLogInf
+            End If
+            '---------
+            If strError <> "" Then Throw New Exception(strError)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)

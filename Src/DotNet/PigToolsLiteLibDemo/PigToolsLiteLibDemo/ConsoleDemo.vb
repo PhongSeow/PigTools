@@ -206,6 +206,8 @@ Public Class ConsoleDemo
                             Me.Ret = Me.PigFile.SegLoadFile(intSegSize)
                             Console.WriteLine(Me.Ret)
                         End If
+                        Console.Write("GetTailText(10)")
+                        Console.Write(Me.PigFile.GetTailText(10))
                     Else
                         Me.PigFileDemo(Me.FilePath)
                     End If
