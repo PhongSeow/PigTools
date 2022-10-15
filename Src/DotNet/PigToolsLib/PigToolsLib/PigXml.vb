@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.13
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -26,12 +26,15 @@
 '1.8 6/6/2022   Add XmlDocGetStr
 '1.9 15/6/2022  Modify XmlDocGetStr
 '1.10 11/7/2022  Add AddXmlFragment,mSrc2CtlStr,mCtlStr2Src,mUnEscapeXmlValue,mEscapeXmlValue, modify mXMLAddStr,mGetXmlDoc
+'1.11 12/8/2022  Add XmdDocMainStr
+'1.12 25/8/2022  Modify mSrc2CtlStr,mCtlStr2Src
+'1.13 10/10/2022  Modify SetMainXml
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.10.8"
+    Private Const CLS_VERSION As String = "1.13.2"
     Private mstrMainXml As String
     Public Property XmlDocument As XmlDocument
     Private ReadOnly Property mPigFunc As New PigFunc
@@ -83,9 +86,14 @@ Public Class PigXml
         Me.Clear()
     End Sub
 
-    Public Sub SetMainXml(InXml As String)
-        mstrMainXml = InXml
-    End Sub
+    Public Function SetMainXml(InXml As String) As String
+        Try
+            mstrMainXml = InXml
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("SetMainXml", ex)
+        End Try
+    End Function
 
     '''' <summary>通过XmlReader填充元素</summary>
     '''' <param name="oXmlReader">XmlReader对象</param>
@@ -418,6 +426,7 @@ Public Class PigXml
 
     Private Sub mSrc2CtlStr(ByRef SrcStr As String)
         Try
+            If SrcStr Is Nothing Then SrcStr = ""
             If SrcStr.IndexOf(vbCrLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\r\n")
             If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
             If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
@@ -441,8 +450,8 @@ Public Class PigXml
             If InStr(InXmlStr, "<") > 0 Then InXmlStr = Replace(InXmlStr, "<", "&lt;")
             If InStr(InXmlStr, ">") > 0 Then InXmlStr = Replace(InXmlStr, ">", "&gt;")
             If InStr(InXmlStr, "&") > 0 Then InXmlStr = Replace(InXmlStr, "&", "&apos;")
-            '            If InStr(InXmlStr, "'") > 0 Then InXmlStr = Replace(InXmlStr, "'", "&lt;")
-            If InStr(InXmlStr, """") > 0 Then InXmlStr = Replace(InXmlStr, """", "&quot")
+            'If InStr(InXmlStr, "'") > 0 Then InXmlStr = Replace(InXmlStr, "'", "&lt;")
+            'If InStr(InXmlStr, """") > 0 Then InXmlStr = Replace(InXmlStr, """", "&quot")
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("mEscapeXmlValue", ex)
@@ -611,6 +620,7 @@ Public Class PigXml
         Try
             msbMain = Nothing
             msbMain = New System.Text.StringBuilder("")
+            Me.mstrMainXml = ""
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("Clear", ex)
@@ -623,7 +633,8 @@ Public Class PigXml
             If msbMain Is Nothing Then
                 Return mstrMainXml
             Else
-                Return msbMain.ToString
+                MainXmlStr = msbMain.ToString
+                If MainXmlStr = "" Then Return mstrMainXml
             End If
         End Get
     End Property
@@ -898,7 +909,7 @@ Public Class PigXml
             If XmlFilePath = "" Then
                 If Me.mstrMainXml = "" Then
                     Me.mstrMainXml = Me.MainXmlStr
-                    If Me.mstrMainXml = "" Then Throw New Exception("Please call SetMainXml设置 to set MainXmlStr first.")
+                    If Me.mstrMainXml = "" Then Throw New Exception("Please call SetMainXml to set MainXmlStr first.")
                 End If
                 LOG.StepName = "XmlDocument.LoadXml"
                 If Me.IsDebug = True Then LOG.AddStepNameInf(Me.mstrMainXml)
@@ -1028,6 +1039,7 @@ Public Class PigXml
 
     Private Sub mCtlStr2Src(ByRef CtlStr As String)
         Try
+            If CtlStr Is Nothing Then CtlStr = ""
             If CtlStr.IndexOf("\r\n") > 0 Then CtlStr = Replace(CtlStr, "\r\n", vbCrLf)
             If CtlStr.IndexOf("\r") > 0 Then CtlStr = Replace(CtlStr, "\r", vbCr)
             If CtlStr.IndexOf("\t") > 0 Then CtlStr = Replace(CtlStr, "\t", vbTab)
@@ -1039,5 +1051,20 @@ Public Class PigXml
             Me.SetSubErrInf("mCtlStr2Src", ex)
         End Try
     End Sub
+
+    Public ReadOnly Property XmdDocMainStr As String
+        Get
+            Try
+                If Me.XmlDocument IsNot Nothing Then
+                    Return Me.XmlDocument.InnerXml
+                Else
+                    Return ""
+                End If
+            Catch ex As Exception
+                Me.SetSubErrInf("XmdDocMainStr", ex)
+                Return ""
+            End Try
+        End Get
+    End Property
 
 End Class

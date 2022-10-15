@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.18
+'* Version: 1.28
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -29,6 +29,15 @@
 '*1.16   5/7/2022   Modify GetHostIp
 '*1.17   6/7/2022   Add GetFileVersion
 '*1.18   19/7/2022  Add GetFileUpdateTime,GetFileCreateTime,GetFileMD5
+'*1.19   4/8/2022   Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
+'*1.20   16/8/2022  Add GetMyExeName,GetMyPigProc,GetMyExePath
+'*1.21   17/8/2022  Add GetMyPigProc,GetMyExePath
+'*1.22   20/8/2022  Add Is64Bit,GetMachineGUID
+'*1.23   25/8/2022  Modify CtlStr2Src,Src2CtlStr,IsFolderExists
+'*1.25   2/9/2022   Add CheckFileDiff
+'*1.26   6/9/2022   Add IsMathDate,IsMathDecimal
+'*1.27   12/9/2022  Add GetEnmDispStr
+'*1.28   17/9/2022  Add IsStrongPassword,GetCompMinutePart
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -39,7 +48,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.18.2"
+    Private Const CLS_VERSION As String = "1.27.1"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -50,6 +59,14 @@ Public Class PigFunc
         Center = 3
     End Enum
 
+    ''' <summary>
+    ''' 检查不同的方式|Check different ways
+    ''' </summary>
+    Public Enum EnmCheckDiffType
+        Size_Date = 1
+        Size_Date_FastPigMD5 = 2
+        Size_FullPigMD5 = 3
+    End Enum
 
     ''' <summary>文件的部分</summary>
     Public Enum EnmFilePart
@@ -742,6 +759,7 @@ Public Class PigFunc
 
     Public Function Src2CtlStr(ByRef SrcStr As String) As String
         Try
+            If SrcStr Is Nothing Then SrcStr = ""
             If SrcStr.IndexOf(vbCrLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\r\n")
             If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
             If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
@@ -756,6 +774,7 @@ Public Class PigFunc
 
     Public Function CtlStr2Src(ByRef CtlStr As String) As String
         Try
+            If CtlStr Is Nothing Then CtlStr = ""
             If CtlStr.IndexOf("\r\n") > 0 Then CtlStr = Replace(CtlStr, "\r\n", vbCrLf)
             If CtlStr.IndexOf("\r") > 0 Then CtlStr = Replace(CtlStr, "\r", vbCr)
             If CtlStr.IndexOf("\t") > 0 Then CtlStr = Replace(CtlStr, "\t", vbTab)
@@ -792,14 +811,23 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function IsFolderExists(FolderPath As String) As Boolean
+    Public Function IsFolderExists(FolderPath As String, Optional IsNotExistsCreate As Boolean = False) As Boolean
         Try
-            Return Directory.Exists(FolderPath)
+            If Directory.Exists(FolderPath) = True Then
+                Return True
+            ElseIf IsNotExistsCreate = True Then
+                Dim strRet As String = Me.CreateFolder(FolderPath)
+                If strRet <> "OK" Then Throw New Exception(strRet)
+                Return Directory.Exists(FolderPath)
+            Else
+                Return False
+            End If
         Catch ex As Exception
             Me.SetSubErrInf("IsFolderExists", ex)
-            Return Nothing
+            Return False
         End Try
     End Function
+
 
     Public Function GetEnvVar(EnvVarName As String) As String
         Return GetEnvironmentVariable(EnvVarName)
@@ -894,7 +922,7 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function GetFileMD5(FilePath As String, ByRef FileMD5 As Date) As String
+    Public Function GetFileMD5(FilePath As String, ByRef FileMD5 As String) As String
         Dim LOG As New PigStepLog("GetFileMD5")
         Try
             LOG.StepName = "New PigFile"
@@ -912,19 +940,44 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function GetFilePigMD5(FilePath As String, ByRef FilePigMD5 As Date) As String
-        Dim LOG As New PigStepLog("GetFileCreateTime")
+    Public Function GetBytesPigMD5(ByRef InBytes As Byte(), ByRef OutPigMD5 As String) As String
+        Try
+            Dim oPigMD5 As New PigMD5(InBytes)
+            OutPigMD5 = oPigMD5.PigMD5
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            OutPigMD5 = ""
+            Return Me.GetSubErrInf("GetBytesPigMD5", ex)
+        End Try
+    End Function
+
+    Public Function GetTextPigMD5(SrcText As String, TextType As PigMD5.enmTextType, ByRef OutPigMD5 As String) As String
+        Dim LOG As New PigStepLog("GetTextPigMD5")
+        Try
+            Dim oPigMD5 As New PigMD5(SrcText, TextType)
+            OutPigMD5 = oPigMD5.PigMD5
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            OutPigMD5 = ""
+            Return Me.GetSubErrInf("GetTextPigMD5", ex)
+        End Try
+    End Function
+
+    Public Function GetFilePigMD5(FilePath As String, ByRef OutPigMD5 As String) As String
+        Dim LOG As New PigStepLog("GetFilePigMD5")
         Try
             LOG.StepName = "New PigFile"
             Dim oPigFile As New PigFile(FilePath)
             LOG.StepName = "LoadFile"
             LOG.Ret = oPigFile.LoadFile()
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-            FilePigMD5 = oPigFile.PigMD5
+            OutPigMD5 = oPigFile.PigMD5
             oPigFile = Nothing
             Return "OK"
         Catch ex As Exception
-            FilePigMD5 = ""
+            OutPigMD5 = ""
             LOG.AddStepNameInf(FilePath)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
@@ -1239,12 +1292,47 @@ Public Class PigFunc
         End Try
     End Function
 
+    Public Function GetWindowsProductId() As String
+        Dim LOG As New PigStepLog("GetWindowsProductId")
+        Try
+            If Me.IsWindows = True Then
+                LOG.StepName = "New PigReg"
+                Dim oPigReg As New PigReg
+                LOG.StepName = "GetRegValue"
+                GetWindowsProductId = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductId", "")
+                If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
+            Else
+                Return ""
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetMachineGUID() As String
+        Dim LOG As New PigStepLog("GetMachineGUID")
+        Try
+            If Me.IsWindows = True Then
+                LOG.StepName = "New PigReg"
+                Dim oPigReg As New PigReg
+                LOG.StepName = "GetRegValue"
+                GetMachineGUID = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Cryptography", "MachineGuid", "")
+                If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
+            Else
+                Return Me.GetUUID
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
 
     Public Function GetUUID() As String
         Dim LOG As New PigStepLog("GetUUID")
         Try
             If Me.IsWindows = True Then
-                GetUUID = ""
+                Return Me.GetMachineGUID
             Else
                 Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
                 LOG.StepName = "New PigFile"
@@ -1341,5 +1429,380 @@ Public Class PigFunc
             Return ""
         End Try
     End Function
+
+    Public Function SaveShareMem(SMName As String, InBytes As Byte()) As String
+        Dim LOG As New PigStepLog("SaveShareMem")
+        Const SM_HEAD_LEN As Integer = 28
+        Try
+            If InBytes Is Nothing Then Throw New Exception("InBytes Is Nothing")
+            LOG.StepName = "GetTextPigMD5"
+            LOG.Ret = Me.GetTextPigMD5("~PigShareMem." & SMName & ">PigShareMem,", PigMD5.enmTextType.UTF8, SMName)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Dim intDataLen As Integer = InBytes.Length
+            Dim dteCreate As Date = Now
+            LOG.StepName = "New PigMD5"
+            Dim pbHead As New PigBytes
+            Dim oPigMD5 As New PigMD5(InBytes)
+            If oPigMD5.LastErr <> "" Then Throw New Exception(oPigMD5.LastErr)
+            With pbHead
+                LOG.StepName = "pbHead.SetValue"
+                .SetValue(intDataLen)
+                .SetValue(dteCreate)
+                .SetValue(oPigMD5.PigMD5Bytes)
+                If .LastErr <> "" Then Throw New Exception(.LastErr)
+            End With
+            LOG.StepName = "New ShareMem(Head)"
+            Dim smHead As New ShareMem
+            With smHead
+                LOG.StepName = "Init(Head)"
+                LOG.Ret = .Init(SMName, SM_HEAD_LEN)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                LOG.StepName = "Write(Head)"
+                LOG.Ret = .Write(pbHead.Main)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End With
+            smHead = Nothing
+            LOG.StepName = "New ShareMem(Body)"
+            Dim smBody As New ShareMem
+            With smBody
+                LOG.StepName = "Init(Body)"
+                LOG.Ret = .Init(oPigMD5.PigMD5, intDataLen)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                LOG.StepName = "Write(Body)"
+                LOG.Ret = .Write(InBytes)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End With
+            smBody = Nothing
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetPigMD5OrMD5(PigMD5OrMD5Bytes As Byte()) As String
+        Try
+            GetPigMD5OrMD5 = ""
+            For i = 0 To 15
+                GetPigMD5OrMD5 &= Right("00" & Hex(PigMD5OrMD5Bytes(i)).ToLower, 2)
+            Next
+        Catch ex As Exception
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetShareMem(SMName As String, ByRef OutBytes As Byte(), ByRef CreateTime As Date) As String
+        Dim LOG As New PigStepLog("GetShareMem")
+        Const SM_HEAD_LEN As Integer = 28
+        Try
+            LOG.StepName = "GetTextPigMD5"
+            LOG.Ret = Me.GetTextPigMD5("~PigShareMem." & SMName & ">PigShareMem,", PigMD5.enmTextType.UTF8, SMName)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "New ShareMem(Head)"
+            Dim abHead(0) As Byte
+            Dim smHead As New ShareMem
+            With smHead
+                LOG.StepName = "Init(Head)"
+                LOG.Ret = .Init(SMName, SM_HEAD_LEN)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                LOG.StepName = "Read(Head)"
+                LOG.Ret = .Read(abHead)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End With
+            Dim intDataLen As Integer, abMD5(0) As Byte
+            Dim pbHead As New PigBytes(abHead)
+            With pbHead
+                LOG.StepName = "pbHead.GetValue"
+                intDataLen = .GetInt32Value
+                If intDataLen <= 0 Then Throw New Exception("No data")
+                CreateTime = .GetDateTimeValue
+                abMD5 = .GetBytesValue(16)
+                If .LastErr <> "" Then Throw New Exception(.LastErr)
+            End With
+            Dim strDataMD5 As String = Me.GetPigMD5OrMD5(abMD5)
+            If strDataMD5 = "" Then Throw New Exception("Invalid data")
+            smHead = Nothing
+            LOG.StepName = "New ShareMem(Body)"
+            Dim smBody As New ShareMem
+            With smBody
+                LOG.StepName = "Init(Body)"
+                LOG.Ret = .Init(strDataMD5, intDataLen)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                ReDim OutBytes(0)
+                LOG.StepName = "Read(Body)"
+                LOG.Ret = .Read(OutBytes)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End With
+            smBody = Nothing
+            Dim oPigMD5 As New PigMD5(OutBytes)
+            If oPigMD5.LastErr <> "" Then Throw New Exception(oPigMD5.LastErr)
+            If oPigMD5.PigMD5 <> strDataMD5 Then Throw New Exception("Data mismatch")
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            ReDim OutBytes(0)
+            CreateTime = Date.MinValue
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetMyExeName() As String
+        Try
+            Dim intPID As Integer = Me.fMyPID
+            Dim oPigProc As New PigProc(Me.fMyPID)
+            If oPigProc.LastErr <> "" Then Throw New Exception(oPigProc.LastErr)
+            If Me.IsWindows = True Then
+                GetMyExeName = oPigProc.ProcessName & ".exe"
+            Else
+                GetMyExeName = oPigProc.ProcessName
+            End If
+            oPigProc = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMyExeName", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetMyExePath() As String
+        Try
+            Dim intPID As Integer = Me.fMyPID
+            Dim oPigProc As New PigProc(Me.fMyPID)
+            If oPigProc.LastErr <> "" Then Throw New Exception(oPigProc.LastErr)
+            GetMyExePath = oPigProc.FilePath
+            oPigProc = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMyExePath", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetMyPigProc() As PigProc
+        Try
+            Dim intPID As Integer = Me.fMyPID
+            GetMyPigProc = New PigProc(Me.fMyPID)
+            If GetMyPigProc.LastErr <> "" Then Throw New Exception(GetMyPigProc.LastErr)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMyPigProc", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    Public Function Is64Bit() As Boolean
+        If System.Runtime.InteropServices.Marshal.SizeOf(IntPtr.Zero) * 8 = 64 Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
+    Public Function CheckFileDiff(SrcFile As String, TarFile As String, ByRef IsDiff As Boolean, Optional CheckDiffType As EnmCheckDiffType = EnmCheckDiffType.Size_Date_FastPigMD5) As String
+        Dim strStepName As String = "", strRet As String = ""
+        Try
+            strStepName = "New SrcFile"
+            Dim pfSrc As New PigFile(SrcFile)
+            strStepName = "New SrcFile"
+            Dim pfTar As New PigFile(TarFile)
+            Dim lngSrcSize As Long = pfSrc.Size
+            If lngSrcSize < 0 Then Throw New Exception("SrcFile size invalid")
+            Dim lngTarSize As Long = pfTar.Size
+            If lngTarSize < 0 Then Throw New Exception("TarFile size invalid")
+            If lngSrcSize <> lngTarSize Then
+                IsDiff = True
+            Else
+                Select Case CheckDiffType
+                    Case EnmCheckDiffType.Size_Date, EnmCheckDiffType.Size_Date_FastPigMD5
+                        If pfSrc.UpdateTime <> pfTar.UpdateTime Then
+                            IsDiff = True
+                        ElseIf CheckDiffType = EnmCheckDiffType.Size_Date Then
+                            IsDiff = False
+                        Else
+                            Dim pmSrc As PigMD5 = Nothing, pmTar As PigMD5 = Nothing
+                            strStepName = "GetFastPigMD5(pmSrc)"
+                            strRet = pfSrc.GetFastPigMD5(pmSrc)
+                            If strRet <> "OK" Then Throw New Exception(strRet)
+                            strStepName = "GetFastPigMD5(pmTar)"
+                            strRet = pfTar.GetFastPigMD5(pmTar)
+                            If strRet <> "OK" Then Throw New Exception(strRet)
+                            strStepName = "Check Diff"
+                            If pmSrc.PigMD5 <> pmTar.PigMD5 Then
+                                IsDiff = True
+                            Else
+                                IsDiff = False
+                            End If
+                            pmSrc = Nothing
+                            pmTar = Nothing
+                        End If
+                    Case EnmCheckDiffType.Size_FullPigMD5
+                        Dim pmSrc As PigMD5 = Nothing, pmTar As PigMD5 = Nothing
+                        strStepName = "GetFullPigMD5(pmSrc)"
+                        strRet = pfSrc.GetFullPigMD5(pmSrc)
+                        If strRet <> "OK" Then Throw New Exception(strRet)
+                        strStepName = "GetFullPigMD5(pmTar)"
+                        strRet = pfTar.GetFullPigMD5(pmTar)
+                        If strRet <> "OK" Then Throw New Exception(strRet)
+                        strStepName = "Check Diff"
+                        If pmSrc.PigMD5 <> pmTar.PigMD5 Then
+                            IsDiff = True
+                        Else
+                            IsDiff = False
+                        End If
+                        pmSrc = Nothing
+                        pmTar = Nothing
+                    Case Else
+                        Throw New Exception("Invalid CheckDiffType" & CheckDiffType.ToString)
+                End Select
+            End If
+            Return "OK"
+        Catch ex As Exception
+            IsDiff = Nothing
+            Return Me.GetSubErrInf("IsFileDiff", strStepName, ex)
+        End Try
+    End Function
+
+    Public Function IsMathDate(Date1 As Date, Date2 As Date, Optional DateFmt As String = "yyyy-MM-dd HH:mm.ss.f") As Boolean
+        Try
+            Dim strDate1 As String = Format(Date1, DateFmt)
+            Dim strDate2 As String = Format(Date2, DateFmt)
+            If strDate1 = strDate2 Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsMathDate", ex)
+            Return False
+        End Try
+    End Function
+
+    Public Function IsMathDecimal(Dec1 As Decimal, Dec2 As Decimal, Optional Decimals As Integer = 4) As Boolean
+        Try
+            Dim strDec1 As String = Math.Round(Dec1, Decimals)
+            Dim strDec2 As String = Math.Round(Dec2, Decimals)
+            If strDec1 = strDec2 Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsMathDecimal", ex)
+            Return False
+        End Try
+    End Function
+
+    Public Function GetMaxStr(SrcStr As String, Optional LineSeparator As String = vbCrLf) As String
+        Try
+            If LineSeparator = "" Then LineSeparator = Me.OsCrLf
+            Dim oList As New List(Of String)
+            Do While True
+                Dim strLine As String = Me.GetStr(SrcStr, "", LineSeparator)
+                If strLine = "" Then Exit Do
+                oList.Add(strLine)
+            Loop
+            oList.Sort()
+            GetMaxStr = oList.Item(oList.Count - 1)
+            oList = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMaxStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetMinStr(SrcStr As String, Optional LineSeparator As String = vbCrLf) As String
+        Try
+            If LineSeparator = "" Then LineSeparator = Me.OsCrLf
+            Dim oList As New List(Of String)
+            Do While True
+                Dim strLine As String = Me.GetStr(SrcStr, "", LineSeparator)
+                If strLine = "" Then Exit Do
+                oList.Add(strLine)
+            Loop
+            oList.Sort()
+            GetMinStr = oList.Item(0)
+            oList = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMinStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetEnmDispStr(EnmValue As Object, Optional IsCommaFirst As Boolean = True) As String
+        Try
+            If IsCommaFirst = True Then
+                GetEnmDispStr = ","
+            Else
+                GetEnmDispStr = ""
+            End If
+            GetEnmDispStr &= CInt(EnmValue) & "-" & EnmValue.ToString
+        Catch ex As Exception
+            Me.SetSubErrInf("GetEnmDispStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function IsStrongPassword(SrcPwd As String, Optional NeedLen As Integer = 8, Optional IsNeedSymbol As Boolean = True)
+        Try
+            Dim intPwdLen As Integer = Len(SrcPwd)
+            If intPwdLen < 6 Or intPwdLen < NeedLen Then Throw New Exception("Password is too short")
+            Const SYMBOL_LIST As String = "~!@#$%^&*()_+{}|:""<>?`-=[]\;',./"
+            Dim bolUpperLetter As Boolean = False, bolLowerLetter As Boolean = False, bolNumber As Boolean = False, bolIsSymbol As Boolean = False
+            For i = 0 To SrcPwd.Length - 1
+                Dim strChar As String = SrcPwd.Substring(i, 1)
+                If bolIsSymbol = False Then
+                    If InStr(SYMBOL_LIST, strChar) > 0 Then
+                        bolIsSymbol = True
+                    End If
+                End If
+                If bolNumber = False Then
+                    Select Case strChar
+                        Case "0" To "9"
+                            bolNumber = True
+                    End Select
+                End If
+                If bolUpperLetter = False Then
+                    Select Case strChar
+                        Case "A" To "Z"
+                            bolUpperLetter = True
+                    End Select
+                End If
+                If bolLowerLetter = False Then
+                    Select Case strChar
+                        Case "a" To "z"
+                            bolLowerLetter = True
+                    End Select
+                End If
+            Next
+            If IsNeedSymbol = True Then
+                If bolIsSymbol And bolLowerLetter And bolNumber And bolLowerLetter Then
+                    Return True
+                Else
+                    Return False
+                End If
+            ElseIf bolLowerLetter And bolNumber And bolLowerLetter Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsStrongPassword", ex)
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 获取一个格林威治时间最接近的分钟部分|Get the nearest minute part of Greenwich Mean Time
+    ''' </summary>
+    ''' <param name="SrcTime"></param>
+    ''' <returns></returns>
+    Public Function GetCompMinutePart(SrcTime As DateTime) As String
+        Try
+            Dim dteComp As DateTime = SrcTime.ToUniversalTime()
+            If dteComp.Second > 30 Then dteComp.AddMinutes(1)
+            GetCompMinutePart = Format(dteComp, "yyyyMMddHHmm")
+        Catch ex As Exception
+            Me.SetSubErrInf("", ex)
+            Return ""
+        End Try
+    End Function
+
 
 End Class

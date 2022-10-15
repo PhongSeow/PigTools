@@ -3,13 +3,19 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLib</RootNamespace>
     <TargetFrameworks>net5.0;netcoreapp3.1;net6.0;</TargetFrameworks>
-    <Version>2.9.60</Version>
+    <Version>3.3.12</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
-A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared memory, HTTP and compression.
-It can run on Windows and Linux platforms.
-</Description>
+A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared Memory and compression.
+AES, 3DES and RSA encryption processing.
+Configuration file management supporting configuration item encryption.
+Simple sorting processing.
+HTTP request processing.
+Registry processing.
+Xml processing.
+Key value and cache processing.
+It can run on Windows and Linux platforms.</Description>
     <Copyright>Copyright (c) 2020-2022 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
@@ -27,5 +33,9 @@ It can run on Windows and Linux platforms.
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
   </ItemGroup>
 </Project>

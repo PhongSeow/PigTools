@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>PigHostLib</RootNamespace>
-    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net40;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Version>1.0.50</Version>
@@ -34,8 +34,8 @@ It can run on Windows and Linux platforms.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.0.78" />
-    <PackageReference Include="PigSQLSrvLib" Version="2.8.6" />
+    <PackageReference Include="PigCmdLib" Version="2.0.80" />
+    <PackageReference Include="PigSQLSrvLib" Version="2.8.12" />
   </ItemGroup>
 
 </Project>

@@ -4,11 +4,12 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigStepLog is for logging and error handling in the process.
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3.2
+'* Version: 1.5.1
 '* Create Time: 8/12/2019
 '1.1    18/12/2021  Add TrackID,ErrInf2User, modify mNew,StepName
 '1.2    21/12/2021  Modify TrackID
 '1.3    10/2/2022  Add StepLogInf
+'1.5    30/8/2022  Modify New
 '************************************
 Public Class PigStepLog
     Public ReadOnly Property SubName As String
@@ -66,6 +67,10 @@ Public Class PigStepLog
         Me.mNew(, IsLogUseTime)
     End Sub
 
+    Public Sub New(SubName As String, IsLogUseTime As Boolean, IsTrack As Boolean)
+        Me.SubName = SubName
+        Me.mNew(IsTrack, IsLogUseTime)
+    End Sub
 
     Private mstrTrackID As String = ""
     Public Property TrackID As String

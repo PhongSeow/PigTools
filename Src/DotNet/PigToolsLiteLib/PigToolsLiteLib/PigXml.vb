@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.12
+'* Version: 1.13
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -28,12 +28,13 @@
 '1.10 11/7/2022  Add AddXmlFragment,mSrc2CtlStr,mCtlStr2Src,mUnEscapeXmlValue,mEscapeXmlValue, modify mXMLAddStr,mGetXmlDoc
 '1.11 12/8/2022  Add XmdDocMainStr
 '1.12 25/8/2022  Modify mSrc2CtlStr,mCtlStr2Src
+'1.13 10/10/2022  Modify SetMainXml
 '*******************************************************
 
 Imports System.Xml
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.12.2"
+    Private Const CLS_VERSION As String = "1.13.2"
     Private mstrMainXml As String
     Public Property XmlDocument As XmlDocument
     Private ReadOnly Property mPigFunc As New PigFunc
@@ -86,7 +87,12 @@ Public Class PigXml
     End Sub
 
     Public Function SetMainXml(InXml As String) As String
-        mstrMainXml = InXml
+        Try
+            mstrMainXml = InXml
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("SetMainXml", ex)
+        End Try
     End Function
 
     '''' <summary>通过XmlReader填充元素</summary>

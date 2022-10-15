@@ -4,13 +4,16 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 进程|Process
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.5
 '* Create Time: 20/3/2022
-'* 1.1    2/4/2022   Add 
+'* 1.1    2/4/2022   Modify new
+'* 1.2    1/8/2022   Add Close
+'* 1.3    1/8/2022   Add Kill
+'* 1.5    5/9/2022   Modify StartTime
 '**********************************
 Public Class PigProc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1.5.2"
 
     Private moProcess As Process
 
@@ -21,7 +24,6 @@ Public Class PigProc
         Catch ex As Exception
             Me.SetSubErrInf("New", ex)
         End Try
-
     End Sub
 
 
@@ -75,7 +77,7 @@ Public Class PigProc
                 Return moProcess.WorkingSet64
             Catch ex As Exception
                 Me.SetSubErrInf("MemoryUse", ex)
-                Return ""
+                Return 0
             End Try
         End Get
     End Property
@@ -83,10 +85,10 @@ Public Class PigProc
     Public ReadOnly Property StartTime As Date
         Get
             Try
-                Return moProcess.StartTime
+                Return CDate(Format(moProcess.StartTime, "yyyy-MM-dd HH:mm:ss.fff"))
             Catch ex As Exception
                 Me.SetSubErrInf("StartTime", ex)
-                Return ""
+                Return #1/1/1900#
             End Try
         End Get
     End Property
@@ -112,5 +114,23 @@ Public Class PigProc
             End Try
         End Get
     End Property
+
+    Public Function Close() As String
+        Try
+            moProcess.Close()
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("Close", ex)
+        End Try
+    End Function
+
+    Public Function Kill() As String
+        Try
+            moProcess.Kill()
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("Close", ex)
+        End Try
+    End Function
 
 End Class

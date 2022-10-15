@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.18.1
+'* Version: 1.19.1
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -24,6 +24,7 @@
 '* 1.16   3/6/2022   Modify PigXmlDemo
 '* 1.17   16/6/2022   Add  PigVBCode Demo
 '* 1.18   2/9/2022   Modify PigFunc demo
+'* 1.19   9/10/2022   Modify PigConfig
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -470,15 +471,20 @@ Public Class ConsoleDemo
                                 Select Case Me.Line
                                     Case "0", "1"
                                         intEncType = CInt(Me.Line)
-                                        Me.PigConsole.GetLine("Input EncKey", Me.EncKey)
-                                        Me.PigConfigApp = New PigConfigApp(Me.EncKey, intEncType)
-                                        Console.WriteLine("New PigConfigApp=")
-                                        If Me.PigConfigApp.LastErr = "" Then
-                                            Console.WriteLine("OK")
-                                            Me.PigConfigApp.OpenDebug()
-                                            Console.WriteLine("EncType=" & Me.PigConfigApp.EncType.ToString)
-                                        Else
-                                            Console.WriteLine(Me.PigConfigApp.LastErr)
+                                        Me.PigConsole.GetLine("Input EncKey file path", Me.FilePath)
+                                        Console.WriteLine("GetFileText...")
+                                        Me.Ret = Me.PigFunc.GetFileText(Me.FilePath, Me.EncKey)
+                                        Console.WriteLine(Me.Ret)
+                                        If Me.Ret = "OK" Then
+                                            Me.PigConfigApp = New PigConfigApp(Me.EncKey, intEncType)
+                                            Console.WriteLine("New PigConfigApp=")
+                                            If Me.PigConfigApp.LastErr = "" Then
+                                                Console.WriteLine("OK")
+                                                Me.PigConfigApp.OpenDebug()
+                                                Console.WriteLine("EncType=" & Me.PigConfigApp.EncType.ToString)
+                                            Else
+                                                Console.WriteLine(Me.PigConfigApp.LastErr)
+                                            End If
                                         End If
                                     Case Else
                                         Console.WriteLine("invalid EncType")
