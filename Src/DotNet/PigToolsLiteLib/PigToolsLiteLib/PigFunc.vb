@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.28
+'* Version: 1.29
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -38,6 +38,7 @@
 '*1.26   6/9/2022   Add IsMathDate,IsMathDecimal
 '*1.27   12/9/2022  Add GetEnmDispStr
 '*1.28   17/9/2022  Add IsStrongPassword,GetCompMinutePart
+'*1.29   17/10/2022  Add EscapeStr,UnEscapeStr
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -48,7 +49,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.27.1"
+    Private Const CLS_VERSION As String = "1.29.1"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -1801,6 +1802,42 @@ Public Class PigFunc
         Catch ex As Exception
             Me.SetSubErrInf("", ex)
             Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 转义字符串
+    ''' </summary>
+    ''' <param name="SrcStr">源字符串</param>
+    Public Function EscapeStr(ByRef SrcStr As String) As String
+        Try
+            If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
+            If SrcStr.IndexOf(vbLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\n")
+            If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
+            If SrcStr.IndexOf(vbBack) > 0 Then SrcStr = Replace(SrcStr, vbBack, "\b")
+            If SrcStr.IndexOf(vbFormFeed) > 0 Then SrcStr = Replace(SrcStr, vbFormFeed, "\f")
+            If SrcStr.IndexOf(vbVerticalTab) > 0 Then SrcStr = Replace(SrcStr, vbVerticalTab, "\v")
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("mEscapeStr", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 还原转义字符串
+    ''' </summary>
+    ''' <param name="EscapeStr">已转义字符串</param>
+    Public Function UnEscapeStr(ByRef EscapeStr As String) As String
+        Try
+            If EscapeStr.IndexOf("\n") > 0 Then EscapeStr = Replace(EscapeStr, "\n", vbLf)
+            If EscapeStr.IndexOf("\r") > 0 Then EscapeStr = Replace(EscapeStr, "\r", vbCr)
+            If EscapeStr.IndexOf("\t") > 0 Then EscapeStr = Replace(EscapeStr, "\t", vbTab)
+            If EscapeStr.IndexOf("\b") > 0 Then EscapeStr = Replace(EscapeStr, "\b", vbBack)
+            If EscapeStr.IndexOf(vbFormFeed) > 0 Then EscapeStr = Replace(EscapeStr, "\f", vbFormFeed)
+            If EscapeStr.IndexOf(vbVerticalTab) > 0 Then EscapeStr = Replace(EscapeStr, "\v", vbVerticalTab)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("UnEscapeStr", ex)
         End Try
     End Function
 

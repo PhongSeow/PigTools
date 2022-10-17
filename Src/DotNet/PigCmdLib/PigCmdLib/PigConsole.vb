@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.12
+'* Version: 1.13
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -18,14 +18,14 @@
 '*1.10 26/7/2022   Modify Imports
 '*1.11 29/7/2022   Modify Imports,mGetLine
 '*1.12 12/8/2022   Modify IsYesOrNo
+'*1.13 16/10/2022  Add InitMLang
 '**********************************
 Imports PigToolsLiteLib
 
 Public Class PigConsole
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.12.1"
-    Private moPigFunc As New PigFunc
-
+    Private Const CLS_VERSION As String = "1.13.1"
+    Private ReadOnly Property mPigFunc As New PigFunc
     Public Enum EnmSimpleMenuExitType
         Null = 0
         QtoExit = 1
@@ -412,13 +412,13 @@ Public Class PigConsole
             LOG.StepName = "Handle MenuDefinition"
             If Right(MenuDefinition, 1) <> "|" Then MenuDefinition &= "|"
             Do While True
-                Dim strLine As String = moPigFunc.GetStr(MenuDefinition, "", "|")
+                Dim strLine As String = mPigFunc.GetStr(MenuDefinition, "", "|")
                 If strLine = "" Then Exit Do
                 intItems += 1
                 ReDim Preserve abMenuKey(intItems)
                 ReDim Preserve abMenuName(intItems)
                 ReDim Preserve abLetter(intItems)
-                abMenuKey(intItems) = moPigFunc.GetStr(strLine, "", "#")
+                abMenuKey(intItems) = mPigFunc.GetStr(strLine, "", "#")
                 abMenuName(intItems) = strLine
                 If Len(abMenuName(intItems)) > intMaxLen Then intMaxLen = Len(abMenuName(intItems))
                 abLetter(intItems) = Chr(64 + intItems)
@@ -431,7 +431,7 @@ Public Class PigConsole
             End If
             intMaxLen += 8
             LOG.StepName = "Print Menu"
-            Dim strStarLine As String = moPigFunc.GetRepeatStr(intMaxLen, "*")
+            Dim strStarLine As String = mPigFunc.GetRepeatStr(intMaxLen, "*")
             Console.WriteLine(strStarLine)
             Console.WriteLine("* " & MenuTitle)
             Console.WriteLine(strStarLine)
@@ -608,6 +608,16 @@ Public Class PigConsole
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("mSetLinePos", ex)
+        End Try
+    End Function
+
+    Public Function InitMLang() As String
+        Dim LOG As New PigStepLog("InitMLang")
+        Try
+
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 

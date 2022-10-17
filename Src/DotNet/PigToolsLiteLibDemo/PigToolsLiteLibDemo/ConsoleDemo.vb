@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.19.1
+'* Version: 1.20.1
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -25,12 +25,14 @@
 '* 1.17   16/6/2022   Add  PigVBCode Demo
 '* 1.18   2/9/2022   Modify PigFunc demo
 '* 1.19   9/10/2022   Modify PigConfig
+'* 1.20   16/10/2022  Add PigMLangDemo
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
 Imports System.Xml
-
+Imports System.Globalization
 Public Class ConsoleDemo
+
     Public ShareMem As ShareMem
     Public SMName As String
     Public SMSize As Integer = 1024
@@ -89,10 +91,17 @@ Public Class ConsoleDemo
     Public ComprssType As SeowEnc.EmnComprssType
     Public CompressRate As Decimal
     Public UseTime As New UseTime
+    Public PigMLang As PigMLang
+    Public MLangTitle As String = "MLangTest"
+    Public MLangDir As String = "C:\temp"
+    Public LCID As Integer = 2052
+    Public CultureName As String = "en-US"
+    Public ObjName As String
+    Public Key As String
+    Public MLangText As String
 
 
     Public Sub Main()
-        Debug.Print(IsNumeric("True"))
         Do While True
             Console.Clear()
             Console.WriteLine("*******************")
@@ -115,6 +124,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press N to PigTripleDES")
             Console.WriteLine("Press O to PigSort")
             Console.WriteLine("Press P to SeowEnc")
+            Console.WriteLine("Press R to PigMLang")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
@@ -796,6 +806,8 @@ Public Class ConsoleDemo
                                 Console.WriteLine("UseTime=" & Me.UseTime.AllDiffSeconds)
                         End Select
                     Loop
+                Case ConsoleKey.R
+                    Me.PigMLangDemo()
                 Case Else
                     Console.WriteLine("Coming soon...")
             End Select
@@ -1273,4 +1285,101 @@ Public Class ConsoleDemo
             Me.PigFile2.SaveFile()
         End If
     End Sub
+
+    Public Sub PigMLangDemo()
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition2 = "NewPigMLang#New PigMLang|"
+            Me.MenuDefinition2 &= "ShowProperty#Show Properties|"
+            Me.MenuDefinition2 &= "LoadMLangInf#LoadMLangInf|"
+            Me.MenuDefinition2 &= "GetAllLangInf#GetAllLangInf|"
+            Me.MenuDefinition2 &= "AddMLangText#AddMLangText|"
+            Me.MenuDefinition2 &= "GetMLangText#GetMLangText|"
+            Me.MenuDefinition2 &= "MkMLangText#MkMLangText|"
+            Me.PigConsole.SimpleMenu("PigMLang", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Select Case Me.MenuKey2
+                Case ""
+                    Exit Do
+                Case "NewPigMLang"
+                    Me.PigConsole.GetLine("Input MLangTitle", Me.MLangTitle)
+                    Me.PigConsole.GetLine("Input MLangDir", Me.MLangDir)
+                    If Me.MLangDir = "" Then
+                        Me.PigMLang = New PigMLang(Me.MLangTitle)
+                    Else
+                        Me.PigMLang = New PigMLang(Me.MLangTitle, Me.MLangDir)
+                    End If
+                    If Me.PigMLang.LastErr <> "" Then Console.WriteLine(Me.PigMLang.LastErr)
+                Case "GetAllLangInf"
+                    Console.WriteLine(Me.PigMLang.GetAllLangInf(PigMLang.EnmGetInfFmt.Markdown))
+                Case "LoadMLangInf"
+                    If Me.PigConsole.IsYesOrNo("Is Auto?") = True Then
+                        Console.WriteLine("LoadMLangInf(True)")
+                        Me.Ret = Me.PigMLang.LoadMLangInf(True)
+                    Else
+                        Console.WriteLine("LoadMLangInf(False)")
+                        Me.Ret = Me.PigMLang.LoadMLangInf(False)
+                    End If
+                    Console.WriteLine(Me.Ret)
+                Case "ShowProperty"
+                    Dim strDisp As String = "", strOsCrLf As String = Me.PigFunc.MyOsCrLf
+                    With Me.PigMLang
+                        strDisp &= "CurrCultureName=" & .CurrCultureName & strOsCrLf
+                        strDisp &= "CurrLCID=" & .CurrLCID & strOsCrLf
+                        strDisp &= "CurrMLangDir=" & .CurrMLangDir & strOsCrLf
+                        strDisp &= "CurrMLangFile=" & .CurrMLangFile & strOsCrLf
+                        strDisp &= "CurrMLangTitle=" & .CurrMLangTitle & strOsCrLf
+                        strDisp &= "CanUseCultureList=" & strOsCrLf
+                        If .CanUseCultureList IsNot Nothing Then
+                            For Each oCultureInfo As CultureInfo In .CanUseCultureList
+                                With oCultureInfo
+                                    strDisp &= "[" & .LCID & "]" & .Name & strOsCrLf
+                                End With
+                            Next
+                        End If
+                    End With
+                    Console.WriteLine(strDisp)
+                Case "AddMLangText"
+                    With Me.PigMLang
+                        If Me.PigConsole.IsYesOrNo("Is GlobalKey") = True Then
+                            Me.PigConsole.GetLine("Input GlobalKey", Me.Key)
+                            Me.PigConsole.GetLine("Input MLangText", Me.MLangText)
+                            .AddMLangText(Me.Key, Me.MLangText)
+                        Else
+                            Me.PigConsole.GetLine("Input ObjName", Me.ObjName)
+                            Me.PigConsole.GetLine("Input Key", Me.Key)
+                            Me.PigConsole.GetLine("Input MLangText", Me.MLangText)
+                            .AddMLangText(Me.ObjName, Me.Key, Me.MLangText)
+                        End If
+                    End With
+                Case "GetMLangText"
+                    With Me.PigMLang
+                        If Me.PigConsole.IsYesOrNo("Is GlobalKey") = True Then
+                            Me.PigConsole.GetLine("Input GlobalKey", Me.Key)
+                            Me.PigConsole.GetLine("Input DefaultText", Me.MLangText)
+                            Console.WriteLine(.GetMLangText(Me.Key, Me.MLangText))
+                        Else
+                            Me.PigConsole.GetLine("Input ObjName", Me.ObjName)
+                            Me.PigConsole.GetLine("Input Key", Me.Key)
+                            Me.PigConsole.GetLine("Input DefaultText", Me.MLangText)
+                            Console.WriteLine(.GetMLangText(Me.ObjName, Me.Key, Me.MLangText))
+                        End If
+                    End With
+                Case "MkMLangText"
+                    With Me.PigMLang
+                        If Me.PigConsole.IsYesOrNo("Is GlobalKey") = True Then
+                            Me.PigConsole.GetLine("Input GlobalKey", Me.Key)
+                            Me.PigConsole.GetLine("Input DefaultText", Me.MLangText)
+                            Console.WriteLine(.MkMLangTextDemo(Me.Key, Me.MLangText))
+                        Else
+                            Me.PigConsole.GetLine("Input ObjName", Me.ObjName)
+                            Me.PigConsole.GetLine("Input Key", Me.Key)
+                            Me.PigConsole.GetLine("Input DefaultText", Me.MLangText)
+                            Console.WriteLine(.MkMLangTextDemo(Me.ObjName, Me.Key, Me.MLangText))
+                        End If
+                    End With
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
 End Class
