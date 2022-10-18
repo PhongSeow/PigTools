@@ -1,0 +1,6 @@
+{Global}
+[PressToContinue]=(Press any key to continue)
+[PressYesOrNo]=:(Press Y to Yes, N to No)
+[PressEnterSetCurrValue]=(Press ENTER to set the current value to the following text)
+[ToExit]=Exit
+[ToUp]=Up

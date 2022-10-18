@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.13
+'* Version: 1.16
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -19,13 +19,28 @@
 '*1.11 29/7/2022   Modify Imports,mGetLine
 '*1.12 12/8/2022   Modify IsYesOrNo
 '*1.13 16/10/2022  Add InitMLang
+'*1.15 17/10/2022  Add MLang function, modify mDisplayPause
+'*1.16 18/10/2022  Modify SimpleMenu,IsYesOrNo
 '**********************************
 Imports PigToolsLiteLib
 
 Public Class PigConsole
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.13.1"
+    Private Const CLS_VERSION As String = "1.16.3"
     Private ReadOnly Property mPigFunc As New PigFunc
+
+    Private Property mPigMLang As PigMLang
+    Property mIsUseMLang As Boolean = False
+
+    Public Property IsUseMLang As Boolean
+        Get
+            Return mIsUseMLang
+        End Get
+        Friend Set(value As Boolean)
+            mIsUseMLang = value
+        End Set
+    End Property
+
     Public Enum EnmSimpleMenuExitType
         Null = 0
         QtoExit = 1
@@ -359,7 +374,8 @@ Public Class PigConsole
 
     Private Function mDisplayPause(DisplayInf As String) As String
         Try
-            Console.Write(DisplayInf & "(Press any key to continue)")
+            Dim strDisp As String = Me.mGetMLangText("PressToContinue", "(Press any key to continue)")
+            Console.Write(DisplayInf & strDisp)
             Dim oConsoleKey As ConsoleKey = Console.ReadKey(True).Key
             Return "OK"
         Catch ex As Exception
@@ -375,7 +391,8 @@ Public Class PigConsole
     Public Function IsYesOrNo(PromptInf As String) As Boolean
         Try
             IsYesOrNo = Nothing
-            Console.Write(Me.OsCrLf & PromptInf & ":(Press Y to Yes, N to No)")
+            Dim strDisp As String = Me.mGetMLangText("PressYesOrNo", ":(Press Y to Yes, N to No)")
+            Console.Write(Me.OsCrLf & PromptInf & Me.OsCrLf & strDisp & Me.OsCrLf)
             Do While True
                 Select Case Console.ReadKey(True).Key
                     Case ConsoleKey.Y
@@ -435,11 +452,14 @@ Public Class PigConsole
             Console.WriteLine(strStarLine)
             Console.WriteLine("* " & MenuTitle)
             Console.WriteLine(strStarLine)
+            Dim strDisp As String = ""
             Select Case MenuExitType
                 Case EnmSimpleMenuExitType.QtoExit
-                    Console.WriteLine("* Q - Exit")
+                    strDisp = Me.mGetMLangText("ToExit", "Exit")
+                    Console.WriteLine("* Q - " & strDisp)
                 Case EnmSimpleMenuExitType.QtoUp
-                    Console.WriteLine("* Q - Up")
+                    strDisp = Me.mGetMLangText("ToUp", "Up")
+                    Console.WriteLine("* Q - " & strDisp)
             End Select
             For i = 1 To intItems
                 Dim strLetter As String = Chr(64 + i)
@@ -482,7 +502,8 @@ Public Class PigConsole
             'End If
             Dim intBeginLeft As Integer = Console.CursorLeft, intBeginTop As Integer = Console.CursorTop
             If OutLine <> "" And IsShowCurrLine = True Then
-                Console.WriteLine("(Press ENTER to set the current value to the following text)")
+                Dim strDisp As String = Me.mGetMLangText("PressEnterSetCurrValue", "(Press ENTER to set the current value to the following text)")
+                Console.WriteLine(strDisp)
                 Console.WriteLine(OutLine)
             End If
             If PromptInf <> "" Then Console.Write(PromptInf & ":")
@@ -611,12 +632,45 @@ Public Class PigConsole
         End Try
     End Function
 
-    Public Function InitMLang() As String
-        Dim LOG As New PigStepLog("InitMLang")
+    Private Function mGetMLangText(ObjName As String, Key As String, DefaultText As String) As String
         Try
+            If Me.mIsUseMLang = False Then
+                Return DefaultText
+            Else
+                Return Me.mPigMLang.GetMLangText(ObjName, Key, DefaultText)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("mGetMLangText", ex)
+            Return DefaultText
+        End Try
+    End Function
 
+    Private Function mGetMLangText(GlobalKey As String, DefaultText As String) As String
+        Try
+            If Me.mIsUseMLang = False Then
+                Return DefaultText
+            Else
+                Return Me.mPigMLang.GetMLangText(GlobalKey, DefaultText)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("mGetMLangText", ex)
+            Return DefaultText
+        End Try
+    End Function
+
+    Public Function RefMLang() As String
+        Dim LOG As New PigStepLog("RefMLang")
+        Try
+            LOG.StepName = "New PigMLang"
+            Me.mPigMLang = New PigMLang(Me.AppTitle, Me.AppPath)
+            If Me.mPigMLang.LastErr <> "" Then Throw New Exception(Me.mPigMLang.LastErr)
+            LOG.StepName = "LoadMLangInf"
+            LOG.Ret = Me.mPigMLang.LoadMLangInf(True)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Me.mIsUseMLang = True
             Return "OK"
         Catch ex As Exception
+            Me.mIsUseMLang = False
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function

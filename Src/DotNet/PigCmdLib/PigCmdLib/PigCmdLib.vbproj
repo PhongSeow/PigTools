@@ -20,8 +20,8 @@ A series of console functions, including reading lines, whether to select, simpl
 asynchronous processing.
 Wmic calls and operating system commands.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.0.86</Version>
-    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
+    <Version>2.1.2</Version>
+    <PackageReleaseNotes>Add multilingual support.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
