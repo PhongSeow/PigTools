@@ -1,6 +1,26 @@
 # PigMLang
-#### [中文文档](https://github.com/PhongSeow/PigCache/blob/master/README.CN.md)
-PigCache is a lightweight key value caching system for multiple application scenarios. It can support single process micro applications to large-scale multi server load balancing scenarios. Most scenarios do not need the support of third-party services such as memcached or Redis. The running environment can support Windows or Linux platforms. Codes in different scenarios only need to reference different class libraries, Make minor changes to the source code.
+#### [中文文档](https://github.com/PhongSeow/PigTools/blob/main/Release/PigMLang/README.CN.md)
+PigMLang is a very simple multi language solution. It is a method to edit a multi language file with the same name as the application. <br>The file extension is the name or LCID in the following table. <br>It can be stored in the same directory as the application's execution code file. <br>The file content consists of a global "{Global}" and multiple user-defined "{Object Name}". <br>The multi text content consists of multiple "[Key Name]=Text Content"<br>
+
+Example file name:<br>
+The application name is PigCmdLib, and the execution code is PigCmdLib.dll, the language region is Chinese (simplified, China), then the multilingual file is PigCmdLib.zh-CN or PigCmdLib.2052.
+
+Example of file content:
+```
+{Global}
+[PressToContinue]=Press any key to continue
+[PressYesOrNo]=Press Y to Yes, N to No 
+{frmMain}
+[Caption]=Form Name
+```
+
+Code reference example: 
+If the key value cannot find available multilingual text, the content displayed as DefaultText is used.
+```
+PigMLang.GetMLangText(GlobalKey,DefaultText)
+PigMLang.GetMLangText(ObjName,Key,DefaultText)
+```
+
 |Name|LCID|EnglishName|DisplayName|NativeName|
 | ---- | ---- | ---- | ---- | ---- |
 |ar-SA|1025|Arabic (Saudi Arabia)|Arabic (Saudi Arabia)|العربية (المملكة العربية السعودية)|

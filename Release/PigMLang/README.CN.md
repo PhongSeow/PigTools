@@ -1,20 +1,25 @@
 # PigMLang
-#### [中文文档](https://github.com/PhongSeow/PigTools/blob/master/README.CN.md)
-PigMLang是一个非常简洁的多言语解决方案，方法编辑一个与应用同名的多语言文件，文件扩展名为下表中的名称或LCID，与应用的执行码文件存放在相同目录即可，文件内容由一个全局的“{Global}”和多个自定义的“{对象名}”组成，多文本内容由多个“[键名]=文本内容”组成
+#### [English Readme](https://github.com/PhongSeow/PigTools/blob/main/Release/PigMLang/README.md)
+PigMLang是一个非常简洁的多言语解决方案，方法编辑一个与应用同名的多语言文件，文件扩展名为下表中的名称或LCID，与应用的执行码文件存放在相同目录即可，文件内容由一个全局的“{Global}”和多个自定义的“{对象名}”组成，多文本内容由多个“[键名]=文本内容”组成<br>
 
-文件名示例：
-应用名称为 PigCmdLib，执行码为 PigCmdLib.dll，语言区域为中文(简体，中国) ，则多语言文件为 PigCmdLib.zh-CN 或 PigCmdLib.2052。
+文件名示例：<br>
+应用名称为 PigCmdLib，执行码为 PigCmdLib.dll，语言区域为中文(简体，中国) ，则多语言文件为 PigCmdLib.zh-CN 或 PigCmdLib.2052。<br>
 
 文件内容示例：
+```
 {Global}
 [PressToContinue]=Press any key to continue
-[PressYesOrNo]=Press Y to Yes, N to No
+[PressYesOrNo]=Press Y to Yes, N to No 
 {frmMain}
-[Caption]=Form Name 
+[Caption]=Form Name
+```
 
-代码引用示例：
+代码引用示例：<br>
+如果键值找不到可用的多语言文本，则使用显示为DefaultText的内容。
+```
 PigMLang.GetMLangText(GlobalKey,DefaultText)
 PigMLang.GetMLangText(ObjName,Key,DefaultText)
+```
 
 |名称|LCID|英文名称|显示名称|本国名称|
 | ---- | ---- | ---- | ---- | ---- |

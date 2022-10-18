@@ -267,6 +267,11 @@ Public Class ConsoleDemo
     End Sub
 
     Public Sub PigConsoleDemo()
+        If Me.PigConsole.IsYesOrNo("Whether to use multiple languages") = True Then
+            Console.WriteLine("Copy the multilingual file to the same directory of the class library, with the file name such as PigCmdLib.zh-CN. See https://github.com/PhongSeow/PigTools/tree/main/Release/PigMLang")
+            Me.PigConsole.DisplayPause()
+            Me.PigConsole.RefMLang()
+        End If
         Do While True
             Console.Clear()
             Me.MenuDefinition = "GetPwdStr#GetPwdStr|"
