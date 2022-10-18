@@ -1,5 +1,5 @@
 # PigTools
-#### [ÖÐÎÄÎÄµµ](https://github.com/PhongSeow/PigTools/blob/master/README.CN.md)
+#### [ä¸­æ–‡æ–‡æ¡£](https://github.com/PhongSeow/PigTools/blob/master/README.CN.md)
 PigTools is a series of .net development interface toolset class libraries.
 
 |Library|Platform|Description|
