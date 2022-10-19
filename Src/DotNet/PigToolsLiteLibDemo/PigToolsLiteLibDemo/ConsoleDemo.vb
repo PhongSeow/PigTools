@@ -99,7 +99,7 @@ Public Class ConsoleDemo
     Public ObjName As String
     Public Key As String
     Public MLangText As String
-
+    Public CurrCultureName As String
 
     Public Sub Main()
         Do While True
@@ -1296,6 +1296,7 @@ Public Class ConsoleDemo
             Me.MenuDefinition2 &= "AddMLangText#AddMLangText|"
             Me.MenuDefinition2 &= "GetMLangText#GetMLangText|"
             Me.MenuDefinition2 &= "MkMLangText#MkMLangText|"
+            Me.MenuDefinition2 &= "GetCanUseCultureXml#GetCanUseCultureXml|"
             Me.PigConsole.SimpleMenu("PigMLang", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey2
                 Case ""
@@ -1315,9 +1316,15 @@ Public Class ConsoleDemo
                     If Me.PigConsole.IsYesOrNo("Is Auto?") = True Then
                         Console.WriteLine("LoadMLangInf(True)")
                         Me.Ret = Me.PigMLang.LoadMLangInf(True)
+                        Console.WriteLine(Me.Ret)
                     Else
+                        Me.PigConsole.GetLine("Input CurrCultureName", Me.CurrCultureName)
+                        Console.WriteLine("SetCurrCulture")
+                        Me.Ret = Me.PigMLang.SetCurrCulture(Me.CurrCultureName)
+                        Console.WriteLine(Me.Ret)
                         Console.WriteLine("LoadMLangInf(False)")
                         Me.Ret = Me.PigMLang.LoadMLangInf(False)
+                        Console.WriteLine(Me.Ret)
                     End If
                     Console.WriteLine(Me.Ret)
                 Case "ShowProperty"
@@ -1328,6 +1335,7 @@ Public Class ConsoleDemo
                         strDisp &= "CurrMLangDir=" & .CurrMLangDir & strOsCrLf
                         strDisp &= "CurrMLangFile=" & .CurrMLangFile & strOsCrLf
                         strDisp &= "CurrMLangTitle=" & .CurrMLangTitle & strOsCrLf
+                        'strDisp &= "MLangTextCnt=" & .MLangTextCnt & strOsCrLf
                         strDisp &= "CanUseCultureList=" & strOsCrLf
                         If .CanUseCultureList IsNot Nothing Then
                             For Each oCultureInfo As CultureInfo In .CanUseCultureList
@@ -1376,6 +1384,11 @@ Public Class ConsoleDemo
                             Me.PigConsole.GetLine("Input DefaultText", Me.MLangText)
                             Console.WriteLine(.MkMLangTextDemo(Me.ObjName, Me.Key, Me.MLangText))
                         End If
+                    End With
+                Case "GetCanUseCultureXml"
+                    With Me.PigMLang
+                        Console.WriteLine("GetCanUseCultureXml...")
+                        Console.WriteLine(.GetCanUseCultureXml)
                     End With
             End Select
             Me.PigConsole.DisplayPause()

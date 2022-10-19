@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.16
+'* Version: 1.17
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -21,12 +21,13 @@
 '*1.13 16/10/2022  Add InitMLang
 '*1.15 17/10/2022  Add MLang function, modify mDisplayPause
 '*1.16 18/10/2022  Modify SimpleMenu,IsYesOrNo
+'*1.17 19/10/2022  Add GetCanUseCultureXml
 '**********************************
 Imports PigToolsLiteLib
-
+Imports System.Globalization
 Public Class PigConsole
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.16.3"
+    Private Const CLS_VERSION As String = "1.17.2"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -655,6 +656,32 @@ Public Class PigConsole
         Catch ex As Exception
             Me.SetSubErrInf("mGetMLangText", ex)
             Return DefaultText
+        End Try
+    End Function
+
+    Public Function GetCanUseCultureXml() As String
+        Try
+            Return Me.mPigMLang.GetCanUseCultureXml()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetCanUseCultureXml", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function SetCurrCulture(CultureName As String) As String
+        Dim LOG As New PigStepLog("SetCurrCulture")
+        Try
+            If Me.IsUseMLang = False Or Me.mPigMLang Is Nothing Then
+                LOG.StepName = "New PigMLang"
+                Me.mPigMLang = New PigMLang(Me.AppTitle, Me.AppPath)
+                If Me.mPigMLang.LastErr <> "" Then Throw New Exception(Me.mPigMLang.LastErr)
+            End If
+            LOG.StepName = "SetCurrCulture"
+            LOG.ret = Me.mPigMLang.SetCurrCulture(CultureName)
+            If LOG.ret <> "" Then Throw New Exception(LOG.ret)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 

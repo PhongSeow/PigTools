@@ -5,7 +5,7 @@
 '''* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '''* Describe: A lightweight multi language processing class, As long as you refer to this class, you can implement multilingual processing|一个轻量的多语言处理类，只要引用本类就可以实现多语言处理。 
 '''* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'''* Version: 1.2
+'''* Version: 1.5
 '''* Create Time: 30/11/2020
 '''* 1.0.2  1/12/2020   Modify GetAllLangInf, Add GetMLangText
 '''* 1.0.3  1/12/2020   Modify mInitCultureSortList
@@ -19,6 +19,8 @@
 '''* 1.0.11 5/1/2021    Modify mNew, auto copy lang file.
 '''* 1.1 11/9/2022      Modify mNew, auto copy lang file.
 '''* 1.2 17/10/2022     Add PigFunc and Rewrite Common Code
+'''* 1.3 18/10/2022     Add GetCanUseCultureXml,SetCurrCulture,mInitCultureSortList
+'''* 1.5 19/10/2022     Add MLangTextCnt
 '''************************************
 ''' </summary>
 Imports System.Globalization
@@ -27,7 +29,7 @@ Imports System.IO
 
 Public Class PigMLang
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.28"
+    Private Const CLS_VERSION As String = "1.5.1"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mFS As New mFileSystemObject
@@ -75,6 +77,15 @@ Public Class PigMLang
         End Get
     End Property
 
+    Public ReadOnly Property MLangTextCnt() As Integer
+        Get
+            If mslMLangText Is Nothing Then
+                Return 0
+            Else
+                Return mslMLangText.Count
+            End If
+        End Get
+    End Property
 
     ''' <summary>
     ''' 当前PigMLang标题
@@ -157,15 +168,18 @@ Public Class PigMLang
     ''' 设置当前区域
     ''' </summary>
     ''' <param name="LCID">LCID</param>
-    Public Sub SetCurrCulture(LCID As Integer)
+    Public Function SetCurrCulture(LCID As Integer) As String
         Try
-            mciCurrent = Me.mNewCultureInfo(LCID)
-            Me.ClearErr()
+            Dim oCultureInfo As CultureInfo = Nothing
+            Dim strRet As String = Me.mNewCultureInfo("", oCultureInfo, LCID)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            mciCurrent = oCultureInfo
+            Return "OK"
         Catch ex As Exception
             mciCurrent = New CultureInfo("en-US")
-            Me.SetSubErrInf("SetCurrCulture", ex)
+            Return Me.GetSubErrInf("SetCurrCulture", ex)
         End Try
-    End Sub
+    End Function
 
     Private Function mMLangFilePath(LCID As Integer) As String
         Return mstrCurrMLangDir & Me.OsPathSep & mstrCurrMLangTitle & "." & LCID.ToString
@@ -178,10 +192,11 @@ Public Class PigMLang
 
     Private Function mGetLCIDByCultureName(CultureName As String) As Integer
         Try
-            Dim oCultureInfo As CultureInfo
+            Dim oCultureInfo As CultureInfo, strRet As String = ""
             oCultureInfo = Me.mGetCultureInfo(CultureName)
             If oCultureInfo Is Nothing Then
-                oCultureInfo = Me.mNewCultureInfo(CultureName)
+                strRet = Me.mNewCultureInfo(CultureName, oCultureInfo)
+                If strRet <> "OK" Then Throw New Exception(strRet)
             End If
             If oCultureInfo Is Nothing Then
                 Return 0
@@ -198,10 +213,11 @@ Public Class PigMLang
 
     Private Function mGetCultureNameByLCID(LCID As Integer) As String
         Try
-            Dim oCultureInfo As CultureInfo
+            Dim oCultureInfo As CultureInfo, strRet As String = ""
             oCultureInfo = Me.mGetCultureInfo(LCID)
             If oCultureInfo Is Nothing Then
-                oCultureInfo = Me.mNewCultureInfo(LCID)
+                strRet = Me.mNewCultureInfo("", oCultureInfo, LCID)
+                If strRet <> "OK" Then Throw New Exception(strRet)
             End If
             If oCultureInfo Is Nothing Then
                 mGetCultureNameByLCID = ""
@@ -209,7 +225,6 @@ Public Class PigMLang
                 mGetCultureNameByLCID = oCultureInfo.Name
                 oCultureInfo = Nothing
             End If
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mGetCultureNameByLCID", ex)
             Return ""
@@ -299,31 +314,35 @@ Public Class PigMLang
     ''' 设置当前区域
     ''' </summary>
     ''' <param name="CultureName">区域名称</param>
-    Public Sub SetCurrCulture(CultureName As String)
+    Public Function SetCurrCulture(CultureName As String) As String
+        Dim LOG As New PigStepLog("SetCurrCulture")
         Try
-            mciCurrent = Me.mNewCultureInfo(CultureName)
-            Me.ClearErr()
+            Dim oCultureInfo As CultureInfo = Nothing
+            Dim strRet As String = Me.mNewCultureInfo(CultureName, oCultureInfo)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            mciCurrent = oCultureInfo
+            Return "OK"
         Catch ex As Exception
             mciCurrent = New CultureInfo("en-US")
-            Me.SetSubErrInf("SetCurrCulture", ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
-    End Sub
+    End Function
 
     ''' <summary>
     ''' 设置当前区域
     ''' </summary>
-    Public Sub SetCurrCulture()
+    Public Function SetCurrCulture() As String
         Try
             mciCurrent = CultureInfo.CurrentCulture
             If mciCurrent.LCID = 127 Then
                 Throw New Exception("Unknow Culture (LCID=127),Switch to en-US")
             End If
-            Me.ClearErr()
+            Return "OK"
         Catch ex As Exception
             mciCurrent = New CultureInfo("en-US")
-            Me.SetSubErrInf("SetCurrCulture", ex)
+            Return Me.GetSubErrInf("SetCurrCulture", ex)
         End Try
-    End Sub
+    End Function
 
     Private Sub mMkDir(DirPath As String)
         Try
@@ -646,11 +665,12 @@ Public Class PigMLang
                 For i = 0 To mslLCID.Count - 1
                     intLCID = mslLCID.GetByIndex(i)
                     strStepName = "New CultureInfo(" & intLCID.ToString & ")"
-                    oCultureInfo = Me.mNewCultureInfo(intLCID)
-                    If Me.LastErr = "" Then
+                    oCultureInfo = Nothing
+                    Dim strRet As String = Me.mNewCultureInfo("", oCultureInfo, intLCID)
+                    If strRet = "OK" Then
                         mslCultureInfo.Add(oCultureInfo.LCID, oCultureInfo)
                     Else
-                        strErr &= Me.LastErr & ";"
+                        strErr &= strRet & ";"
                     End If
                 Next
                 If strErr <> "" Then
@@ -665,25 +685,20 @@ Public Class PigMLang
     End Sub
 
 
-    Private Function mNewCultureInfo(CultureName As String) As CultureInfo
+    Private Function mNewCultureInfo(CultureName As String, ByRef OutCultureInfo As CultureInfo, Optional LCID As Integer = 2052) As String
         Try
-            mNewCultureInfo = New CultureInfo(CultureName)
-            Me.ClearErr()
+            If CultureName <> "" Then
+                OutCultureInfo = New CultureInfo(CultureName)
+            Else
+                OutCultureInfo = New CultureInfo(LCID)
+            End If
+            Return "OK"
         Catch ex As Exception
-            Me.SetSubErrInf("mNewCultureInfo", ex)
-            Return Nothing
+            OutCultureInfo = Nothing
+            Return Me.GetSubErrInf("mNewCultureInfo", ex)
         End Try
     End Function
 
-    Private Function mNewCultureInfo(LCID As Integer) As CultureInfo
-        Try
-            mNewCultureInfo = New CultureInfo(LCID)
-            Me.ClearErr()
-        Catch ex As Exception
-            Me.SetSubErrInf("mNewCultureInfo", ex)
-            Return Nothing
-        End Try
-    End Function
 
     Private Function mGetCultureInfo(LCID As Integer) As CultureInfo
         Try
@@ -793,12 +808,45 @@ Public Class PigMLang
     End Function
 
 
+    ''' <summary>
+    ''' 导入多语言信息
+    ''' </summary>
+    ''' <param name="IsAuto">是否自动，是则当前语言区域文件找不到会自动寻找近似的</param>
+    ''' <returns></returns>
     Public Function LoadMLangInf(IsAuto As Boolean) As String
         Return Me.mLoadMLangInf(IsAuto)
     End Function
 
     Public Function LoadMLangInf() As String
         Return Me.mLoadMLangInf(True)
+    End Function
+
+    Public Function GetCanUseCultureXml() As String
+        Dim LOG As New PigStepLog("GetCanUseCultureXml")
+        Try
+            LOG.StepName = "RefCanUseCultureList"
+            Me.RefCanUseCultureList()
+            If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
+            If Me.CanUseCultureList IsNot Nothing Then
+                Dim oPigXml As New PigXml(False)
+                oPigXml.AddEleLeftSign("CanUseCulture")
+                For Each oCultureInfo As CultureInfo In Me.CanUseCultureList
+                    With oCultureInfo
+                        oPigXml.AddEle("Name", .Name)
+                        oPigXml.AddEle("LCID", .LCID)
+                        oPigXml.AddEle("MLangFileName", Me.CurrMLangTitle & "." & .Name)
+                        oPigXml.AddEle("DisplayName", .DisplayName)
+                        oPigXml.AddEle("NativeName", .NativeName)
+                    End With
+                Next
+                oPigXml.AddEleRightSign("CanUseCulture")
+                GetCanUseCultureXml = oPigXml.MainXmlStr
+                oPigXml = Nothing
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
     End Function
 
     Public Sub RefCanUseCultureList()

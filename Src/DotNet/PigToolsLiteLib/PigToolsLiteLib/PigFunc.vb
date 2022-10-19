@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.29
+'* Version: 1.30
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -39,6 +39,7 @@
 '*1.27   12/9/2022  Add GetEnmDispStr
 '*1.28   17/9/2022  Add IsStrongPassword,GetCompMinutePart
 '*1.29   17/10/2022  Add EscapeStr,UnEscapeStr
+'*1.30   18/10/2022  Modify EscapeStr,UnEscapeStr
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -49,7 +50,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.29.1"
+    Private Const CLS_VERSION As String = "1.30.1"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -1811,6 +1812,7 @@ Public Class PigFunc
     ''' <param name="SrcStr">源字符串</param>
     Public Function EscapeStr(ByRef SrcStr As String) As String
         Try
+            If SrcStr Is Nothing Then SrcStr = ""
             If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
             If SrcStr.IndexOf(vbLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\n")
             If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
@@ -1829,6 +1831,7 @@ Public Class PigFunc
     ''' <param name="EscapeStr">已转义字符串</param>
     Public Function UnEscapeStr(ByRef EscapeStr As String) As String
         Try
+            If EscapeStr Is Nothing Then EscapeStr = ""
             If EscapeStr.IndexOf("\n") > 0 Then EscapeStr = Replace(EscapeStr, "\n", vbLf)
             If EscapeStr.IndexOf("\r") > 0 Then EscapeStr = Replace(EscapeStr, "\r", vbCr)
             If EscapeStr.IndexOf("\t") > 0 Then EscapeStr = Replace(EscapeStr, "\t", vbTab)
