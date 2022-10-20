@@ -6,23 +6,23 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "GetFileAndDirListLibDemo/1.3.78": {
+      "GetFileAndDirListLibDemo/1.3.82": {
         "dependencies": {
-          "GetFileAndDirListLib": "1.3.78"
+          "GetFileAndDirListLib": "1.3.82"
         },
         "runtime": {
           "GetFileAndDirListLibDemo.dll": {}
         }
       },
-      "GetFileAndDirListLib/1.3.78": {
+      "GetFileAndDirListLib/1.3.82": {
         "dependencies": {
-          "PigObjFsLib": "2.0.28",
-          "PigToolsLiteLib": "3.3.12"
+          "PigObjFsLib": "2.0.30",
+          "PigToolsLiteLib": "3.3.32"
         },
         "runtime": {
           "lib/net5.0/GetFileAndDirListLib.dll": {
-            "assemblyVersion": "1.3.78.0",
-            "fileVersion": "1.3.78.0"
+            "assemblyVersion": "1.3.82.0",
+            "fileVersion": "1.3.82.0"
           }
         }
       },
@@ -33,22 +33,22 @@
           "System.Security.Principal.Windows": "5.0.0"
         }
       },
-      "PigObjFsLib/2.0.28": {
+      "PigObjFsLib/2.0.30": {
         "runtime": {
           "lib/net5.0/PigObjFsLib.dll": {
-            "assemblyVersion": "2.0.28.0",
-            "fileVersion": "2.0.28.0"
+            "assemblyVersion": "2.0.30.0",
+            "fileVersion": "2.0.30.0"
           }
         }
       },
-      "PigToolsLiteLib/3.3.12": {
+      "PigToolsLiteLib/3.3.32": {
         "dependencies": {
           "Microsoft.Win32.Registry": "5.0.0"
         },
         "runtime": {
           "lib/net5.0/PigToolsLiteLib.dll": {
-            "assemblyVersion": "3.3.12.0",
-            "fileVersion": "3.3.12.0"
+            "assemblyVersion": "3.3.32.0",
+            "fileVersion": "3.3.32.0"
           }
         }
       },
@@ -62,17 +62,17 @@
     }
   },
   "libraries": {
-    "GetFileAndDirListLibDemo/1.3.78": {
+    "GetFileAndDirListLibDemo/1.3.82": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "GetFileAndDirListLib/1.3.78": {
+    "GetFileAndDirListLib/1.3.82": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-M3LMgdMZAP65EZ46fmFbfq46PsCXZrdE9r1Mr9RP7RGszA+yC5BYw7k5Rx7OTtVBOtxj6cbLu9zybTT4AUlaGw==",
-      "path": "getfileanddirlistlib/1.3.78",
-      "hashPath": "getfileanddirlistlib.1.3.78.nupkg.sha512"
+      "sha512": "sha512-tB1P+6zMU+qnsobDwpPMbJ1cYLWKAQ67xCeNvORmtUm4QaYJzqgop7imWDXzh3RKeoAGUWxdCLuTI88zNuv1tw==",
+      "path": "getfileanddirlistlib/1.3.82",
+      "hashPath": "getfileanddirlistlib.1.3.82.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/5.0.0": {
       "type": "package",
@@ -88,19 +88,19 @@
       "path": "microsoft.win32.registry/5.0.0",
       "hashPath": "microsoft.win32.registry.5.0.0.nupkg.sha512"
     },
-    "PigObjFsLib/2.0.28": {
+    "PigObjFsLib/2.0.30": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-kpXrtDDHb2GGxmmZsuG6ec5y2sWjZzQOxqdyAzjXMYwff6gWcySODvwivNO0EdHj+B0mWBpTQeVwlHGaQhJq4A==",
-      "path": "pigobjfslib/2.0.28",
-      "hashPath": "pigobjfslib.2.0.28.nupkg.sha512"
+      "sha512": "sha512-FmoKalBKuF8s4VsaP3cZDXF9CTS/qCuFQRUHm5iWdYaKvs3mSi78T6IxITbjcHsTzNvzxkPWjx29c6eWzzK5yw==",
+      "path": "pigobjfslib/2.0.30",
+      "hashPath": "pigobjfslib.2.0.30.nupkg.sha512"
     },
-    "PigToolsLiteLib/3.3.12": {
+    "PigToolsLiteLib/3.3.32": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-gw8W2odcGpAGEOa6J9GH52mtm6GgTMSx0anof+GvqrYt0B44FrlSUpdk02sQk4x/vYMWTaZIy5pwdNhx0uBxRg==",
-      "path": "pigtoolslitelib/3.3.12",
-      "hashPath": "pigtoolslitelib.3.3.12.nupkg.sha512"
+      "sha512": "sha512-X1gm4rRP8NMppV42RDqNaVddFy5bzhdxDx7gxPaYoX+CpRuHX10F9pjc2Fq8xEzvQdu3LsxvToNhIa9Dqb3Xug==",
+      "path": "pigtoolslitelib/3.3.32",
+      "hashPath": "pigtoolslitelib.3.3.32.nupkg.sha512"
     },
     "System.Security.AccessControl/5.0.0": {
       "type": "package",
