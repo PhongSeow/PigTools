@@ -50,7 +50,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.30.1"
+    Private Const CLS_VERSION As String = "1.30.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -603,7 +603,6 @@ Public Class PigFunc
             If IsCut = True Then
                 SourceStr = Left(SourceStr, lngBegin - 1) & Mid(SourceStr, lngEnd + lngEndLen)
             End If
-            Me.ClearErr()
         Catch ex As Exception
             GetStr = ""
             Me.SetSubErrInf("GetStr", ex)
@@ -619,7 +618,6 @@ Public Class PigFunc
 #Else
             UrlEncode = System.Uri.EscapeDataString(SrcUrl)
 #End If
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("UrlEncode", ex)
             Return Nothing
@@ -634,7 +632,6 @@ Public Class PigFunc
             UrlDecode = System.Uri.UnescapeDataString(DecodeUrl)
 #End If
 
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("UrlDecode", ex)
             Return Nothing
@@ -737,7 +734,6 @@ Public Class PigFunc
             End If
 
             Return dteStart.AddSeconds(LngValue + intHourAdd * 3600)
-            Me.ClearErr()
         Catch ex As Exception
             Return dteStart
             Me.SetSubErrInf("Lng2Date", ex)
@@ -1810,18 +1806,19 @@ Public Class PigFunc
     ''' 转义字符串
     ''' </summary>
     ''' <param name="SrcStr">源字符串</param>
-    Public Function EscapeStr(ByRef SrcStr As String) As String
+    Public Function EscapeStr(SrcStr As String) As String
         Try
-            If SrcStr Is Nothing Then SrcStr = ""
-            If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
-            If SrcStr.IndexOf(vbLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\n")
-            If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
-            If SrcStr.IndexOf(vbBack) > 0 Then SrcStr = Replace(SrcStr, vbBack, "\b")
-            If SrcStr.IndexOf(vbFormFeed) > 0 Then SrcStr = Replace(SrcStr, vbFormFeed, "\f")
-            If SrcStr.IndexOf(vbVerticalTab) > 0 Then SrcStr = Replace(SrcStr, vbVerticalTab, "\v")
-            Return "OK"
+            If SrcStr Is Nothing Then
+                EscapeStr = ""
+            Else
+                EscapeStr = SrcStr
+            End If
+            If InStr(EscapeStr, "&") > 0 Then EscapeStr = Replace(EscapeStr, "&", "&apos;")
+            If InStr(EscapeStr, "<") > 0 Then EscapeStr = Replace(EscapeStr, "<", "&lt;")
+            If InStr(EscapeStr, ">") > 0 Then EscapeStr = Replace(EscapeStr, ">", "&gt;")
         Catch ex As Exception
-            Return Me.GetSubErrInf("mEscapeStr", ex)
+            Me.SetSubErrInf("EscapeStr", ex)
+            Return ""
         End Try
     End Function
 
@@ -1829,18 +1826,19 @@ Public Class PigFunc
     ''' 还原转义字符串
     ''' </summary>
     ''' <param name="EscapeStr">已转义字符串</param>
-    Public Function UnEscapeStr(ByRef EscapeStr As String) As String
+    Public Function UnEscapeStr(EscapeStr As String) As String
         Try
-            If EscapeStr Is Nothing Then EscapeStr = ""
-            If EscapeStr.IndexOf("\n") > 0 Then EscapeStr = Replace(EscapeStr, "\n", vbLf)
-            If EscapeStr.IndexOf("\r") > 0 Then EscapeStr = Replace(EscapeStr, "\r", vbCr)
-            If EscapeStr.IndexOf("\t") > 0 Then EscapeStr = Replace(EscapeStr, "\t", vbTab)
-            If EscapeStr.IndexOf("\b") > 0 Then EscapeStr = Replace(EscapeStr, "\b", vbBack)
-            If EscapeStr.IndexOf(vbFormFeed) > 0 Then EscapeStr = Replace(EscapeStr, "\f", vbFormFeed)
-            If EscapeStr.IndexOf(vbVerticalTab) > 0 Then EscapeStr = Replace(EscapeStr, "\v", vbVerticalTab)
-            Return "OK"
+            If EscapeStr Is Nothing Then
+                UnEscapeStr = ""
+            Else
+                UnEscapeStr = EscapeStr
+            End If
+            If InStr(UnEscapeStr, "&apos;") > 0 Then UnEscapeStr = Replace(UnEscapeStr, "&apos;", "&")
+            If InStr(UnEscapeStr, "&lt;") > 0 Then UnEscapeStr = Replace(UnEscapeStr, "&lt;", "<")
+            If InStr(UnEscapeStr, "&gt;") > 0 Then UnEscapeStr = Replace(UnEscapeStr, "&gt;", ">")
         Catch ex As Exception
-            Return Me.GetSubErrInf("UnEscapeStr", ex)
+            Me.SetSubErrInf("UnEscapeStr", ex)
+            Return ""
         End Try
     End Function
 

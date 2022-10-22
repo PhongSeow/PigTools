@@ -204,7 +204,6 @@ Public Class PigMLang
                 mGetLCIDByCultureName = oCultureInfo.LCID
                 oCultureInfo = Nothing
             End If
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mGetLCIDByCultureName", ex)
             Return 0
@@ -425,7 +424,6 @@ Public Class PigMLang
                     mGetCultureInfoMD &= "|"
                 End With
             End If
-            Me.ClearErr()
             Return mGetCultureInfoMD
         Catch ex As Exception
             Return ""
@@ -454,7 +452,6 @@ Public Class PigMLang
                     mGetCultureInfoTab &= vbTab & .NativeName
                 End With
             End If
-            Me.ClearErr()
             Return mGetCultureInfoTab
         Catch ex As Exception
             Return ""
@@ -678,7 +675,6 @@ Public Class PigMLang
                     Throw New Exception(strErr)
                 End If
             End If
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mInitCultureSortList", ex)
         End Try
@@ -707,7 +703,6 @@ Public Class PigMLang
             Else
                 Return Nothing
             End If
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mGetCultureInfo", ex)
             Return Nothing
@@ -763,7 +758,6 @@ Public Class PigMLang
                 Me.mInitCultureSortList()
                 If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
             End If
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("GetAlikeCulture", ex)
             Return Nothing
@@ -800,7 +794,6 @@ Public Class PigMLang
                     GetAllLangInf &= Me.LastErr & Me.OsCrLf
                 End If
             Next
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("GetAllLangInf", ex)
             Return ""
