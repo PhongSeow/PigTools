@@ -10,7 +10,7 @@
     <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>Get local information
-It can run on Windows and Linux platforms.
+It can run on Windows only.
 
 </Description>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
@@ -34,8 +34,8 @@ It can run on Windows and Linux platforms.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.0.80" />
-    <PackageReference Include="PigSQLSrvLib" Version="2.8.12" />
+    <PackageReference Include="PigCmdLib" Version="2.1.12" />
+    <PackageReference Include="PigSQLSrvLib" Version="2.8.26" />
   </ItemGroup>
 
 </Project>
