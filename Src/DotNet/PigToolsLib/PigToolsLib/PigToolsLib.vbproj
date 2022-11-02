@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>PigToolsLib</RootNamespace>
     <TargetFrameworks>net5.0;netcoreapp3.1;net6.0;</TargetFrameworks>
-    <Version>3.3.28</Version>
+    <Version>3.3.60</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
@@ -37,6 +37,6 @@ It can run on Windows and Linux platforms.</Description>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.28" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
   </ItemGroup>
 </Project>

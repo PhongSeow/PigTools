@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.30
+'* Version: 1.31
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -40,6 +40,7 @@
 '*1.28   17/9/2022  Add IsStrongPassword,GetCompMinutePart
 '*1.29   17/10/2022  Add EscapeStr,UnEscapeStr
 '*1.30   18/10/2022  Modify EscapeStr,UnEscapeStr
+'*1.31   2/11/2022  Modify AddMultiLineText
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -50,7 +51,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.30.2"
+    Private Const CLS_VERSION As String = "1.31.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -793,7 +794,7 @@ Public Class PigFunc
                     strTabs &= vbTab
                 Next
             End If
-            MainText &= strTabs & NewLine & vbCrLf
+            MainText &= strTabs & NewLine & Me.OsCrLf
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddMultiLineText", ex)

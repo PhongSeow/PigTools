@@ -31,6 +31,7 @@
 '1.13 10/10/2022  Modify SetMainXml
 '1.15 20/10/2022  Add IsAutoUnEscValue, modify XmlDocGetStr,mXmlGetStr,XmlGetLong
 '1.16 21/10/2022  Modify SetMainXml, Add FlushMainXml
+'1.17 2/11/2022  Add IsMainXmlEmpty
 '*******************************************************
 
 Imports System.Xml
@@ -1101,5 +1102,15 @@ Public Class PigXml
             Return Me.GetSubErrInf("FlushMainXml", ex)
         End Try
     End Function
+
+    Public ReadOnly Property IsMainXmlEmpty() As Boolean
+        Get
+            If Me.mMainXml = "" Then
+                Return True
+            Else
+                Return False
+            End If
+        End Get
+    End Property
 
 End Class

@@ -5,7 +5,7 @@
 '''* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '''* Describe: A lightweight multi language processing class, As long as you refer to this class, you can implement multilingual processing|一个轻量的多语言处理类，只要引用本类就可以实现多语言处理。 
 '''* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'''* Version: 1.5
+'''* Version: 1.6
 '''* Create Time: 30/11/2020
 '''* 1.0.2  1/12/2020   Modify GetAllLangInf, Add GetMLangText
 '''* 1.0.3  1/12/2020   Modify mInitCultureSortList
@@ -21,6 +21,7 @@
 '''* 1.2 17/10/2022     Add PigFunc and Rewrite Common Code
 '''* 1.3 18/10/2022     Add GetCanUseCultureXml,SetCurrCulture,mInitCultureSortList
 '''* 1.5 19/10/2022     Add MLangTextCnt
+'''* 1.6 31/10/2022     Modify mGetMLangText
 '''************************************
 ''' </summary>
 Imports System.Globalization
@@ -29,7 +30,7 @@ Imports System.IO
 
 Public Class PigMLang
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.1"
+    Private Const CLS_VERSION As String = "1.6.8"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mFS As New mFileSystemObject
@@ -734,6 +735,8 @@ Public Class PigMLang
             Dim strKey As String = ObjName & "." & Key
             If mslMLangText.IndexOfKey(strKey) >= 0 Then
                 Return mslMLangText.Item(strKey)
+            ElseIf DefaultText = "" Then
+                Return strKey
             Else
                 Return DefaultText
             End If
