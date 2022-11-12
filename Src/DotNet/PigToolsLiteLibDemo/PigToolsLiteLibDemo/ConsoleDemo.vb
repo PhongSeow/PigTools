@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.20.1
+'* Version: 1.22.1
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -26,6 +26,8 @@
 '* 1.18   2/9/2022   Modify PigFunc demo
 '* 1.19   9/10/2022   Modify PigConfig
 '* 1.20   16/10/2022  Add PigMLangDemo
+'* 1.21   27/10/2022  Add PigWebReqDemo
+'* 1.22   8/11/2022  Add PigSendDemo
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -38,6 +40,7 @@ Public Class ConsoleDemo
     Public SMSize As Integer = 1024
     Public MainText As String
     Public Ret As String
+    Public Base64Str As String
     Public Base64EncKey As String
     Public PigConfigApp As PigConfigApp
     Public PigConfigSession As PigConfigSession
@@ -55,6 +58,8 @@ Public Class ConsoleDemo
     Public SaveType As PigConfigApp.EnmSaveType
     Public WithEvents PigFunc As New PigFunc
     Public Url As String
+    Public Para As String
+    Public UserAgent As String
     Public SrcStr As String
     Public Base64EncStr As String
     Public LeftStr As String
@@ -100,8 +105,12 @@ Public Class ConsoleDemo
     Public Key As String
     Public MLangText As String
     Public CurrCultureName As String
+    Public PigWebReq As PigWebReq
+    Public PigSend As PigSend
+
 
     Public Sub Main()
+        Dim o As New PigXml(False)
         Do While True
             Console.Clear()
             Console.WriteLine("*******************")
@@ -125,6 +134,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press O to PigSort")
             Console.WriteLine("Press P to SeowEnc")
             Console.WriteLine("Press R to PigMLang")
+            Console.WriteLine("Press S to PigSend")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
@@ -173,19 +183,7 @@ Public Class ConsoleDemo
                     Next
                     Me.PigConsole.DisplayPause()
                 Case ConsoleKey.M
-                    Console.WriteLine("*******************")
-                    Console.WriteLine("ShareMem")
-                    Console.WriteLine("*******************")
-                    Me.PigConsole.GetLine("Input Member Class Name", Me.ClassName）
-                    Me.PigConsole.GetLine("Input Member Class KeyName", Me.KeyName）
-                    Me.PigConsole.GetLine("Input save file path", Me.FilePath）
-                    Dim strData As String = ""
-                    Me.Ret = Me.PigVBCode.MkCollectionClass(strData, Me.ClassName, Me.KeyName)
-                    If Me.Ret <> "OK" Then
-                        Console.WriteLine(Me.Ret)
-                    Else
-                        Me.PigFunc.SaveTextToFile(Me.FilePath, strData)
-                    End If
+                    Me.VBCodeDemo()
                 Case ConsoleKey.A
                     Me.PigCompressorDemo()
                 Case ConsoleKey.B
@@ -226,9 +224,7 @@ Public Class ConsoleDemo
                 Case ConsoleKey.D
                     Me.PigFuncDemo()
                 Case ConsoleKey.E
-                    Console.CursorVisible = True
-                    Me.PigConsole.GetLine("Input Url", Me.Url)
-                    Me.PigWebReqDemo(Me.Url)
+                    Me.PigWebReqDemo()
                 Case ConsoleKey.F
                     Console.WriteLine("*******************")
                     Console.WriteLine("ShareMem")
@@ -808,6 +804,8 @@ Public Class ConsoleDemo
                     Loop
                 Case ConsoleKey.R
                     Me.PigMLangDemo()
+                Case ConsoleKey.S
+                    Me.PigSendDemo()
                 Case Else
                     Console.WriteLine("Coming soon...")
             End Select
@@ -842,7 +840,6 @@ Public Class ConsoleDemo
                     Exit Do
                 Case "NewPigXml"
                     Dim bolIsCrLf As Boolean = Me.PigConsole.IsYesOrNo("Is need CrLf")
-
                     Me.PigXml = New PigXml(bolIsCrLf)
                 Case "XmlAddTest"
                     With Me.PigXml
@@ -973,29 +970,168 @@ Public Class ConsoleDemo
         MyBase.Finalize()
     End Sub
 
-    Public Sub PigWebReqDemo(Url As String)
-        Dim strDisplay As String = ""
-        strDisplay &= vbCrLf & "***PigWebReqDemo Sample code***" & vbCrLf
-        strDisplay &= "```" & vbCrLf
-        strDisplay &= "Dim oPigWebReq As New PigWebReq(Url)" & vbCrLf
-        strDisplay &= "With oPigWebReq" & vbCrLf
-        strDisplay &= vbTab & ".GetText()" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print("".LastErr= "",.LastErr)" & vbCrLf
-        strDisplay &= vbTab & "Debug.Print("".ResString="",.ResString)" & vbCrLf
-        strDisplay &= "End With" & vbCrLf
-        strDisplay &= "```" & vbCrLf
+    Public Sub VBCodeDemo()
+        Console.WriteLine("*******************")
+        Console.WriteLine("PigVBCodeDemo")
+        Console.WriteLine("*******************")
+        Me.PigConsole.GetLine("Input save file path", Me.FilePath）
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition2 = "MkCollectionClass#MkCollectionClass|"
+            Me.MenuDefinition2 &= "MkBytes2Func#MkBytes2Func|"
+            Me.PigConsole.SimpleMenu("PigVBCodeDemo", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Dim strData As String = ""
+            Select Case Me.MenuKey2
+                Case ""
+                    Exit Do
+                Case "MkCollectionClass"
+                    Me.PigConsole.GetLine("Input Member Class Name", Me.ClassName）
+                    Me.PigConsole.GetLine("Input Member Class KeyName", Me.KeyName）
+                    Me.Ret = Me.PigVBCode.MkCollectionClass(strData, Me.ClassName, Me.KeyName)
+                Case "MkBytes2Func"
+                    Console.WriteLine("MkBytes2Func")
+                    Dim abIn As Byte() = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}, strFuncCode As String = ""
+                    Me.Ret = Me.PigVBCode.MkBytes2Func(abIn, "TestMkBytes2Func", strFuncCode)
+                    Console.WriteLine(strFuncCode)
+                    Console.WriteLine("MkBytes2Func")
+                    Me.PigConsole.GetLine("Input string", Me.Line)
+                    Me.Ret = Me.PigVBCode.MkStr2Func(Me.Line, PigText.enmTextType.UTF8, "TestMkStr2Func", strFuncCode)
+                    Console.WriteLine(strFuncCode)
+                Case "DownloadFile"
+            End Select
+            If Me.Ret <> "OK" Then
+                Console.WriteLine(Me.Ret)
+            Else
+                Me.PigFunc.SaveTextToFile(Me.FilePath, strData)
+            End If
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
 
-        Dim oPigWebReq As New PigWebReq(Url)
-        strDisplay &= vbCrLf & "***Return results***" & vbCrLf
-        strDisplay &= "```" & vbCrLf
-        With oPigWebReq
-            strDisplay &= ".GetText()" & vbCrLf
-            .GetText()
-            strDisplay &= ".LastErr" & .LastErr & vbCrLf
-            strDisplay &= ".ResString" & .ResString & vbCrLf
-        End With
-        strDisplay &= "```" & vbCrLf
-        Console.WriteLine(strDisplay)
+    Public Sub PigSendDemo()
+        Console.WriteLine("*******************")
+        Console.WriteLine("PigSendDemo")
+        Console.WriteLine("*******************")
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition2 = ""
+            Me.MenuDefinition2 &= "NewOriginal#New and EncType is Original|"
+            Me.MenuDefinition2 &= "NewSeowEnc#New and EncType is SeowEnc|"
+            Me.MenuDefinition2 &= "NewSeowEncAndPigAes#New and EncType is SeowEncAndPigAes|"
+            Me.MenuDefinition2 &= "SendBytesData#SendBytesData|"
+            Me.MenuDefinition2 &= "SendStrData#SendStrData|"
+            Me.MenuDefinition2 &= "ReceiveBytesData#ReceiveBytesData|"
+            Me.MenuDefinition2 &= "ReceiveStrData#ReceiveStrData|"
+            Me.PigConsole.SimpleMenu("PigVBCodeDemo", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Dim strData As String = ""
+            Select Case Me.MenuKey2
+                Case ""
+                    Exit Do
+                Case "NewOriginal"
+                    Console.WriteLine("New PigSend(Original)")
+                    Me.PigSend = New PigSend(PigSend.EnmEncType.Original)
+                    If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
+                Case "NewSeowEnc"
+                    Console.WriteLine("New PigSend(SeowEnc)")
+                    Me.PigSend = New PigSend(PigSend.EnmEncType.SeowEnc)
+                    Dim oSeowEnc As New SeowEnc(SeowEnc.EmnComprssType.AutoComprss)
+                    Dim strEncKey As String = ""
+                    Console.WriteLine("SeowEnc.MkEncKey")
+                    Me.Ret = oSeowEnc.MkEncKey(256, "", strEncKey)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Console.WriteLine("SeowEnc.LoadEncKey")
+                        Me.Ret = oSeowEnc.LoadEncKey(strEncKey)
+                        If Me.Ret <> "OK" Then
+                            Console.WriteLine(Me.Ret)
+                        Else
+                            Console.WriteLine("InitEnc(SeowEnc)")
+                            Me.Ret = Me.PigSend.InitEnc(oSeowEnc)
+                            If Me.Ret <> "OK" Then
+                                Console.WriteLine(Me.Ret)
+                            End If
+                        End If
+                    End If
+                Case "SendBytesData"
+                    Me.PigConsole.GetLine("Input send base64 string", Me.Base64Str)
+                    Dim oPigBytes As New PigBytes(Me.Base64Str), strTarBase64 As String = ""
+                    Me.Ret = Me.PigSend.SendBytesData(oPigBytes.Main, strTarBase64)
+                    If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
+                    Console.WriteLine("Send TarBase64=" & strTarBase64)
+                Case "SendStrData"
+                    Me.PigConsole.GetLine("Input send string", Me.Line)
+                    Dim strTarBase64 As String = ""
+                    Me.Ret = Me.PigSend.SendStrData(Me.Line, PigText.enmTextType.UTF8, strTarBase64)
+                    If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
+                    Console.WriteLine("Send TarBase64=" & strTarBase64)
+                Case "ReceiveBytesData"
+                    Me.PigConsole.GetLine("Input recvie base64 string", Me.Base64Str)
+                    Dim oPigBytes As New PigBytes(Me.Base64Str), strTarBase64 As String = ""
+                    Me.Ret = Me.PigSend.ReceiveBytesData(oPigBytes.Main, strTarBase64)
+                    If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
+                    Console.WriteLine("Receive TarBase64=" & strTarBase64)
+                Case "ReceiveStrData"
+                    Me.PigConsole.GetLine("Input recvie base64 string", Me.Base64Str)
+                    Dim strTarStr As String = ""
+                    Me.Ret = Me.PigSend.ReceiveStrData(Me.Base64Str, PigText.enmTextType.UTF8, strTarStr)
+                    If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
+                    Console.WriteLine("Receive TarStr=" & strTarStr)
+            End Select
+            If Me.Ret <> "OK" Then
+                Console.WriteLine(Me.Ret)
+            Else
+                Me.PigFunc.SaveTextToFile(Me.FilePath, strData)
+            End If
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
+    Public Sub PigWebReqDemo()
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition2 = "NewPigWebReq#New PigWebReq|"
+            Me.MenuDefinition2 &= "DownloadFile#DownloadFile|"
+            Me.MenuDefinition2 &= "GetText#GetText|"
+            Me.MenuDefinition2 &= "PostText#PostText|"
+            Me.PigConsole.SimpleMenu("PigWebReqDemo", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Select Case Me.MenuKey2
+                Case ""
+                    Exit Do
+                Case "NewPigWebReq"
+                    Me.PigConsole.GetLine("Input Url", Me.Url)
+                    If Me.Url = "" Then
+                        Console.WriteLine("Url cannot be empty")
+                    Else
+                        Dim bolIsNeedPara As Boolean, bolIsNeedUserAgent As Boolean
+                        bolIsNeedPara = Me.PigConsole.IsYesOrNo("Is need Para")
+                        If bolIsNeedPara = True Then
+                            Me.PigConsole.GetLine("Input Para", Me.Para)
+                        End If
+                        bolIsNeedUserAgent = Me.PigConsole.IsYesOrNo("Is need UserAgent")
+                        If bolIsNeedUserAgent = True Then
+                            Me.PigConsole.GetLine("Input UserAgent", Me.UserAgent)
+                        End If
+                        If Me.UserAgent <> "" And Me.Para <> "" Then
+                            Me.PigWebReq = New PigWebReq(Me.Url, Me.Para, Me.UserAgent)
+                        ElseIf Me.Para <> "" Then
+                            Me.PigWebReq = New PigWebReq(Me.Url, Me.Para)
+                        Else
+                            Me.PigWebReq = New PigWebReq(Me.Url)
+                        End If
+                    End If
+                Case "DownloadFile"
+                    Me.PigConsole.GetLine("Enter the download file path to save", Me.FilePath)
+                    Console.WriteLine("DownloadFile...")
+                    Me.Ret = Me.PigWebReq.DownloadFile(Me.FilePath)
+                    Console.WriteLine(Me.Ret)
+                Case "GetText"
+                    Me.PigWebReq.GetText()
+                Case "PostText"
+                    'Me.PigWebReq.PostText()
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
     End Sub
 
     Public Sub PigFuncDemo()
@@ -1057,6 +1193,9 @@ Public Class ConsoleDemo
                         Dim strPwd As String = ""
                         Me.PigConsole.GetLine("Input the password", strPwd)
                         Console.WriteLine(".IsStrongPassword(" & strPwd & ")=" & .IsStrongPassword(strPwd))
+                        Dim strValue As String = .EscapeStr("<1><2>")
+                        Console.WriteLine(".EscapeStr(<1><2>)=" & strValue)
+                        Console.WriteLine(".UnEscapeStr(" & strValue & ")=" & .UnEscapeStr(strValue))
                     End With
                 Case ConsoleKey.B
                     Console.CursorVisible = True
@@ -1335,7 +1474,7 @@ Public Class ConsoleDemo
                         strDisp &= "CurrMLangDir=" & .CurrMLangDir & strOsCrLf
                         strDisp &= "CurrMLangFile=" & .CurrMLangFile & strOsCrLf
                         strDisp &= "CurrMLangTitle=" & .CurrMLangTitle & strOsCrLf
-                        'strDisp &= "MLangTextCnt=" & .MLangTextCnt & strOsCrLf
+                        strDisp &= "MLangTextCnt=" & .MLangTextCnt & strOsCrLf
                         strDisp &= "CanUseCultureList=" & strOsCrLf
                         If .CanUseCultureList IsNot Nothing Then
                             For Each oCultureInfo As CultureInfo In .CanUseCultureList
