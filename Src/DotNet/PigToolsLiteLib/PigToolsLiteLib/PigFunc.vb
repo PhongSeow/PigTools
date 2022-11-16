@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.31
+'* Version: 1.33
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -41,17 +41,19 @@
 '*1.29   17/10/2022  Add EscapeStr,UnEscapeStr
 '*1.30   18/10/2022  Modify EscapeStr,UnEscapeStr
 '*1.31   2/11/2022  Modify AddMultiLineText
+'*1.32   14/11/2022  Add GetTextBase64,ClearErr
+'*1.33   15/11/2022  Add GetTextSHA1
 '**********************************
 Imports System.IO
 Imports System.Net
 Imports System.Net.Sockets
 Imports System.Environment
 Imports System.Threading
-
+Imports System.Security.Cryptography
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.31.2"
+    Private Const CLS_VERSION As String = "1.32.6"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -1843,5 +1845,32 @@ Public Class PigFunc
         End Try
     End Function
 
+    Public Function GetTextBase64(SrcText As String, TextType As PigText.enmTextType) As String
+        Try
+            Dim oPigText As New PigText(SrcText, TextType)
+            GetTextBase64 = oPigText.Base64
+            oPigText = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetTextBase64", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetTextSHA1(SrcText As String, TextType As PigText.enmTextType) As String
+        Try
+            Dim oPigText As New PigText(SrcText, TextType)
+            Dim oSHA1 As New SHA1CryptoServiceProvider()
+            GetTextSHA1 = BitConverter.ToString(oSHA1.ComputeHash(oPigText.TextBytes))
+            GetTextSHA1 = Replace(GetTextSHA1, "-", "")
+            oPigText = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetTextSHA1", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Overloads Sub ClearErr()
+        MyBase.ClearErr()
+    End Sub
 
 End Class

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.22.1
+'* Version: 1.23.1
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -28,6 +28,7 @@
 '* 1.20   16/10/2022  Add PigMLangDemo
 '* 1.21   27/10/2022  Add PigWebReqDemo
 '* 1.22   8/11/2022  Add PigSendDemo
+'* 1.23   15/11/2022 Modify PigFuncDemo,PigRsa
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -61,6 +62,8 @@ Public Class ConsoleDemo
     Public Para As String
     Public UserAgent As String
     Public SrcStr As String
+    Public UnEncStr As String
+    Public SignBase64 As String
     Public Base64EncStr As String
     Public LeftStr As String
     Public RightStr As String
@@ -401,47 +404,78 @@ Public Class ConsoleDemo
                     Do While True
                         Console.WriteLine("*******************")
                         Console.WriteLine("Press Q to Up")
-                        Console.WriteLine("Press A to MkPubKey")
-                        Console.WriteLine("Press B to LoadPubKey")
+                        Console.WriteLine("Press A to MkEncKey")
+                        Console.WriteLine("Press B to LoadEncKey")
                         Console.WriteLine("Press C to Encrypt")
                         Console.WriteLine("Press D to Decrypt")
+                        Console.WriteLine("Press E to SignData")
+                        Console.WriteLine("Press F to VerifyData")
                         Console.WriteLine("*******************")
                         Select Case Console.ReadKey(True).Key
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
-                                Dim bolIsIncPriKey As Boolean = True
-                                bolIsIncPriKey = Me.PigConsole.IsYesOrNo("Include private key")
-                                Me.Ret = oPigRsa.MkPubKey(bolIsIncPriKey, Me.Base64EncKey)
-                                Me.Base64EncKey = Me.Base64EncKey
-                                Console.WriteLine("MkPubKey=" & Me.Ret)
-                                Console.WriteLine("Base64EncKey=" & Me.Base64EncKey)
+                                Dim bolIsSepKey As Boolean
+                                bolIsSepKey = Me.PigConsole.IsYesOrNo("Do you want to separate the public key from the private key?")
+                                If bolIsSepKey = True Then
+                                    Me.Ret = oPigRsa.MkEncKey(Me.XmlKey, Me.XmlKey2)
+                                Else
+                                    Me.Ret = oPigRsa.MkEncKey(Me.XmlKey)
+                                End If
+                                If Me.Ret <> "OK" Then
+                                    Console.WriteLine(Me.Ret)
+                                Else
+                                    Console.WriteLine("PrivateKeyXml=" & Me.PigFunc.MyOsCrLf & Me.XmlKey & Me.PigFunc.MyOsCrLf)
+                                    If bolIsSepKey = True Then
+                                        Console.WriteLine("PublicKeyXml=" & Me.PigFunc.MyOsCrLf & Me.XmlKey2 & Me.PigFunc.MyOsCrLf)
+                                    End If
+                                End If
                             Case ConsoleKey.B
                                 Console.CursorVisible = True
-                                Console.WriteLine("Inupt Base64EncKey:" & vbCrLf & Me.Base64EncKey)
-                                Me.Line = Console.ReadLine
-                                If Me.Line <> "" Then
-                                    Me.Base64EncKey = Me.Line
+                                If Me.PigConsole.IsYesOrNo("Is load EncKey from file") = True Then
+                                    Me.PigConsole.GetLine("Input file path", Me.FilePath)
+                                    Me.Ret = Me.PigFunc.GetFileText(Me.FilePath, Me.XmlKey)
+                                    If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
+                                Else
+                                    Me.PigConsole.GetLine("Inupt EncKey Xml", Me.XmlKey)
                                 End If
-                                Me.Ret = oPigRsa.LoadPubKey(Me.Base64EncKey)
-                                Console.WriteLine("LoadPubKey=" & Me.Ret)
+                                Me.Ret = oPigRsa.LoadEncKey(Me.XmlKey)
+                                Console.WriteLine(Me.Ret)
                             Case ConsoleKey.C
-                                Console.WriteLine("Enter the string to encrypt:")
-                                Me.SrcStr = Console.ReadLine
+                                Me.PigConsole.GetLine("Enter the string to encrypt", Me.SrcStr)
                                 Dim oPigText As New PigText(Me.SrcStr, PigText.enmTextType.UTF8)
                                 Me.Ret = oPigRsa.Encrypt(oPigText.TextBytes, Me.Base64EncStr)
-                                Console.WriteLine("Encrypt=" & Me.Ret)
-                                Console.WriteLine("Base64EncStr=" & vbCrLf & Me.Base64EncStr)
-                            Case ConsoleKey.D
-                                Console.WriteLine("Enter the Base64EncStr:" & Me.Base64EncKey)
-                                Me.Line = Console.ReadLine
-                                If Me.Line <> "" Then
-                                    Me.Base64EncKey = Me.Line
+                                If Me.Ret <> "OK" Then
+                                    Console.WriteLine(Me.Ret)
+                                Else
+                                    Console.WriteLine("EncBase64=" & Me.Base64EncStr)
                                 End If
-                                Me.SrcStr = ""
-                                Me.Ret = oPigRsa.Decrypt(Me.Base64EncStr, Me.SrcStr, PigText.enmTextType.UTF8)
-                                Console.WriteLine("Decrypt=" & Me.Ret)
-                                Console.WriteLine("Decrypt string=" & vbCrLf & Me.SrcStr)
+                            Case ConsoleKey.D
+                                Me.PigConsole.GetLine("Enter the EncBase64 string", Me.Base64EncKey)
+                                Me.Ret = oPigRsa.Decrypt(Me.Base64EncStr, Me.UnEncStr, PigText.enmTextType.UTF8)
+                                If Me.Ret <> "OK" Then
+                                    Console.WriteLine(Me.Ret)
+                                Else
+                                    Console.WriteLine("UnEncStr=" & Me.UnEncStr)
+                                End If
+                            Case ConsoleKey.E
+                                Me.PigConsole.GetLine("Enter the string to SignData", Me.SrcStr)
+                                Me.Ret = oPigRsa.SignData(Me.SrcStr, PigText.enmTextType.UTF8, Me.SignBase64)
+                                If Me.Ret <> "OK" Then
+                                    Console.WriteLine(Me.Ret)
+                                Else
+                                    Console.WriteLine("SignBase64=" & Me.SignBase64)
+                                End If
+                            Case ConsoleKey.F
+                                Me.PigConsole.GetLine("Enter Source String", Me.SrcStr)
+                                Me.PigConsole.GetLine("Enter SignBase64", Me.SignBase64)
+                                Dim bolIsVerify As Boolean
+                                Me.Ret = oPigRsa.VerifyData(Me.SrcStr, PigText.enmTextType.UTF8, Me.SignBase64, bolIsVerify)
+                                If Me.Ret <> "OK" Then
+                                    Console.WriteLine(Me.Ret)
+                                Else
+                                    Console.WriteLine("IsVerify=" & bolIsVerify)
+                                End If
                         End Select
                     Loop
                 Case ConsoleKey.J
@@ -1190,6 +1224,8 @@ Public Class ConsoleDemo
                         Console.WriteLine(".GetMyExeName()=" & .GetMyExeName)
                         Console.WriteLine(".GetEnmDispStr(PigText.enmTextType.Unicode)=" & .GetEnmDispStr(PigText.enmTextType.Unicode))
                         Console.WriteLine(".GetCompMinutePart(Now)=" & .GetCompMinutePart(Now))
+                        Console.WriteLine(".GetTextSHA1(Hi,UTF8)=" & .GetTextSHA1("Hi", PigText.enmTextType.UTF8))
+                        Console.WriteLine(".GetTextBase64(Hi,UTF8)=" & .GetTextBase64("Hi", PigText.enmTextType.UTF8))
                         Dim strPwd As String = ""
                         Me.PigConsole.GetLine("Input the password", strPwd)
                         Console.WriteLine(".IsStrongPassword(" & strPwd & ")=" & .IsStrongPassword(strPwd))

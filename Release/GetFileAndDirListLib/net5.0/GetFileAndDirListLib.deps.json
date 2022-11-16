@@ -6,10 +6,10 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "GetFileAndDirListLib/1.3.90": {
+      "GetFileAndDirListLib/1.3.98": {
         "dependencies": {
           "PigObjFsLib": "2.0.30",
-          "PigToolsLiteLib": "3.3.60"
+          "PigToolsLiteLib": "3.3.86"
         },
         "runtime": {
           "GetFileAndDirListLib.dll": {}
@@ -30,14 +30,14 @@
           }
         }
       },
-      "PigToolsLiteLib/3.3.60": {
+      "PigToolsLiteLib/3.3.86": {
         "dependencies": {
           "Microsoft.Win32.Registry": "5.0.0"
         },
         "runtime": {
           "lib/net5.0/PigToolsLiteLib.dll": {
-            "assemblyVersion": "3.3.60.0",
-            "fileVersion": "3.3.60.0"
+            "assemblyVersion": "3.3.86.0",
+            "fileVersion": "3.3.86.0"
           }
         }
       },
@@ -51,7 +51,7 @@
     }
   },
   "libraries": {
-    "GetFileAndDirListLib/1.3.90": {
+    "GetFileAndDirListLib/1.3.98": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -77,12 +77,12 @@
       "path": "pigobjfslib/2.0.30",
       "hashPath": "pigobjfslib.2.0.30.nupkg.sha512"
     },
-    "PigToolsLiteLib/3.3.60": {
+    "PigToolsLiteLib/3.3.86": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-/ncpSlRCosriXaQ1iivGyvgnqCBQlJ5UDGiUc0Y+vxXAwhtNh+PJyPQwcdal6baIdApaMsOLRVijzHpJ5J6Low==",
-      "path": "pigtoolslitelib/3.3.60",
-      "hashPath": "pigtoolslitelib.3.3.60.nupkg.sha512"
+      "sha512": "sha512-TVfx5/XXOpxSLh0XLM15RBigfwsX+bV0SHMPkzKTYkKSJmtb3cPM6XV4YrBt9wmRd9Lg7LV/Q3bXLvdA0MwBxw==",
+      "path": "pigtoolslitelib/3.3.86",
+      "hashPath": "pigtoolslitelib.3.3.86.nupkg.sha512"
     },
     "System.Security.AccessControl/5.0.0": {
       "type": "package",
