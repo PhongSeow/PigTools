@@ -2,7 +2,7 @@
 '* Name: PigRsa
 '* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: Handle text conversion, MD5, Base64, etc.|处理RSA的加解密
+'* Describe: RSA Processing Class|RSA处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.3
 '* Create Time: 17/10/2019
@@ -14,6 +14,9 @@
 '**********************************
 
 Imports System.Security.Cryptography
+''' <summary>
+''' RSA Processing Class|RSA处理类
+''' </summary>
 Public Class PigRsa
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.3.28"

@@ -27,6 +27,9 @@
 Imports System.Text
 Imports PigToolsLiteLib
 
+''' <summary>
+''' JSON processing class|JSon处理类
+''' </summary>
 Public Class PigJSon
     Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1.3.10"
@@ -237,8 +240,8 @@ Public Class PigJSon
         Dim LOG As New PigStepLog("GetStrValue")
         Try
             GetStrValue = ""
-            log.StepName = "mGetJSonValue"
-            log.Ret = Me.mGetJSonValue(JSonKey, GetStrValue)
+            LOG.StepName = "mGetJSonValue"
+            LOG.Ret = Me.mGetJSonValue(JSonKey, GetStrValue)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Me.ClearErr()
         Catch ex As Exception

@@ -10,12 +10,15 @@
 '* 1.0.3  2019-10-12  增加 FreeSeconds 
 '* 1.1.2  8/12/2021  Add BeginTime,EndTime
 '**********************************
+''' <summary>
+''' Use time processing class|使用时间处理类
+''' </summary>
 Public Class UseTime
     Private mdteBegin As DateTime
     Private mdteCurrBegin As DateTime
     Private mtsTimeDiff As TimeSpan
 
-    ''' <summary>空闲的秒数，返回0表示未空闲或未初始化</summary>
+    ''' <summary>The number of idle seconds. A return of 0 indicates that it is not idle or initialized|空闲的秒数，返回0表示未空闲或未初始化</summary>
     Public Function FreeSeconds() As Decimal
         If mtsTimeDiff.TotalMilliseconds = 0 Then
             FreeSeconds = 0
@@ -34,19 +37,19 @@ Public Class UseTime
         mtsTimeDiff = New TimeSpan
     End Sub
 
-    ''' <summary>当前步骤开始计时</summary>
+    ''' <summary>Total time start timing|当前步骤开始计时</summary>
     Public Sub GoNext()
         mdteCurrBegin = Now
     End Sub
 
 
-    ''' <summary>结束计时</summary>
+    ''' <summary>End timing|结束计时</summary>
     Public Sub ToEnd()
         Me.EndTime = Now
         mtsTimeDiff = Now - mdteBegin
     End Sub
 
-    ''' <summary>本步到现在相差秒数</summary>
+    ''' <summary>The difference between this step and now is seconds|本步到现在相差秒数</summary>
     Public Overloads Function Step2NowSeconds() As Decimal
         If mtsTimeDiff.TotalMilliseconds = 0 Then
             Dim tsAny As TimeSpan = Now - mdteCurrBegin
@@ -56,7 +59,7 @@ Public Class UseTime
         End If
     End Function
 
-    ''' <summary>本步到现在相差秒数</summary>
+    ''' <summary>The difference between this step and now is seconds|本步到现在相差秒数</summary>
     Public Overloads Function Step2NowSeconds(IsGoNextNow As Boolean) As Decimal
         If mtsTimeDiff.TotalMilliseconds = 0 Then
             Dim tsAny As TimeSpan = Now - mdteCurrBegin
@@ -68,12 +71,12 @@ Public Class UseTime
     End Function
 
 
-    ''' <summary>全部过程相差秒数</summary>
+    ''' <summary>Seconds difference in the whole process|全部过程相差秒数</summary>
     Public Function AllDiffSeconds() As Decimal
         AllDiffSeconds = mtsTimeDiff.TotalMilliseconds / 1000
     End Function
 
-    ''' <summary>全部过程相差分钟数</summary>
+    ''' <summary>Total process difference minutes|全部过程相差分钟数</summary>
     Public Function AllDiffMinutes() As Decimal
         AllDiffMinutes = mtsTimeDiff.TotalMilliseconds / 1000 / 60
     End Function

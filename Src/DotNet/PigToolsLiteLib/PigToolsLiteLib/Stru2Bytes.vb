@@ -13,6 +13,9 @@
 
 Imports System.Runtime.InteropServices
 Imports System.IO
+''' <summary>
+''' Structure and byte array processing class|结构与字节数组处理类
+''' </summary>
 Public Class Stru2Bytes
     '256 bytes
     Private Structure sSftDataHeader

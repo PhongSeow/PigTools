@@ -36,6 +36,9 @@
 
 Imports System.Xml
 Imports System.Text
+''' <summary>
+''' XML Processing Class|XML处理类
+''' </summary>
 Public Class PigXml
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.16.12"

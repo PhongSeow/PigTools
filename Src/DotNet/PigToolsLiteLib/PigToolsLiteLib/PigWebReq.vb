@@ -14,6 +14,9 @@ Imports System.Net
 Imports System.IO
 Imports System.Text
 
+''' <summary>
+''' WEB request processing class|WEB请求处理类
+''' </summary>
 Public Class PigWebReq
     Inherits PigBaseMini
     Const CLS_VERSION As String = "1.1.8"

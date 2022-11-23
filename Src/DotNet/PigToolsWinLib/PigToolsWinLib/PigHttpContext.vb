@@ -27,6 +27,9 @@ Imports PigToolsLiteLib
 
 
 
+''' <summary>
+''' HTTP context processing class|HTTP上下文处理类
+''' </summary>
 Public Class PigHttpContext
     Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1.5.1"

@@ -2,7 +2,7 @@
 '* Name: PigBytes
 '* Author: Seow Phong
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: Handle operations related to byte array division 【处理除字节数组相关的操作】
+'* Describe: Byte array processing class|字节数组处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.1
 '* Create Time: 2019-10-22
@@ -30,6 +30,9 @@
 '************************************
 
 Imports System.Runtime.Serialization
+''' <summary>
+''' Byte array processing class|字节数组处理类
+''' </summary>
 Public Class PigBytes
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.1.2"

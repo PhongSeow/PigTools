@@ -11,6 +11,9 @@
 '* 1.3		24/9/2022	Add SaveKeyValue,IsCompress,mNew,mListKeyValues, modify New
 '* 1.5		3/10/2022	Modify mSaveKeyValue,mSaveKeyValueToList, add RemoveKeyValue,mRemoveKeyValue
 '************************************
+''' <summary>
+''' Key value class|键值类
+''' </summary>
 Public Class PigKeyValue
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.5.28"

@@ -10,6 +10,9 @@
 '* 1.2  24/9/2022   Add IsRandAdd
 '* 1.3  8/11/2022   Modify mDecrypt,mEncrypt
 '************************************
+''' <summary>
+''' Seow encryption processing class|萧氏加密处理类
+''' </summary>
 Public Class SeowEnc
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.3.2"

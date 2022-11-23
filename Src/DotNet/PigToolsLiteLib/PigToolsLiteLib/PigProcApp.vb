@@ -2,7 +2,7 @@
 '* Name: 豚豚进程应用|PigProcApp
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: 进程相关处理|Process related processing
+'* Describe: Process Processing Class|进程处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.5
 '* Create Time: 20/3/2022
@@ -13,6 +13,9 @@
 '* 1.5    17/8/2022  Add KillOtherExe
 '**********************************
 
+''' <summary>
+''' Process Processing Class|进程处理类
+''' </summary>
 Public Class PigProcApp
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.5.3"

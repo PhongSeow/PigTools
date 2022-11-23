@@ -8,6 +8,9 @@
 '* Create Time: 20/3/2022
 '**********************************
 
+''' <summary>
+''' Interval Processing Class|时间间隔处理类
+''' </summary>
 Friend Class PigTimeBetween
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.0.1"

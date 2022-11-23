@@ -28,6 +28,9 @@ Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.IO
 
+''' <summary>
+''' Multilingual processing class|多语言处理类
+''' </summary>
 Public Class PigMLang
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.6.8"

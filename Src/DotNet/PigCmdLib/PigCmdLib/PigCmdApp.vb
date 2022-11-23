@@ -21,6 +21,9 @@
 Imports PigToolsLiteLib
 Imports System.IO
 Imports System.Threading
+''' <summary>
+''' Operating system command or execution file call processing class|操作系统命令或执行文件调用处理类
+''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.11.2"

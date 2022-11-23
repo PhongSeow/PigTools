@@ -2,7 +2,7 @@
 '* Name: 豚豚进程|PigProc
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: 进程|Process
+'* Describe: Process class|进程类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.5
 '* Create Time: 20/3/2022
@@ -11,6 +11,9 @@
 '* 1.3    1/8/2022   Add Kill
 '* 1.5    5/9/2022   Modify StartTime
 '**********************************
+''' <summary>
+''' Process class|进程类
+''' </summary>
 Public Class PigProc
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.5.2"

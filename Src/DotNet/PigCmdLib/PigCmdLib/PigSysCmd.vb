@@ -15,6 +15,9 @@
 '*1.7 17/8/2022  Add KillProc
 '**********************************
 Imports PigToolsLiteLib
+''' <summary>
+''' System command and WMIC processing class|系统命令及WMIC处理类
+''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.7.2"

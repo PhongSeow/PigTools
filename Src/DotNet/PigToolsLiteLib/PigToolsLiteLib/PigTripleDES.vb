@@ -13,6 +13,9 @@
 Imports System.Security.Cryptography
 Imports System.Text
 Imports System.IO
+''' <summary>
+''' 3DES processing class|3DES处理类
+''' </summary>
 Public Class PigTripleDES
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.3.8"

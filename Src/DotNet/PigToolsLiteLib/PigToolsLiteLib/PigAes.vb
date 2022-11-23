@@ -2,7 +2,7 @@
 '* Name: PigAes
 '* Author: Seow Phong
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: Handle operations related to byte array division 【处理除字节数组相关的操作】
+'* Describe: AES Processing Class|AES处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.2
 '* Create Time: 2019-10-27
@@ -15,6 +15,9 @@
 '************************************
 Imports System.Security.Cryptography
 Imports System.Text
+''' <summary>
+''' AES Processing Class|AES处理类
+''' </summary>
 Public Class PigAes
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.2.3"

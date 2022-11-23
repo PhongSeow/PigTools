@@ -51,6 +51,9 @@ Imports System.Environment
 Imports System.Threading
 Imports System.Security.Cryptography
 
+''' <summary>
+''' Function set|功能函数集
+''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.32.6"
@@ -382,18 +385,18 @@ Public Class PigFunc
     End Function
 
     ''' <remarks>产生随机字符串</remarks>
-    Public Function GetRandString(StrLen As Integer, Optional MemberType As enmGetRandString = enmGetRandString.DisplayChar) As String
+    Public Function GetRandString(StrLen As Integer, Optional MemberType As EnmGetRandString = EnmGetRandString.DisplayChar) As String
         Dim i As Integer
         Dim intChar As Integer
         Try
             GetRandString = ""
             For i = 1 To StrLen
                 Select Case MemberType
-                    Case enmGetRandString.AllAsciiChar
+                    Case EnmGetRandString.AllAsciiChar
                         intChar = GetRandNum(0, 255)
-                    Case enmGetRandString.DisplayChar    '!-~
+                    Case EnmGetRandString.DisplayChar    '!-~
                         intChar = GetRandNum(33, 126)
-                    Case enmGetRandString.NumberAndLetter
+                    Case EnmGetRandString.NumberAndLetter
                         intChar = GetRandNum(1, 3)
                         Select Case intChar
                             Case 1  '0-9
@@ -403,10 +406,10 @@ Public Class PigFunc
                             Case 3  'a-z
                                 intChar = GetRandNum(97, 122)
                         End Select
-                    Case enmGetRandString.NumberOnly
+                    Case EnmGetRandString.NumberOnly
                         intChar = GetRandNum(48, 57)
                 End Select
-                If MemberType = enmGetRandString.AllAsciiChar Then
+                If MemberType = EnmGetRandString.AllAsciiChar Then
                     GetRandString = GetRandString & Right("0" & Hex(intChar), 2)
                 Else
                     GetRandString = GetRandString & Chr(intChar)
@@ -429,8 +432,8 @@ Public Class PigFunc
             Else
                 intStrLen = 16
             End If
-            strRndStr = GetRandString(64, enmGetRandString.DisplayChar)
-            strRndKey = GetRandString(intStrLen, enmGetRandString.NumberOnly)
+            strRndStr = GetRandString(64, EnmGetRandString.DisplayChar)
+            strRndKey = GetRandString(intStrLen, EnmGetRandString.NumberOnly)
             strTmp = GENow() & "-" & SrcKey & "-" & strRndStr
             If Is32Bit = True Then
                 strTmp = GEMD5(strTmp)
@@ -524,20 +527,20 @@ Public Class PigFunc
     End Sub
 
     ''' <remarks>获取文件路径的组成部分</remarks>
-    Public Function GetFilePart(ByVal FilePath As String, Optional FilePart As enmFilePart = enmFilePart.FileTitle) As String
+    Public Function GetFilePart(ByVal FilePath As String, Optional FilePart As EnmFilePart = EnmFilePart.FileTitle) As String
         Dim strTemp As String, i As Long, lngLen As Long
         Dim strPath As String = "", strFileTitle As String = ""
         Dim strOsPathSep As String = Me.OsPathSep
         Try
             GetFilePart = ""
             Select Case FilePart
-                Case enmFilePart.DriveNo
+                Case EnmFilePart.DriveNo
                     GetFilePart = GetStr(FilePath, "", ":", False)
                     If GetFilePart = "" Then
                         GetFilePart = GetStr(FilePath, "", "$", False)
                         If GetFilePart <> "" Then GetFilePart = GetFilePart & "$"
                     End If
-                Case enmFilePart.ExtName
+                Case EnmFilePart.ExtName
                     lngLen = Len(FilePath)
                     For i = lngLen To 1 Step -1
                         Select Case Mid(FilePath, i, 1)
@@ -549,7 +552,7 @@ Public Class PigFunc
                         End Select
 
                     Next
-                Case enmFilePart.FileTitle, enmFilePart.Path
+                Case EnmFilePart.FileTitle, EnmFilePart.Path
                     Do While True
                         strTemp = GetStr(FilePath, "", strOsPathSep, True)
                         If Len(strTemp) = 0 Then
@@ -570,7 +573,7 @@ Public Class PigFunc
                         End If
                         strPath = strPath & strTemp & strOsPathSep
                     Loop
-                    If FilePart = enmFilePart.FileTitle Then
+                    If FilePart = EnmFilePart.FileTitle Then
                         GetFilePart = strFileTitle
                     Else
                         GetFilePart = strPath
@@ -1690,6 +1693,12 @@ Public Class PigFunc
         End Try
     End Function
 
+    ''' <summary>
+    ''' Get the longest line in a piece of text|获取一段文本中长度最大的行
+    ''' </summary>
+    ''' <param name="SrcStr">Source text|源文</param>
+    ''' <param name="LineSeparator">Line Separator|行分隔符</param>
+    ''' <returns></returns>
     Public Function GetMaxStr(SrcStr As String, Optional LineSeparator As String = vbCrLf) As String
         Try
             If LineSeparator = "" Then LineSeparator = Me.OsCrLf
@@ -1708,6 +1717,12 @@ Public Class PigFunc
         End Try
     End Function
 
+    ''' <summary>
+    ''' Get the line with the smallest length in a piece of text|获取一段文本中长度最小的行
+    ''' </summary>
+    ''' <param name="SrcStr">Source text|源文</param>
+    ''' <param name="LineSeparator">Line Separator|行分隔符</param>
+    ''' <returns></returns>
     Public Function GetMinStr(SrcStr As String, Optional LineSeparator As String = vbCrLf) As String
         Try
             If LineSeparator = "" Then LineSeparator = Me.OsCrLf

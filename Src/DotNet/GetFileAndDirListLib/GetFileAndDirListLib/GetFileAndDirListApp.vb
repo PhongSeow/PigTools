@@ -17,6 +17,9 @@
 Imports PigObjFsLib
 Imports PigToolsLiteLib
 
+''' <summary>
+''' Get the current directory or subdirectory file or directory processing class|获取当前目录或子目录文件或目录处理类
+''' </summary>
 Public Class GetFileAndDirListApp
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.2.8"

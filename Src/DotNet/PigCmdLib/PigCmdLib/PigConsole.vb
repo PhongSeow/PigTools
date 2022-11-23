@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.17
+'* Version: 1.18
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -22,12 +22,16 @@
 '*1.15 17/10/2022  Add MLang function, modify mDisplayPause
 '*1.16 18/10/2022  Modify SimpleMenu,IsYesOrNo
 '*1.17 19/10/2022  Add GetCanUseCultureXml
+'*1.18 17/11/2022  Add SelectControl
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
+''' <summary>
+''' Console and text input/output processing class|控制台及文本输入输出处理类
+''' </summary>
 Public Class PigConsole
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.17.2"
+    Private Const CLS_VERSION As String = "1.18.2"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -411,6 +415,75 @@ Public Class PigConsole
     End Function
 
     ''' <summary>
+    ''' Select control, only one result can be selected|选择控件，只能选择一个结果
+    ''' </summary>
+    ''' <param name="Description">Description|说明</param>
+    ''' <param name="Definition">Select item definition, format:Key1#Name1|Key2#Name2|...|选项定义，格式：键值1#名称1|键值2#名称2|...</param>
+    ''' <param name="SelectKey">Key of select item|选项键值</param>
+    ''' <param name="IsVertical">Whether to display vertically|是否垂直显示</param>
+    ''' <returns></returns>
+    Public Function SelectControl(Description As String, Definition As String, ByRef SelectKey As String, Optional IsVertical As Boolean = False) As String
+        Dim LOG As New PigStepLog("SelectControl")
+        Try
+            Dim abSelectName As String(), abSelectKey As String(), abLetter As String()
+            ReDim abSelectName(0)
+            ReDim abSelectKey(0)
+            ReDim abLetter(0)
+            abSelectName(0) = Description
+            Dim intMaxLen As Integer = Len(Description), intItems As Integer = 0
+            LOG.StepName = "Handle Definition"
+            If Right(Definition, 1) <> "|" Then Definition &= "|"
+            Do While True
+                Dim strLine As String = mPigFunc.GetStr(Definition, "", "|")
+                If strLine = "" Then Exit Do
+                intItems += 1
+                ReDim Preserve abSelectKey(intItems)
+                ReDim Preserve abSelectName(intItems)
+                ReDim Preserve abLetter(intItems)
+                abSelectKey(intItems) = mPigFunc.GetStr(strLine, "", "#")
+                abSelectName(intItems) = strLine
+                If Len(abSelectName(intItems)) > intMaxLen Then intMaxLen = Len(abSelectName(intItems))
+                abLetter(intItems) = Chr(64 + intItems)
+            Loop
+            If intItems <= 0 Then Throw New Exception("No Select item defined")
+            LOG.StepName = "Print Select"
+            If IsVertical = True Then
+                intMaxLen += 8
+                Dim strStarLine As String = mPigFunc.GetRepeatStr(intMaxLen, "*")
+                Console.WriteLine(strStarLine)
+                Console.WriteLine("* " & Description)
+                Console.WriteLine(strStarLine)
+                Dim strDisp As String = ""
+                For i = 1 To intItems
+                    Dim strLetter As String = Chr(64 + i)
+                    Console.WriteLine("* " & strLetter & " - " & abSelectName(i))
+                Next
+                Console.WriteLine(strStarLine)
+            Else
+                Console.WriteLine(Console.WindowWidth)
+            End If
+            LOG.StepName = "Select"
+            Do While True
+                Dim oConsoleKey As ConsoleKey = Console.ReadKey(True).Key
+                Select Case oConsoleKey
+                    Case Asc(abLetter(1)) To Asc(abLetter(intItems)), ConsoleKey.Escape
+                        If oConsoleKey = ConsoleKey.Escape Then
+                            SelectKey = ""
+                        Else
+                            Dim intKey As Integer = CInt(oConsoleKey) - 64
+                            SelectKey = abSelectKey(intKey)
+                        End If
+                        Exit Do
+                End Select
+            Loop
+            Return "OK"
+        Catch ex As Exception
+            SelectKey = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
     ''' 简单菜单|Simple Menu
     ''' </summary>
     ''' <param name="MenuTitle">菜单标题|Menu title</param>
@@ -677,8 +750,8 @@ Public Class PigConsole
                 If Me.mPigMLang.LastErr <> "" Then Throw New Exception(Me.mPigMLang.LastErr)
             End If
             LOG.StepName = "SetCurrCulture"
-            LOG.ret = Me.mPigMLang.SetCurrCulture(CultureName)
-            If LOG.ret <> "" Then Throw New Exception(LOG.ret)
+            LOG.Ret = Me.mPigMLang.SetCurrCulture(CultureName)
+            If LOG.Ret <> "" Then Throw New Exception(LOG.Ret)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)

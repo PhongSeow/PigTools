@@ -7,6 +7,9 @@
 '* Version: 1.0.1
 '* Create Time: 23/6/2021
 '************************************
+''' <summary>
+''' Directory entries not scanned|不扫描的目录项
+''' </summary>
 Public Class NoScanDirItem
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.0.1"

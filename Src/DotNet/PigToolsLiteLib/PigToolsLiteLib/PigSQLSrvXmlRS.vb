@@ -14,6 +14,9 @@
 '* 1.7	10/10/2022	Modify IsEOF
 '**********************************
 
+''' <summary>
+''' XML result set based on PigSQLSrv|基于PigSQLSrv的XML结果集
+''' </summary>
 Public Class PigSQLSrvXmlRS
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.7.1"

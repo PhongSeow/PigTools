@@ -11,6 +11,9 @@
 '* 1.3  2/11/2022   Add mMkBytes2Func,MkBytes2Func
 '* 1.5  8/11/2022   Modify MkStr2Func,MkBytes2Func
 '**********************************
+''' <summary>
+''' VB code generation processing class|VB代码生成处理类
+''' </summary>
 Public Class PigVBCode
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.5.8"

@@ -9,6 +9,9 @@
 '*1.1  5/6/2022 Add AsyncCmdPID
 '**********************************
 Imports System.Threading
+''' <summary>
+''' Asynchronous processing class|异步处理类
+''' </summary>
 Public Class PigAsync
 
     ''' <summary>

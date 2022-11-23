@@ -15,6 +15,9 @@
 '* 1.7    8/5/2022     Modify IsChange,mNew, add LastMD5,fCurrPigMD5
 '* 1.8    9/5/2022     Add fSaveCurrMD5
 '**********************************
+''' <summary>
+''' Configuration session|配置项段落
+''' </summary>
 Public Class PigConfigSession
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.8.1"

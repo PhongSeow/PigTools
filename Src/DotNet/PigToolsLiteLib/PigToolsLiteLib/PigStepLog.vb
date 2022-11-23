@@ -11,6 +11,9 @@
 '1.3    10/2/2022  Add StepLogInf
 '1.5    30/8/2022  Modify New
 '************************************
+''' <summary>
+''' Error tracking processing class|错误跟踪处理类
+''' </summary>
 Public Class PigStepLog
     Public ReadOnly Property SubName As String
 
