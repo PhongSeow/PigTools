@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.23
+'* Version: 1.26
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -31,15 +31,19 @@
 '*1.22  2/8/2022  Modify mWlstCallMain,CreateDomain
 '*1.23  13/8/2022 Modify mWlstCallMain,CreateDomain, and add AsyncCreateDomain,SetT3Deny
 '*1.25  28/9/2022 Add ConsoleLogTime,AccessLogTime,GetConsoleLogHasRunMode
+'*1.26  24/11/2022 Add SetAdminPort
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
 Imports PigObjFsLib
 
 
+''' <summary>
+''' WebLogic Domain Processing Class|WebLogic域处理类
+''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.25.10"
+    Private Const CLS_VERSION As String = "1.26.3"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -505,6 +509,12 @@ Public Class WebLogicDomain
         End Get
     End Property
 
+    ''' <summary>
+    ''' Save as non interactive startup in production mode|生产模式下保存为不交互启动
+    ''' </summary>
+    ''' <param name="UserName"></param>
+    ''' <param name="Password"></param>
+    ''' <returns></returns>
     Public Function SaveSecurityBoot(UserName As String, Password As String) As String
         Dim LOG As New PigStepLog("SaveSecurityBoot")
         Try
@@ -595,6 +605,10 @@ Public Class WebLogicDomain
         End Get
     End Property
 
+    ''' <summary>
+    ''' Start Domain|启动域
+    ''' </summary>
+    ''' <returns></returns>
     Public Function StartDomain() As String
         Dim LOG As New PigStepLog("StartDomain")
         Try
@@ -713,6 +727,10 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    ''' <summary>
+    ''' Stop Domain|停止域
+    ''' </summary>
+    ''' <returns></returns>
     Public Function StopDomain() As String
         Dim LOG As New PigStepLog("StopDomain")
         Try
@@ -958,6 +976,11 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    ''' <summary>
+    ''' Create domain asynchronously|异步创建域
+    ''' </summary>
+    ''' <param name="ListenPort">Listening port|侦听端口</param>
+    ''' <returns></returns>
     Public Function AsyncCreateDomain(ListenPort As Integer) As String
         Try
             Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort,,, True)
@@ -967,10 +990,10 @@ Public Class WebLogicDomain
     End Function
 
     ''' <summary>
-    ''' 创建域|Create domain
+    ''' Create domain|创建域
     ''' </summary>
-    ''' <param name="ListenPort">侦听端口|Listening port</param>
-    ''' <param name="AdminPort">管理端口|Administrator port</param>
+    ''' <param name="ListenPort">Listening port|侦听端口</param>
+    ''' <param name="AdminPort">Administrator port|管理端口</param>
     ''' <returns></returns>
     Public Function CreateDomain(ByRef CmdRes As String, ListenPort As Integer, AdminPort As Integer) As String
         Try
@@ -980,6 +1003,12 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    ''' <summary>
+    ''' Create domain asynchronously|异步创建域
+    ''' </summary>
+    ''' <param name="ListenPort">Listening port|侦听端口</param>
+    ''' <param name="AdminPort">Administrator port|管理端口</param>
+    ''' <returns></returns>
     Public Function AsyncCreateDomain(ListenPort As Integer, AdminPort As Integer) As String
         Try
             Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort,, True)
@@ -989,11 +1018,11 @@ Public Class WebLogicDomain
     End Function
 
     ''' <summary>
-    ''' 创建域|Create domain
+    ''' Create domain|创建域
     ''' </summary>
-    ''' <param name="ListenPort">侦听端口|Listening port</param>
-    ''' <param name="AdminPort">管理端口|Administrator port</param>
-    ''' <param name="IsDisableIIOP">是禁用IIOP|Is Disable IIOP</param>
+    ''' <param name="ListenPort">Listening port|侦听端口</param>
+    ''' <param name="AdminPort">Administrator port|管理端口</param>
+    ''' <param name="IsDisableIIOP">Is Disable IIOP|是禁用IIOP</param>
     ''' <returns></returns>
     Public Function CreateDomain(ByRef CmdRes As String, ListenPort As Integer, AdminPort As Integer, IsDisableIIOP As Boolean) As String
         Try
@@ -1003,6 +1032,13 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    ''' <summary>
+    ''' Create domain asynchronously|异步创建域
+    ''' </summary>
+    ''' <param name="ListenPort">Listening port|侦听端口</param>
+    ''' <param name="AdminPort">Administrator port|管理端口</param>
+    ''' <param name="IsDisableIIOP">Is Disable IIOP|是禁用IIOP</param>
+    ''' <returns></returns>
     Public Function AsyncCreateDomain(ListenPort As Integer, AdminPort As Integer, IsDisableIIOP As Boolean) As String
         Try
             Return Me.mWlstCallMain(EnmWlstCallCmd.CreateDomain, ListenPort, AdminPort, IsDisableIIOP, True)
@@ -1011,6 +1047,10 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    ''' <summary>
+    ''' Connect WLST|连接WLST
+    ''' </summary>
+    ''' <returns></returns>
     Public Function Connect() As String
         Try
             Return Me.mWlstCallMain(EnmWlstCallCmd.Connect)
@@ -1020,6 +1060,10 @@ Public Class WebLogicDomain
     End Function
 
 
+    ''' <summary>
+    ''' Refresh Configuration|刷新配置
+    ''' </summary>
+    ''' <returns></returns>
     Public Function RefConf() As String
         Dim LOG As New PigStepLog("RefConf")
         Try
@@ -1071,6 +1115,10 @@ Public Class WebLogicDomain
     End Function
 
 
+    ''' <summary>
+    ''' Refresh deployment status|刷新部署状态
+    ''' </summary>
+    ''' <returns></returns>
     Public Function RefDeployStatus() As String
         Dim LOG As New PigStepLog("RefDeployStatus")
         Try
@@ -1091,6 +1139,10 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    ''' <summary>
+    ''' Refresh running status|刷新运行状态
+    ''' </summary>
+    ''' <returns></returns>
     Public Function RefRunStatus() As String
         Dim LOG As New PigStepLog("RefRunStatus")
         Try
@@ -1214,6 +1266,11 @@ Public Class WebLogicDomain
         End With
     End Sub
 
+    ''' <summary>
+    ''' Set T3 protocol denial, which can only be accessed through the localhost|设置T3协议拒绝，只能通过本机访问
+    ''' </summary>
+    ''' <param name="CmdRes">Return Results|返回结果</param>
+    ''' <returns></returns>
     Public Function SetT3Deny(ByRef CmdRes As String) As String
         Try
             Return Me.mWlstCallMain(EnmWlstCallCmd.SetT3Deny, ,,,, CmdRes)
@@ -1222,6 +1279,32 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    ''' <summary>
+    ''' Set management port separation, which is more secure|设置管理端口分离，这样更安全
+    ''' </summary>
+    ''' <param name="CmdRes">Return Results|返回结果</param>
+    ''' <param name="IsEnableAdminPort">Whether to enable administrator port|是否启用管理端口</param>
+    ''' <param name="AdminPort">Administrator port|管理端口</param>
+    ''' <returns></returns>
+    Public Function SetAdminPort(ByRef CmdRes As String, IsEnableAdminPort As Boolean, Optional AdminPort As Integer = 0) As String
+        Try
+            If IsEnableAdminPort = True Then
+                If AdminPort <= 0 Then Throw New Exception("Invalid administrator port.")
+                If AdminPort = Me.ListenPort Then Throw New Exception("The administrator port cannot be the same as the listening port.")
+            End If
+            Return Me.mWlstCallMain(EnmWlstCallCmd.SetAdminPort, , AdminPort,,, CmdRes, IsEnableAdminPort)
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' This is a miswritten interface. It is reserved for backward compatibility. For new interfaces, please use SetAdminPort|这是一个写错的接口，保留是为了向下兼容，新的请使用SetAdminPort
+    ''' </summary>
+    ''' <param name="CmdRes"></param>
+    ''' <param name="IsEnableAdminPort"></param>
+    ''' <param name="AdminPort"></param>
+    ''' <returns></returns>
     Public Function SetSetAdminPort(ByRef CmdRes As String, IsEnableAdminPort As Boolean, Optional AdminPort As Integer = 0) As String
         Try
             If IsEnableAdminPort = True Then

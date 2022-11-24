@@ -21,6 +21,9 @@ Imports PigCmdLib
 Imports PigToolsLiteLib
 Imports PigObjFsLib
 
+''' <summary>
+''' WebLogic Processing Class|WebLogic处理类
+''' </summary>
 Public Class WebLogicApp
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.10.2"
@@ -50,6 +53,10 @@ Public Class WebLogicApp
         End Try
     End Sub
 
+    ''' <summary>
+    ''' Get java version information|获取java版本信息
+    ''' </summary>
+    ''' <returns></returns>
     Public Function GetJavaVersion() As String
         Try
             Dim strRet As String = Me.mPigCmdApp.AsyncCmdShell("java -version", Me.mGetJavaVersionThreadID)
@@ -121,6 +128,12 @@ Public Class WebLogicApp
         MyBase.PrintDebugLog(SubName, StepName, LogInf)
     End Sub
 
+    ''' <summary>
+    ''' Run patch script|运行补丁脚本
+    ''' </summary>
+    ''' <param name="Cmd">script|脚本</param>
+    ''' <param name="ResInf">Return Results|返回结果</param>
+    ''' <returns></returns>
     Public Function RunOpatch(Cmd As String, ByRef ResInf As String) As String
         Dim LOG As New PigStepLog("")
         Try
