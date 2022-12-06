@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 给 HttpContext 加壳，实现一系统功能
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.6
 '* Create Time: 31/8/2019
 '1.0.2  2020-1-29   改用fGEBaseMini
 '1.0.3  2020-1-31   BinaryRead，BinaryWrite
@@ -17,6 +17,7 @@
 '1.2    15/12/2021  Use LOG
 '1.3    26/7/2022  Modify Imports
 '1.5    19/8/2022  Use PigBaseLocal
+'1.6    6/12/2022  Add GetHeaders
 '************************************
 #If NETFRAMEWORK Then
 Imports System.Web
@@ -24,7 +25,7 @@ Imports System.Web
 Imports Microsoft.AspNetCore.Http
 #End If
 Imports PigToolsLiteLib
-
+Imports System.Collections.Specialized
 
 
 ''' <summary>
@@ -32,7 +33,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigHttpContext
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.5.1"
+    Private Const CLS_VERSION As String = "1.6.16"
 
     Public Enum enmWhatHtmlEle '什么HTML元素
         Table = 1 '表格
@@ -250,7 +251,8 @@ Public Class PigHttpContext
         'HTTP服务器变量
         Get
             Try
-                HeaderValue = HcMain.Request.Headers(Key).ToString
+                HeaderValue = HcMain.Request.Headers.Get(Key)
+                'HeaderValue = HcMain.Request.Headers(Key).ToString
             Catch ex As Exception
                 HeaderValue = ""
             End Try
@@ -595,6 +597,34 @@ Public Class PigHttpContext
 
     Public Overloads Function WritePage(FilePath As String) As String
         WritePage = Me.WritePageMain(FilePath)
+    End Function
+
+    Public Function GetHeaders(ByRef OutHeaders As String) As String
+        Dim LOG As New PigStepLog("GetHeaders")
+        Try
+            Dim strKey As String, strValue As String
+            LOG.StepName = "NameValueCollection"
+            Dim nvcMain As NameValueCollection = HcMain.Request.Headers
+            Dim astrKey As String(), astrValue As String()
+            LOG.StepName = "AllKeys"
+            astrKey = nvcMain.AllKeys
+            OutHeaders = "Headers.Count=" & nvcMain.Count & Me.OsCrLf
+            LOG.StepName = "For Keys"
+            For i = 0 To astrKey.GetUpperBound(0)
+                strKey = astrKey(i)
+                LOG.StepName = strKey & "GetValues"
+                astrValue = nvcMain.GetValues(i)
+                LOG.StepName = "For Values"
+                For j = 0 To astrValue.GetUpperBound(0)
+                    strValue = astrValue(j)
+                    OutHeaders &= strKey & "=" & strValue & Me.OsCrLf
+                Next
+            Next
+            Return "OK"
+        Catch ex As Exception
+            OutHeaders = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
     End Function
 
 End Class
