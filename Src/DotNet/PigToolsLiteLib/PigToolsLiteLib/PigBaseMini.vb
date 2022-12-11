@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Basic lightweight Edition
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.9.2
+'* Version: 1.10.6
 '* Create Time: 31/8/2019
 '*1.0.2  1/10/2019   Add mGetSubErrInf 
 '*1.0.3  4/11/2019   Add LastErr
@@ -40,6 +40,7 @@
 '*1.7 15/5/2022     Add StruASyncRet
 '*1.8 15/5/2022     Modify New
 '*1.9 2/8/2022      Modify PrintDebugLog
+'*1.10 8/12/2022    Add MyID,mGEMD5
 '************************************
 Imports System.Runtime.InteropServices
 Public Class PigBaseMini
@@ -89,7 +90,30 @@ Public Class PigBaseMini
             Me.OsCrLf = vbLf
             Me.OsPathSep = "/"
         End If
+        Dim strID As String = Me.ClsName & "." & Me.ClsVersion & "." & Me.AppVersion & "." & Me.AppTitle & "." & System.Net.Dns.GetHostName() & "." & Me.OsPathSep & "." & Me.mGetProcThreadID
+        Me.mMyID = Me.mGEMD5(strID)
     End Sub
+
+    Private mMyID As String
+    Public ReadOnly Property MyID As String
+        Get
+            Return mMyID
+        End Get
+    End Property
+
+    Private Function mGEMD5(SrcStr As String) As String
+        Dim bytSrc2Hash As Byte() = (New System.Text.ASCIIEncoding).GetBytes(SrcStr)
+        Dim bytHashValue As Byte() = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("MD5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(bytSrc2Hash)
+        Dim i As Integer
+        mGEMD5 = ""
+        For i = 0 To 15 '选择32位字符的加密结果
+            mGEMD5 += Right("00" & Hex(bytHashValue(i)).ToLower, 2)
+        Next
+    End Function
+
+    Private Function mGetProcThreadID() As String
+        Return System.Diagnostics.Process.GetCurrentProcess.Id.ToString & "." & System.Threading.Thread.CurrentThread.ManagedThreadId.ToString
+    End Function
 
 
     Friend Sub ClearErr()

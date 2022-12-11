@@ -20,8 +20,8 @@ A series of console functions, including reading lines, whether to select, simpl
 Asynchronous processing.
 Wmic calls and operating system commands.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.1.30</Version>
-    <PackageReleaseNotes>Add description of class.</PackageReleaseNotes>
+    <Version>2.1.32</Version>
+    <PackageReleaseNotes>Reference the latest class library and use PigBaseLocal.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,7 +36,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.88" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.92" />
   </ItemGroup>
 
 </Project>

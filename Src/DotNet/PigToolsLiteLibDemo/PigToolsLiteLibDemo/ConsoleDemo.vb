@@ -110,7 +110,7 @@ Public Class ConsoleDemo
     Public CurrCultureName As String
     Public PigWebReq As PigWebReq
     Public PigSend As PigSend
-
+    Public InitStr As String
 
     Public Sub Main()
         Dim o As New PigXml(False)
@@ -772,8 +772,9 @@ Public Class ConsoleDemo
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
-                                Dim ptInit As New PigText("123456", PigText.enmTextType.UTF8)
-                                Me.Ret = oSeowEnc.MkEncKey(24, ptInit.Base64, Me.Base64EncKey)
+                                Me.PigConsole.GetLine("Input InitStr", Me.InitStr)
+                                Dim ptInit As New PigText(Me.InitStr, PigText.enmTextType.UTF8)
+                                Me.Ret = oSeowEnc.MkEncKey(256, ptInit.Base64, Me.Base64EncKey)
                                 Console.WriteLine("MkEncKey=" & Me.Ret)
                                 Console.WriteLine("Base64EncKey=" & Me.Base64EncKey)
                             Case ConsoleKey.B

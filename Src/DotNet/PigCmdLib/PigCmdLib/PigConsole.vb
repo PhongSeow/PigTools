@@ -30,7 +30,7 @@ Imports System.Globalization
 ''' Console and text input/output processing class|控制台及文本输入输出处理类
 ''' </summary>
 Public Class PigConsole
-    Inherits PigBaseMini
+    Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1.18.2"
     Private ReadOnly Property mPigFunc As New PigFunc
 

@@ -4,12 +4,13 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigStepLog is for logging and error handling in the process.
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5.1
+'* Version: 1.6.18
 '* Create Time: 8/12/2019
 '1.1    18/12/2021  Add TrackID,ErrInf2User, modify mNew,StepName
 '1.2    21/12/2021  Modify TrackID
 '1.3    10/2/2022  Add StepLogInf
 '1.5    30/8/2022  Modify New
+'1.6    8/12/2022  Modify mNew,StepName
 '************************************
 ''' <summary>
 ''' Error tracking processing class|错误跟踪处理类
@@ -17,6 +18,7 @@
 Public Class PigStepLog
     Public ReadOnly Property SubName As String
 
+    Private Property mHostInf As String = ""
     Private mbolIsLogUseTime As Boolean
     Public Property IsLogUseTime As Boolean
         Get
@@ -48,18 +50,56 @@ Public Class PigStepLog
         End Set
     End Property
 
-    Private Sub mNew(Optional IsTrack As Boolean = False, Optional IsLogUseTime As Boolean = False)
+    Private Sub mNew(Optional IsTrack As Boolean = False, Optional IsLogUseTime As Boolean = False, Optional TrackIDHead As String = "")
         Me.IsLogUseTime = IsLogUseTime
         If IsTrack = True Then
-            Dim oPigFunc As New PigFunc
-            Me.TrackID = oPigFunc.GetPKeyValue("PigStepLog", False)
-            oPigFunc = Nothing
+            If TrackIDHead = "" Then
+                Dim strID As String = System.Net.Dns.GetHostName() & "." & Me.mGetProcThreadID
+                TrackIDHead = Me.mGEMD5(strID)
+            End If
+            Me.TrackID = TrackIDHead & "." & Format(Now, "yyyy-MM-dd HH:mm:ss.fff") & "."
+            'For i = 0 To 5
+            '    Me.TrackID &= Me.mGetRandNum(0, 255)
+            'Next
+            Me.TrackID = Mid(Me.mGEMD5(Me.TrackID), 9, 16)
         End If
         If Me.IsLogUseTime = True Then
             moUseTime = New UseTime
             moUseTime.GoBegin()
         End If
     End Sub
+
+    Private Function mGetRandNum(BeginNum As Integer, EndNum As Integer) As Integer
+        Dim i As Long
+        Try
+            If BeginNum > EndNum Then
+                i = BeginNum
+                BeginNum = EndNum
+                EndNum = i
+            End If
+            Randomize()   '初始化随机数生成器
+            mGetRandNum = Int((EndNum - BeginNum + 1) * Rnd() + BeginNum)
+        Catch ex As Exception
+            mGetRandNum = 0
+        End Try
+    End Function
+
+
+    Private Function mGEMD5(SrcStr As String) As String
+        Dim bytSrc2Hash As Byte() = (New System.Text.ASCIIEncoding).GetBytes(SrcStr)
+        Dim bytHashValue As Byte() = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("MD5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(bytSrc2Hash)
+        Dim i As Integer
+        mGEMD5 = ""
+        For i = 0 To 15 '选择32位字符的加密结果
+            mGEMD5 += Right("00" & Hex(bytHashValue(i)).ToLower, 2)
+        Next
+    End Function
+
+    Private Function mGetProcThreadID() As String
+        Return System.Diagnostics.Process.GetCurrentProcess.Id.ToString & "." & System.Threading.Thread.CurrentThread.ManagedThreadId.ToString
+    End Function
+
+
     Public Sub New(SubName As String)
         Me.SubName = SubName
         Me.mNew()
@@ -68,6 +108,11 @@ Public Class PigStepLog
     Public Sub New(SubName As String, IsLogUseTime As Boolean)
         Me.SubName = SubName
         Me.mNew(, IsLogUseTime)
+    End Sub
+
+    Public Sub New(SubName As String, TrackIDHead As String)
+        Me.SubName = SubName
+        Me.mNew(True, IsLogUseTime, TrackIDHead)
     End Sub
 
     Public Sub New(SubName As String, IsLogUseTime As Boolean, IsTrack As Boolean)
@@ -91,9 +136,10 @@ Public Class PigStepLog
             Return mstrStepName
         End Get
         Set(value As String)
-            mstrStepName = value
             If Me.TrackID <> "" Then
-                Me.AddStepNameInf(Me.TrackID)
+                mstrStepName = value & "[TrackID:" & Me.TrackID & "]"
+            Else
+                mstrStepName = value
             End If
         End Set
     End Property
@@ -154,5 +200,30 @@ Public Class PigStepLog
             End With
         End Get
     End Property
+
+    Private Function mGetHostIp(IsIPv6 As Boolean, Optional IpHead As String = "") As String
+        mGetHostIp = ""
+        For Each oIPAddress As System.Net.IPAddress In System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName)
+            With oIPAddress
+                mGetHostIp = .ToString()
+                If IsIPv6 = True Then
+                    If InStr(mGetHostIp, ":") > 0 Then
+                        If IpHead = "" Then
+                            Exit For
+                        ElseIf UCase(Left(mGetHostIp, Len(IpHead))) = UCase(IpHead) Then
+                            Exit For
+                        End If
+                    End If
+                ElseIf InStr(mGetHostIp, ".") > 0 Then
+                    If IpHead = "" Then
+                        Exit For
+                    ElseIf Left(mGetHostIp, Len(IpHead)) = IpHead Then
+                        Exit For
+                    End If
+                End If
+            End With
+            mGetHostIp = ""
+        Next
+    End Function
 
 End Class

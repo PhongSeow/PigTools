@@ -25,7 +25,7 @@ Imports System.Threading
 ''' Operating system command or execution file call processing class|操作系统命令或执行文件调用处理类
 ''' </summary>
 Public Class PigCmdApp
-    Inherits PigBaseMini
+    Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1.11.2"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 给 HttpContext 加壳，实现一系统功能
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 31/8/2019
 '1.0.2  2020-1-29   改用fGEBaseMini
 '1.0.3  2020-1-31   BinaryRead，BinaryWrite
@@ -18,6 +18,7 @@
 '1.3    26/7/2022  Modify Imports
 '1.5    19/8/2022  Use PigBaseLocal
 '1.6    6/12/2022  Add GetHeaders
+'1.7    8/12/2022  Add RequestItemLongValue,RequestItemBoolValue,RequestItemDateValue,RequestItemDecValue,IsEscapeHTML, modify related interfaces 
 '************************************
 #If NETFRAMEWORK Then
 Imports System.Web
@@ -33,7 +34,7 @@ Imports System.Collections.Specialized
 ''' </summary>
 Public Class PigHttpContext
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.6.16"
+    Private Const CLS_VERSION As String = "1.7.18"
 
     Public Enum enmWhatHtmlEle '什么HTML元素
         Table = 1 '表格
@@ -58,6 +59,20 @@ Public Class PigHttpContext
         MyBase.New(CLS_VERSION)
         Me.HcMain = HcMain
     End Sub
+
+    Property mIsEscapeHTML As Boolean = True
+    ''' <summary>
+    ''' Whether to escape HTML|是否转义HTML
+    ''' </summary>
+    ''' <returns></returns>
+    Public Property IsEscapeHTML As Boolean
+        Get
+            Return mIsEscapeHTML
+        End Get
+        Set(value As Boolean)
+            mIsEscapeHTML = value
+        End Set
+    End Property
 
     Public ReadOnly Property IsPost As Boolean
         Get
@@ -252,7 +267,7 @@ Public Class PigHttpContext
         Get
             Try
                 HeaderValue = HcMain.Request.Headers.Get(Key)
-                'HeaderValue = HcMain.Request.Headers(Key).ToString
+                If Me.IsEscapeHTML = True Then HeaderValue = Me.moPigFunc.ConvertHtmlStr(HeaderValue, PigFunc.EmnHowToConvHtml.DisableHTMLOnlySymbol)
             Catch ex As Exception
                 HeaderValue = ""
             End Try
@@ -261,7 +276,6 @@ Public Class PigHttpContext
 
     Public ReadOnly Property ServerVariables(VarName As String) As String
         'HTTP服务器变量
-
         Get
             Try
                 ServerVariables = HcMain.Request.ServerVariables(VarName).ToString
@@ -289,10 +303,39 @@ Public Class PigHttpContext
         End Set
     End Property
 
+    Public ReadOnly Property RequestItemDecValue(ItemName As String) As Decimal
+        Get
+            Dim strValue As String = Me.RequestItem(ItemName)
+            Return Me.moPigFunc.GEDec(strValue)
+        End Get
+    End Property
+
+    Public ReadOnly Property RequestItemDateValue(ItemName As String) As Date
+        Get
+            Dim strValue As String = Me.RequestItem(ItemName)
+            Return Me.moPigFunc.GECDate(strValue)
+        End Get
+    End Property
+
+    Public ReadOnly Property RequestItemBoolValue(ItemName As String) As Boolean
+        Get
+            Dim strValue As String = Me.RequestItem(ItemName)
+            Return Me.moPigFunc.GECBool(strValue)
+        End Get
+    End Property
+
+    Public ReadOnly Property RequestItemLongValue(ItemName As String) As Long
+        Get
+            Dim strValue As String = Me.RequestItem(ItemName)
+            Return Me.moPigFunc.GECLng(strValue)
+        End Get
+    End Property
+
     Public ReadOnly Property RequestItem(ItemName As String) As String
         Get
             Try
                 RequestItem = HcMain.Request.Item(ItemName).ToString
+                If Me.IsEscapeHTML = True Then RequestItem = Me.moPigFunc.ConvertHtmlStr(RequestItem, PigFunc.EmnHowToConvHtml.DisableHTML)
             Catch ex As Exception
                 RequestItem = ""
             End Try

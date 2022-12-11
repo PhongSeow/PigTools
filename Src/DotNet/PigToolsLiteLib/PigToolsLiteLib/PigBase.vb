@@ -1,10 +1,10 @@
 ﻿'**********************************
-'* Name: PigBaseMini
+'* Name: PigBase
 '* Author: Seow Phong
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: External interface class of PigBaseMini
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8.18
+'* Version: 1.10.6
 '* Create Time: 31/8/2019
 '* The following is the code for creating PigBaseLocal
 '* Public Class PigBaseLocal
@@ -65,6 +65,12 @@ Public Class PigBase
     Public Shadows Function GetSubErrInf(SubName As String, StepName As String, ByRef exIn As System.Exception, Optional IsStackTrace As Boolean = False) As String
         Return MyBase.GetSubErrInf(SubName, StepName, exIn, IsStackTrace)
     End Function
+
+    Public Shadows ReadOnly Property MyID() As String
+        Get
+            Return MyBase.MyID
+        End Get
+    End Property
 
     Public Shadows ReadOnly Property AppVersion() As String
         Get

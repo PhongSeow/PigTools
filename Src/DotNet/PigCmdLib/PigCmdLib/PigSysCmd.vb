@@ -19,7 +19,7 @@ Imports PigToolsLiteLib
 ''' System command and WMIC processing class|系统命令及WMIC处理类
 ''' </summary>
 Public Class PigSysCmd
-    Inherits PigBaseMini
+    Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1.7.2"
 
     Private ReadOnly Property mPigFunc As New PigFunc

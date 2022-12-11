@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsWinLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.3.96</Version>
+    <Version>3.3.102</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
@@ -27,7 +27,7 @@ It can run on Windows platforms only.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsWinLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows JSon Register HttpContext</PackageTags>
-    <PackageReleaseNotes>Add new function of PigHttpContext.</PackageReleaseNotes>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,7 +42,7 @@ It can run on Windows platforms only.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.88" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.92" />
   </ItemGroup>
 
   <ItemGroup>
