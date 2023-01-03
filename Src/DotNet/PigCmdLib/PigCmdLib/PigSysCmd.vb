@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -13,6 +13,7 @@
 '*1.5 26/7/2022  Modify Imports
 '*1.6 29/7/2022  Modify Imports
 '*1.7 17/8/2022  Add KillProc
+'*1.7 29/12/2022  Add GetBootUpTime
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -20,7 +21,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.7.2"
+    Private Const CLS_VERSION As String = "1.8.2"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -147,6 +148,7 @@ Public Class PigSysCmd
         End Try
     End Function
 
+
     Public Function GetUUID(ByRef OutUUID As String) As String
         Dim LOG As New PigStepLog("GetUUID")
         Try
@@ -236,6 +238,11 @@ Public Class PigSysCmd
         End Try
     End Function
 
+    ''' <summary>
+    ''' Get operating system caption|获取操作系统概述
+    ''' </summary>
+    ''' <param name="OutOSCaption"></param>
+    ''' <returns></returns>
     Public Function GetOSCaption(ByRef OutOSCaption As String) As String
         Dim LOG As New PigStepLog("GetOSCaption")
         Try
@@ -291,6 +298,71 @@ Public Class PigSysCmd
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Return "OK"
         Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get the system boot up time|获取系统启动时间
+    ''' </summary>
+    ''' <param name="OutBootUpTime"></param>
+    ''' <returns></returns>
+    Public Function GetBootUpTime(ByRef OutBootUpTime As Date) As String
+        Dim LOG As New PigStepLog("GetBootUpTime")
+        Try
+            Dim strOutBootUpTime As String = ""
+            If Me.IsWindows = False Then
+                Dim oPigCmdApp As New PigCmdApp, strCmd As String
+                With oPigCmdApp
+                    .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
+                    strCmd = "last boot"
+                    LOG.StepName = "CmdShell"
+                    LOG.Ret = .CmdShell(strCmd)
+                    If LOG.Ret <> "OK" Then
+                        LOG.AddStepNameInf(strCmd)
+                        Throw New Exception(LOG.Ret)
+                    End If
+                    strOutBootUpTime = ""
+                    For i = 0 To .StandardOutputArray.Length - 1
+                        Dim strLine As String = Trim(.StandardOutputArray(i))
+                        Select Case strLine
+                            Case ""
+                            Case Else
+                                If Left(strLine, 12) = "wtmp begins " Then
+                                    'wtmp begins Thu Feb 24 10:17:56 2022
+                                    strOutBootUpTime = Me.mPigFunc.GetStr(strLine, "wtmp begins ", " ")
+                                    strOutBootUpTime = Right(strLine, 4) & " " & Me.mPigFunc.GetStr(strLine, "", " ")
+                                    strOutBootUpTime &= " " & Me.mPigFunc.GetStr(strLine, "", " ")
+                                    strOutBootUpTime &= " " & Me.mPigFunc.GetStr(strLine, "", " ")
+                                    Exit For
+                                End If
+                        End Select
+                    Next
+                    If strOutBootUpTime = "" Then Throw New Exception("Can not get BootUpTime.")
+                    LOG.StepName = "CDate(" & strOutBootUpTime & ")"
+                    OutBootUpTime = CDate(strOutBootUpTime)
+                End With
+            Else
+                LOG.StepName = "GetWmicSimpleXml"
+                LOG.Ret = Me.GetWmicSimpleXml("path Win32_OperatingSystem get LastBootUpTime", strOutBootUpTime)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                Dim oPigXml As New PigXml(False)
+                LOG.StepName = "SetMainXml"
+                oPigXml.SetMainXml(strOutBootUpTime)
+                If oPigXml.LastErr <> "" Then Throw New Exception(oPigXml.LastErr)
+                LOG.StepName = "InitXmlDocument"
+                LOG.Ret = oPigXml.InitXmlDocument()
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                LOG.StepName = "XmlDocGetStr"
+                strOutBootUpTime = oPigXml.XmlDocGetStr("WmicXml.Row1.LastBootUpTime")
+                oPigXml = Nothing
+                strOutBootUpTime = Left(strOutBootUpTime, 4) & "-" & Mid(strOutBootUpTime, 5, 2) & "-" & Mid(strOutBootUpTime, 7, 2) & " " & Mid(strOutBootUpTime, 9, 2) & ":" & Mid(strOutBootUpTime, 11, 2) & ":" & Mid(strOutBootUpTime, 13, 2)
+                LOG.StepName = "CDate(" & strOutBootUpTime & ")"
+                OutBootUpTime = CDate(strOutBootUpTime)
+            End If
+            Return "OK"
+        Catch ex As Exception
+            OutBootUpTime = Date.MinValue
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function

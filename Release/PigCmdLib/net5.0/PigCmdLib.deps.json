@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "PigCmdLib/2.1.32": {
+      "PigCmdLib/2.1.33": {
         "dependencies": {
           "PigToolsLiteLib": "3.3.92"
         },
@@ -42,7 +42,7 @@
     }
   },
   "libraries": {
-    "PigCmdLib/2.1.32": {
+    "PigCmdLib/2.1.33": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -64,7 +64,7 @@
     "PigToolsLiteLib/3.3.92": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-WwEBaO2Og6WJo3UkDORIXe5TxXGMcGQlzKnvNT5UyVrMxwrxBG3erGn7I5PUlJVt/QAUqC20eo1/75i5dYs0Tg==",
+      "sha512": "sha512-4tYXHHTv6szJhu21G8cUIKkdVqI5Bvs5MYsnhWpoThpDlL0lQPx5cc5pq5BGwXn7JSP3HV2YOTFGWMbfRezYYw==",
       "path": "pigtoolslitelib/3.3.92",
       "hashPath": "pigtoolslitelib.3.3.92.nupkg.sha512"
     },
