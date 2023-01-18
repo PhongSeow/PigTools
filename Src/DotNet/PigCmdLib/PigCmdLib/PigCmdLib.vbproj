@@ -6,22 +6,23 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
-    <Copyright>Copyright (c) 2022 Seow Phong</Copyright>
+    <Copyright>Copyright (c) 2022-2023 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous system wmic</PackageTags>
+    <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous system wmic host hardware software CPU</PackageTags>
     <Description>Application of calling operating system commands and call file.
 Get enhancements for parent and child processes
 A series of console functions, including reading lines, whether to select, simple menus, etc.
 Asynchronous processing.
 Wmic calls and operating system commands.
+Get host hardware and software information.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.1.33</Version>
-    <PackageReleaseNotes>Add new functions of PigSysCmd.</PackageReleaseNotes>
+    <Version>2.2.2</Version>
+    <PackageReleaseNotes>Add PigHost for get host base information.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

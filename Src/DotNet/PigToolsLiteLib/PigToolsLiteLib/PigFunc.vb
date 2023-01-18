@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigFunc
 '* Author: Seow Phong
-'* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.33
+'* Version: 1.35
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -43,6 +43,7 @@
 '*1.31   2/11/2022  Modify AddMultiLineText
 '*1.32   14/11/2022  Add GetTextBase64,ClearErr
 '*1.33   15/11/2022  Add GetTextSHA1
+'*1.35   18/1/2023  Modify GetUUID,GetMachineGUID, add mGetUUID,mGetMachineGUID
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -56,7 +57,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.32.6"
+    Private Const CLS_VERSION As String = "1.32.12"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -1314,60 +1315,71 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function GetMachineGUID() As String
-        Dim LOG As New PigStepLog("GetMachineGUID")
+    Private Function mGetMachineGUID(ByRef OutGUID As String) As String
+        Dim LOG As New PigStepLog("mGetMachineGUID")
         Try
             If Me.IsWindows = True Then
                 LOG.StepName = "New PigReg"
                 Dim oPigReg As New PigReg
                 LOG.StepName = "GetRegValue"
-                GetMachineGUID = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Cryptography", "MachineGuid", "")
+                OutGUID = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Cryptography", "MachineGuid", "")
                 If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
+                oPigReg = Nothing
             Else
-                Return Me.GetUUID
+                Throw New Exception("Only run on Windows")
             End If
+            Return "OK"
+        Catch ex As Exception
+            OutGUID = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetMachineGUID() As String
+        Dim LOG As New PigStepLog("GetMachineGUID")
+        Try
+            Dim strGUID As String = ""
+            Me.mGetMachineGUID(strGUID)
+            If strGUID = "" Then
+                LOG.StepName = ""
+                LOG.Ret = Me.mGetUUID(strGUID)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End If
+            Return strGUID
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return ""
         End Try
     End Function
 
+    Private Function mGetUUID(ByRef OutUUID As String) As String
+        Dim LOG As New PigStepLog("mGetUUID")
+        Try
+            Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
+            If Me.IsFileExists(strFilePath) = True Then
+                LOG.StepName = "GetFileText"
+                LOG.Ret = Me.GetFileText(strFilePath, mGetUUID)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Else
+                Throw New Exception(strFilePath & " not found.")
+            End If
+            Return "OK"
+        Catch ex As Exception
+            mGetUUID = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
     Public Function GetUUID() As String
         Dim LOG As New PigStepLog("GetUUID")
         Try
-            If Me.IsWindows = True Then
-                Return Me.GetMachineGUID
-            Else
-                Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
-                LOG.StepName = "New PigFile"
-                Dim oPigFile As New PigFile(strFilePath)
-                If oPigFile.LastErr <> "" Then
-                    LOG.AddStepNameInf(strFilePath)
-                    Throw New Exception(oPigFile.LastErr)
-                End If
-                LOG.StepName = "oPigFile.LoadFile"
-                LOG.Ret = oPigFile.LoadFile()
-                If LOG.Ret <> "OK" Then
-                    LOG.AddStepNameInf(strFilePath)
-                    Throw New Exception(LOG.Ret)
-                End If
-                LOG.StepName = "New PigText"
-                Dim oPigText As New PigText(oPigFile.GbMain.Main, PigText.enmTextType.Unicode)
-                If oPigText.LastErr <> "" Then
-                    If oPigFile.GbMain Is Nothing Then
-                        LOG.AddStepNameInf("oPigFile.GbMain Is Nothing")
-                    ElseIf oPigFile.GbMain.Main Is Nothing Then
-                        LOG.AddStepNameInf("oPigFile.GbMain.Main Is Nothing")
-                    Else
-                        LOG.AddStepNameInf("Main.Length=" & oPigFile.GbMain.Main.Length)
-                    End If
-                    Throw New Exception(oPigText.LastErr)
-                End If
-                GetUUID = oPigText.Text
-                GetUUID = oPigFile.GbMain.Main.Length
-                oPigFile = Nothing
-                oPigText = Nothing
+            Dim strUUID As String = ""
+            Me.mGetUUID(strUUID)
+            If strUUID = "" Then
+                LOG.StepName = ""
+                LOG.Ret = Me.mGetMachineGUID(strUUID)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             End If
+            Return strUUID
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return ""

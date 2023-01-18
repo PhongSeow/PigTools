@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsWinLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.3.102</Version>
+    <Version>3.3.103</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
@@ -19,7 +19,7 @@ JSon processing.
 Xml processing.
 It can run on Windows platforms only.
 </Description>
-    <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
+    <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
@@ -42,7 +42,7 @@ It can run on Windows platforms only.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.92" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.96" />
   </ItemGroup>
 
   <ItemGroup>

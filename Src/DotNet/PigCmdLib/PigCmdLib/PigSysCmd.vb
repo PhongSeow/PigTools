@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigSysCmd
 '* Author: Seow Phong
-'* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -13,7 +13,9 @@
 '*1.5 26/7/2022  Modify Imports
 '*1.6 29/7/2022  Modify Imports
 '*1.7 17/8/2022  Add KillProc
-'*1.7 29/12/2022  Add GetBootUpTime
+'*1.8 29/12/2022  Add GetBootUpTime
+'*1.9 16/1/2023  Add GetCmdRetRows
+'*1.10 17/1/2023  Modify GetCmdRetRows,GetWmicSimpleXml
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -21,7 +23,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.8.2"
+    Private Const CLS_VERSION As String = "1.10.8"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -29,6 +31,7 @@ Public Class PigSysCmd
     Public Sub New()
         MyBase.New(CLS_VERSION)
     End Sub
+
 
     ''' <summary>
     ''' 获取进程的侦听端口数组|Get the listening port array of the process
@@ -204,7 +207,6 @@ Public Class PigSysCmd
                 Dim intRowNo As Integer = 0, intBlankCnt As Integer = 0
                 For i = 0 To .StandardOutputArray.Length - 1
                     Dim strLine As String = Trim(.StandardOutputArray(i))
-                    Me.mPigFunc.OptLogInf(strLine, "c:\temp\bbb.txt")
                     If strLine <> "" Then
                         If bolIsNewRow = False Then
                             bolIsNewRow = True
@@ -367,5 +369,37 @@ Public Class PigSysCmd
         End Try
     End Function
 
+    ''' <summary>
+    ''' Get the line content of the command return result|获取命令返回结果的行内容
+    ''' </summary>
+    ''' <param name="RetContent">Line content returned|返回的行内容</param>
+    ''' <param name="RetRows">Returns the number of rows, 0 means all|返回行数，0表示全部</param>
+    ''' <returns></returns>
+    Public Function GetCmdRetRows(Cmd As String, ByRef RetContent As String, Optional RetRows As Integer = 0) As String
+        Dim LOG As New PigStepLog("LinuxGetCmdRetRows")
+        Try
+            Dim oPigCmdApp As New PigCmdApp
+            With oPigCmdApp
+                .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
+                LOG.StepName = "CmdShell"
+                LOG.Ret = .CmdShell(Cmd)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(Cmd)
+                    Throw New Exception(LOG.Ret)
+                End If
+                If RetRows < 0 Then RetRows = 0
+                RetRows = ""
+                For i = 0 To .StandardOutputArray.Length - 1
+                    Dim strLine As String = Trim(.StandardOutputArray(i)) & Me.OsCrLf
+                    RetRows &= strLine
+                    If i >= RetRows - 1 And RetRows > 0 Then Exit For
+                Next
+            End With
+            Return "OK"
+        Catch ex As Exception
+            RetContent = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 End Class
