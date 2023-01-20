@@ -4,7 +4,7 @@
     <RootNamespace>PigWebCtrlLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.0.150</Version>
+    <Version>2.0.155</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.1.32" />
-    <PackageReference Include="PigWebCtrlLib" Version="2.0.150" />
+    <PackageReference Include="PigCmdLib" Version="2.2.6" />
+    <PackageReference Include="PigWebCtrlLib" Version="2.0.155" />
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.11.2
+'* Version: 2.2.2
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -18,6 +18,9 @@
 '* 1.10   7/6/2022  Modify PigSysCmdDemo, add GetOSCaption
 '* 1.11   17/6/2022  Modify PigSysCmdDemo, add GetProcListenPortList
 '* 1.12   23/7/2022  Modify PigSysCmdDemo, add GetWmicSimpleXml
+'* 1.13   17/11/2022  Add SelectControl demo
+'* 2.1    29/12/2022  Modify PigSysCmdDemo, add GetBootUpTime
+'* 2.2.2  17/1/2023  Add PigHostDemo
 '************************************
 
 Imports PigCmdLib
@@ -29,6 +32,7 @@ Public Class ConsoleDemo
     Public CmdPara As String
     Public WithEvents PigCmdApp As New PigCmdApp
     Public PigSysCmd As New PigSysCmd
+    Public PigHost As PigHost
     Public PID As String
     Public Cmd As String
     Public Para As String
@@ -38,13 +42,15 @@ Public Class ConsoleDemo
     Public Ret As String
     Public PigFunc As New PigFunc
     Public MenuKey As String
+    Public SelectKey As String
     Public MenuDefinition As String
+    Public SelectDefinition As String
     Public OutThreadID As Integer
     Public ListenPort As Integer
     Public OSCaption As String
     Public WmicCmd As String
     Public UUID As String
-
+    Public BootUpTime As Date
     Public Sub PigCmdAppDemo()
         Do While True
             Console.Clear()
@@ -140,6 +146,7 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "GetProcListenPortList#GetProcListenPortList|"
             Me.MenuDefinition &= "GetOSCaption#GetOSCaption|"
             Me.MenuDefinition &= "GetUUID#GetUUID|"
+            Me.MenuDefinition &= "GetBootUpTime#GetBootUpTime|"
             Me.MenuDefinition &= "GetWmicSimpleXml#GetWmicSimpleXml|"
             Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
@@ -155,6 +162,17 @@ Public Class ConsoleDemo
                         Console.WriteLine(Me.Ret)
                     Else
                         Console.WriteLine(Me.UUID)
+                    End If
+                Case "GetBootUpTime"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("GetBootUpTime")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    Me.Ret = Me.PigSysCmd.GetBootUpTime(Me.BootUpTime)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Console.WriteLine(Me.BootUpTime)
                     End If
                 Case "GetWmicSimpleXml"
                     Console.WriteLine("*******************")
@@ -218,9 +236,12 @@ Public Class ConsoleDemo
             Console.Clear()
             Me.MenuDefinition = "PigCmdAppDemo#PigCmdApp Demo|"
             Me.MenuDefinition &= "PigConsoleDemo#PigConsole Demo|"
-            Me.MenuDefinition &= "PigSysCmdDemo#PigSysCmdDemo|"
+            Me.MenuDefinition &= "PigSysCmdDemo#PigSysCmd Demo|"
+            Me.MenuDefinition &= "PigHostDemo#PigHost Demo|"
             Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
             Select Case Me.MenuKey
+                Case "PigHostDemo"
+                    Me.PigHostDemo()
                 Case "PigCmdAppDemo"
                     Me.PigCmdAppDemo()
                 Case "PigConsoleDemo"
@@ -276,10 +297,24 @@ Public Class ConsoleDemo
             Console.Clear()
             Me.MenuDefinition = "GetPwdStr#GetPwdStr|"
             Me.MenuDefinition &= "GetLine#GetLine|"
+            Me.MenuDefinition &= "SelectControl#SelectControl|"
             Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "SelectControl"
+                    Me.SelectDefinition = ""
+                    Me.SelectDefinition &= "China#China|"
+                    Me.SelectDefinition &= "USA#USA|"
+                    Me.SelectDefinition &= "Japan#Japan|"
+                    Me.SelectDefinition &= "Argentina#Argentina|"
+                    Me.Ret = Me.PigConsole.SelectControl("Select country", Me.SelectDefinition, Me.SelectKey, True)
+                    If Me.Ret <> "OK" Then
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Console.WriteLine("You chose " & Me.SelectKey)
+                        Console.WriteLine(Console.WindowWidth)
+                    End If
                 Case "GetPwdStr"
                     Console.WriteLine("*******************")
                     Console.WriteLine("GetPwdStr")
@@ -304,6 +339,53 @@ Public Class ConsoleDemo
                         Console.Write("Line is :")
                         Console.WriteLine(Me.Line)
                     End If
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
+    Public Sub PigHostDemo()
+        'Dim strRet As String = "", strUUID As String = ""
+        'Console.WriteLine("GetProductUuid=" & Me.PigFunc.GetProductUuid(strRet))
+        'Console.WriteLine("strRet=" & strRet)
+        'Me.Ret = Me.PigSysCmd.GetUUID(strUUID)
+        'Console.WriteLine("PigSysCmd.GetUUID=" & strUUID)
+        'Console.WriteLine("Me.Ret=" & Me.Ret)
+        'Me.PigConsole.DisplayPause()
+        Me.PigHost = New PigHost
+        If Me.PigHost.LastErr <> "" Then
+            Console.WriteLine(Me.PigHost.LastErr)
+            Me.PigConsole.DisplayPause()
+        End If
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition = ""
+            Me.MenuDefinition &= "DisplayProperties#Display Properties|"
+            Me.PigConsole.SimpleMenu("PigHostDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Select Case Me.MenuKey
+                Case ""
+                    Exit Do
+                Case "DisplayProperties"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("Display Properties")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    With Me.PigHost
+                        Console.WriteLine("IsInit=" & .IsInit)
+                        If .IsInit = True Then
+                            Console.WriteLine("HostID=" & .HostID)
+                            Console.WriteLine("HostName=" & .HostName)
+                            Console.WriteLine("UUID=" & .UUID)
+                            If Me.PigFunc.LastErr <> "" Then Console.WriteLine(Me.PigFunc.LastErr)
+                            Console.WriteLine("OSCaption=" & .OSCaption)
+                            '--------
+                            Console.WriteLine("CPU.Model=" & .CPU.Model)
+                            Console.WriteLine("CPU.CPUs=" & .CPU.CPUs)
+                            Console.WriteLine("CPU.CPUCores=" & .CPU.CPUCores)
+                            Console.WriteLine("CPU.Processors=" & .CPU.Processors)
+                            Console.WriteLine("CPU.TotalProcessors=" & .CPU.TotalProcessors)
+                        End If
+                    End With
             End Select
             Me.PigConsole.DisplayPause()
         Loop
