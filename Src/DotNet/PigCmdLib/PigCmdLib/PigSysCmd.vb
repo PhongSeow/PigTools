@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.9
+'* Version: 1.12
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -16,6 +16,8 @@
 '*1.8 29/12/2022  Add GetBootUpTime
 '*1.9 16/1/2023  Add GetCmdRetRows
 '*1.10 17/1/2023  Modify GetCmdRetRows,GetWmicSimpleXml
+'*1.11 19/1/2023  Modify GetUUID,GetCmdRetRows
+'*1.12 20/1/2023  Modify GetUUID
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -23,7 +25,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.10.8"
+    Private Const CLS_VERSION As String = "1.12.8"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -155,10 +157,7 @@ Public Class PigSysCmd
     Public Function GetUUID(ByRef OutUUID As String) As String
         Dim LOG As New PigStepLog("GetUUID")
         Try
-            If Me.IsWindows = False Then
-                LOG.StepName = "mPigFunc.GetUUID"
-                Return Me.mPigFunc.GetUUID
-            Else
+            If Me.IsWindows = True Then
                 LOG.StepName = "GetWmicSimpleXml"
                 LOG.Ret = Me.GetWmicSimpleXml("csproduct get uuid", OutUUID)
                 If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -172,6 +171,10 @@ Public Class PigSysCmd
                 LOG.StepName = "XmlDocGetStr"
                 OutUUID = oPigXml.XmlDocGetStr("WmicXml.Row1.UUID")
                 oPigXml = Nothing
+            Else
+                LOG.StepName = "GetProductUuid"
+                OutUUID = Me.mPigFunc.GetProductUuid(LOG.Ret)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             End If
             Return "OK"
         Catch ex As Exception
@@ -376,7 +379,7 @@ Public Class PigSysCmd
     ''' <param name="RetRows">Returns the number of rows, 0 means all|返回行数，0表示全部</param>
     ''' <returns></returns>
     Public Function GetCmdRetRows(Cmd As String, ByRef RetContent As String, Optional RetRows As Integer = 0) As String
-        Dim LOG As New PigStepLog("LinuxGetCmdRetRows")
+        Dim LOG As New PigStepLog("GetCmdRetRows")
         Try
             Dim oPigCmdApp As New PigCmdApp
             With oPigCmdApp
@@ -388,10 +391,10 @@ Public Class PigSysCmd
                     Throw New Exception(LOG.Ret)
                 End If
                 If RetRows < 0 Then RetRows = 0
-                RetRows = ""
+                RetContent = ""
                 For i = 0 To .StandardOutputArray.Length - 1
                     Dim strLine As String = Trim(.StandardOutputArray(i)) & Me.OsCrLf
-                    RetRows &= strLine
+                    RetContent &= strLine
                     If i >= RetRows - 1 And RetRows > 0 Then Exit For
                 Next
             End With

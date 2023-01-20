@@ -4,20 +4,22 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Http Web Request operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.1
 '* Create Time: 5/2/2021
-'*1.0  25/2/2021   Add Me.ClearErr()
-'*1.1  9/3/2021   Modify GetText,GetTextAuth,PostText,PostTextAuth
-'*1.2  19/8/2022  Use PigBaseLocal
+'*1.0.2  25/2/2021   Add Me.ClearErr()
+'*1.0.3  9/3/2021   Modify GetText,GetTextAuth,PostText,PostTextAuth
+'*1.1  27/10/2021   Add DownloadFile, modify MainNew
 '**********************************
 Imports System.Net
 Imports System.IO
 Imports System.Text
-Imports PigToolsLiteLib
 
+''' <summary>
+''' WEB request processing class|WEB请求处理类
+''' </summary>
 Public Class PigWebReq
-    Inherits PigBaseLocal
-    Const CLS_VERSION As String = "1.0.3"
+    Inherits PigBaseMini
+    Const CLS_VERSION As String = "1.1.8"
     Private mstrUrl As String
     Private mstrPara As String
     Private muriMain As System.Uri
@@ -58,16 +60,16 @@ Public Class PigWebReq
         Dim strStepName As String = ""
         Try
             If Len(Para) = 0 Then
-                strStepName = "设置Uri" & Url & ":"
+                strStepName = "Set Uri" & Url & ":"
 10:             muriMain = New System.Uri(Url)
             Else
-                strStepName = "设置Uri" & Url & "?" & Para & ":"
+                strStepName = "Set Uri" & Url & "?" & Para & ":"
 20:             muriMain = New System.Uri(Url & "?" & Para)
             End If
             If Len(UserAgent) > 0 Then
                 mstrUserAgent = UserAgent
             Else
-                mstrUserAgent = "GEHttpWebItem"
+                mstrUserAgent = "PigWebReq"
             End If
             strStepName = "HttpWebRequest.Create:"
 30:         mhwrMain = System.Net.HttpWebRequest.Create(muriMain)
@@ -180,6 +182,49 @@ Public Class PigWebReq
             Me.UseTimeItem.ToEnd()
             Me.SetSubErrInf("PostText", strStepName, ex)
             Return Me.LastErr
+        End Try
+    End Function
+
+    Public Function DownloadFile(FilePath As String, Optional MaxSize As Integer = 1073741824) As String
+        Dim LOG As New PigStepLog("DownloadFile")
+        Try
+            LOG.StepName = "New StreamReader"
+            mhwrMain.AddRange(0, MaxSize)
+            LOG.StepName = "GetResponseStream"
+            Dim oStream As Stream = mhwrMain.GetResponse().GetResponseStream
+            LOG.StepName = "New FileStream"
+            Dim fsMain As New FileStream(FilePath, FileMode.OpenOrCreate)
+            Dim abData(0) As Byte
+            Dim intCount As Integer, intPos As Integer = 0, intOnceSize As Integer = 1024000
+            Do While True
+                ReDim abData(intOnceSize - 1)
+                intCount = oStream.Read(abData, 0, intOnceSize)
+                If intCount <= 0 Then Exit Do
+                If intCount < intOnceSize Then ReDim Preserve abData(intCount - 1)
+                fsMain.Write(abData, 0, intCount)
+                intPos += intCount
+            Loop
+            LOG.StepName = "Close"
+            oStream.Close()
+            fsMain.Close()
+            '//流对象使用完后自动关闭
+            'Using (Stream stream = hwr.GetResponse().GetResponseStream())
+            '{
+            '//文件流，流信息读到文件流中，读完关闭
+            'Using (FileStream fs = File.Create(@"C:\Users\Evan\Desktop\test\755.jpg"))
+            '{
+            '//建立字节组，并设置它的大小是多少字节
+            'Byte[] bytes = New Byte[102400];
+            'Int n = 1;
+            'While (n > 0)
+            '{
+            '//一次从流中读多少字节，并把值赋给Ｎ，当读完后，Ｎ为０,并退出循环
+            'n = Stream.Read(bytes, 0, 10240);
+            'fs.Write(bytes, 0, n);　//将指定字节的流信息写入文件流中
+            Me.UseTimeItem.ToEnd()
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 

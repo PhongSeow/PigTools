@@ -21,6 +21,9 @@
 '* 1.1      14/9/2021  Modify xpJSonEleType,mAddJSonStr, and add AddOneObjectEle
 '*******************************************************
 Imports System.Text
+''' <summary>
+''' Simple JSON processing class|简单JSon处理类
+''' </summary>
 Public Class PigJSonLite
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.1.6"

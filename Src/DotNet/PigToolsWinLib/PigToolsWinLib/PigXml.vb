@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.16
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -26,15 +26,34 @@
 '1.8 6/6/2022   Add XmlDocGetStr
 '1.9 15/6/2022  Modify XmlDocGetStr
 '1.10 11/7/2022  Add AddXmlFragment,mSrc2CtlStr,mCtlStr2Src,mUnEscapeXmlValue,mEscapeXmlValue, modify mXMLAddStr,mGetXmlDoc
+'1.11 12/8/2022  Add XmdDocMainStr
+'1.12 25/8/2022  Modify mSrc2CtlStr,mCtlStr2Src
+'1.13 10/10/2022  Modify SetMainXml
+'1.15 20/10/2022  Add IsAutoUnEscValue, modify XmlDocGetStr,mXmlGetStr,XmlGetLong
+'1.16 21/10/2022  Modify SetMainXml, Add FlushMainXml
+'1.17 2/11/2022  Add IsMainXmlEmpty
 '*******************************************************
 
 Imports System.Xml
+Imports System.Text
+''' <summary>
+''' XML Processing Class|XML处理类
+''' </summary>
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.10.8"
-    Private mstrMainXml As String
+    Private Const CLS_VERSION As String = "1.16.12"
+    Private Property mMainXml As String = ""
+    Private msbMain As New StringBuilder("")    '主体的XML
+
     Public Property XmlDocument As XmlDocument
+
+    ''' <summary>
+    ''' 是否自动还原转义的字符串值|Whether to automatically restore the escaped string value
+    ''' </summary>
+    ''' <returns></returns>
+    Public Property IsAutoUnEscValue As Boolean = True
     Private ReadOnly Property mPigFunc As New PigFunc
+
 
     'Private mslMain As SortedList
 
@@ -63,7 +82,6 @@ Public Class PigXml
         Node = 2
     End Enum
 
-    Private msbMain As System.Text.StringBuilder    '主体的XML
     ''' <summary>
     ''' 生成的XML是否加入回车符|Whether carriage return is added to the generated XML
     ''' </summary>
@@ -83,9 +101,19 @@ Public Class PigXml
         Me.Clear()
     End Sub
 
-    Public Sub SetMainXml(InXml As String)
-        mstrMainXml = InXml
-    End Sub
+    Public Function SetMainXml(InXml As String, Optional IsFlushMainXml As Boolean = True) As String
+        Try
+            msbMain = Nothing
+            msbMain = New StringBuilder(InXml)
+            If IsFlushMainXml = True Then
+                Dim strRet As String = Me.FlushMainXml()
+                If strRet <> "OK" Then Throw New Exception(strRet)
+            End If
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("SetMainXml", ex)
+        End Try
+    End Function
 
     '''' <summary>通过XmlReader填充元素</summary>
     '''' <param name="oXmlReader">XmlReader对象</param>
@@ -141,15 +169,15 @@ Public Class PigXml
     ''' <summary>获取一个元素字符串值</summary>
     ''' <param name="XMLSign">元素标记</param>
     Public Overloads Function XmlGetStr(XMLSign As String) As String
-        Return Me.mXmlGetStr(mstrMainXml, XMLSign, False)
+        XmlGetStr = Me.mXmlGetStr(mMainXml, XMLSign, False)
+        If Me.IsAutoUnEscValue = True Then Me.mUnEscapeXmlValue(XmlGetStr)
     End Function
 
     ''' <summary>获取一个元素长整值</summary>
     ''' <param name="XMLSign">元素标记</param>
     Public Overloads Function XmlGetLong(XMLSign As String) As Long
         Try
-            XmlGetLong = CLng(Me.mXmlGetStr(mstrMainXml, XMLSign, False))
-            Me.ClearErr()
+            XmlGetLong = CLng(Me.mXmlGetStr(mMainXml, XMLSign, False))
         Catch ex As Exception
             Me.SetSubErrInf("XmlGetLong", ex)
             Return 0
@@ -160,8 +188,7 @@ Public Class PigXml
     ''' <param name="XMLSign">元素标记</param>
     Public Overloads Function XmlGetInt(XMLSign As String) As Integer
         Try
-            XmlGetInt = CLng(Me.mXmlGetStr(mstrMainXml, XMLSign, False))
-            Me.ClearErr()
+            XmlGetInt = CLng(Me.mXmlGetStr(mMainXml, XMLSign, False))
         Catch ex As Exception
             Me.SetSubErrInf("XmlGetLong", ex)
             Return 0
@@ -172,8 +199,7 @@ Public Class PigXml
     ''' <param name="XMLSign">元素标记</param>
     Public Overloads Function XmlGetDec(XMLSign As String) As Decimal
         Try
-            XmlGetDec = CDec(Me.mXmlGetStr(mstrMainXml, XMLSign, False))
-            Me.ClearErr()
+            XmlGetDec = CDec(Me.mXmlGetStr(mMainXml, XMLSign, False))
         Catch ex As Exception
             Me.SetSubErrInf("XmlGetDec", ex)
             Return 0
@@ -194,7 +220,6 @@ Public Class PigXml
                 intHourAdd = oTimeZoneInfo.GetUtcOffset(Now).Hours
             End If
             Return dteStart.AddSeconds(LngValue + intHourAdd * 3600)
-            Me.ClearErr()
         Catch ex As Exception
             Return dteStart
             Me.SetSubErrInf("mLng2Date", ex)
@@ -223,8 +248,7 @@ Public Class PigXml
     Public Overloads Function XmlGetDate(XMLSign As String) As DateTime
         Dim dteStart As New DateTime(1970, 1, 1)
         Try
-            XmlGetDate = Me.mLng2Date(CLng(Me.mXmlGetStr(mstrMainXml, XMLSign, False)))
-            Me.ClearErr()
+            XmlGetDate = Me.mLng2Date(CLng(Me.mXmlGetStr(mMainXml, XMLSign, False)))
         Catch ex As Exception
             Me.SetSubErrInf("XmlGetDate", ex)
             Return dteStart
@@ -236,8 +260,7 @@ Public Class PigXml
     Public Overloads Function XmlGetDate(XMLSign As String, IsLocalTime As Boolean) As DateTime
         Dim dteStart As New DateTime(1970, 1, 1)
         Try
-            XmlGetDate = Me.mLng2Date(CLng(Me.mXmlGetStr(mstrMainXml, XMLSign, False)), IsLocalTime)
-            Me.ClearErr()
+            XmlGetDate = Me.mLng2Date(CLng(Me.mXmlGetStr(mMainXml, XMLSign, False)), IsLocalTime)
         Catch ex As Exception
             Me.SetSubErrInf("XmlGetDate", ex)
             Return dteStart
@@ -258,7 +281,6 @@ Public Class PigXml
                 strEnd = "]]>" & strEnd
             End If
             mXmlGetStr = Me.mGetStr(SrcXmlStr, strBegin, strEnd, True)
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mXmlGetStr", ex)
             Return ""
@@ -269,14 +291,16 @@ Public Class PigXml
     ''' <param name="XMLSign">元素标记</param>
     ''' <param name="IsCData">是否CDATA</param>
     Public Overloads Function XmlGetStr(XMLSign As String, IsCData As Boolean) As String
-        Return Me.mXmlGetStr(mstrMainXml, XMLSign, IsCData)
+        XmlGetStr = Me.mXmlGetStr(mMainXml, XMLSign, IsCData)
+        If Me.IsAutoUnEscValue = True Then Me.mUnEscapeXmlValue(XmlGetStr)
     End Function
 
     ''' <summary>获取一个元素的字符串值</summary>
     ''' <param name="SrcXmlStr">XML源串</param>
     ''' <param name="XMLSign">元素标记</param>
     Public Overloads Function XmlGetStr(ByRef SrcXmlStr As String, XMLSign As String) As String
-        Return Me.mXmlGetStr(SrcXmlStr, XMLSign, False)
+        XmlGetStr = Me.mXmlGetStr(SrcXmlStr, XMLSign, False)
+        If Me.IsAutoUnEscValue = True Then Me.mUnEscapeXmlValue(XmlGetStr)
     End Function
 
     ''' <summary>获取一个元素的字符串值</summary>
@@ -284,7 +308,8 @@ Public Class PigXml
     ''' <param name="XMLSign">元素标记</param>
     ''' <param name="IsCData">是否CDATA</param>
     Public Overloads Function XmlGetStr(ByRef SrcXmlStr As String, XMLSign As String, IsCData As Boolean) As String
-        Return Me.mXmlGetStr(SrcXmlStr, XMLSign, IsCData)
+        XmlGetStr = Me.mXmlGetStr(SrcXmlStr, XMLSign, IsCData)
+        If Me.IsAutoUnEscValue = True Then Me.mUnEscapeXmlValue(XmlGetStr)
     End Function
 
 
@@ -311,7 +336,6 @@ Public Class PigXml
             If IsCut = True Then
                 SrcStr = Left(SrcStr, intBegin - 1) & Mid(SrcStr, intEnd + intEndLen)
             End If
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mGetStr", ex)
             Return ""
@@ -418,13 +442,13 @@ Public Class PigXml
 
     Private Sub mSrc2CtlStr(ByRef SrcStr As String)
         Try
+            If SrcStr Is Nothing Then SrcStr = ""
             If SrcStr.IndexOf(vbCrLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\r\n")
             If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
             If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
             If SrcStr.IndexOf(vbBack) > 0 Then SrcStr = Replace(SrcStr, vbBack, "\b")
             If SrcStr.IndexOf(vbFormFeed) > 0 Then SrcStr = Replace(SrcStr, vbFormFeed, "\f")
             If SrcStr.IndexOf(vbVerticalTab) > 0 Then SrcStr = Replace(SrcStr, vbVerticalTab, "\v")
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mSrc2CtlStr", ex)
         End Try
@@ -438,23 +462,30 @@ Public Class PigXml
     ''' <returns></returns>
     Private Function mEscapeXmlValue(ByRef InXmlStr As String) As String
         Try
+            If InStr(InXmlStr, "&") > 0 Then InXmlStr = Replace(InXmlStr, "&", "&apos;")
             If InStr(InXmlStr, "<") > 0 Then InXmlStr = Replace(InXmlStr, "<", "&lt;")
             If InStr(InXmlStr, ">") > 0 Then InXmlStr = Replace(InXmlStr, ">", "&gt;")
-            If InStr(InXmlStr, "&") > 0 Then InXmlStr = Replace(InXmlStr, "&", "&apos;")
-            '            If InStr(InXmlStr, "'") > 0 Then InXmlStr = Replace(InXmlStr, "'", "&lt;")
-            If InStr(InXmlStr, """") > 0 Then InXmlStr = Replace(InXmlStr, """", "&quot")
+            'If InStr(InXmlStr, "'") > 0 Then InXmlStr = Replace(InXmlStr, "'", "&lt;")
+            'If InStr(InXmlStr, """") > 0 Then InXmlStr = Replace(InXmlStr, """", "&quot")
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("mEscapeXmlValue", ex)
         End Try
     End Function
 
+    Public Function UnEscapeXmlValue() As String
+        Try
+
+        Catch ex As Exception
+
+        End Try
+    End Function
+
     Private Function mUnEscapeXmlValue(ByRef InXmlStr As String) As String
         Try
+            If InStr(InXmlStr, "&apos;") > 0 Then InXmlStr = Replace(InXmlStr, "&apos;", "&")
             If InStr(InXmlStr, "&lt;") > 0 Then InXmlStr = Replace(InXmlStr, "&lt;", "<")
             If InStr(InXmlStr, "&gt;") > 0 Then InXmlStr = Replace(InXmlStr, "&gt;", ">")
-            If InStr(InXmlStr, "&apos;") > 0 Then InXmlStr = Replace(InXmlStr, "&apos;", "&")
-            'If InStr(InXmlStr, "&lt;") > 0 Then InXmlStr = Replace(InXmlStr, "&lt;", "'")
             'If InStr(InXmlStr, "&quot") > 0 Then InXmlStr = Replace(InXmlStr, "&quot", """")
             Return "OK"
         Catch ex As Exception
@@ -541,7 +572,7 @@ Public Class PigXml
         End Try
     End Function
 
-    Private Function mXMLAddStr(ByRef sbAny As System.Text.StringBuilder, ByRef XMLSign As String, ByRef XMLValue As String,
+    Private Function mXMLAddStr(ByRef sbAny As StringBuilder, ByRef XMLSign As String, ByRef XMLValue As String,
                          Optional ByVal AddWhere As xpXMLAddWhere = xpXMLAddWhere.Both,
                          Optional ByVal IsCrlf As Boolean = False,
                          Optional ByVal LeftTab As Integer = 0,
@@ -610,7 +641,8 @@ Public Class PigXml
         '初始化内部XML
         Try
             msbMain = Nothing
-            msbMain = New System.Text.StringBuilder("")
+            msbMain = New StringBuilder("")
+            Me.mMainXml = ""
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("Clear", ex)
@@ -620,11 +652,19 @@ Public Class PigXml
 
     Public ReadOnly Property MainXmlStr As String
         Get
-            If msbMain Is Nothing Then
-                Return mstrMainXml
-            Else
+            Try
+                If msbMain Is Nothing Then msbMain = New StringBuilder("")
                 Return msbMain.ToString
-            End If
+            Catch ex As Exception
+                Me.SetSubErrInf("MainXmlStr", ex)
+                Return ""
+            End Try
+            'If msbMain Is Nothing Then
+            '    Return mMainXml
+            'Else
+            '    MainXmlStr = msbMain.ToString
+            '    If MainXmlStr = "" Then Return mMainXml
+            'End If
         End Get
     End Property
 
@@ -896,14 +936,11 @@ Public Class PigXml
         Try
             LOG.StepName = "Check XmlFilePath"
             If XmlFilePath = "" Then
-                If Me.mstrMainXml = "" Then
-                    Me.mstrMainXml = Me.MainXmlStr
-                    If Me.mstrMainXml = "" Then Throw New Exception("Please call SetMainXml设置 to set MainXmlStr first.")
-                End If
+                If msbMain.Length = 0 Then Throw New Exception("Please call SetMainXml to call InitXmlDocument first.")
                 LOG.StepName = "XmlDocument.LoadXml"
-                If Me.IsDebug = True Then LOG.AddStepNameInf(Me.mstrMainXml)
+                If Me.IsDebug = True Then LOG.AddStepNameInf(msbMain.ToString)
                 Me.XmlDocument = New XmlDocument
-                Me.XmlDocument.LoadXml(Me.mstrMainXml)
+                Me.XmlDocument.LoadXml(msbMain.ToString)
             ElseIf Me.mPigFunc.IsFileExists(XmlFilePath) = False Then
                 LOG.AddStepNameInf(XmlFilePath)
                 Throw New Exception("File not found.")
@@ -973,13 +1010,14 @@ Public Class PigXml
     Public Function XmlDocGetStr(XmlKey As String, Optional IsAttribute As Boolean = False) As String
         Try
             If IsAttribute = True Then
-                Return Me.GetXmlDocAttribute(XmlKey)
+                XmlDocGetStr = Me.GetXmlDocAttribute(XmlKey)
             Else
-                Return Me.GetXmlDocText(XmlKey)
+                XmlDocGetStr = Me.GetXmlDocText(XmlKey)
             End If
+            If Me.IsAutoUnEscValue = True Then Me.mUnEscapeXmlValue(XmlDocGetStr)
         Catch ex As Exception
             Me.SetSubErrInf("XmlDocGetStr", ex)
-            Return 0
+            Return ""
         End Try
     End Function
 
@@ -1028,16 +1066,54 @@ Public Class PigXml
 
     Private Sub mCtlStr2Src(ByRef CtlStr As String)
         Try
+            If CtlStr Is Nothing Then CtlStr = ""
             If CtlStr.IndexOf("\r\n") > 0 Then CtlStr = Replace(CtlStr, "\r\n", vbCrLf)
             If CtlStr.IndexOf("\r") > 0 Then CtlStr = Replace(CtlStr, "\r", vbCr)
             If CtlStr.IndexOf("\t") > 0 Then CtlStr = Replace(CtlStr, "\t", vbTab)
             If CtlStr.IndexOf("\b") > 0 Then CtlStr = Replace(CtlStr, "\b", vbBack)
             If CtlStr.IndexOf(vbFormFeed) > 0 Then CtlStr = Replace(CtlStr, "\f", vbFormFeed)
             If CtlStr.IndexOf(vbVerticalTab) > 0 Then CtlStr = Replace(CtlStr, "\v", vbVerticalTab)
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mCtlStr2Src", ex)
         End Try
     End Sub
+
+    Public ReadOnly Property XmdDocMainStr As String
+        Get
+            Try
+                If Me.XmlDocument IsNot Nothing Then
+                    Return Me.XmlDocument.InnerXml
+                Else
+                    Return ""
+                End If
+            Catch ex As Exception
+                Me.SetSubErrInf("XmdDocMainStr", ex)
+                Return ""
+            End Try
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' 执行 XmlGet 开头的函数前需要执行这个方法，使用XmlGet开头的函数，读过的元素会补截取掉。|This method needs to be executed before executing the function starting with XmlGet. If the function starting with XmlGet is used, the read elements will be truncated.
+    ''' </summary>
+    ''' <returns></returns>
+    Public Function FlushMainXml() As String
+        Try
+            Me.mMainXml = Me.msbMain.ToString
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("FlushMainXml", ex)
+        End Try
+    End Function
+
+    Public ReadOnly Property IsMainXmlEmpty() As Boolean
+        Get
+            If Me.mMainXml = "" Then
+                Return True
+            Else
+                Return False
+            End If
+        End Get
+    End Property
 
 End Class

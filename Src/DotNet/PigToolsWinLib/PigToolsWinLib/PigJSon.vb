@@ -25,13 +25,12 @@
 '* 1.3      15/12/2021 Use LOG
 '*******************************************************
 Imports System.Text
-Imports PigToolsLiteLib
 
 ''' <summary>
 ''' JSON processing class|JSon处理类
 ''' </summary>
 Public Class PigJSon
-    Inherits PigBaseLocal
+    Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.3.10"
 
     ''' <summary>The type of the JSON element</summary>

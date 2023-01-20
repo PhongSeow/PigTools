@@ -10,6 +10,9 @@
 '1.0.3  PigMD5增加数组
 '1.0.4  Add PigBaseMini
 '**********************************
+''' <summary>
+''' MD5 Processing Class|MD5处理类
+''' </summary>
 Public Class PigMD5
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.0.4"

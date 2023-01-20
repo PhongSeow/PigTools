@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigFunc
 '* Author: Seow Phong
-'* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.19
+'* Version: 1.36
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -29,18 +29,36 @@
 '*1.16   5/7/2022   Modify GetHostIp
 '*1.17   6/7/2022   Add GetFileVersion
 '*1.18   19/7/2022  Add GetFileUpdateTime,GetFileCreateTime,GetFileMD5
-'*1.19   4/8/2022  Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
+'*1.19   4/8/2022   Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
+'*1.20   16/8/2022  Add GetMyExeName,GetMyPigProc,GetMyExePath
+'*1.21   17/8/2022  Add GetMyPigProc,GetMyExePath
+'*1.22   20/8/2022  Add Is64Bit,GetMachineGUID
+'*1.23   25/8/2022  Modify CtlStr2Src,Src2CtlStr,IsFolderExists
+'*1.25   2/9/2022   Add CheckFileDiff
+'*1.26   6/9/2022   Add IsMathDate,IsMathDecimal
+'*1.27   12/9/2022  Add GetEnmDispStr
+'*1.28   17/9/2022  Add IsStrongPassword,GetCompMinutePart
+'*1.29   17/10/2022  Add EscapeStr,UnEscapeStr
+'*1.30   18/10/2022  Modify EscapeStr,UnEscapeStr
+'*1.31   2/11/2022  Modify AddMultiLineText
+'*1.32   14/11/2022  Add GetTextBase64,ClearErr
+'*1.33   15/11/2022  Add GetTextSHA1
+'*1.35   18/1/2023  Modify GetUUID,GetMachineGUID, add mGetUUID,mGetMachineGUID
+'*1.36   19/1/2023  Modify mGetUUID,GetUUID,GetMachineGUID, add GetBootID,GetProductUuid
 '**********************************
 Imports System.IO
 Imports System.Net
 Imports System.Net.Sockets
 Imports System.Environment
 Imports System.Threading
+Imports System.Security.Cryptography
 
-
+''' <summary>
+''' Function set|功能函数集
+''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.19.8"
+    Private Const CLS_VERSION As String = "1.36.6"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -51,6 +69,14 @@ Public Class PigFunc
         Center = 3
     End Enum
 
+    ''' <summary>
+    ''' 检查不同的方式|Check different ways
+    ''' </summary>
+    Public Enum EnmCheckDiffType
+        Size_Date = 1
+        Size_Date_FastPigMD5 = 2
+        Size_FullPigMD5 = 3
+    End Enum
 
     ''' <summary>文件的部分</summary>
     Public Enum EnmFilePart
@@ -361,18 +387,18 @@ Public Class PigFunc
     End Function
 
     ''' <remarks>产生随机字符串</remarks>
-    Public Function GetRandString(StrLen As Integer, Optional MemberType As enmGetRandString = enmGetRandString.DisplayChar) As String
+    Public Function GetRandString(StrLen As Integer, Optional MemberType As EnmGetRandString = EnmGetRandString.DisplayChar) As String
         Dim i As Integer
         Dim intChar As Integer
         Try
             GetRandString = ""
             For i = 1 To StrLen
                 Select Case MemberType
-                    Case enmGetRandString.AllAsciiChar
+                    Case EnmGetRandString.AllAsciiChar
                         intChar = GetRandNum(0, 255)
-                    Case enmGetRandString.DisplayChar    '!-~
+                    Case EnmGetRandString.DisplayChar    '!-~
                         intChar = GetRandNum(33, 126)
-                    Case enmGetRandString.NumberAndLetter
+                    Case EnmGetRandString.NumberAndLetter
                         intChar = GetRandNum(1, 3)
                         Select Case intChar
                             Case 1  '0-9
@@ -382,10 +408,10 @@ Public Class PigFunc
                             Case 3  'a-z
                                 intChar = GetRandNum(97, 122)
                         End Select
-                    Case enmGetRandString.NumberOnly
+                    Case EnmGetRandString.NumberOnly
                         intChar = GetRandNum(48, 57)
                 End Select
-                If MemberType = enmGetRandString.AllAsciiChar Then
+                If MemberType = EnmGetRandString.AllAsciiChar Then
                     GetRandString = GetRandString & Right("0" & Hex(intChar), 2)
                 Else
                     GetRandString = GetRandString & Chr(intChar)
@@ -408,8 +434,8 @@ Public Class PigFunc
             Else
                 intStrLen = 16
             End If
-            strRndStr = GetRandString(64, enmGetRandString.DisplayChar)
-            strRndKey = GetRandString(intStrLen, enmGetRandString.NumberOnly)
+            strRndStr = GetRandString(64, EnmGetRandString.DisplayChar)
+            strRndKey = GetRandString(intStrLen, EnmGetRandString.NumberOnly)
             strTmp = GENow() & "-" & SrcKey & "-" & strRndStr
             If Is32Bit = True Then
                 strTmp = GEMD5(strTmp)
@@ -503,20 +529,20 @@ Public Class PigFunc
     End Sub
 
     ''' <remarks>获取文件路径的组成部分</remarks>
-    Public Function GetFilePart(ByVal FilePath As String, Optional FilePart As enmFilePart = enmFilePart.FileTitle) As String
+    Public Function GetFilePart(ByVal FilePath As String, Optional FilePart As EnmFilePart = EnmFilePart.FileTitle) As String
         Dim strTemp As String, i As Long, lngLen As Long
         Dim strPath As String = "", strFileTitle As String = ""
         Dim strOsPathSep As String = Me.OsPathSep
         Try
             GetFilePart = ""
             Select Case FilePart
-                Case enmFilePart.DriveNo
+                Case EnmFilePart.DriveNo
                     GetFilePart = GetStr(FilePath, "", ":", False)
                     If GetFilePart = "" Then
                         GetFilePart = GetStr(FilePath, "", "$", False)
                         If GetFilePart <> "" Then GetFilePart = GetFilePart & "$"
                     End If
-                Case enmFilePart.ExtName
+                Case EnmFilePart.ExtName
                     lngLen = Len(FilePath)
                     For i = lngLen To 1 Step -1
                         Select Case Mid(FilePath, i, 1)
@@ -528,7 +554,7 @@ Public Class PigFunc
                         End Select
 
                     Next
-                Case enmFilePart.FileTitle, enmFilePart.Path
+                Case EnmFilePart.FileTitle, EnmFilePart.Path
                     Do While True
                         strTemp = GetStr(FilePath, "", strOsPathSep, True)
                         If Len(strTemp) = 0 Then
@@ -549,7 +575,7 @@ Public Class PigFunc
                         End If
                         strPath = strPath & strTemp & strOsPathSep
                     Loop
-                    If FilePart = enmFilePart.FileTitle Then
+                    If FilePart = EnmFilePart.FileTitle Then
                         GetFilePart = strFileTitle
                     Else
                         GetFilePart = strPath
@@ -585,7 +611,6 @@ Public Class PigFunc
             If IsCut = True Then
                 SourceStr = Left(SourceStr, lngBegin - 1) & Mid(SourceStr, lngEnd + lngEndLen)
             End If
-            Me.ClearErr()
         Catch ex As Exception
             GetStr = ""
             Me.SetSubErrInf("GetStr", ex)
@@ -601,7 +626,6 @@ Public Class PigFunc
 #Else
             UrlEncode = System.Uri.EscapeDataString(SrcUrl)
 #End If
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("UrlEncode", ex)
             Return Nothing
@@ -616,7 +640,6 @@ Public Class PigFunc
             UrlDecode = System.Uri.UnescapeDataString(DecodeUrl)
 #End If
 
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("UrlDecode", ex)
             Return Nothing
@@ -719,7 +742,6 @@ Public Class PigFunc
             End If
 
             Return dteStart.AddSeconds(LngValue + intHourAdd * 3600)
-            Me.ClearErr()
         Catch ex As Exception
             Return dteStart
             Me.SetSubErrInf("Lng2Date", ex)
@@ -743,6 +765,7 @@ Public Class PigFunc
 
     Public Function Src2CtlStr(ByRef SrcStr As String) As String
         Try
+            If SrcStr Is Nothing Then SrcStr = ""
             If SrcStr.IndexOf(vbCrLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\r\n")
             If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
             If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
@@ -757,6 +780,7 @@ Public Class PigFunc
 
     Public Function CtlStr2Src(ByRef CtlStr As String) As String
         Try
+            If CtlStr Is Nothing Then CtlStr = ""
             If CtlStr.IndexOf("\r\n") > 0 Then CtlStr = Replace(CtlStr, "\r\n", vbCrLf)
             If CtlStr.IndexOf("\r") > 0 Then CtlStr = Replace(CtlStr, "\r", vbCr)
             If CtlStr.IndexOf("\t") > 0 Then CtlStr = Replace(CtlStr, "\t", vbTab)
@@ -777,7 +801,7 @@ Public Class PigFunc
                     strTabs &= vbTab
                 Next
             End If
-            MainText &= strTabs & NewLine & vbCrLf
+            MainText &= strTabs & NewLine & Me.OsCrLf
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddMultiLineText", ex)
@@ -793,14 +817,23 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function IsFolderExists(FolderPath As String) As Boolean
+    Public Function IsFolderExists(FolderPath As String, Optional IsNotExistsCreate As Boolean = False) As Boolean
         Try
-            Return Directory.Exists(FolderPath)
+            If Directory.Exists(FolderPath) = True Then
+                Return True
+            ElseIf IsNotExistsCreate = True Then
+                Dim strRet As String = Me.CreateFolder(FolderPath)
+                If strRet <> "OK" Then Throw New Exception(strRet)
+                Return Directory.Exists(FolderPath)
+            Else
+                Return False
+            End If
         Catch ex As Exception
             Me.SetSubErrInf("IsFolderExists", ex)
-            Return Nothing
+            Return False
         End Try
     End Function
+
 
     Public Function GetEnvVar(EnvVarName As String) As String
         Return GetEnvironmentVariable(EnvVarName)
@@ -1265,45 +1298,138 @@ Public Class PigFunc
         End Try
     End Function
 
-
-    Public Function GetUUID() As String
-        Dim LOG As New PigStepLog("GetUUID")
+    Public Function GetWindowsProductId() As String
+        Dim LOG As New PigStepLog("GetWindowsProductId")
         Try
             If Me.IsWindows = True Then
-                GetUUID = ""
+                LOG.StepName = "New PigReg"
+                Dim oPigReg As New PigReg
+                LOG.StepName = "GetRegValue"
+                GetWindowsProductId = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductId", "")
+                If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
             Else
-                Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
-                LOG.StepName = "New PigFile"
-                Dim oPigFile As New PigFile(strFilePath)
-                If oPigFile.LastErr <> "" Then
-                    LOG.AddStepNameInf(strFilePath)
-                    Throw New Exception(oPigFile.LastErr)
-                End If
-                LOG.StepName = "oPigFile.LoadFile"
-                LOG.Ret = oPigFile.LoadFile()
-                If LOG.Ret <> "OK" Then
-                    LOG.AddStepNameInf(strFilePath)
-                    Throw New Exception(LOG.Ret)
-                End If
-                LOG.StepName = "New PigText"
-                Dim oPigText As New PigText(oPigFile.GbMain.Main, PigText.enmTextType.Unicode)
-                If oPigText.LastErr <> "" Then
-                    If oPigFile.GbMain Is Nothing Then
-                        LOG.AddStepNameInf("oPigFile.GbMain Is Nothing")
-                    ElseIf oPigFile.GbMain.Main Is Nothing Then
-                        LOG.AddStepNameInf("oPigFile.GbMain.Main Is Nothing")
-                    Else
-                        LOG.AddStepNameInf("Main.Length=" & oPigFile.GbMain.Main.Length)
-                    End If
-                    Throw New Exception(oPigText.LastErr)
-                End If
-                GetUUID = oPigText.Text
-                GetUUID = oPigFile.GbMain.Main.Length
-                oPigFile = Nothing
-                oPigText = Nothing
+                Throw New Exception("Only run on Windows")
             End If
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
+
+    Private Function mGetMachineGUID(ByRef OutGUID As String) As String
+        Dim LOG As New PigStepLog("mGetMachineGUID")
+        Try
+            If Me.IsWindows = True Then
+                LOG.StepName = "New PigReg"
+                Dim oPigReg As New PigReg
+                LOG.StepName = "GetRegValue"
+                OutGUID = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Cryptography", "MachineGuid", "")
+                If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
+                oPigReg = Nothing
+            Else
+                Throw New Exception("Only run on Windows")
+            End If
+            Return "OK"
+        Catch ex As Exception
+            OutGUID = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetMachineGUID() As String
+        Try
+            Dim strGUID As String = ""
+            Dim strRet As String = Me.mGetMachineGUID(strGUID)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return strGUID
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMachineGUID", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get the product ID of Linux operating system|获取Linux操作系统的产品标识
+    ''' </summary>
+    ''' <param name="RetInf">Returning OK indicates success, others indicate failure|返回OK表示成功，其他为失败</param>
+    ''' <returns></returns>
+    Public Function GetProductUuid(Optional ByRef RetInf As String = "") As String
+        Dim LOG As New PigStepLog("GetProductUuid")
+        Try
+            Dim strProductUuid As String = ""
+            Dim strFilePath As String = "/sys/class/dmi/id/product_uuid"
+            If Me.IsFileExists(strFilePath) = True Then
+                LOG.StepName = "GetFileText"
+                LOG.Ret = Me.GetFileText(strFilePath, strProductUuid)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                strProductUuid = Replace(Trim(strProductUuid), vbCrLf, "")
+                strProductUuid = Replace(strProductUuid, Me.OsCrLf, "")
+            Else
+                Throw New Exception(strFilePath & " not found.")
+            End If
+            RetInf = "OK"
+            Return strProductUuid
+        Catch ex As Exception
+            RetInf = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get the unique boot ID of the Linux operating system|获取Linux操作系统的开机唯一标识
+    ''' </summary>
+    ''' <param name="RetInf">Returning OK indicates success, others indicate failure|返回OK表示成功，其他为失败</param>
+    ''' <returns></returns>
+    Public Function GetBootID(Optional ByRef RetInf As String = "") As String
+        Dim LOG As New PigStepLog("GetBootID")
+        Try
+            Dim strBootID As String = ""
+            Dim strFilePath As String = "/proc/sys/kernel/random/boot_id"
+            If Me.IsFileExists(strFilePath) = True Then
+                LOG.StepName = "GetFileText"
+                LOG.Ret = Me.GetFileText(strFilePath, strBootID)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                strBootID = Replace(Trim(strBootID), vbCrLf, "")
+                strBootID = Replace(strBootID, Me.OsCrLf, "")
+            Else
+                Throw New Exception(strFilePath & " not found.")
+            End If
+            RetInf = "OK"
+            Return strBootID
+        Catch ex As Exception
+            RetInf = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
+
+    Private Function mGetUUID(ByRef OutUUID As String) As String
+        Dim LOG As New PigStepLog("mGetUUID")
+        Try
+            Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
+            If Me.IsFileExists(strFilePath) = True Then
+                LOG.StepName = "GetFileText"
+                LOG.Ret = Me.GetFileText(strFilePath, OutUUID)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                OutUUID = Replace(Trim(OutUUID), vbCrLf, "")
+                OutUUID = Replace(OutUUID, Me.OsCrLf, "")
+            Else
+                Throw New Exception(strFilePath & " not found.")
+            End If
+            Return "OK"
+        Catch ex As Exception
+            OutUUID = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+    Public Function GetUUID() As String
+        Try
+            'If Me.IsWindows = True Then Throw New Exception("Only run on Linux")
+            Dim strUUID As String = ""
+            Dim strRet As String = Me.mGetUUID(strUUID)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return strUUID
+        Catch ex As Exception
+            Me.SetSubErrInf("GetUUID", ex)
             Return ""
         End Try
     End Function
@@ -1484,5 +1610,342 @@ Public Class PigFunc
         End Try
     End Function
 
+    Public Function GetMyExeName() As String
+        Try
+            Dim intPID As Integer = Me.fMyPID
+            Dim oPigProc As New PigProc(Me.fMyPID)
+            If oPigProc.LastErr <> "" Then Throw New Exception(oPigProc.LastErr)
+            If Me.IsWindows = True Then
+                GetMyExeName = oPigProc.ProcessName & ".exe"
+            Else
+                GetMyExeName = oPigProc.ProcessName
+            End If
+            oPigProc = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMyExeName", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetMyExePath() As String
+        Try
+            Dim intPID As Integer = Me.fMyPID
+            Dim oPigProc As New PigProc(Me.fMyPID)
+            If oPigProc.LastErr <> "" Then Throw New Exception(oPigProc.LastErr)
+            GetMyExePath = oPigProc.FilePath
+            oPigProc = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMyExePath", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetMyPigProc() As PigProc
+        Try
+            Dim intPID As Integer = Me.fMyPID
+            GetMyPigProc = New PigProc(Me.fMyPID)
+            If GetMyPigProc.LastErr <> "" Then Throw New Exception(GetMyPigProc.LastErr)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMyPigProc", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    Public Function Is64Bit() As Boolean
+        If System.Runtime.InteropServices.Marshal.SizeOf(IntPtr.Zero) * 8 = 64 Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
+    Public Function CheckFileDiff(SrcFile As String, TarFile As String, ByRef IsDiff As Boolean, Optional CheckDiffType As EnmCheckDiffType = EnmCheckDiffType.Size_Date_FastPigMD5) As String
+        Dim strStepName As String = "", strRet As String = ""
+        Try
+            strStepName = "New SrcFile"
+            Dim pfSrc As New PigFile(SrcFile)
+            strStepName = "New SrcFile"
+            Dim pfTar As New PigFile(TarFile)
+            Dim lngSrcSize As Long = pfSrc.Size
+            If lngSrcSize < 0 Then Throw New Exception("SrcFile size invalid")
+            Dim lngTarSize As Long = pfTar.Size
+            If lngTarSize < 0 Then Throw New Exception("TarFile size invalid")
+            If lngSrcSize <> lngTarSize Then
+                IsDiff = True
+            Else
+                Select Case CheckDiffType
+                    Case EnmCheckDiffType.Size_Date, EnmCheckDiffType.Size_Date_FastPigMD5
+                        If pfSrc.UpdateTime <> pfTar.UpdateTime Then
+                            IsDiff = True
+                        ElseIf CheckDiffType = EnmCheckDiffType.Size_Date Then
+                            IsDiff = False
+                        Else
+                            Dim pmSrc As PigMD5 = Nothing, pmTar As PigMD5 = Nothing
+                            strStepName = "GetFastPigMD5(pmSrc)"
+                            strRet = pfSrc.GetFastPigMD5(pmSrc)
+                            If strRet <> "OK" Then Throw New Exception(strRet)
+                            strStepName = "GetFastPigMD5(pmTar)"
+                            strRet = pfTar.GetFastPigMD5(pmTar)
+                            If strRet <> "OK" Then Throw New Exception(strRet)
+                            strStepName = "Check Diff"
+                            If pmSrc.PigMD5 <> pmTar.PigMD5 Then
+                                IsDiff = True
+                            Else
+                                IsDiff = False
+                            End If
+                            pmSrc = Nothing
+                            pmTar = Nothing
+                        End If
+                    Case EnmCheckDiffType.Size_FullPigMD5
+                        Dim pmSrc As PigMD5 = Nothing, pmTar As PigMD5 = Nothing
+                        strStepName = "GetFullPigMD5(pmSrc)"
+                        strRet = pfSrc.GetFullPigMD5(pmSrc)
+                        If strRet <> "OK" Then Throw New Exception(strRet)
+                        strStepName = "GetFullPigMD5(pmTar)"
+                        strRet = pfTar.GetFullPigMD5(pmTar)
+                        If strRet <> "OK" Then Throw New Exception(strRet)
+                        strStepName = "Check Diff"
+                        If pmSrc.PigMD5 <> pmTar.PigMD5 Then
+                            IsDiff = True
+                        Else
+                            IsDiff = False
+                        End If
+                        pmSrc = Nothing
+                        pmTar = Nothing
+                    Case Else
+                        Throw New Exception("Invalid CheckDiffType" & CheckDiffType.ToString)
+                End Select
+            End If
+            Return "OK"
+        Catch ex As Exception
+            IsDiff = Nothing
+            Return Me.GetSubErrInf("IsFileDiff", strStepName, ex)
+        End Try
+    End Function
+
+    Public Function IsMathDate(Date1 As Date, Date2 As Date, Optional DateFmt As String = "yyyy-MM-dd HH:mm.ss.f") As Boolean
+        Try
+            Dim strDate1 As String = Format(Date1, DateFmt)
+            Dim strDate2 As String = Format(Date2, DateFmt)
+            If strDate1 = strDate2 Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsMathDate", ex)
+            Return False
+        End Try
+    End Function
+
+    Public Function IsMathDecimal(Dec1 As Decimal, Dec2 As Decimal, Optional Decimals As Integer = 4) As Boolean
+        Try
+            Dim strDec1 As String = Math.Round(Dec1, Decimals)
+            Dim strDec2 As String = Math.Round(Dec2, Decimals)
+            If strDec1 = strDec2 Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsMathDecimal", ex)
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get the longest line in a piece of text|获取一段文本中长度最大的行
+    ''' </summary>
+    ''' <param name="SrcStr">Source text|源文</param>
+    ''' <param name="LineSeparator">Line Separator|行分隔符</param>
+    ''' <returns></returns>
+    Public Function GetMaxStr(SrcStr As String, Optional LineSeparator As String = vbCrLf) As String
+        Try
+            If LineSeparator = "" Then LineSeparator = Me.OsCrLf
+            Dim oList As New List(Of String)
+            Do While True
+                Dim strLine As String = Me.GetStr(SrcStr, "", LineSeparator)
+                If strLine = "" Then Exit Do
+                oList.Add(strLine)
+            Loop
+            oList.Sort()
+            GetMaxStr = oList.Item(oList.Count - 1)
+            oList = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMaxStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get the line with the smallest length in a piece of text|获取一段文本中长度最小的行
+    ''' </summary>
+    ''' <param name="SrcStr">Source text|源文</param>
+    ''' <param name="LineSeparator">Line Separator|行分隔符</param>
+    ''' <returns></returns>
+    Public Function GetMinStr(SrcStr As String, Optional LineSeparator As String = vbCrLf) As String
+        Try
+            If LineSeparator = "" Then LineSeparator = Me.OsCrLf
+            Dim oList As New List(Of String)
+            Do While True
+                Dim strLine As String = Me.GetStr(SrcStr, "", LineSeparator)
+                If strLine = "" Then Exit Do
+                oList.Add(strLine)
+            Loop
+            oList.Sort()
+            GetMinStr = oList.Item(0)
+            oList = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMinStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetEnmDispStr(EnmValue As Object, Optional IsCommaFirst As Boolean = True) As String
+        Try
+            If IsCommaFirst = True Then
+                GetEnmDispStr = ","
+            Else
+                GetEnmDispStr = ""
+            End If
+            GetEnmDispStr &= CInt(EnmValue) & "-" & EnmValue.ToString
+        Catch ex As Exception
+            Me.SetSubErrInf("GetEnmDispStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function IsStrongPassword(SrcPwd As String, Optional NeedLen As Integer = 8, Optional IsNeedSymbol As Boolean = True)
+        Try
+            Dim intPwdLen As Integer = Len(SrcPwd)
+            If intPwdLen < 6 Or intPwdLen < NeedLen Then Throw New Exception("Password is too short")
+            Const SYMBOL_LIST As String = "~!@#$%^&*()_+{}|:""<>?`-=[]\;',./"
+            Dim bolUpperLetter As Boolean = False, bolLowerLetter As Boolean = False, bolNumber As Boolean = False, bolIsSymbol As Boolean = False
+            For i = 0 To SrcPwd.Length - 1
+                Dim strChar As String = SrcPwd.Substring(i, 1)
+                If bolIsSymbol = False Then
+                    If InStr(SYMBOL_LIST, strChar) > 0 Then
+                        bolIsSymbol = True
+                    End If
+                End If
+                If bolNumber = False Then
+                    Select Case strChar
+                        Case "0" To "9"
+                            bolNumber = True
+                    End Select
+                End If
+                If bolUpperLetter = False Then
+                    Select Case strChar
+                        Case "A" To "Z"
+                            bolUpperLetter = True
+                    End Select
+                End If
+                If bolLowerLetter = False Then
+                    Select Case strChar
+                        Case "a" To "z"
+                            bolLowerLetter = True
+                    End Select
+                End If
+            Next
+            If IsNeedSymbol = True Then
+                If bolIsSymbol And bolLowerLetter And bolNumber And bolLowerLetter Then
+                    Return True
+                Else
+                    Return False
+                End If
+            ElseIf bolLowerLetter And bolNumber And bolLowerLetter Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsStrongPassword", ex)
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 获取一个格林威治时间最接近的分钟部分|Get the nearest minute part of Greenwich Mean Time
+    ''' </summary>
+    ''' <param name="SrcTime"></param>
+    ''' <returns></returns>
+    Public Function GetCompMinutePart(SrcTime As DateTime) As String
+        Try
+            Dim dteComp As DateTime = SrcTime.ToUniversalTime()
+            If dteComp.Second > 30 Then dteComp.AddMinutes(1)
+            GetCompMinutePart = Format(dteComp, "yyyyMMddHHmm")
+        Catch ex As Exception
+            Me.SetSubErrInf("", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 转义字符串
+    ''' </summary>
+    ''' <param name="SrcStr">源字符串</param>
+    Public Function EscapeStr(SrcStr As String) As String
+        Try
+            If SrcStr Is Nothing Then
+                EscapeStr = ""
+            Else
+                EscapeStr = SrcStr
+            End If
+            If InStr(EscapeStr, "&") > 0 Then EscapeStr = Replace(EscapeStr, "&", "&apos;")
+            If InStr(EscapeStr, "<") > 0 Then EscapeStr = Replace(EscapeStr, "<", "&lt;")
+            If InStr(EscapeStr, ">") > 0 Then EscapeStr = Replace(EscapeStr, ">", "&gt;")
+        Catch ex As Exception
+            Me.SetSubErrInf("EscapeStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 还原转义字符串
+    ''' </summary>
+    ''' <param name="EscapeStr">已转义字符串</param>
+    Public Function UnEscapeStr(EscapeStr As String) As String
+        Try
+            If EscapeStr Is Nothing Then
+                UnEscapeStr = ""
+            Else
+                UnEscapeStr = EscapeStr
+            End If
+            If InStr(UnEscapeStr, "&apos;") > 0 Then UnEscapeStr = Replace(UnEscapeStr, "&apos;", "&")
+            If InStr(UnEscapeStr, "&lt;") > 0 Then UnEscapeStr = Replace(UnEscapeStr, "&lt;", "<")
+            If InStr(UnEscapeStr, "&gt;") > 0 Then UnEscapeStr = Replace(UnEscapeStr, "&gt;", ">")
+        Catch ex As Exception
+            Me.SetSubErrInf("UnEscapeStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetTextBase64(SrcText As String, TextType As PigText.enmTextType) As String
+        Try
+            Dim oPigText As New PigText(SrcText, TextType)
+            GetTextBase64 = oPigText.Base64
+            oPigText = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetTextBase64", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetTextSHA1(SrcText As String, TextType As PigText.enmTextType) As String
+        Try
+            Dim oPigText As New PigText(SrcText, TextType)
+            Dim oSHA1 As New SHA1CryptoServiceProvider()
+            GetTextSHA1 = BitConverter.ToString(oSHA1.ComputeHash(oPigText.TextBytes))
+            GetTextSHA1 = Replace(GetTextSHA1, "-", "")
+            oPigText = Nothing
+        Catch ex As Exception
+            Me.SetSubErrInf("GetTextSHA1", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Overloads Sub ClearErr()
+        MyBase.ClearErr()
+    End Sub
 
 End Class

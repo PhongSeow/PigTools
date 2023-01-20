@@ -16,6 +16,9 @@ Imports System.IO
 Imports System.IO.Compression
 Imports System.Text
 
+''' <summary>
+''' Compression class|压缩处理类
+''' </summary>
 Public Class PigCompressor
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.2.6"

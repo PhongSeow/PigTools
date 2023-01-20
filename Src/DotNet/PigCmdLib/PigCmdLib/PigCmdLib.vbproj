@@ -21,13 +21,9 @@ Asynchronous processing.
 Wmic calls and operating system commands.
 Get host hardware and software information.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.2.2</Version>
+    <Version>2.2.6</Version>
     <PackageReleaseNotes>Add PigHost for get host base information.</PackageReleaseNotes>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="My Project\" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="SeowPhongLogo.png">
@@ -37,7 +33,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.92" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.108" />
   </ItemGroup>
 
 </Project>

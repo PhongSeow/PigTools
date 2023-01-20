@@ -19,6 +19,9 @@
 Imports System
 Imports System.Runtime.InteropServices
 
+''' <summary>
+''' Shared memory processing class|共享内存处理类
+''' </summary>
 Public Class ShareMem
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.1.2"

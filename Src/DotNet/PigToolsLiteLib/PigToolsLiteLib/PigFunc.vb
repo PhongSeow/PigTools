@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.35
+'* Version: 1.36
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -44,6 +44,7 @@
 '*1.32   14/11/2022  Add GetTextBase64,ClearErr
 '*1.33   15/11/2022  Add GetTextSHA1
 '*1.35   18/1/2023  Modify GetUUID,GetMachineGUID, add mGetUUID,mGetMachineGUID
+'*1.36   19/1/2023  Modify mGetUUID,GetUUID,GetMachineGUID, add GetBootID,GetProductUuid
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -57,7 +58,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.32.12"
+    Private Const CLS_VERSION As String = "1.36.6"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -1307,7 +1308,7 @@ Public Class PigFunc
                 GetWindowsProductId = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductId", "")
                 If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
             Else
-                Return ""
+                Throw New Exception("Only run on Windows")
             End If
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -1336,18 +1337,67 @@ Public Class PigFunc
     End Function
 
     Public Function GetMachineGUID() As String
-        Dim LOG As New PigStepLog("GetMachineGUID")
         Try
             Dim strGUID As String = ""
-            Me.mGetMachineGUID(strGUID)
-            If strGUID = "" Then
-                LOG.StepName = ""
-                LOG.Ret = Me.mGetUUID(strGUID)
-                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-            End If
+            Dim strRet As String = Me.mGetMachineGUID(strGUID)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Return strGUID
         Catch ex As Exception
-            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Me.SetSubErrInf("GetMachineGUID", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get the product ID of Linux operating system|获取Linux操作系统的产品标识
+    ''' </summary>
+    ''' <param name="RetInf">Returning OK indicates success, others indicate failure|返回OK表示成功，其他为失败</param>
+    ''' <returns></returns>
+    Public Function GetProductUuid(Optional ByRef RetInf As String = "") As String
+        Dim LOG As New PigStepLog("GetProductUuid")
+        Try
+            Dim strProductUuid As String = ""
+            Dim strFilePath As String = "/sys/class/dmi/id/product_uuid"
+            If Me.IsFileExists(strFilePath) = True Then
+                LOG.StepName = "GetFileText"
+                LOG.Ret = Me.GetFileText(strFilePath, strProductUuid)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                strProductUuid = Replace(Trim(strProductUuid), vbCrLf, "")
+                strProductUuid = Replace(strProductUuid, Me.OsCrLf, "")
+            Else
+                Throw New Exception(strFilePath & " not found.")
+            End If
+            RetInf = "OK"
+            Return strProductUuid
+        Catch ex As Exception
+            RetInf = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get the unique boot ID of the Linux operating system|获取Linux操作系统的开机唯一标识
+    ''' </summary>
+    ''' <param name="RetInf">Returning OK indicates success, others indicate failure|返回OK表示成功，其他为失败</param>
+    ''' <returns></returns>
+    Public Function GetBootID(Optional ByRef RetInf As String = "") As String
+        Dim LOG As New PigStepLog("GetBootID")
+        Try
+            Dim strBootID As String = ""
+            Dim strFilePath As String = "/proc/sys/kernel/random/boot_id"
+            If Me.IsFileExists(strFilePath) = True Then
+                LOG.StepName = "GetFileText"
+                LOG.Ret = Me.GetFileText(strFilePath, strBootID)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                strBootID = Replace(Trim(strBootID), vbCrLf, "")
+                strBootID = Replace(strBootID, Me.OsCrLf, "")
+            Else
+                Throw New Exception(strFilePath & " not found.")
+            End If
+            RetInf = "OK"
+            Return strBootID
+        Catch ex As Exception
+            RetInf = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return ""
         End Try
     End Function
@@ -1358,30 +1408,28 @@ Public Class PigFunc
             Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
             If Me.IsFileExists(strFilePath) = True Then
                 LOG.StepName = "GetFileText"
-                LOG.Ret = Me.GetFileText(strFilePath, mGetUUID)
+                LOG.Ret = Me.GetFileText(strFilePath, OutUUID)
                 If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                OutUUID = Replace(Trim(OutUUID), vbCrLf, "")
+                OutUUID = Replace(OutUUID, Me.OsCrLf, "")
             Else
                 Throw New Exception(strFilePath & " not found.")
             End If
             Return "OK"
         Catch ex As Exception
-            mGetUUID = ""
+            OutUUID = ""
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
     Public Function GetUUID() As String
-        Dim LOG As New PigStepLog("GetUUID")
         Try
+            'If Me.IsWindows = True Then Throw New Exception("Only run on Linux")
             Dim strUUID As String = ""
-            Me.mGetUUID(strUUID)
-            If strUUID = "" Then
-                LOG.StepName = ""
-                LOG.Ret = Me.mGetMachineGUID(strUUID)
-                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-            End If
+            Dim strRet As String = Me.mGetUUID(strUUID)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Return strUUID
         Catch ex As Exception
-            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Me.SetSubErrInf("GetUUID", ex)
             Return ""
         End Try
     End Function

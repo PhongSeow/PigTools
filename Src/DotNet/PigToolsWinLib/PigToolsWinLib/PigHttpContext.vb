@@ -25,7 +25,6 @@ Imports System.Web
 #Else
 Imports Microsoft.AspNetCore.Http
 #End If
-Imports PigToolsLiteLib
 Imports System.Collections.Specialized
 
 
@@ -33,7 +32,7 @@ Imports System.Collections.Specialized
 ''' HTTP context processing class|HTTP上下文处理类
 ''' </summary>
 Public Class PigHttpContext
-    Inherits PigBaseLocal
+    Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.7.18"
 
     Public Enum enmWhatHtmlEle '什么HTML元素

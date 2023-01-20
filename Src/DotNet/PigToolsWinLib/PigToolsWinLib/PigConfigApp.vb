@@ -2,9 +2,9 @@
 '* Name: 豚豚配置应用|PigConfigApp
 '* Author: Seow Phong
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: 配置应用类|Configure application classes
+'* Describe: Configuration Processing Class|配置处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.13
+'* Version: 1.15
 '* Create Time: 18/12/2021
 '* 1.1    20/12/2020   Add mNew,MkEncKey,mLoadConfig,GetEncStr
 '* 1.2    21/12/2020   Modify mLoadConfig,EnmSaveType,mNew, add LoadConfig,LoadConfigFile,SaveConfigFile,SaveConfig,PigConfigSessions,AddNewConfigSession
@@ -19,11 +19,21 @@
 '* 1.11   21/2/2022    Modify mLoadConfig,IsChange,SaveConfigFile,SaveConfig, add fSetIsChangeFalse
 '* 1.12   9/5/2022     Remove fSetIsChangeFalse, modify fSaveCurrMD5
 '* 1.13   10/5/2022    Modify mLoadConfig,IsLoadConfClearFrist
+'* 1.14   24/8/2022    Modify New
+'* 1.15   15/8/2022    Modify New,mNew, add EnmEncType
 '**********************************
 Imports Microsoft.VisualBasic
+''' <summary>
+''' Configuration Processing Class|配置处理类
+''' </summary>
 Public Class PigConfigApp
-    Inherits PigBaseMini
-	Private Const CLS_VERSION As String = "1.13.6"
+	Inherits PigBaseMini
+	Private Const CLS_VERSION As String = "1.15.6"
+	Public Enum EnmEncType
+		RSA_AES = 0
+		RSA_3DES = 1
+	End Enum
+
 	Public Enum EnmSaveType
 		''' <summary>
 		''' XML text
@@ -43,10 +53,12 @@ Public Class PigConfigApp
 		Registry = 3
 	End Enum
 
-	Private mprEnc As PigRsa
-	Private mpaEnc As PigAes
+	Private mPigRsa As PigRsa
+	Private mPigAes As PigAes
+	Private mPigTripleDES As PigTripleDES
 	Private moPigFunc As New PigFunc
 	Private moPigConfigSessions As PigConfigSessions
+	Public ReadOnly Property EncType As EnmEncType = PigConfigApp.EnmEncType.RSA_AES
 	Public Property PigConfigSessions As PigConfigSessions
 		Get
 			Return moPigConfigSessions
@@ -57,51 +69,97 @@ Public Class PigConfigApp
 	End Property
 
 
-	Public Sub New()
+	Public Sub New(Optional EncType As EnmEncType = EnmEncType.RSA_AES)
 		MyBase.New(CLS_VERSION)
-		Me.mNew("")
-	End Sub
-
-	Public Sub New(TextType As PigText.enmTextType)
-		MyBase.New(CLS_VERSION)
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+		Me.EncType = EncType
+#Else
+		Me.EncType = EnmEncType.RSA_3DES
+#End If
 		Me.mNew("", TextType)
 	End Sub
 
-	Public Sub New(EncKey As String, TextType As PigText.enmTextType)
+	Public Sub New(TextType As PigText.enmTextType, Optional EncType As EnmEncType = EnmEncType.RSA_AES)
 		MyBase.New(CLS_VERSION)
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+		Me.EncType = EncType
+#Else
+		Me.EncType = EnmEncType.RSA_3DES
+#End If
+		Me.mNew("", TextType)
+	End Sub
+
+	Public Sub New(EncKey As String, TextType As PigText.enmTextType, Optional EncType As EnmEncType = EnmEncType.RSA_AES)
+		MyBase.New(CLS_VERSION)
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+		Me.EncType = EncType
+#Else
+		Me.EncType = EnmEncType.RSA_3DES
+#End If
 		Me.mNew(EncKey, TextType)
 	End Sub
 
-	Public Sub New(EncKey As String)
+	Public Sub New(EncKey As String, Optional EncType As EnmEncType = EnmEncType.RSA_AES)
 		MyBase.New(CLS_VERSION)
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+		Me.EncType = EncType
+#Else
+		Me.EncType = EnmEncType.RSA_3DES
+#End If
 		Me.mNew(EncKey)
 	End Sub
 
 	Private Sub mNew(EncKey As String, Optional TextType As PigText.enmTextType = PigText.enmTextType.UTF8)
 		Dim LOG As New PigStepLog("mNew")
 		Try
-			mpaEnc = New PigAes
-			LOG.StepName = "PigAes.LoadEncKey"
-			Dim strEncKey As String = "zLZ+47SGy/2pp2glqxlXnUKYUmbmq5+B28w8qCE+K2R0vScuXI1zBFGuEW9TH7vo6uL7sY6yR4eD0+XzykWPax3DzzTB1xxOtvi5dvxqZO6T6aO3N7jw0iwdjflySzhxxQ54O2nexFVe/2J8pHAMOTszTL7fA5jY1CQ2RBuW4LxuFCCFEihtWwdJxsdNd7U/oDqwCIgJQSN9KppKf5yJwhZfhYy6LxWmr1BvzfXBXUZIQFkPMFSlKSV1Q1EoozHJv2UtkmM1eqxYVhcYnsgGkPGLAVmVWk4winvrm9Dt2hNnbNbdC4AiswChwB5GEq6XmZGqYD1h9noygpSiefSCGg=="
-			LOG.Ret = mpaEnc.LoadEncKey(strEncKey)
-			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-			mprEnc = New PigRsa
-			If EncKey = "" Then
-				EncKey = "Uo0ltXATzVUmxfeOzTndcp9Xt9FcHSq62dqHhJyWSPedC1csnw5z4AExmOywhc3XCGM6iiQBxznelkGwbVHlx5n7N8Y5ZzY3PI3NsqJFHVtmRjkRc7eFwF5ADQKZ5t+lVTMinIK2mccGJvxHaeu/ocmn91OdzbtDpaItpvUzS49iwq9GWoePCZXl1CTiZ2eVEL1tuZTji4pXd7WH7Q+Ti5vlOKYMvmkxcdf4nkiif8gZyRR2pXb80JlkJFor14UuFgJcIMHnOIZEwtkU3mhcgD7DELdFo9BLwA/ohzI8kwlC5slZ1TJNd43Xgjjz6pqP3DqL5z2xUsZxV2736IRxQCLuv1BYA/90QUEyrGDdiQNf+tiL5e+nFWNC1ZRFETwbYS/CB6JwqUKdyPYyY44KNmvIModb+IMY4SLz2HropLAGVCqroCrM7xxQrCCgeAuIa4SYnzSiB+9YG31sFQFXpuPQ54Slva/ppS5I0Xko3cxoPOv7jNPSKyK8RRtvYvcGVI09dJMQkYjZHGkuJKkKLdAEub0Tmrnm8h4vUlbe/dc2c3yKzIUx9Mhd8icaD3Ucxn6/3BIfKPuDZ4S8rTdhoTb2IenOZ23e0h1xgk5hU5S8u9A9+By9W/3ctevOFOCfN4ZLcenuSpAqEgGefv2wS05IMidhc3c92RdITXc/ZUjMTc3mZe8qw45eq6NdH6Q8y0S8OoB4/3lFdQeQcL/+WeX1FSGLFm2v+pEIe4285g+1XcqBmJS9E6A9SlzTAwXEFcohrNht4VJl6uZ4CPsmLpbb4G0FlZO340GEfvtEBz5D9anW6Ny3tSApl9jStlhuX5RZmB1micLBRuAncBOs656oI1/DSBfxbi/Yw3UB2zYUqTO7V9CmtQq0W0jm8jBdgAAsnNjMehqE9QFnohRaDNIK0JUpA/3VXVS7vmkMC2rBLp11n5SkkAQk5OS4G61UBEWTMRwtf908VOh1JlfzvUKSUdSDDp7IjAyij/yOpSWFayLb5lGtT3acGoCLdUyZecoYVtTg9grE5Sn4NbunOFTLtfb/dfaKw35hvWDK8RWPKSVZ5zqp+WzyTttwUCtBgTdETkQ0tp4FGQTzoYuEb/0Vkn0JCBtLKBYkWemNkhdpiwW/7Yfcp5R5URIMB1BgymM2og5nn2bq9alkeVFhdlldP5PhxzVsnDUT4UB/cQGQ0kP46bfhPFVBqWLS0ISwuZwq+oBDQSvXKI+MiPGtmA=="
-				LOG.StepName = "PigAes.Decrypt"
-				LOG.Ret = mpaEnc.Decrypt(EncKey, strEncKey, PigText.enmTextType.UTF8)
-				If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-			Else
-				LOG.StepName = "New PigBytes(EncKey)"
-				Dim oPigBytes As New PigBytes(EncKey)
-				If oPigBytes.LastErr <> "" Then Throw New Exception(oPigBytes.LastErr)
-				LOG.StepName = "PigAes.Decrypt"
-				LOG.Ret = mpaEnc.Decrypt(oPigBytes.Main, strEncKey, Me.TextType)
-				If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-				oPigBytes = Nothing
-			End If
+			Dim strEncKey As String
+			Select Case Me.EncType
+				Case EnmEncType.RSA_AES
+					mPigAes = New PigAes
+					LOG.StepName = "mPigAes.LoadEncKey"
+					strEncKey = "zLZ+47SGy/2pp2glqxlXnUKYUmbmq5+B28w8qCE+K2R0vScuXI1zBFGuEW9TH7vo6uL7sY6yR4eD0+XzykWPax3DzzTB1xxOtvi5dvxqZO6T6aO3N7jw0iwdjflySzhxxQ54O2nexFVe/2J8pHAMOTszTL7fA5jY1CQ2RBuW4LxuFCCFEihtWwdJxsdNd7U/oDqwCIgJQSN9KppKf5yJwhZfhYy6LxWmr1BvzfXBXUZIQFkPMFSlKSV1Q1EoozHJv2UtkmM1eqxYVhcYnsgGkPGLAVmVWk4winvrm9Dt2hNnbNbdC4AiswChwB5GEq6XmZGqYD1h9noygpSiefSCGg=="
+					LOG.Ret = mPigAes.LoadEncKey(strEncKey)
+					If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+					If EncKey = "" Then
+						EncKey = "Uo0ltXATzVUmxfeOzTndcp9Xt9FcHSq62dqHhJyWSPedC1csnw5z4AExmOywhc3XCGM6iiQBxznelkGwbVHlx5n7N8Y5ZzY3PI3NsqJFHVtmRjkRc7eFwF5ADQKZ5t+lVTMinIK2mccGJvxHaeu/ocmn91OdzbtDpaItpvUzS49iwq9GWoePCZXl1CTiZ2eVEL1tuZTji4pXd7WH7Q+Ti5vlOKYMvmkxcdf4nkiif8gZyRR2pXb80JlkJFor14UuFgJcIMHnOIZEwtkU3mhcgD7DELdFo9BLwA/ohzI8kwlC5slZ1TJNd43Xgjjz6pqP3DqL5z2xUsZxV2736IRxQCLuv1BYA/90QUEyrGDdiQNf+tiL5e+nFWNC1ZRFETwbYS/CB6JwqUKdyPYyY44KNmvIModb+IMY4SLz2HropLAGVCqroCrM7xxQrCCgeAuIa4SYnzSiB+9YG31sFQFXpuPQ54Slva/ppS5I0Xko3cxoPOv7jNPSKyK8RRtvYvcGVI09dJMQkYjZHGkuJKkKLdAEub0Tmrnm8h4vUlbe/dc2c3yKzIUx9Mhd8icaD3Ucxn6/3BIfKPuDZ4S8rTdhoTb2IenOZ23e0h1xgk5hU5S8u9A9+By9W/3ctevOFOCfN4ZLcenuSpAqEgGefv2wS05IMidhc3c92RdITXc/ZUjMTc3mZe8qw45eq6NdH6Q8y0S8OoB4/3lFdQeQcL/+WeX1FSGLFm2v+pEIe4285g+1XcqBmJS9E6A9SlzTAwXEFcohrNht4VJl6uZ4CPsmLpbb4G0FlZO340GEfvtEBz5D9anW6Ny3tSApl9jStlhuX5RZmB1micLBRuAncBOs656oI1/DSBfxbi/Yw3UB2zYUqTO7V9CmtQq0W0jm8jBdgAAsnNjMehqE9QFnohRaDNIK0JUpA/3VXVS7vmkMC2rBLp11n5SkkAQk5OS4G61UBEWTMRwtf908VOh1JlfzvUKSUdSDDp7IjAyij/yOpSWFayLb5lGtT3acGoCLdUyZecoYVtTg9grE5Sn4NbunOFTLtfb/dfaKw35hvWDK8RWPKSVZ5zqp+WzyTttwUCtBgTdETkQ0tp4FGQTzoYuEb/0Vkn0JCBtLKBYkWemNkhdpiwW/7Yfcp5R5URIMB1BgymM2og5nn2bq9alkeVFhdlldP5PhxzVsnDUT4UB/cQGQ0kP46bfhPFVBqWLS0ISwuZwq+oBDQSvXKI+MiPGtmA=="
+						LOG.StepName = "PigAes.Decrypt"
+						LOG.Ret = mPigAes.Decrypt(EncKey, strEncKey, PigText.enmTextType.UTF8)
+						If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+					Else
+						LOG.StepName = "New PigBytes(EncKey)"
+						Dim oPigBytes As New PigBytes(EncKey)
+						If oPigBytes.LastErr <> "" Then Throw New Exception(oPigBytes.LastErr)
+						LOG.StepName = "PigAes.Decrypt"
+						LOG.Ret = mPigAes.Decrypt(oPigBytes.Main, strEncKey, Me.TextType)
+						If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+						oPigBytes = Nothing
+					End If
+				Case EnmEncType.RSA_3DES
+					mPigTripleDES = New PigTripleDES
+					LOG.StepName = "mPigTripleDES.LoadEncKey"
+					strEncKey = "Qd4siCmO3n6pR0FyS9Fi//FGsw8FX3EjlnZV1iUS+tk="
+					LOG.Ret = Me.mPigTripleDES.LoadEncKey(strEncKey)
+					If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+					If EncKey = "" Then
+						EncKey = "IqKPfR/arm1WHWTh40Y9F8/x0w55bhWKy1/4Gk2neMiJll7I87GKeqb0UnI8eOOIWNYuUoEdCWXm39iyBsmYIk++KLe9apwm4OQPxUTK/tZt9PbErzCsXdd0e5gfo3I40VkjS1COQuK2Lb49//oF3bQGAdUJZX1NusmCTuXTS8NcXpCozQ37vq2/+JEmS290POeKJV/mD3FNPINHpm8EhX/OLGePlqmqFOhBxeaaXsusDqd7a9WuflH8QKZ/8fdBNqEotyN9MQlctir+pmeu2WqlE33vmKZqmTh7q/n60E0gm3cy8djPWXPIb1N1eqnTd8PZXXJzghtWCv2Eehn7l3ii7wsMjbI0MzltoQCcDC8KVfC057qkfEZ4FcZQaDzIdMZzCb20XT+qxR3n8wFckHeU6ofLBj74INgeYlnSuyGpz8oJUvLI320VhEl/+YtsELE/5wVZ94Ymyvj+cSmnUPjAR7FVknSvhhzsZxFZjJ8G/7sTok+aYjjQ4Mv6Ukd3xIGM/QwzP69Wb0y07/8l/sqRPYHO5o5ohMdcKCRCkC/IMLOsShcxeiGB6ggxyk34hDXD4NKxIZLVp429YpF8qQYLClUDRLWP9cFEU6ZZ4nwKnt+VoWdOTqwZdo6/kKOqRHi+7l1X652/hvcaYdxXt3lE+YLApRJ0GHauQG3DBkg3pCthy+Vx++Pynn0rAmZ+6XWWqhVYu1l/koslWY9oDfUNo13hTNi7KBQQE9yFUyo2Q/qJcdbLDyhCDgHgNshrwCQ20zA7SkF07gB7wWqCMVGRWFNsHnxKK96dZISfx6VyVxTHin0y/ObXqSuO7NK+dVm4u7PWLwJ6crEEF8aZWnvdbQZPx+o7Zer81T/RrNg2Lv/RhySdyvdshtuOscozoTfyDavHADkJzAjXSB9CZ8Yja1zwn4TJ2PvPNGSKW06Ov7g94HBPOFMRXwUFCi+Y+SVylnVjrfE4RyERXPE90r4qMP0S011m2YU9Zel+zU3Fcmnk81S1UKfCEA73oacgssN6ZTf6Kkk7cGw3UvsCIZbRhb0A0fx8kX3TAl8dDAK06NxkQKj3t7VYdmPhvsv1RWOyg1j1vzJgzuZuDFEn0v/ZxJ64r6WCv/MruyLi2Oejjk4jKAvNP3uZYxUaCcquqH/w+ZoiuCYeLARENuRhJJMi+jd+eHpwHt/e/n2YFt3/UIq0eZTv+20SmJBUqb+n9FE+0Y3O/3KTrtW8jTHIjFC3hVPPJf2HVX/15xAE5VxiOItKYXpzaTqp5oZ/sjdauY4lgrXzQhk6ddzuQNnqhY2p4fAXeLsLX0XyemL5OYoVb5AViKeQT8e8yRhwh4OHmvFD9DnOHz876MfbGWRrNs93KEULKbDJWyiHW2RDa+3r4f5mZmbyGPMTkOxTg+02HGTrpPE3H247pKtf9zcw5Fb7aCHiSuZgOG/fJk64SJfL01WgDi7MRGt+okM8ByMVUh0YEZ1goqoDY1Dj26Td+3QplJvGAyLcI1j/7GoO7smunSwe1/D1gmFRA+f0oa+XWJGlNrxDFFiNweyVh5HTQe+RzwUZ9sA3KBgUXohD9p4yOEULhzpu39HWkeptQFoIfkhyqU/6ep91hv0vgiuFFMJkXZn7p9BB"
+						LOG.StepName = "PigAes.Decrypt"
+						LOG.Ret = mPigTripleDES.Decrypt(EncKey, strEncKey, PigText.enmTextType.UTF8)
+						If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+					Else
+						LOG.StepName = "New PigBytes(EncKey)"
+						Dim oPigBytes As New PigBytes(EncKey)
+						If oPigBytes.LastErr <> "" Then Throw New Exception(oPigBytes.LastErr)
+						LOG.StepName = "mPigTripleDES.Decrypt"
+						LOG.Ret = mPigTripleDES.Decrypt(oPigBytes.Main, strEncKey, Me.TextType)
+						If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+						oPigBytes = Nothing
+					End If
+				Case Else
+					Throw New Exception("Unknow EncType" & Me.EncType.ToString)
+			End Select
+			mPigRsa = New PigRsa
 			LOG.StepName = "PigRsa.LoadPubKey"
-			LOG.Ret = mprEnc.LoadPubKey(strEncKey)
+			LOG.Ret = mPigRsa.LoadPubKey(strEncKey)
 			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			LOG.StepName = "New PigConfigSessions"
 			Me.PigConfigSessions = New PigConfigSessions(Me)
@@ -135,9 +193,16 @@ Public Class PigConfigApp
 			LOG.StepName = "New PigBytes"
 			Dim oPigBytes As New PigBytes(oPigText.TextBytes)
 			If oPigBytes.LastErr <> "" Then Throw New Exception(oPigBytes.LastErr)
-			LOG.StepName = "PigAes.Encrypt"
-			LOG.Ret = mpaEnc.Encrypt(oPigBytes.Main, Base64EncKey)
-			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+			Select Case Me.EncType
+				Case EnmEncType.RSA_AES
+					LOG.StepName = "mPigAes.Encrypt"
+					LOG.Ret = Me.mPigAes.Encrypt(oPigBytes.Main, Base64EncKey)
+					If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+				Case EnmEncType.RSA_3DES
+					LOG.StepName = "mPigTripleDES.Encrypt"
+					LOG.Ret = Me.mPigTripleDES.Encrypt(oPigBytes.Main, Base64EncKey)
+					If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+			End Select
 			oPigBytes = Nothing
 			oPigText = Nothing
 			Return "OK"
@@ -413,7 +478,7 @@ Public Class PigConfigApp
 			If Mid(EncStrBase64, 1, 5) <> "{Enc}" Then Throw New Exception("Invalid EncStrBase64")
 			EncStrBase64 = Mid(EncStrBase64, 6)
 			LOG.StepName = "Decrypt"
-			LOG.Ret = Me.mprEnc.Decrypt(EncStrBase64, OutUnEncStr, Me.TextType)
+			LOG.Ret = Me.mPigRsa.Decrypt(EncStrBase64, OutUnEncStr, Me.TextType)
 			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			Return "OK"
 		Catch ex As Exception
@@ -430,7 +495,7 @@ Public Class PigConfigApp
 			Dim oPigText As New PigText(SrcStr, Me.TextType)
 			If oPigText.LastErr <> "" Then Throw New Exception(oPigText.LastErr)
 			LOG.StepName = "Encrypt"
-			LOG.Ret = Me.mprEnc.Encrypt(oPigText.TextBytes, strEncStr)
+			LOG.Ret = Me.mPigRsa.Encrypt(oPigText.TextBytes, strEncStr)
 			strEncStr = "{Enc}" & strEncStr
 			oPigText = Nothing
 			Return strEncStr

@@ -4,19 +4,23 @@
     <RootNamespace>PigToolsWinLib</RootNamespace>
     <TargetFrameworks>net20;net30;net40;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.3.103</Version>
+    <Version>3.3.108</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
-A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared Memory and compression.
+A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared Memory, md5 and compression.
 AES, 3DES and RSA encryption processing.
 Configuration file management supporting configuration item encryption.
 Simple sorting processing.
 HTTP request processing.
-HttpContext processing.
 Registry processing.
-JSon processing.
+Text processing.
 Xml processing.
+Key value and cache processing.
+Simplified logging and error handling.
+Multilingual processing.
+JSon processing.
+HTTP context processing.
 It can run on Windows platforms only.
 </Description>
     <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
@@ -26,7 +30,7 @@ It can run on Windows platforms only.
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsWinLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows JSon Register HttpContext</PackageTags>
+    <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows JSon Register HttpContext  host</PackageTags>
     <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
@@ -39,10 +43,6 @@ It can run on Windows platforms only.
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.96" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,7 +2,7 @@
 '* Name: 豚豚配置|PigConfig
 '* Author: Seow Phong
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: 配置项|Configuration item
+'* Describe: Configuration Item|配置项
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.7
 '* Create Time: 18/12/2021
@@ -14,6 +14,9 @@
 '* 1.6    8/5/2022   Modify fCurrPigMD5
 '* 1.7    9/5/2022   Modify IsChange
 '**********************************
+''' <summary>
+''' Configuration Item|配置项
+''' </summary>
 Public Class PigConfig
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.7.1"

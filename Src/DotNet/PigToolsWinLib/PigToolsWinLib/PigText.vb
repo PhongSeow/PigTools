@@ -19,6 +19,9 @@
 '1.0.15 2020-2-6    修改enmTextType
 '1.0.16 2020-2-12   修改 mNew
 '**********************************
+''' <summary>
+''' Text processing class|文本处理类
+''' </summary>
 Public Class PigText
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.0.16"
