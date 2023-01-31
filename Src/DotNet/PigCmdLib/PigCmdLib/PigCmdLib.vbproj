@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>PigCmdLib</RootNamespace>
-    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -21,7 +21,7 @@ Asynchronous processing.
 Wmic calls and operating system commands.
 Get host hardware and software information.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.2.6</Version>
+    <Version>2.2.8</Version>
     <PackageReleaseNotes>Add PigHost for get host base information.</PackageReleaseNotes>
   </PropertyGroup>
 
@@ -33,7 +33,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.108" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.110" />
   </ItemGroup>
 
 </Project>
