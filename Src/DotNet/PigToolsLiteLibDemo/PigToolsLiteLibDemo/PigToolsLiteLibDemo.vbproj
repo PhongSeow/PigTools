@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLibDemo</RootNamespace>
-    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>3.3.92</Version>
     <Authors>Seow Phong</Authors>
@@ -18,8 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.1.32" />
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.92" />
+    <PackageReference Include="PigCmdLib" Version="2.2.8" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.23.1
+'* Version: 1.25.1
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -29,6 +29,7 @@
 '* 1.21   27/10/2022  Add PigWebReqDemo
 '* 1.22   8/11/2022  Add PigSendDemo
 '* 1.23   15/11/2022 Modify PigFuncDemo,PigRsa
+'* 1.25   18/1/2023 Modify PigMLangDemo
 '************************************
 Imports PigToolsLiteLib
 Imports PigCmdLib
@@ -1212,9 +1213,16 @@ Public Class ConsoleDemo
                         Console.WriteLine(".GetProcThreadID=" & .GetProcThreadID)
                         Console.WriteLine(".UrlEncode=" & .UrlEncode("https://www.seowphong.com/oss/PigTools"))
                         Console.WriteLine(".UrlDecode=" & .UrlDecode("https%3A%2F%2Fwww.seowphong.com%2Foss%2FPigTools"))
+                        .ClearErr()
                         Console.WriteLine(".GetUUID=" & .GetUUID())
+                        If .LastErr <> "" Then Console.WriteLine(.LastErr)
+                        .ClearErr()
                         Console.WriteLine(".GetMachineGUID=" & .GetMachineGUID())
+                        If .LastErr <> "" Then Console.WriteLine(.LastErr)
+                        .ClearErr()
                         Console.WriteLine(".GetWindowsProductId=" & .GetWindowsProductId())
+                        If .LastErr <> "" Then Console.WriteLine(.LastErr)
+                        Console.WriteLine(".GetBootID=" & .GetBootID())
                         Console.WriteLine(".DigitalToChnName(1234567890)=" & .DigitalToChnName("1234567890", True)）
                         Console.WriteLine(".DigitalToChnName(3389)=" & .DigitalToChnName("3389", False)）
                         Console.WriteLine(".DigitalToChnName(大写1234567890)=" & .DigitalToChnName("1234567890", True, True)）
@@ -1553,12 +1561,12 @@ Public Class ConsoleDemo
                         If Me.PigConsole.IsYesOrNo("Is GlobalKey") = True Then
                             Me.PigConsole.GetLine("Input GlobalKey", Me.Key)
                             Me.PigConsole.GetLine("Input DefaultText", Me.MLangText)
-                            Console.WriteLine(.MkMLangTextDemo(Me.Key, Me.MLangText))
+                            'Console.WriteLine(.MkMLangText(Me.Key, Me.MLangText))
                         Else
                             Me.PigConsole.GetLine("Input ObjName", Me.ObjName)
                             Me.PigConsole.GetLine("Input Key", Me.Key)
                             Me.PigConsole.GetLine("Input DefaultText", Me.MLangText)
-                            Console.WriteLine(.MkMLangTextDemo(Me.ObjName, Me.Key, Me.MLangText))
+                            'Console.WriteLine(.MkMLangText(Me.ObjName, Me.Key, Me.MLangText))
                         End If
                     End With
                 Case "GetCanUseCultureXml"

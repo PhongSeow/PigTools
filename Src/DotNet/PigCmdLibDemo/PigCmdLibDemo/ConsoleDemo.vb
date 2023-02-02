@@ -345,18 +345,7 @@ Public Class ConsoleDemo
     End Sub
 
     Public Sub PigHostDemo()
-        'Dim strRet As String = "", strUUID As String = ""
-        'Console.WriteLine("GetProductUuid=" & Me.PigFunc.GetProductUuid(strRet))
-        'Console.WriteLine("strRet=" & strRet)
-        'Me.Ret = Me.PigSysCmd.GetUUID(strUUID)
-        'Console.WriteLine("PigSysCmd.GetUUID=" & strUUID)
-        'Console.WriteLine("Me.Ret=" & Me.Ret)
-        'Me.PigConsole.DisplayPause()
         Me.PigHost = New PigHost
-        If Me.PigHost.LastErr <> "" Then
-            Console.WriteLine(Me.PigHost.LastErr)
-            Me.PigConsole.DisplayPause()
-        End If
         Do While True
             Console.Clear()
             Me.MenuDefinition = ""
@@ -371,20 +360,15 @@ Public Class ConsoleDemo
                     Console.WriteLine("*******************")
                     Console.CursorVisible = True
                     With Me.PigHost
-                        Console.WriteLine("IsInit=" & .IsInit)
-                        If .IsInit = True Then
-                            Console.WriteLine("HostID=" & .HostID)
-                            Console.WriteLine("HostName=" & .HostName)
-                            Console.WriteLine("UUID=" & .UUID)
-                            If Me.PigFunc.LastErr <> "" Then Console.WriteLine(Me.PigFunc.LastErr)
-                            Console.WriteLine("OSCaption=" & .OSCaption)
-                            '--------
-                            Console.WriteLine("CPU.Model=" & .CPU.Model)
-                            Console.WriteLine("CPU.CPUs=" & .CPU.CPUs)
-                            Console.WriteLine("CPU.CPUCores=" & .CPU.CPUCores)
-                            Console.WriteLine("CPU.Processors=" & .CPU.Processors)
-                            Console.WriteLine("CPU.TotalProcessors=" & .CPU.TotalProcessors)
-                        End If
+                        Console.WriteLine("HostID=" & .HostID)
+                        Console.WriteLine("HostName=" & .HostName)
+                        Console.WriteLine("UUID=" & .UUID)
+                        Console.WriteLine("OSCaption=" & .OSCaption)
+                        '--------
+                        Console.WriteLine("CPU.Model=" & .CPU.Model)
+                        Console.WriteLine("CPU.CPUs=" & .CPU.CPUs)
+                        Console.WriteLine("CPU.CPUCores=" & .CPU.CPUCores)
+                        Console.WriteLine("CPU.Processors=" & .CPU.Processors)
                     End With
             End Select
             Me.PigConsole.DisplayPause()
