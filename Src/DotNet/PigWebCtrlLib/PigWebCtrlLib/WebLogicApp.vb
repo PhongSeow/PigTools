@@ -1,7 +1,7 @@
 ﻿'**********************************
 '* Name: PigBaseMini
 '* Author: Seow Phong
-'* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.10
@@ -151,6 +151,5 @@ Public Class WebLogicApp
             Return Me.GetSubErrInf("", ex)
         End Try
     End Function
-
 
 End Class

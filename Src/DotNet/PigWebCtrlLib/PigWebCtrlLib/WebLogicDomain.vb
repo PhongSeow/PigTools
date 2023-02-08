@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.26
+'* Version: 1.28
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -32,10 +32,13 @@
 '*1.23  13/8/2022 Modify mWlstCallMain,CreateDomain, and add AsyncCreateDomain,SetT3Deny
 '*1.25  28/9/2022 Add ConsoleLogTime,AccessLogTime,GetConsoleLogHasRunMode
 '*1.26  24/11/2022 Add SetAdminPort
+'*1.27  6/2/2023 Add setDomainEnvPath,WL_HOME,SUN_JAVA_HOME,DEFAULT_SUN_JAVA_HOME,WLS_MEM_ARGS_64BIT,WLS_MEM_ARGS_32BIT
+'*1.28  7/2/2023 Add GetDomainEnvInf,mGetFileKeyValue
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
 Imports PigObjFsLib
+Imports System.Runtime.InteropServices.ComTypes
 
 
 ''' <summary>
@@ -43,7 +46,7 @@ Imports PigObjFsLib
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.26.3"
+    Private Const CLS_VERSION As String = "1.28.3"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -418,6 +421,17 @@ Public Class WebLogicDomain
     Public ReadOnly Property ConfPath() As String
         Get
             Return Me.HomeDirPath & Me.OsPathSep & "config" & Me.OsPathSep & "config.xml"
+        End Get
+    End Property
+
+    Public ReadOnly Property setDomainEnvPath() As String
+        Get
+            setDomainEnvPath = Me.HomeDirPath & Me.OsPathSep & "bin" & Me.OsPathSep & "setDomainEnv."
+            If Me.IsWindows = True Then
+                setDomainEnvPath &= "cmd"
+            Else
+                setDomainEnvPath &= "sh"
+            End If
         End Get
     End Property
 
@@ -1341,6 +1355,111 @@ Public Class WebLogicDomain
             IsHasRunMode = False
             LOG.AddStepNameInf(strCmd)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Private mWL_HOME As String
+    Public Property WL_HOME As String
+        Get
+            Return mWL_HOME
+        End Get
+        Friend Set(value As String)
+            mWL_HOME = value
+        End Set
+    End Property
+
+    Private mSUN_JAVA_HOME As String
+    Public Property SUN_JAVA_HOME As String
+        Get
+            Return mSUN_JAVA_HOME
+        End Get
+        Friend Set(value As String)
+            mSUN_JAVA_HOME = value
+        End Set
+    End Property
+
+    Private mDEFAULT_SUN_JAVA_HOME As String
+    Public Property DEFAULT_SUN_JAVA_HOME As String
+        Get
+            Return mDEFAULT_SUN_JAVA_HOME
+        End Get
+        Friend Set(value As String)
+            mDEFAULT_SUN_JAVA_HOME = value
+        End Set
+    End Property
+
+    Private mWLS_MEM_ARGS_64BIT As String
+    Public Property WLS_MEM_ARGS_64BIT As String
+        Get
+            Return mWLS_MEM_ARGS_64BIT
+        End Get
+        Friend Set(value As String)
+            mWLS_MEM_ARGS_64BIT = value
+        End Set
+    End Property
+
+    Private mWLS_MEM_ARGS_32BIT As String
+    Public Property WLS_MEM_ARGS_32BIT As String
+        Get
+            Return mWLS_MEM_ARGS_32BIT
+        End Get
+        Friend Set(value As String)
+            mWLS_MEM_ARGS_32BIT = value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Get the environment information of the domain|获取域的环境信息
+    ''' </summary>
+    ''' <returns></returns>
+    Public Function GetDomainEnvInf() As String
+        Dim LOG As New PigStepLog("GetDomainEnvInf")
+        Try
+            LOG.StepName = "OpenTextFile"
+            Dim tsMain As TextStream = Me.mFS.OpenTextFile(Me.setDomainEnvPath, FileSystemObject.IOMode.ForReading)
+            If tsMain Is Nothing Then
+                LOG.AddStepNameInf(Me.setDomainEnvPath)
+                Throw New Exception("tsMain Is Nothing")
+            ElseIf tsMain.LastErr <> "" Then
+                LOG.AddStepNameInf(Me.setDomainEnvPath)
+                Throw New Exception(tsMain.LastErr)
+            End If
+            Dim strData As String = tsMain.ReadAll
+            LOG.StepName = "Close"
+            tsMain.Close()
+            If tsMain.LastErr <> "" Then
+                LOG.AddStepNameInf(Me.setDomainEnvPath)
+                Throw New Exception(tsMain.LastErr)
+            End If
+            With Me
+                .WL_HOME = Me.mGetFileKeyValue(strData, "WL_HOME")
+                .SUN_JAVA_HOME = Me.mGetFileKeyValue(strData, "SUN_JAVA_HOME")
+                .DEFAULT_SUN_JAVA_HOME = Me.mGetFileKeyValue(strData, "DEFAULT_SUN_JAVA_HOME")
+                .WLS_MEM_ARGS_64BIT = Me.mGetFileKeyValue(strData, "WLS_MEM_ARGS_64BIT")
+                .WLS_MEM_ARGS_32BIT = Me.mGetFileKeyValue(strData, "WLS_MEM_ARGS_32BIT")
+            End With
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Private Function mGetFileKeyValue(FileCont As String, Key As String) As String
+        Try
+            Dim strLeft As String = "", strRight As String = Me.OsCrLf
+            If Me.IsWindows = True Then
+                strLeft = Me.OsCrLf & "set " & Key & "="
+            Else
+                strLeft = Me.OsCrLf & "" & Key & "="
+            End If
+            Dim strValue As String = Me.mPigFunc.GetStr(FileCont, strLeft, strRight)
+            If InStr(strValue, """") > 0 Then
+                strValue = Replace(strValue, """", "")
+            End If
+            Return strValue
+        Catch ex As Exception
+            Me.SetSubErrInf("mGetKeyLeft", ex)
+            Return ""
         End Try
     End Function
 
