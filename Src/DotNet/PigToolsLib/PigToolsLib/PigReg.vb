@@ -4,16 +4,17 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 各种注册表操作
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 5/11/2019
 '* 1.0.2  2019-11-7   修改BUG
 '* 1.0.3  15/4/2021   Add to PigToolsWinLib
 '* 1.1  15/4/2021   Modify mOpenRegPath
+'* 1.2  20/8/2021   Use Throw New Exception
 '************************************
 Imports Microsoft.Win32
 Public Class PigReg
-    Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.1.1"
+    Inherits PigBaseMini
+    Private Const CLS_VERSION As String = "1.2.3"
     ''' <summary>注册表的根区</summary>
     Public Enum EmnRegRoot
         ''' <summary>HKEY_CLASSES_ROOT</summary>
@@ -38,6 +39,11 @@ Public Class PigReg
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
+        Try
+            If Me.IsWindows = False Then Throw New Exception("This class only supports windows.")
+        Catch ex As Exception
+            Me.SetSubErrInf("New", ex)
+        End Try
     End Sub
 
     ''' <summary>是否64位程序</summary>
@@ -72,7 +78,7 @@ Public Class PigReg
             End Select
             strStepName = "mGetRegValue(" & strRegPath & "," & strRegName & ")"
             GetSomeRegValue = Me.mGetRegValue(intRegRoot, strRegPath, strRegName, "", strRet)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("GetSomeRegValue", strStepName, ex)
@@ -85,11 +91,11 @@ Public Class PigReg
     ''' <param name="RegPath">键名路径</param>
     ''' <param name="RegName">项名</param>
     ''' <param name="DefaValue">默认值，取不到则返回这个</param>
-    Public Overloads Function GetRegValue(RegRoot As emnRegRoot, RegPath As String, RegName As String, DefaValue As String) As String
+    Public Overloads Function GetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As String) As String
         Try
             Dim strRet As String = ""
             GetRegValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("GetRegValue", ex)
@@ -101,11 +107,11 @@ Public Class PigReg
     ''' <param name="RegRoot">根区</param>
     ''' <param name="RegPath">键名路径</param>
     ''' <param name="RegName">项名</param>
-    Public Overloads Function GetRegValue(RegRoot As emnRegRoot, RegPath As String, RegName As String) As Byte()
+    Public Overloads Function GetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As Byte()
         Try
             Dim strRet As String = ""
             GetRegValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("GetRegValue", ex)
@@ -118,11 +124,11 @@ Public Class PigReg
     ''' <param name="RegPath">键名路径</param>
     ''' <param name="RegName">项名</param>
     ''' <param name="DefaValue">默认值，取不到则返回这个，传空则不取</param>
-    Public Overloads Function GetRegValue(RegRoot As emnRegRoot, RegPath As String, RegName As String, DefaValue As Object) As Object
+    Public Overloads Function GetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Object) As Object
         Try
             Dim strRet As String = ""
             GetRegValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("GetRegValue", ex)
@@ -142,8 +148,8 @@ Public Class PigReg
         Try
             strStepName = "mOpenRegPath"
             Dim rkAny As RegistryKey = Me.mOpenRegPath(RegRoot, RegPath, True, TxRes)
-            If TxRes <> "OK" Then Err.Raise(-1, , TxRes)
-            If rkAny Is Nothing Then Err.Raise(-1, , "未能获取注册表键")
+            If TxRes <> "OK" Then Throw New Exception(TxRes)
+            If rkAny Is Nothing Then Throw New Exception("Failed to get registry key")
             strStepName = "GetValue(" & RegName & ")"
             If DefaValue Is Nothing Then
                 mGetRegValue = rkAny.GetValue(RegName)
@@ -201,7 +207,7 @@ Public Class PigReg
                     rkAny = Registry.Users
                 Case Else
                     rkAny = Nothing
-                    Err.Raise(-1, , "无效RegRoot")
+                    Err.Raise(-1, , "Invalid RegRoot")
             End Select
             strStepName = "CreateSubKey(" & RegPath & ")"
             rkAny.CreateSubKey(RegPath)

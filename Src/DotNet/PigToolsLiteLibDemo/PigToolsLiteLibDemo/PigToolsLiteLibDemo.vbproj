@@ -4,11 +4,11 @@
     <RootNamespace>PigToolsLiteLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.3.92</Version>
+    <Version>3.3.122</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigToolsLiteLib</Description>
-    <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
+    <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLibDemo</RepositoryUrl>
@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.2.8" />
+    <PackageReference Include="PigCmdLib" Version="2.2.12" />
   </ItemGroup>
 
   <ItemGroup>

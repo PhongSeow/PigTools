@@ -5,7 +5,7 @@
 '''* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '''* Describe: A lightweight multi language processing class, As long as you refer to this class, you can implement multilingual processing|一个轻量的多语言处理类，只要引用本类就可以实现多语言处理。 
 '''* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'''* Version: 1.1
+'''* Version: 1.6
 '''* Create Time: 30/11/2020
 '''* 1.0.2  1/12/2020   Modify GetAllLangInf, Add GetMLangText
 '''* 1.0.3  1/12/2020   Modify mInitCultureSortList
@@ -17,20 +17,28 @@
 '''* 1.0.9  19/12/2020  Modify mLoadMLangInf
 '''* 1.0.10 20/12/2020  Modify GetAllLangInf,mGetCultureInfoMD,mSetSubErrInf rename SetSubErrInf
 '''* 1.0.11 5/1/2021    Modify mNew, auto copy lang file.
-'''* 1.1 11/9/2022     Modify mNew, auto copy lang file.
+'''* 1.1 11/9/2022      Modify mNew, auto copy lang file.
+'''* 1.2 17/10/2022     Add PigFunc and Rewrite Common Code
+'''* 1.3 18/10/2022     Add GetCanUseCultureXml,SetCurrCulture,mInitCultureSortList
+'''* 1.5 19/10/2022     Add MLangTextCnt
+'''* 1.6 31/10/2022     Modify mGetMLangText
 '''************************************
 ''' </summary>
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.IO
-Friend Class PigMLang
+
+Public Class PigMLang
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1.6.8"
+
+    Private ReadOnly Property mPigFunc As New PigFunc
+    Private ReadOnly Property mFS As New mFileSystemObject
 
     ''' <summary>
     ''' 获取数据格式
     ''' </summary>
-    Public Enum enmGetInfFmt
+    Public Enum EnmGetInfFmt
         ''' <summary>
         ''' TAB键分隔|The separator is TAB key
         ''' </summary>
@@ -41,16 +49,6 @@ Friend Class PigMLang
         Markdown = 10
     End Enum
 
-    ''' <summary>
-    ''' 最近错误信息，空表示没有。|Last error. Null means no error.
-    ''' </summary>
-    Private mstrLastErr As String
-    Public ReadOnly Property LastErr As String
-        Get
-            LastErr = mstrLastErr
-        End Get
-    End Property
-    Private mstrClsName = Me.GetType.Name.ToString()
     ''' <summary>
     ''' 区域集合
     ''' </summary>
@@ -80,24 +78,13 @@ Friend Class PigMLang
         End Get
     End Property
 
-
-    ''' <summary>
-    ''' 跨平台换行符，自动识别 Windows 和 Linux
-    ''' </summary>
-    Private mstrOsCrLf As String
-    Private ReadOnly Property mOsCrLf() As String
+    Public ReadOnly Property MLangTextCnt() As Integer
         Get
-            Return mstrOsCrLf
-        End Get
-    End Property
-
-    ''' <summary>
-    ''' 跨平台路径分隔符，自动识别 Windows 和 Linux
-    ''' </summary>
-    Private mstrOsPathSep As String
-    Private ReadOnly Property mOsPathSep() As String
-        Get
-            Return mstrOsPathSep
+            If mslMLangText Is Nothing Then
+                Return 0
+            Else
+                Return mslMLangText.Count
+            End If
         End Get
     End Property
 
@@ -182,31 +169,35 @@ Friend Class PigMLang
     ''' 设置当前区域
     ''' </summary>
     ''' <param name="LCID">LCID</param>
-    Public Sub SetCurrCulture(LCID As Integer)
+    Public Function SetCurrCulture(LCID As Integer) As String
         Try
-            mciCurrent = Me.mNewCultureInfo(LCID)
-            Me.mClearErr()
+            Dim oCultureInfo As CultureInfo = Nothing
+            Dim strRet As String = Me.mNewCultureInfo("", oCultureInfo, LCID)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            mciCurrent = oCultureInfo
+            Return "OK"
         Catch ex As Exception
             mciCurrent = New CultureInfo("en-US")
-            Me.SetSubErrInf("SetCurrCulture", ex)
+            Return Me.GetSubErrInf("SetCurrCulture", ex)
         End Try
-    End Sub
+    End Function
 
     Private Function mMLangFilePath(LCID As Integer) As String
-        Return mstrCurrMLangDir & Me.mOsPathSep & mstrCurrMLangTitle & "." & LCID.ToString
+        Return mstrCurrMLangDir & Me.OsPathSep & mstrCurrMLangTitle & "." & LCID.ToString
     End Function
 
     Private Function mMLangFilePath(CultureName As String) As String
-        Return mstrCurrMLangDir & Me.mOsPathSep & mstrCurrMLangTitle & "." & CultureName
+        Return mstrCurrMLangDir & Me.OsPathSep & mstrCurrMLangTitle & "." & CultureName
     End Function
 
 
     Private Function mGetLCIDByCultureName(CultureName As String) As Integer
         Try
-            Dim oCultureInfo As CultureInfo
+            Dim oCultureInfo As CultureInfo, strRet As String = ""
             oCultureInfo = Me.mGetCultureInfo(CultureName)
             If oCultureInfo Is Nothing Then
-                oCultureInfo = Me.mNewCultureInfo(CultureName)
+                strRet = Me.mNewCultureInfo(CultureName, oCultureInfo)
+                If strRet <> "OK" Then Throw New Exception(strRet)
             End If
             If oCultureInfo Is Nothing Then
                 Return 0
@@ -214,7 +205,6 @@ Friend Class PigMLang
                 mGetLCIDByCultureName = oCultureInfo.LCID
                 oCultureInfo = Nothing
             End If
-            Me.mClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mGetLCIDByCultureName", ex)
             Return 0
@@ -223,10 +213,11 @@ Friend Class PigMLang
 
     Private Function mGetCultureNameByLCID(LCID As Integer) As String
         Try
-            Dim oCultureInfo As CultureInfo
+            Dim oCultureInfo As CultureInfo, strRet As String = ""
             oCultureInfo = Me.mGetCultureInfo(LCID)
             If oCultureInfo Is Nothing Then
-                oCultureInfo = Me.mNewCultureInfo(LCID)
+                strRet = Me.mNewCultureInfo("", oCultureInfo, LCID)
+                If strRet <> "OK" Then Throw New Exception(strRet)
             End If
             If oCultureInfo Is Nothing Then
                 mGetCultureNameByLCID = ""
@@ -234,7 +225,6 @@ Friend Class PigMLang
                 mGetCultureNameByLCID = oCultureInfo.Name
                 oCultureInfo = Nothing
             End If
-            Me.mClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mGetCultureNameByLCID", ex)
             Return ""
@@ -289,7 +279,7 @@ Friend Class PigMLang
                     If File.Exists(mGetMLangFile) = False Then
                         If IsFindAlike = True Then
                             Me.mInitCultureSortList()
-                            Dim strLangName As String = Me.mGetStr(strCultureName, "", "-", False) & "-"
+                            Dim strLangName As String = Me.mPigFunc.GetStr(strCultureName, "", "-", False) & "-"
                             Dim intLangLen As Integer = Len(strLangName)
                             Dim oCultureInfo As CultureInfo
                             Dim bolIsFind As Boolean = False
@@ -324,36 +314,40 @@ Friend Class PigMLang
     ''' 设置当前区域
     ''' </summary>
     ''' <param name="CultureName">区域名称</param>
-    Public Sub SetCurrCulture(CultureName As String)
+    Public Function SetCurrCulture(CultureName As String) As String
+        Dim LOG As New PigStepLog("SetCurrCulture")
         Try
-            mciCurrent = Me.mNewCultureInfo(CultureName)
-            Me.mClearErr()
+            Dim oCultureInfo As CultureInfo = Nothing
+            Dim strRet As String = Me.mNewCultureInfo(CultureName, oCultureInfo)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            mciCurrent = oCultureInfo
+            Return "OK"
         Catch ex As Exception
             mciCurrent = New CultureInfo("en-US")
-            Me.SetSubErrInf("SetCurrCulture", ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
-    End Sub
+    End Function
 
     ''' <summary>
     ''' 设置当前区域
     ''' </summary>
-    Public Sub SetCurrCulture()
+    Public Function SetCurrCulture() As String
         Try
             mciCurrent = CultureInfo.CurrentCulture
             If mciCurrent.LCID = 127 Then
-                Err.Raise(-1,, "Unknow Culture (LCID=127),Switch to en-US")
+                Throw New Exception("Unknow Culture (LCID=127),Switch to en-US")
             End If
-            Me.mClearErr()
+            Return "OK"
         Catch ex As Exception
             mciCurrent = New CultureInfo("en-US")
-            Me.SetSubErrInf("SetCurrCulture", ex)
+            Return Me.GetSubErrInf("SetCurrCulture", ex)
         End Try
-    End Sub
+    End Function
 
     Private Sub mMkDir(DirPath As String)
         Try
             Directory.CreateDirectory(DirPath)
-            Me.mClearErr()
+            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mMkDir", ex)
         End Try
@@ -361,9 +355,6 @@ Friend Class PigMLang
 
     Private Sub mNew(MLangTitle As String, MLangDir As String)
         Try
-            mstrOsCrLf = Me.mOsCrLf
-            mstrOsPathSep = Me.mOsPathSep
-
             If MLangTitle = "" Then MLangTitle = Me.AppTitle
             mstrCurrMLangTitle = MLangTitle
             Dim bolIsFindDir As Boolean = False
@@ -375,7 +366,7 @@ Friend Class PigMLang
 
             If bolIsFindDir = True Then
                 MLangDir = Me.AppPath
-                If Right(MLangDir, 1) <> Me.mOsPathSep Then MLangDir &= Me.mOsPathSep
+                If Right(MLangDir, 1) <> Me.OsPathSep Then MLangDir &= Me.OsPathSep
                 MLangDir = Me.AppPath & "Lang"
                 If Directory.Exists(MLangDir) = False Then
                     Me.mMkDir(MLangDir)
@@ -390,11 +381,11 @@ Friend Class PigMLang
                     End If
                     strUpLangDir = strUpDir & "Lang"
                     If Directory.Exists(strUpLangDir) = True Then
-                        Dim strSrcDir As String = Directory.GetParent(strUpDir).FullName & Me.mOsPathSep & "Lang"
+                        Dim strSrcDir As String = Directory.GetParent(strUpDir).FullName & Me.OsPathSep & "Lang"
                         Dim diSrc As New DirectoryInfo(strSrcDir)
                         For Each oFile In diSrc.GetFiles
                             If InStr(oFile.Extension, "-") > 0 Then
-                                Dim strTarFile As String = MLangDir & Me.mOsPathSep & oFile.Name
+                                Dim strTarFile As String = MLangDir & Me.OsPathSep & oFile.Name
                                 If File.Exists(strTarFile) = False Then
                                     File.Copy(oFile.FullName, strTarFile)
                                 End If
@@ -405,7 +396,7 @@ Friend Class PigMLang
             End If
             mstrCurrMLangDir = MLangDir
             Me.mInitCultureSortList()
-            Me.mClearErr()
+            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mNew", ex)
         End Try
@@ -421,7 +412,7 @@ Friend Class PigMLang
                 mGetCultureInfoMD &= "|" & "EnglishName"
                 mGetCultureInfoMD &= "|" & "DisplayName"
                 mGetCultureInfoMD &= "|" & "NativeName"
-                mGetCultureInfoMD &= "|" & Me.mOsCrLf & "| ---- | ---- | ---- | ---- | ---- |"
+                mGetCultureInfoMD &= "|" & Me.OsCrLf & "| ---- | ---- | ---- | ---- | ---- |"
             Else
                 strStepName = "New CultureInfo(" & LCID & ")"
                 Dim oCultureInfo As CultureInfo = New CultureInfo(LCID)
@@ -434,7 +425,6 @@ Friend Class PigMLang
                     mGetCultureInfoMD &= "|"
                 End With
             End If
-            Me.mClearErr()
             Return mGetCultureInfoMD
         Catch ex As Exception
             Return ""
@@ -463,7 +453,6 @@ Friend Class PigMLang
                     mGetCultureInfoTab &= vbTab & .NativeName
                 End With
             End If
-            Me.mClearErr()
             Return mGetCultureInfoTab
         Catch ex As Exception
             Return ""
@@ -674,44 +663,39 @@ Friend Class PigMLang
                 For i = 0 To mslLCID.Count - 1
                     intLCID = mslLCID.GetByIndex(i)
                     strStepName = "New CultureInfo(" & intLCID.ToString & ")"
-                    oCultureInfo = Me.mNewCultureInfo(intLCID)
-                    If Me.LastErr = "" Then
+                    oCultureInfo = Nothing
+                    Dim strRet As String = Me.mNewCultureInfo("", oCultureInfo, intLCID)
+                    If strRet = "OK" Then
                         mslCultureInfo.Add(oCultureInfo.LCID, oCultureInfo)
                     Else
-                        strErr &= Me.LastErr & ";"
+                        strErr &= strRet & ";"
                     End If
                 Next
                 If strErr <> "" Then
                     strStepName = "mNewCultureInfo Error"
-                    Err.Raise(-1,, strErr)
+                    Throw New Exception(strErr)
                 End If
             End If
-            Me.mClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mInitCultureSortList", ex)
         End Try
     End Sub
 
 
-    Private Function mNewCultureInfo(CultureName As String) As CultureInfo
+    Private Function mNewCultureInfo(CultureName As String, ByRef OutCultureInfo As CultureInfo, Optional LCID As Integer = 2052) As String
         Try
-            mNewCultureInfo = New CultureInfo(CultureName)
-            Me.mClearErr()
+            If CultureName <> "" Then
+                OutCultureInfo = New CultureInfo(CultureName)
+            Else
+                OutCultureInfo = New CultureInfo(LCID)
+            End If
+            Return "OK"
         Catch ex As Exception
-            Me.SetSubErrInf("mNewCultureInfo", ex)
-            Return Nothing
+            OutCultureInfo = Nothing
+            Return Me.GetSubErrInf("mNewCultureInfo", ex)
         End Try
     End Function
 
-    Private Function mNewCultureInfo(LCID As Integer) As CultureInfo
-        Try
-            mNewCultureInfo = New CultureInfo(LCID)
-            Me.mClearErr()
-        Catch ex As Exception
-            Me.SetSubErrInf("mNewCultureInfo", ex)
-            Return Nothing
-        End Try
-    End Function
 
     Private Function mGetCultureInfo(LCID As Integer) As CultureInfo
         Try
@@ -720,7 +704,6 @@ Friend Class PigMLang
             Else
                 Return Nothing
             End If
-            Me.mClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mGetCultureInfo", ex)
             Return Nothing
@@ -752,6 +735,8 @@ Friend Class PigMLang
             Dim strKey As String = ObjName & "." & Key
             If mslMLangText.IndexOfKey(strKey) >= 0 Then
                 Return mslMLangText.Item(strKey)
+            ElseIf DefaultText = "" Then
+                Return strKey
             Else
                 Return DefaultText
             End If
@@ -774,10 +759,8 @@ Friend Class PigMLang
             If GetAlikeCulture Is Nothing Then
                 strStepName = "mInitCultureSortList"
                 Me.mInitCultureSortList()
-                If Me.LastErr <> "" Then Err.Raise(-1,, Me.LastErr)
-
+                If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
             End If
-            Me.mClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("GetAlikeCulture", ex)
             Return Nothing
@@ -785,78 +768,82 @@ Friend Class PigMLang
     End Function
 
 
-    Public Function GetAllLangInf(GetInfFmt As enmGetInfFmt) As String
+    Public Function GetAllLangInf(GetInfFmt As EnmGetInfFmt) As String
         Dim strStepName As String = "", strRet As String = ""
         Try
             strStepName = "mInitCultureSortList"
             Me.mInitCultureSortList()
-            If Me.LastErr <> "" Then Err.Raise(-1,, Me.LastErr)
+            If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
             GetAllLangInf = ""
             Select Case GetInfFmt
-                Case enmGetInfFmt.TabSeparator
-                    GetAllLangInf = Me.mGetCultureInfoTab(True) & Me.mOsCrLf
-                Case enmGetInfFmt.Markdown
-                    GetAllLangInf = Me.mGetCultureInfoMD(True) & Me.mOsCrLf
+                Case EnmGetInfFmt.TabSeparator
+                    GetAllLangInf = Me.mGetCultureInfoTab(True) & Me.OsCrLf
+                Case EnmGetInfFmt.Markdown
+                    GetAllLangInf = Me.mGetCultureInfoMD(True) & Me.OsCrLf
             End Select
             Dim oCultureInfo As CultureInfo, strRow As String = ""
             strStepName = "Get Rows"
             For Each obj In mslCultureInfo
                 oCultureInfo = obj.value
                 Select Case GetInfFmt
-                    Case enmGetInfFmt.TabSeparator
+                    Case EnmGetInfFmt.TabSeparator
                         strRow = Me.mGetCultureInfoTab(False, oCultureInfo.LCID)
-                    Case enmGetInfFmt.Markdown
+                    Case EnmGetInfFmt.Markdown
                         strRow = Me.mGetCultureInfoMD(False, oCultureInfo.LCID)
                 End Select
                 If Me.LastErr = "" Then
-                    GetAllLangInf &= strRow & Me.mOsCrLf
+                    GetAllLangInf &= strRow & Me.OsCrLf
                 Else
-                    GetAllLangInf &= Me.LastErr & Me.mOsCrLf
+                    GetAllLangInf &= Me.LastErr & Me.OsCrLf
                 End If
             Next
-            Me.mClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("GetAllLangInf", ex)
             Return ""
         End Try
     End Function
 
-    Private Function mGetStr(ByRef SourceStr As String, strBegin As String, strEnd As String, Optional IsCut As Boolean = True) As String
-        Dim lngBegin As Long
-        Dim lngEnd As Long
-        Dim lngBeginLen As Long
-        Dim lngEndLen As Long
-        Try
-            lngBeginLen = Len(strBegin)
-            lngBegin = InStr(SourceStr, strBegin, CompareMethod.Text)
-            lngEndLen = Len(strEnd)
-            If lngEndLen = 0 Then
-                lngEnd = Len(SourceStr) + 1
-            Else
-                lngEnd = InStr(lngBegin + lngBeginLen + 1, SourceStr, strEnd, CompareMethod.Text)
-                If lngBegin = 0 Then Err.Raise(-1, , "lngBegin=0")
-            End If
-            If lngEnd <= lngBegin Then Err.Raise(-1, , "lngEnd <= lngBegin")
-            If lngBegin = 0 Then Err.Raise(-1, , "lngBegin=0[2]")
 
-            mGetStr = Mid(SourceStr, lngBegin + lngBeginLen, (lngEnd - lngBegin - lngBeginLen))
-            If IsCut = True Then
-                SourceStr = Left(SourceStr, lngBegin - 1) & Mid(SourceStr, lngEnd + lngEndLen)
-            End If
-            Me.mClearErr()
-        Catch ex As Exception
-            mGetStr = ""
-            Me.SetSubErrInf("mGetStr", ex)
-        End Try
+    ''' <summary>
+    ''' 导入多语言信息
+    ''' </summary>
+    ''' <param name="IsAuto">是否自动，是则当前语言区域文件找不到会自动寻找近似的</param>
+    ''' <returns></returns>
+    Public Function LoadMLangInf(IsAuto As Boolean) As String
+        Return Me.mLoadMLangInf(IsAuto)
     End Function
 
-    Public Sub LoadMLangInf(IsAuto As Boolean)
-        Me.mLoadMLangInf(IsAuto)
-    End Sub
+    Public Function LoadMLangInf() As String
+        Return Me.mLoadMLangInf(True)
+    End Function
 
-    Public Sub LoadMLangInf()
-        Me.mLoadMLangInf(True)
-    End Sub
+    Public Function GetCanUseCultureXml() As String
+        Dim LOG As New PigStepLog("GetCanUseCultureXml")
+        Try
+            LOG.StepName = "RefCanUseCultureList"
+            Me.RefCanUseCultureList()
+            If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
+            If Me.CanUseCultureList IsNot Nothing Then
+                Dim oPigXml As New PigXml(False)
+                oPigXml.AddEleLeftSign("CanUseCulture")
+                For Each oCultureInfo As CultureInfo In Me.CanUseCultureList
+                    With oCultureInfo
+                        oPigXml.AddEle("Name", .Name)
+                        oPigXml.AddEle("LCID", .LCID)
+                        oPigXml.AddEle("MLangFileName", Me.CurrMLangTitle & "." & .Name)
+                        oPigXml.AddEle("DisplayName", .DisplayName)
+                        oPigXml.AddEle("NativeName", .NativeName)
+                    End With
+                Next
+                oPigXml.AddEleRightSign("CanUseCulture")
+                GetCanUseCultureXml = oPigXml.MainXmlStr
+                oPigXml = Nothing
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
 
     Public Sub RefCanUseCultureList()
         Try
@@ -879,7 +866,7 @@ Friend Class PigMLang
                     End If
                 End If
             Next
-            Me.mClearErr()
+            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("RefCanUseCultureList", ex)
         End Try
@@ -890,7 +877,7 @@ Friend Class PigMLang
         Try
             strStepName = "mInitCultureSortList"
             Me.mInitCultureSortList()
-            If Me.LastErr <> "" Then Err.Raise(-1,, Me.LastErr)
+            If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
             mIsMLangFileExt = False
             For Each obj In mslCultureInfo
                 Dim oCultureInfo As CultureInfo = obj.value
@@ -915,11 +902,11 @@ Friend Class PigMLang
         End Try
     End Function
 
-    Private Sub mLoadMLangInf(IsAuto As Boolean)
-        Dim strStepName As String = ""
+    Private Function mLoadMLangInf(IsAuto As Boolean) As String
+        Dim LOG As New PigStepLog("mLoadMLangInf")
         Try
             Dim strMLangFile As String
-            strMLangFile = "Find MLangFile"
+            LOG.StepName = "mGetMLangFile"
             If IsAuto = True Then
                 strMLangFile = Me.mGetMLangFile(mciCurrent.LCID, True)
                 If strMLangFile = "" Then strMLangFile = Me.mGetMLangFile(1033, True) 'en-us
@@ -928,36 +915,59 @@ Friend Class PigMLang
             End If
             If strMLangFile = "" Then
                 mstrCurrMLangFile = ""
-                Err.Raise(-1,, "No available MLangFile(" & Me.CurrMLangTitle & ") on " & Me.CurrMLangDir)
+                Throw New Exception("No available MLangFile(" & Me.CurrMLangTitle & ") on " & Me.CurrMLangDir)
             Else
                 mstrCurrMLangFile = strMLangFile
             End If
+            If Me.mPigFunc.IsFileExists(Me.CurrMLangFile) = False Then Throw New Exception("MLangFile" & Me.CurrMLangFile & " not found")
             mslMLangText = New SortedList
-            Dim srMLang As New StreamReader(strMLangFile)
+            Dim tsMain As mTextStream
+            LOG.StepName = "OpenTextFile"
+            tsMain = Me.mFS.OpenTextFile(Me.CurrMLangFile, mFileSystemObject.IOMode.ForReading)
+            If Me.mFS.LastErr <> "" Then Throw New Exception(Me.mFS.LastErr)
             Dim strObjName As String = "", strNewObjName As String, strKey As String, strMLangText As String
-            Do Until srMLang.EndOfStream
-                Dim strLine As String = srMLang.ReadLine
+            Do While Not tsMain.AtEndOfStream
+                Dim strLine As String = tsMain.ReadLine
                 If strLine.IndexOf("{") >= 0 And strLine.IndexOf("}") > 0 Then
-                    strNewObjName = Me.mGetStr(strLine, "{", "}")
+                    strNewObjName = Me.mPigFunc.GetStr(strLine, "{", "}")
                     If strObjName <> strNewObjName Then
                         strObjName = strNewObjName
                     End If
                 Else
-                    strKey = Me.mGetStr(strLine, "[", "]=")
+                    strKey = Me.mPigFunc.GetStr(strLine, "[", "]=")
                     If strKey <> "" Then
                         strMLangText = strLine
                         Me.mAddMLangText(strObjName, strKey, strMLangText)
                     End If
                 End If
             Loop
-            srMLang.Close()
-            srMLang = Nothing
-            Me.mClearErr()
+            tsMain.Close()
+            'Dim srMLang As New StreamReader(strMLangFile)
+            'Dim strObjName As String = "", strNewObjName As String, strKey As String, strMLangText As String
+            'Do Until srMLang.EndOfStream
+            '    Dim strLine As String = srMLang.ReadLine
+            '    If strLine.IndexOf("{") >= 0 And strLine.IndexOf("}") > 0 Then
+            '        strNewObjName = Me.mPigFunc.GetStr(strLine, "{", "}")
+            '        If strObjName <> strNewObjName Then
+            '            strObjName = strNewObjName
+            '        End If
+            '    Else
+            '        strKey = Me.mPigFunc.GetStr(strLine, "[", "]=")
+            '        If strKey <> "" Then
+            '            strMLangText = strLine
+            '            Me.mAddMLangText(strObjName, strKey, strMLangText)
+            '        End If
+            '    End If
+            'Loop
+            'srMLang.Close()
+            'srMLang = Nothing
+            Return "OK"
         Catch ex As Exception
-            Me.SetSubErrInf("mLoadMLangInf", ex)
+            LOG.AddStepNameInf(Me.CurrMLangFile)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
 
-    End Sub
+    End Function
 
     Public Sub AddMLangText(GlobalKey As String, MLangText As String)
         Me.mAddMLangText("Global", GlobalKey, MLangText)
@@ -972,200 +982,61 @@ Friend Class PigMLang
         Try
             Dim strKey As String = ObjName & "." & Key
             If mslMLangText.IndexOfKey(strKey) = -1 Then
-                Me.mEscapeStr(MLangText)
+                Me.mPigFunc.EscapeStr(MLangText)
                 mslMLangText.Add(strKey, MLangText)
             Else
-                Err.Raise(-1,, "Key value already exists")
+                Throw New Exception("Key value already exists")
             End If
-            Me.mClearErr()
+            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("mAddMLangText", ex)
         End Try
     End Sub
 
     ''' <summary>
-    ''' 生成一个多语言文本
+    ''' 生成一个多语言文本|Generate a multilingual text
     ''' </summary>
-    ''' <param name="Key">键值</param>
-    ''' <param name="MLangText">多语言文本</param>
-    Public Function MkMLangText(Key As String, MLangText As String) As String
+    ''' <param name="GlobalKey">键值|Key value</param>
+    ''' <param name="MLangText">多语言文本|Multilingual text</param>
+    Public Function MkMLangTextDemo(GlobalKey As String, MLangText As String) As String
+        Dim strRet As String = ""
         Try
-            Me.mEscapeStr(MLangText)
-            MkMLangText = "[" & Key & "]=" & MLangText
-            Me.mClearErr()
+            MkMLangTextDemo = ""
+            strRet = Me.mMkMLangTextDemo("Global", GlobalKey, MLangText, MkMLangTextDemo)
+            If strRet <> "OK" Then Throw New Exception(strRet)
         Catch ex As Exception
-            Me.SetSubErrInf("MkMLangText", ex)
-            Return ""
+            MkMLangTextDemo = ""
+            Return Me.GetSubErrInf("MkMLangTextDemo", ex)
         End Try
     End Function
 
     ''' <summary>
-    ''' 生成一个多语言文本
+    ''' 生成一个多语言文本|Generate a multilingual text
     ''' </summary>
-    ''' <param name="ControlName">控件名称</param>
-    ''' <param name="Key">键值</param>
-    ''' <param name="MLangText">多语言文本</param>
-    Public Function MkMLangText(ControlName As String, Key As String, MLangText As String) As String
+    ''' <param name="ObjName">对象名称|Object Name</param>
+    ''' <param name="Key">键值|Key value</param>
+    ''' <param name="MLangText">多语言文本|Multilingual text</param>
+    Public Function MkMLangTextDemo(ObjName As String, Key As String, MLangText As String) As String
+        Dim strRet As String = ""
         Try
-            Me.mEscapeStr(MLangText)
-            MkMLangText = "[" & ControlName & "." & Key & "]=" & MLangText
-            Me.mClearErr()
+            MkMLangTextDemo = ""
+            strRet = Me.mMkMLangTextDemo(ObjName, Key, MLangText, MkMLangTextDemo)
+            If strRet <> "OK" Then Throw New Exception(strRet)
         Catch ex As Exception
-            Me.SetSubErrInf("MkMLangText", ex)
-            Return ""
+            MkMLangTextDemo = ""
+            Return Me.GetSubErrInf("MkMLangTextDemo", ex)
         End Try
     End Function
 
-    ''' <summary>Get the error information for the function</summary>
-    ''' <param name="SubName">Function or procedure name</param>
-    ''' <param name="StepName">Step name</param>
-    ''' <param name="exIn">Exception object</param>
-    Private Function mGetSubErrInf(SubName As String, StepName As String, ByRef exIn As System.Exception) As String
+    Private Function mMkMLangTextDemo(ObjName As String, Key As String, MLangText As String, ByRef OutMLangText As String) As String
         Try
-            mGetSubErrInf = mstrClsName & "." & SubName
-            If StepName <> "" Then mGetSubErrInf &= "(" & StepName & ")"
-            If StepName <> "" Then mGetSubErrInf &= ":" & exIn.ToString
+            Me.mPigFunc.EscapeStr(MLangText)
+            OutMLangText = "{" & ObjName & "}" & Me.OsCrLf
+            OutMLangText &= "[" & Key & "]=" & MLangText & Me.OsCrLf
+            Return "OK"
         Catch ex As Exception
-            Return ex.ToString
+            Return Me.GetSubErrInf("mMkMLangTextDemo", ex)
         End Try
-    End Function
-
-    Private Sub mClearErr()
-        If mstrLastErr <> "" Then mstrLastErr = ""
-    End Sub
-
-    Private Function mGetSubErrInf(SubName As String, StepName As String, ByRef exIn As System.Exception, Optional IsStackTrace As Boolean = False, Optional IsSetLastErr As Boolean = False) As String
-        Try
-            Dim sbAny As New System.Text.StringBuilder("")
-            sbAny.Append(Me.mFullSubName(SubName))
-            If Len(StepName) > 0 Then
-                sbAny.Append("(")
-                sbAny.Append(StepName)
-                sbAny.Append(")")
-            End If
-            sbAny.Append(";ErrInf:")
-            sbAny.Append(exIn.Message)
-            If IsStackTrace = True Then
-                Dim strExStackTrace As String = exIn.StackTrace
-                With strExStackTrace
-                    If .Length > 0 Then
-                        If .LastIndexOf(vbCrLf) >= 0 Then .Replace(vbCrLf, "")
-                        If .LastIndexOf(vbTab) >= 0 Then .Replace(vbTab, " ")
-                        .Trim()
-                    End If
-                End With
-                sbAny.Append(";Trace:")
-                sbAny.Append(strExStackTrace)
-            End If
-            If IsSetLastErr = True Then mstrLastErr = sbAny.ToString
-            mGetSubErrInf = sbAny.ToString
-            sbAny = Nothing
-        Catch ex As Exception
-            If IsSetLastErr = True Then mstrLastErr = ex.Message.ToString
-            Return ex.Message.ToString
-        End Try
-    End Function
-
-    Public Overloads Sub SetSubErrInf(SubName As String, ByRef exIn As System.Exception, Optional IsStackTrace As Boolean = False)
-        Me.mGetSubErrInf(SubName, "", exIn, IsStackTrace, True)
-    End Sub
-
-    Public Overloads Sub SetSubErrInf(SubName As String, StepName As String, ByRef exIn As System.Exception, Optional IsStackTrace As Boolean = False)
-        Me.mGetSubErrInf(SubName, StepName, exIn, IsStackTrace, True)
-    End Sub
-
-    Public ReadOnly Property AppTitle() As String
-        Get
-            Return System.Reflection.Assembly.GetExecutingAssembly().GetName.Name
-        End Get
-    End Property
-
-    Public ReadOnly Property AppPath() As String
-        Get
-            Return System.AppDomain.CurrentDomain.BaseDirectory
-        End Get
-    End Property
-
-    Private ReadOnly Property mFullSubName(SubName As String) As String
-        Get
-            mFullSubName = mstrClsName & "." & SubName
-        End Get
-    End Property
-
-    ''' <summary>
-    ''' 转义字符串
-    ''' </summary>
-    ''' <param name="SrcStr">源字符串</param>
-    Private Sub mEscapeStr(ByRef SrcStr As String)
-        Try
-            If SrcStr.IndexOf(vbCr) > 0 Then SrcStr = Replace(SrcStr, vbCr, "\r")
-            If SrcStr.IndexOf(vbLf) > 0 Then SrcStr = Replace(SrcStr, vbCrLf, "\n")
-            If SrcStr.IndexOf(vbTab) > 0 Then SrcStr = Replace(SrcStr, vbTab, "\t")
-            If SrcStr.IndexOf(vbBack) > 0 Then SrcStr = Replace(SrcStr, vbBack, "\b")
-            If SrcStr.IndexOf(vbFormFeed) > 0 Then SrcStr = Replace(SrcStr, vbFormFeed, "\f")
-            If SrcStr.IndexOf(vbVerticalTab) > 0 Then SrcStr = Replace(SrcStr, vbVerticalTab, "\v")
-            Me.mClearErr()
-        Catch ex As Exception
-            Me.SetSubErrInf("mEscapeStr", ex)
-        End Try
-    End Sub
-
-    ''' <summary>
-    ''' 还原转义字符串
-    ''' </summary>
-    ''' <param name="EscapeStr">已转义字符串</param>
-    Private Sub UnEscapeStr(ByRef EscapeStr As String)
-        Try
-            If EscapeStr.IndexOf("\n") > 0 Then EscapeStr = Replace(EscapeStr, "\n", vbLf)
-            If EscapeStr.IndexOf("\r") > 0 Then EscapeStr = Replace(EscapeStr, "\r", vbCr)
-            If EscapeStr.IndexOf("\t") > 0 Then EscapeStr = Replace(EscapeStr, "\t", vbTab)
-            If EscapeStr.IndexOf("\b") > 0 Then EscapeStr = Replace(EscapeStr, "\b", vbBack)
-            If EscapeStr.IndexOf(vbFormFeed) > 0 Then EscapeStr = Replace(EscapeStr, "\f", vbFormFeed)
-            If EscapeStr.IndexOf(vbVerticalTab) > 0 Then EscapeStr = Replace(EscapeStr, "\v", vbVerticalTab)
-            Me.mClearErr()
-        Catch ex As Exception
-            Me.SetSubErrInf("UnEscapeStr", ex)
-        End Try
-    End Sub
-
-    ''' <summary>
-    ''' 转换 Windows 字符串为 Linux 格式，即换行符转换
-    ''' </summary>
-    ''' <param name="WinStr">Windows 字符串</param>
-    Private Function mConvStrWin2Linux(WinStr As String) As String
-        Try
-            If InStr(WinStr, vbCrLf) > 0 Then
-                mConvStrWin2Linux = Replace(WinStr, vbCrLf, vbLf)
-            Else
-                mConvStrWin2Linux = WinStr
-            End If
-            Me.mClearErr()
-        Catch ex As Exception
-            Me.SetSubErrInf("ConvStrWin2Linux", ex)
-            Return ""
-        End Try
-    End Function
-
-    ''' <summary>
-    ''' 转换 Linux 字符串为 Windows 格式，即换行符转换
-    ''' </summary>
-    ''' <param name="LinuxStr">Linux 字符串</param>
-    Private Function mConvStrLinux2Win(LinuxStr As String) As String
-        Try
-            If InStr(LinuxStr, vbLf) > 0 Then
-                mConvStrLinux2Win = Replace(LinuxStr, vbLf, vbCrLf)
-                If InStr(LinuxStr, vbCr & vbCrLf) > 0 Then
-                    mConvStrLinux2Win = Replace(LinuxStr, vbCr & vbCrLf, vbCrLf)
-                End If
-            Else
-                mConvStrLinux2Win = LinuxStr
-            End If
-            Me.mClearErr()
-        Catch ex As Exception
-            Me.SetSubErrInf("ConvStrLinux2Win", ex)
-            Return ""
-        End Try
-
     End Function
 
 End Class

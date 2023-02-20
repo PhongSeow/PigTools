@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.28
+'* Version: 1.31
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -38,6 +38,9 @@
 '*1.26   6/9/2022   Add IsMathDate,IsMathDecimal
 '*1.27   12/9/2022  Add GetEnmDispStr
 '*1.28   17/9/2022  Add IsStrongPassword,GetCompMinutePart
+'*1.29   17/10/2022  Add EscapeStr,UnEscapeStr
+'*1.30   18/10/2022  Modify EscapeStr,UnEscapeStr
+'*1.31   2/11/2022  Modify AddMultiLineText
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -48,7 +51,7 @@ Imports System.Threading
 
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.27.1"
+    Private Const CLS_VERSION As String = "1.31.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -601,7 +604,6 @@ Public Class PigFunc
             If IsCut = True Then
                 SourceStr = Left(SourceStr, lngBegin - 1) & Mid(SourceStr, lngEnd + lngEndLen)
             End If
-            Me.ClearErr()
         Catch ex As Exception
             GetStr = ""
             Me.SetSubErrInf("GetStr", ex)
@@ -617,7 +619,6 @@ Public Class PigFunc
 #Else
             UrlEncode = System.Uri.EscapeDataString(SrcUrl)
 #End If
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("UrlEncode", ex)
             Return Nothing
@@ -632,7 +633,6 @@ Public Class PigFunc
             UrlDecode = System.Uri.UnescapeDataString(DecodeUrl)
 #End If
 
-            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("UrlDecode", ex)
             Return Nothing
@@ -735,7 +735,6 @@ Public Class PigFunc
             End If
 
             Return dteStart.AddSeconds(LngValue + intHourAdd * 3600)
-            Me.ClearErr()
         Catch ex As Exception
             Return dteStart
             Me.SetSubErrInf("Lng2Date", ex)
@@ -795,7 +794,7 @@ Public Class PigFunc
                     strTabs &= vbTab
                 Next
             End If
-            MainText &= strTabs & NewLine & vbCrLf
+            MainText &= strTabs & NewLine & Me.OsCrLf
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddMultiLineText", ex)
@@ -1800,6 +1799,46 @@ Public Class PigFunc
             GetCompMinutePart = Format(dteComp, "yyyyMMddHHmm")
         Catch ex As Exception
             Me.SetSubErrInf("", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 转义字符串
+    ''' </summary>
+    ''' <param name="SrcStr">源字符串</param>
+    Public Function EscapeStr(SrcStr As String) As String
+        Try
+            If SrcStr Is Nothing Then
+                EscapeStr = ""
+            Else
+                EscapeStr = SrcStr
+            End If
+            If InStr(EscapeStr, "&") > 0 Then EscapeStr = Replace(EscapeStr, "&", "&apos;")
+            If InStr(EscapeStr, "<") > 0 Then EscapeStr = Replace(EscapeStr, "<", "&lt;")
+            If InStr(EscapeStr, ">") > 0 Then EscapeStr = Replace(EscapeStr, ">", "&gt;")
+        Catch ex As Exception
+            Me.SetSubErrInf("EscapeStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 还原转义字符串
+    ''' </summary>
+    ''' <param name="EscapeStr">已转义字符串</param>
+    Public Function UnEscapeStr(EscapeStr As String) As String
+        Try
+            If EscapeStr Is Nothing Then
+                UnEscapeStr = ""
+            Else
+                UnEscapeStr = EscapeStr
+            End If
+            If InStr(UnEscapeStr, "&apos;") > 0 Then UnEscapeStr = Replace(UnEscapeStr, "&apos;", "&")
+            If InStr(UnEscapeStr, "&lt;") > 0 Then UnEscapeStr = Replace(UnEscapeStr, "&lt;", "<")
+            If InStr(UnEscapeStr, "&gt;") > 0 Then UnEscapeStr = Replace(UnEscapeStr, "&gt;", ">")
+        Catch ex As Exception
+            Me.SetSubErrInf("UnEscapeStr", ex)
             Return ""
         End Try
     End Function

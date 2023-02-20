@@ -824,6 +824,7 @@ Public Class PigMLang
     Public Function GetCanUseCultureXml() As String
         Dim LOG As New PigStepLog("GetCanUseCultureXml")
         Try
+            GetCanUseCultureXml = ""
             LOG.StepName = "RefCanUseCultureList"
             Me.RefCanUseCultureList()
             If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)

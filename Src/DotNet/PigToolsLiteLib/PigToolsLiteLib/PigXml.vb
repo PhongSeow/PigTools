@@ -473,14 +473,6 @@ Public Class PigXml
         End Try
     End Function
 
-    Public Function UnEscapeXmlValue() As String
-        Try
-
-        Catch ex As Exception
-
-        End Try
-    End Function
-
     Private Function mUnEscapeXmlValue(ByRef InXmlStr As String) As String
         Try
             If InStr(InXmlStr, "&apos;") > 0 Then InXmlStr = Replace(InXmlStr, "&apos;", "&")
