@@ -13,9 +13,9 @@
 '************************************
 Imports PigToolsLiteLib
 Public Class WebLogicDomains
-    Inherits PigBaseMini
+    Inherits PigBaseLocal
     Implements IEnumerable(Of WebLogicDomain)
-    Private Const CLS_VERSION As String = "1.5.2"
+    Private Const CLS_VERSION As String = "1.5.8"
     Private ReadOnly moList As New List(Of WebLogicDomain)
 
     Friend fParent As WebLogicApp

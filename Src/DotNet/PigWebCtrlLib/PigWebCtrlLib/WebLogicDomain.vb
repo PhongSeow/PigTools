@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.28
+'* Version: 1.29
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -34,6 +34,7 @@
 '*1.26  24/11/2022 Add SetAdminPort
 '*1.27  6/2/2023 Add setDomainEnvPath,WL_HOME,SUN_JAVA_HOME,DEFAULT_SUN_JAVA_HOME,WLS_MEM_ARGS_64BIT,WLS_MEM_ARGS_32BIT
 '*1.28  7/2/2023 Add GetDomainEnvInf,mGetFileKeyValue
+'*1.29  28/2/2023 Add WebLogicDeploys
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -45,8 +46,8 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' WebLogic Domain Processing Class|WebLogic域处理类
 ''' </summary>
 Public Class WebLogicDomain
-    Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.28.3"
+    Inherits PigBaseLocal
+    Private Const CLS_VERSION As String = "1.29.6"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -55,6 +56,10 @@ Public Class WebLogicDomain
     Private mPigProcApp As New PigProcApp
 
     Private mUpdateCheck As New UpdateCheck
+
+    Public ReadOnly Property WebLogicDeploys As WebLogicDeploys
+
+
     Public ReadOnly Property LastUpdateTime() As DateTime
         Get
             Return mUpdateCheck.LastUpdateTime
@@ -416,6 +421,7 @@ Public Class WebLogicDomain
         MyBase.New(CLS_VERSION)
         Me.HomeDirPath = HomeDirPath
         Me.fParent = Parent
+        Me.WebLogicDeploys = New WebLogicDeploys
     End Sub
 
     Public ReadOnly Property ConfPath() As String
@@ -1107,8 +1113,9 @@ Public Class WebLogicDomain
                     .IsIIopEnable = oPigXml.XmlDocGetBoolEmpTrue("domain.server.iiop-enabled")
                     .IsAdminPortEnable = oPigXml.XmlDocGetBool("domain.administration-port-enabled")
                     .AdminPort = oPigXml.XmlDocGetInt("domain.administration-port")
+                    Dim intSkipTimes As Integer
                     If oPigXml.XmlDocGetStr("domain.security-configuration.connection-filter") = "weblogic.security.net.ConnectionFilterImpl" Then
-                        Dim intSkipTimes As Integer = 0
+                        intSkipTimes = 0
                         Me.ConnectionFilterImpl = ""
                         Do While True
                             Dim strLine As String = oPigXml.GetXmlDocText("domain.security-configuration.connection-filter-rule", intSkipTimes)
@@ -1117,6 +1124,25 @@ Public Class WebLogicDomain
                             intSkipTimes += 1
                         Loop
                     End If
+                    intSkipTimes = 0
+                    Me.WebLogicDeploys.Clear()
+                    Do While True
+                        Dim strLine As String = oPigXml.GetXmlDocText("domain.app-deployment.name", intSkipTimes)
+                        If strLine = "" Then Exit Do
+                        With Me.WebLogicDeploys.AddOrGet(strLine, Me)
+                            strLine = oPigXml.GetXmlDocText("domain.app-deployment.module-type", intSkipTimes)
+                            Select Case strLine
+                                Case "war"
+                                    .ModuleType = WebLogicDeploy.EnmModuleType.War
+                                Case "dir"
+                                    .ModuleType = WebLogicDeploy.EnmModuleType.Dir
+                                Case Else
+                                    .ModuleType = WebLogicDeploy.EnmModuleType.War
+                            End Select
+                            .SourcePath = oPigXml.GetXmlDocText("domain.app-deployment.source-path", intSkipTimes)
+                        End With
+                        intSkipTimes += 1
+                    Loop
                     .mConfFileUpdtime = oPigFile.UpdateTime
                     Me.mUpdateCheck.Clear()
                 End With

@@ -25,8 +25,8 @@ Imports PigObjFsLib
 ''' WebLogic Processing Class|WebLogic处理类
 ''' </summary>
 Public Class WebLogicApp
-    Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.10.2"
+    Inherits PigBaseLocal
+    Private Const CLS_VERSION As String = "1.10.8"
     Public ReadOnly Property HomeDirPath As String
     Public ReadOnly Property WorkTmpDirPath As String
     Public ReadOnly Property CallWlstTimeout As Integer = 300
