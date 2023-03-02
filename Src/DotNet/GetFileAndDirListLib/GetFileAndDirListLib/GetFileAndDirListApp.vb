@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Get file and directory list application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.7
 '* Create Time: 21/6/2021
 '* 1.0.2  23/6/2021   Add LogFilePath,IsAbsolutePath,RootDirPath
 '* 1.0.3  23/6/2021   Modify Start
@@ -15,8 +15,10 @@
 '* 1.2  3/9/2021  Modify Start
 '* 1.3  27/2/2023  Hide internal properties
 '* 1.5  28/2/2023  Modify Start, add WorkPath,StatusFilePath,RunStatus
-'* 1.6  28/2/2023  Modify mNew
+'* 1.6  1/3/2023  Modify mNew,SaveStatus,RefStatus,add 
+'* 1.7  2/3/2023  Modify mNew,Start,RefNoScanDir, add mStart
 '************************************
+Imports System.Threading
 Imports PigObjFsLib
 Imports PigToolsLiteLib
 
@@ -24,11 +26,14 @@ Imports PigToolsLiteLib
 ''' Get the current directory or subdirectory file or directory processing class|获取当前目录或子目录文件或目录处理类
 ''' </summary>
 Public Class GetFileAndDirListApp
-    Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.2"
+    Inherits PigBaseLocal
+    Private Const CLS_VERSION As String = "1.7.30"
     Private Property mFS As New FileSystemObject
     Private Property mPigFunc As New PigFunc
-    Private Property mUseTime As New UseTime
+
+    Public Event ScanOK()
+    Public Event ScanFail(ErrInf As String)
+    'Private ReadOnly Property MyProcThreadID As String = Me.mPigFunc.GetProcThreadID()
 
     Private mStatusFilePath As String
     Public Property StatusFilePath() As String
@@ -71,6 +76,16 @@ Public Class GetFileAndDirListApp
         End Set
     End Property
 
+    Private mEndTime As Date
+    Public Property EndTime() As Date
+        Get
+            Return mEndTime
+        End Get
+        Friend Set(value As Date)
+            mEndTime = value
+        End Set
+    End Property
+
     Private mStartTime As Date
     Public Property StartTime() As Date
         Get
@@ -81,6 +96,35 @@ Public Class GetFileAndDirListApp
         End Set
     End Property
 
+    Private mScanFiles As Long
+    Public Property ScanFiles() As Long
+        Get
+            Return mScanFiles
+        End Get
+        Friend Set(value As Long)
+            mScanFiles = value
+        End Set
+    End Property
+
+    Private mScanFolders As Long
+    Public Property ScanFolders() As Long
+        Get
+            Return mScanFolders
+        End Get
+        Friend Set(value As Long)
+            mScanFolders = value
+        End Set
+    End Property
+
+    Private mUseSeconds As Decimal
+    Public Property UseSeconds() As Decimal
+        Get
+            Return mUseSeconds
+        End Get
+        Friend Set(value As Decimal)
+            mUseSeconds = value
+        End Set
+    End Property
 
     Private mActiveTime As Date
     Public Property ActiveTime() As Date
@@ -92,16 +136,17 @@ Public Class GetFileAndDirListApp
         End Set
     End Property
 
-    Private mWorkPath As String
-    Public Property WorkPath() As String
-        Get
-            If mWorkPath = "" Then mWorkPath = Me.mPigFunc.GetFilePart(Me.LogFilePath, PigFunc.EnmFilePart.Path)
-            Return mWorkPath
-        End Get
-        Set(value As String)
-            mWorkPath = value
-        End Set
-    End Property
+    Private Sub mResetStatus()
+        With Me
+            .ActiveTime = Date.MinValue
+            .UseSeconds = -1
+            .TimeoutTime = Date.MinValue
+            .EndTime = Date.MinValue
+            .RunStatus = EnmRunStatus.Free
+            .ScanFiles = 0
+            .ScanFolders = 0
+        End With
+    End Sub
 
     Private mLogFilePath As String
     Public Property LogFilePath() As String
@@ -184,9 +229,6 @@ Public Class GetFileAndDirListApp
                 .DirListPath = .mDataPath & Me.OsPathSep & "DirList.txt"
                 .FileListPath = .mDataPath & Me.OsPathSep & "FileList.txt"
                 .StatusFilePath = .mDataPath & Me.OsPathSep & "Status.xml"
-                .NoScanDirItems = New NoScanDirItems
-                .NoScanDirItems.Add(.mDataPath)
-                .SaveStatus(EnmCtrlStatus.Inoperation)
             End With
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -247,44 +289,83 @@ Public Class GetFileAndDirListApp
         End Set
     End Property
 
+
     Public Sub Start(Optional IsFullPigMD5 As Boolean = False, Optional TimeoutMinutes As Integer = 10)
-        Const VSSVER_SCC_FILE As String = "vssver.scc"
-        Dim LOG As New PigStepLog("Start")
         Try
             Me.RefStatus()
             Select Case Me.RunStatus
                 Case EnmRunStatus.Running
-                    Throw New Exception("Now is Running.")
+                    If Math.Abs(DateDiff(DateInterval.Minute, Me.ActiveTime, Now)) < 5 Then
+                        Throw New Exception("Another thread is running.")
+                    End If
             End Select
+            Dim struMain As mStruStart
+            With struMain
+                .IsFullPigMD5 = IsFullPigMD5
+                .TimeoutMinutes = TimeoutMinutes
+            End With
+            Dim oThread As New Thread(AddressOf mStart)
+            oThread.Start(struMain)
+            oThread = Nothing
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("Start", ex)
+        End Try
+    End Sub
+
+    Public Function RefNoScanDir() As String
+        Dim LOG As New PigStepLog("RefNoScanDir")
+        Try
+            LOG.StepName = "New NoScanDirItems"
+            Me.NoScanDirItems = New NoScanDirItems
+            Me.NoScanDirItems.Add(Me.mDataPath)
+            Dim strGitPath As String = Me.RootDirPath & Me.OsPathSep & ".git"
+            Me.NoScanDirItems.Add(strGitPath)
+            Dim strNoScanDirList As String = ""
+            If Me.mPigFunc.IsFileExists(Me.NoScanDirListPath) = True Then
+                LOG.StepName = "GetFileText"
+                LOG.Ret = Me.mPigFunc.GetFileText(Me.NoScanDirListPath, strNoScanDirList)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(Me.NoScanDirListPath)
+                    Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.StepLogInf)
+                End If
+                strNoScanDirList &= Me.OsCrLf
+                Do While True
+                    Dim strDir As String = Me.mPigFunc.GetStr(strNoScanDirList, "", Me.OsCrLf)
+                    If strDir = "" Then Exit Do
+                    Me.NoScanDirItems.AddOrGet(strDir)
+                Loop
+            Else
+                Me.mPigFunc.SaveTextToFile(Me.NoScanDirListPath, "")
+            End If
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+
+    Private Structure mStruStart
+        Public IsFullPigMD5 As Boolean
+        Public TimeoutMinutes As Integer
+    End Structure
+    Private Sub mStart(StruMain As mStruStart)
+        Dim LOG As New PigStepLog("Start")
+        Const VSSVER_SCC_FILE As String = "vssver.scc"
+        Dim bolIsSaveStatus As Boolean = False
+        Dim oUseTime As New UseTime
+        Try
+            Me.mResetStatus()
+            Me.StartTime = Now
+            Me.IsFullPigMD5 = StruMain.IsFullPigMD5
+            Me.TimeoutTime = Now.AddMinutes(StruMain.TimeoutMinutes)
+            oUseTime.GoBegin()
+            Me.RefNoScanDir()
             LOG.StepName = "SaveStatus"
-            LOG.Ret = Me.SaveStatus(EnmCtrlStatus.Start)
+            LOG.Ret = Me.SaveStatus(EnmCtrlStatus.Start, False)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Dim strLine As String = ""
             Dim tsDir As TextStream
-            LOG.StepName = "OpenTextFile(NoScanDirListPath)"
-            tsDir = mFS.OpenTextFile(Me.NoScanDirListPath, FileSystemObject.IOMode.ForReading, True)
-            If mFS.LastErr <> "" Then
-                LOG.AddStepNameInf(Me.NoScanDirListPath)
-                Throw New Exception(mFS.LastErr)
-            End If
-            Me.NoScanDirItems = New NoScanDirItems
-            If tsDir.AtEndOfStream = False Then
-                LOG.StepName = "ReadAll for NoScanDirList"
-                Dim strNoScanDirList As String = tsDir.ReadAll
-                If tsDir.LastErr <> "" Then
-                    LOG.AddStepNameInf(Me.NoScanDirListPath)
-                    Throw New Exception(tsDir.LastErr)
-                End If
-                tsDir.Close()
-                If Right(strNoScanDirList, Me.OsCrLf.Length) <> Me.OsCrLf Then strNoScanDirList = strNoScanDirList & Me.OsCrLf
-                Do While True
-                    strLine = mPigFunc.GetStr(strNoScanDirList, "", Me.OsCrLf)
-                    If strLine = "" Then Exit Do
-                    Me.NoScanDirItems.Add(strLine)
-                Loop
-            Else
-                tsDir.Close()
-            End If
             LOG.StepName = "OpenTextFile"
             tsDir = mFS.OpenTextFile(Me.DirListPath, FileSystemObject.IOMode.ForWriting, True)
             If mFS.LastErr <> "" Then
@@ -311,6 +392,7 @@ Public Class GetFileAndDirListApp
                 LOG.AddStepNameInf(Me.RootDirPath)
                 Throw New Exception(Me.LastErr)
             End If
+            Dim dteLastSaveTime As Date = Date.MinValue
             Do While True
                 strLine = mPigFunc.GetStr(strDirList, "", Me.OsCrLf)
                 If strLine = "" Then Exit Do
@@ -321,6 +403,12 @@ Public Class GetFileAndDirListApp
                 ElseIf mFS.FolderExists(strLine) = False Then
                     mPigFunc.OptLogInf(strLine & " no longer exists, no processing", Me.LogFilePath)
                 Else
+                    Me.ScanFolders += 1
+                    If Math.Abs(DateDiff(DateInterval.Second, dteLastSaveTime, Now)) > 30 Then
+                        Me.UseSeconds = oUseTime.Step2NowSeconds
+                        Me.SaveStatus(EnmCtrlStatus.Inoperation, False)
+                        dteLastSaveTime = Now
+                    End If
                     LOG.StepName = "Get current directory " & strLine
                     Dim strDirPath = strLine
                     Dim lngSubLen As Long
@@ -350,6 +438,12 @@ Public Class GetFileAndDirListApp
                         ElseIf oFile.Path = Me.FileListPath Then
                         ElseIf oFile.Path = Me.DirListPath Then
                         Else
+                            Me.ScanFiles += 1
+                            If Math.Abs(DateDiff(DateInterval.Second, dteLastSaveTime, Now)) > 30 Then
+                                Me.UseSeconds = oUseTime.Step2NowSeconds
+                                Me.SaveStatus(EnmCtrlStatus.Inoperation, False)
+                                dteLastSaveTime = Now
+                            End If
                             Dim strFilePath As String = oFile.Path
                             If Me.IsAbsolutePath = False Then
                                 strFilePath = "." & Me.OsPathSep & Right(strFilePath, Len(strFilePath) - Len(Me.RootDirPath) - 1)
@@ -367,7 +461,7 @@ Public Class GetFileAndDirListApp
                                 strFastPigMD5 = pmFast.PigMD5
                             End If
                             pmFast = Nothing
-                            If IsFullPigMD5 = True Then
+                            If StruMain.IsFullPigMD5 = True Then
                                 LOG.StepName = "GetFastPigMD5"
                                 LOG.Ret = oPigFile.GetFullPigMD5(pmFull)
                                 If LOG.Ret <> "OK" Then
@@ -379,7 +473,7 @@ Public Class GetFileAndDirListApp
                             End If
                             LOG.StepName = "WriteLine"
                             strLine = strFilePath & vbTab & oFile.Size & vbTab & Me.mPigFunc.GetFmtDateTime(oFile.DateLastModified) & vbTab & strFastPigMD5
-                            If IsFullPigMD5 = True Then strLine &= vbTab & strFullPigMD5
+                            If StruMain.IsFullPigMD5 = True Then strLine &= vbTab & strFullPigMD5
                             tsFile.WriteLine(strLine)
                             If tsFile.LastErr <> "" Then
                                 Me.PrintDebugLog(LOG.SubName, LOG.StepName, strLine)
@@ -388,13 +482,30 @@ Public Class GetFileAndDirListApp
                         End If
                     Next
                 End If
+                If Now > Me.TimeoutTime Then
+                    Me.RunStatus = EnmRunStatus.RunTimeout
+                    Throw New Exception("Scan timeout.")
+                End If
             Loop
             tsDir.Close()
             tsFile.Close()
+            oUseTime.ToEnd()
+            Me.UseSeconds = oUseTime.AllDiffSeconds
+            Me.EndTime = Now
+            Me.SaveStatus(EnmCtrlStatus.ScanOK, False)
+            RaiseEvent ScanOK()
             Me.ClearErr()
         Catch ex As Exception
+            Dim strRet As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            oUseTime.ToEnd()
+            Me.UseSeconds = oUseTime.AllDiffSeconds
+            If Me.RunStatus = EnmRunStatus.RunTimeout Then
+                Me.SaveStatus(EnmCtrlStatus.ScanTimeout, False)
+            Else
+                Me.SaveStatus(EnmCtrlStatus.ScanFail, False)
+            End If
+            RaiseEvent ScanFail(strRet)
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
-            Me.PrintDebugLog(LOG.SubName, "Catch Exception", Me.LastErr)
         End Try
     End Sub
 
@@ -484,9 +595,10 @@ Public Class GetFileAndDirListApp
 
     Public Enum EnmCtrlStatus
         Start = 0
-        ToStop = 1
+        ScanOK = 1
         Inoperation = 2
-        HardStop = 3
+        ScanFail = 3
+        ScanTimeout = 4
     End Enum
 
 
@@ -498,7 +610,7 @@ Public Class GetFileAndDirListApp
             LOG.StepName = "GetFileText"
             LOG.Ret = Me.mPigFunc.GetFileText(Me.StatusFilePath, strXml)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-            Dim oPigXml As New PigXml(True)
+            Dim oPigXml As New PigXml(True, False)
             With oPigXml
                 LOG.StepName = "SetMainXml"
                 .Clear()
@@ -516,6 +628,14 @@ Public Class GetFileAndDirListApp
                 With Me
                     .RunStatus = oPigXml.XmlDocGetStr("Root.RunStatus")
                     .CurrProcThreadID = oPigXml.XmlDocGetStr("Root.ProcThreadID")
+                    .IsAbsolutePath = oPigXml.XmlDocGetBool("Root.IsAbsolutePath")
+                    .IsFullPigMD5 = oPigXml.XmlDocGetBool("Root.IsFullPigMD5")
+                    .StartTime = oPigXml.XmlDocGetDate("Root.StartTime")
+                    .TimeoutTime = oPigXml.XmlDocGetDate("Root.TimeoutTime")
+                    .EndTime = oPigXml.XmlDocGetDate("Root.EndTime")
+                    .UseSeconds = oPigXml.XmlDocGetDec("Root.UseSeconds")
+                    .ScanFiles = oPigXml.XmlDocGetLong("Root.ScanFiles")
+                    .ScanFolders = oPigXml.XmlDocGetLong("Root.ScanFolders")
                     .ActiveTime = oPigXml.XmlDocGetDate("Root.ActiveTime")
                 End With
             End With
@@ -526,10 +646,10 @@ Public Class GetFileAndDirListApp
         End Try
     End Function
 
-    Public Function SaveStatus(CtrlStatus As EnmCtrlStatus) As String
+    Public Function SaveStatus(CtrlStatus As EnmCtrlStatus, Optional IsRefStatus As Boolean = True) As String
         Dim LOG As New PigStepLog("SaveStatus")
         Try
-            Me.RefStatus()
+            If IsRefStatus = True Then Me.RefStatus()
             LOG.StepName = "Check CtrlStatus"
             Dim intNewRunStatus As EnmRunStatus = EnmRunStatus.Free
             Select Case CtrlStatus
@@ -540,16 +660,14 @@ Public Class GetFileAndDirListApp
                         Case Else
                             Throw New Exception("The current state is " & Me.RunStatus.ToString & " and cannot be " & CtrlStatus.ToString)
                     End Select
-                Case EnmCtrlStatus.ToStop
-                    Select Case Me.RunStatus
-                        Case EnmRunStatus.Running
-                            intNewRunStatus = EnmRunStatus.Free
-                        Case Else
-                            Throw New Exception("The current state is " & Me.RunStatus.ToString & " and cannot be " & CtrlStatus.ToString)
-                    End Select
-                Case EnmCtrlStatus.HardStop
-                    intNewRunStatus = EnmRunStatus.Free
+                Case EnmCtrlStatus.ScanOK
+                    intNewRunStatus = EnmRunStatus.RunOK
+                Case EnmCtrlStatus.ScanFail
+                    intNewRunStatus = EnmRunStatus.RunFail
+                Case EnmCtrlStatus.ScanTimeout
+                    intNewRunStatus = EnmRunStatus.RunTimeout
                 Case EnmCtrlStatus.Inoperation
+                    intNewRunStatus = Me.RunStatus
             End Select
             LOG.StepName = "Set oPigXml"
             Dim oPigXml As New PigXml(True)
@@ -557,12 +675,15 @@ Public Class GetFileAndDirListApp
                 .AddEleLeftSign("Root")
                 .AddEle("RunStatus", intNewRunStatus)
                 .AddEle("ProcThreadID", Me.mPigFunc.GetProcThreadID)
-                .AddEle("RootDirPath", Me.RootDirPath)
-                .AddEle("LogFilePath", Me.LogFilePath)
+                '                .AddEle("LogFilePath", Me.LogFilePath)
                 .AddEle("IsAbsolutePath", Me.IsAbsolutePath)
                 .AddEle("IsFullPigMD5", Me.IsFullPigMD5)
                 .AddEle("StartTime", Me.StartTime)
                 .AddEle("TimeoutTime", Me.TimeoutTime)
+                .AddEle("EndTime", Me.EndTime)
+                .AddEle("UseSeconds", Me.UseSeconds)
+                .AddEle("ScanFiles", Me.ScanFiles)
+                .AddEle("ScanFolders", Me.ScanFolders)
                 .AddEle("ActiveTime", Now)
                 .AddEleRightSign("Root")
                 LOG.StepName = "SaveTextToFile"

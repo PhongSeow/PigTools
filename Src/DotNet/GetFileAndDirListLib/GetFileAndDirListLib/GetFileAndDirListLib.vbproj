@@ -14,12 +14,12 @@
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/GetFileAndDirListLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop File Dir List scan folder Windows Linux</PackageTags>
+    <PackageTags>.net develop File Dir List scan folder Windows Linux Asynchronous processing</PackageTags>
     <Description>A class library that scans the current directory and generates directory lists and file lists.
 Support to define directory list not to scan.
 It can run on Windows and Linux platforms.
 </Description>
-    <PackageReleaseNotes>Optimize code and add operation control.</PackageReleaseNotes>
+    <PackageReleaseNotes>Optimize the code and add operation control and support asynchronous processing.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

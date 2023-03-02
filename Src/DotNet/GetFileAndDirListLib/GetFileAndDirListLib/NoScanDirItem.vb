@@ -4,15 +4,16 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Directory entries not scanned
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0.1
+'* Version: 1.1
 '* Create Time: 23/6/2021
+'* 1.1  1/3/2023   Use PigBaseLocal
 '************************************
 ''' <summary>
 ''' Directory entries not scanned|不扫描的目录项
 ''' </summary>
 Public Class NoScanDirItem
-    Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.1"
+    Inherits PigBaseLocal
+    Private Const CLS_VERSION As String = "1.1.2"
     Public ReadOnly Property DirPath As String
     Public Sub New(DirPath As String)
         MyBase.New(CLS_VERSION)
