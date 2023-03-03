@@ -6,7 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Demo console program for GetFileAndDirListLib.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.3.112</Version>
+    <Version>1.5.2</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Product>GetFileAndDirListLib Demo Console</Product>
@@ -20,7 +20,8 @@ It can run on Windows and Linux platforms.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.3.112" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.5.2" />
+    <PackageReference Include="PigCmdLib" Version="2.2.12" />
   </ItemGroup>
 
 </Project>
