@@ -77,7 +77,7 @@ Public Class PigReg
                     strRegPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion"
                     strRegName = "ProductId"
                 Case Else
-                    Err.Raise(-1, , "无效WhatReg" & WhatReg.ToString)
+                    Throw New Exception("Invalid WhatReg" & WhatReg.ToString)
             End Select
             strStepName = "mGetRegValue(" & strRegPath & "," & strRegName & ")"
             GetSomeRegValue = Me.mGetRegValue(intRegRoot, strRegPath, strRegName, "", strRet)
@@ -210,7 +210,7 @@ Public Class PigReg
                     rkAny = Registry.Users
                 Case Else
                     rkAny = Nothing
-                    Err.Raise(-1, , "Invalid RegRoot")
+                    Throw New Exception("Invalid RegRoot")
             End Select
             strStepName = "CreateSubKey(" & RegPath & ")"
             rkAny.CreateSubKey(RegPath)

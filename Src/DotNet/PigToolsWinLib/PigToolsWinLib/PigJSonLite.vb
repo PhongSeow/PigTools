@@ -113,7 +113,7 @@ Public Class PigJSonLite
     Public Overloads Sub AddEle(EleKey As String, IntValue As Long, Optional IsFirstEle As Boolean = False)
         Try
             Dim strRet As String = Me.mAddEle(EleKey, IntValue.ToString, IsFirstEle, False)
-            If strRet <> "" Then Err.Raise(-1, , strRet)
+            If strRet <> "" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.IntValue", ex)
@@ -127,7 +127,7 @@ Public Class PigJSonLite
     Public Overloads Sub AddEle(EleKey As String, StrValue As String, Optional IsFirstEle As Boolean = False)
         Try
             Dim strRet As String = Me.mAddEle(EleKey, StrValue, IsFirstEle, True)
-            If strRet <> "" Then Err.Raise(-1, , strRet)
+            If strRet <> "" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.StrValue", ex)
@@ -142,7 +142,7 @@ Public Class PigJSonLite
     Public Overloads Sub AddEle(EleKey As String, BoolValue As Boolean, Optional IsFirstEle As Boolean = False)
         Try
             Dim strRet = Me.mAddEle(EleKey, BoolValue.ToString, IsFirstEle, False)
-            If strRet <> "" Then Err.Raise(-1, , strRet)
+            If strRet <> "" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.BoolValue", ex)
@@ -156,7 +156,7 @@ Public Class PigJSonLite
     Public Overloads Sub AddEle(EleKey As String, DecValue As Decimal, Optional IsFirstEle As Boolean = False)
         Try
             Dim strRet = Me.mAddEle(EleKey, DecValue.ToString, IsFirstEle, False)
-            If strRet <> "" Then Err.Raise(-1, , strRet)
+            If strRet <> "" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.DateValue", ex)
@@ -171,9 +171,9 @@ Public Class PigJSonLite
     Public Overloads Sub AddEle(EleKey As String, DateValue As DateTime, Optional IsFirstEle As Boolean = False)
         Try
             Dim lngDate As Long = Me.mDate2Lng(DateValue)
-            If Me.LastErr <> "" Then Err.Raise(-1, , Me.LastErr)
+            If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
             Dim strRet = Me.mAddEle(EleKey, lngDate.ToString, IsFirstEle, False)
-            If strRet <> "" Then Err.Raise(-1, , strRet)
+            If strRet <> "" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddEle.DateValue.IsLocalTime", ex)
@@ -235,7 +235,7 @@ Public Class PigJSonLite
                 Case xpSymbolType.EleEndFlag
                     msbMain.Append("}")
                 Case Else
-                    Err.Raise(-1, , "Invalid SymbolType")
+                    Throw New Exception("Invalid SymbolType")
             End Select
             Me.ClearErr()
         Catch ex As Exception
@@ -261,10 +261,10 @@ Public Class PigJSonLite
             Else
                 strRet = mAddJSonStr(msbMain, xpJSonEleType.NotFristEle, EleKey, "", False)
             End If
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             strStepName = "Add EleValue"
             strRet = mAddJSonStr(msbMain, xpJSonEleType.EleValue, "", EleValue, IsChgCtlStr)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("mAddEle", strStepName, ex)
@@ -321,7 +321,7 @@ Public Class PigJSonLite
             If IsFirstEle = False Then msbMain.Append(",")
             strStepName = "Add EleValue"
             strRet = mAddJSonStr(msbMain, xpJSonEleType.ArrayValue, "", ArrayEleValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddArrayEleValue", strStepName, ex)
@@ -336,16 +336,16 @@ Public Class PigJSonLite
         Dim strStepName As String = "", strRet As String = ""
         Try
             strStepName = "Check EleKey"
-            If EleKey = "" Then Err.Raise(-1, , "Need EleKey")
+            If EleKey = "" Then Throw New Exception("Need EleKey")
             If IsFirstEle = True Then
                 strRet = mAddJSonStr(msbMain, xpJSonEleType.FristEle, EleKey, "")
             Else
                 strRet = mAddJSonStr(msbMain, xpJSonEleType.NotFristEle, EleKey, "")
             End If
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             strStepName = "Add EleValue"
             strRet = mAddJSonStr(msbMain, xpJSonEleType.ArrayValue, "", "[" & ArrayEleValue & "]")
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddArrayEleValue", strStepName, ex)
@@ -361,7 +361,7 @@ Public Class PigJSonLite
             msbMain.Append(",")
             strStepName = "Add EleValue"
             strRet = mAddJSonStr(msbMain, xpJSonEleType.ArrayValue, "", ArrayEleValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddArrayEleValue", strStepName, ex)
@@ -411,7 +411,7 @@ Public Class PigJSonLite
                     End Select
                 Case Else
                     strRet = "Invalid jsoneletype:" & JSonEleType.ToString
-                    Err.Raise(-1, , strRet)
+                    Throw New Exception(strRet)
             End Select
             Return "OK"
         Catch ex As Exception
@@ -489,16 +489,16 @@ Public Class PigJSonLite
         Dim strStepName As String = "", strRet As String = ""
         Try
             strStepName = "Check EleKey"
-            If EleKey = "" Then Err.Raise(-1, , "Need EleKey")
+            If EleKey = "" Then Throw New Exception("Need EleKey")
             If IsFirstEle = True Then
                 strRet = mAddJSonStr(msbMain, xpJSonEleType.FristEle, EleKey, "")
             Else
                 strRet = mAddJSonStr(msbMain, xpJSonEleType.NotFristEle, EleKey, "")
             End If
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             strStepName = "Add EleValue"
             strRet = mAddJSonStr(msbMain, xpJSonEleType.ObjectValue, "", ObjectEleValue)
-            If strRet <> "OK" Then Err.Raise(-1, , strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("AddObjectEleValue", strStepName, ex)

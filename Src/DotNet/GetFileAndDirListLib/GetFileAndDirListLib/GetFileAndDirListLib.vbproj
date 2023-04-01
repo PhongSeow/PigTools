@@ -4,7 +4,7 @@
     <RootNamespace>GetFileAndDirListLib</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.5.2</Version>
+    <Version>1.5.6</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
@@ -19,12 +19,12 @@
 Support to define directory list not to scan.
 It can run on Windows and Linux platforms.
 </Description>
-    <PackageReleaseNotes>Optimize the code and add operation control and support asynchronous processing.</PackageReleaseNotes>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="PigObjFsLib" Version="2.0.32" />
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.122" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.126" />
   </ItemGroup>
 
   <ItemGroup>

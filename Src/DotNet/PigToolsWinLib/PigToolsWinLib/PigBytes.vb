@@ -79,7 +79,7 @@ Public Class PigBytes
     ''' <summary>比较数组是否一样</summary>
     Public Overloads Function IsMatchBytes(ByRef MatchBytes As Byte()) As Boolean
         Try
-            If Me.mabMain.Length <> MatchBytes.Length Then Err.Raise(-1)
+            If Me.mabMain.Length <> MatchBytes.Length Then Throw New Exception("Me.mabMain.Length <> MatchBytes.Length")
             Dim i As Integer, bolIsMatch As Boolean = True
             For i = 0 To MatchBytes.Length - 1
                 If Me.mabMain(i) <> MatchBytes(i) Then
@@ -100,7 +100,7 @@ Public Class PigBytes
     ''' <summary>比较数组是否一样</summary>
     Public Overloads Function IsMatchBytes(BeginPos As Integer, ByRef MatchBytes As Byte()) As String
         Try
-            If (Me.mabMain.Length - BeginPos + 1) <> MatchBytes.Length Then Err.Raise(-1)
+            If (Me.mabMain.Length - BeginPos + 1) <> MatchBytes.Length Then Throw New Exception("(Me.mabMain.Length - BeginPos + 1) <> MatchBytes.Length")
             Dim i As Integer, bolIsMatch As Boolean = True
             For i = 0 To MatchBytes.Length - 1
                 If Me.mabMain(i + BeginPos) <> MatchBytes(i) Then

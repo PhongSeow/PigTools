@@ -151,7 +151,7 @@ Public Class PigText
                     Dim oCompressor As New PigCompressor
                     strStepName = "Compress(mabSrcText)"
                     mabCompressText = oCompressor.Compress(mabSrcText)
-                    If oCompressor.LastErr <> "" Then Err.Raise(-1, , oCompressor.LastErr)
+                    If oCompressor.LastErr <> "" Then Throw New Exception(oCompressor.LastErr)
                     oCompressor = Nothing
                 End If
                 CompressTextBytes = mabCompressText

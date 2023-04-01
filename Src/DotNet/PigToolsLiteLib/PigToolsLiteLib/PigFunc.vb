@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.36
+'* Version: 1.37
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -45,6 +45,7 @@
 '*1.33   15/11/2022  Add GetTextSHA1
 '*1.35   18/1/2023  Modify GetUUID,GetMachineGUID, add mGetUUID,mGetMachineGUID
 '*1.36   19/1/2023  Modify mGetUUID,GetUUID,GetMachineGUID, add GetBootID,GetProductUuid
+'*1.37   31/3/2023  Modify GetFilePart,GetStr
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -58,7 +59,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.36.6"
+    Private Const CLS_VERSION As String = "1.27.8"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -528,12 +529,22 @@ Public Class PigFunc
         End Try
     End Sub
 
-    ''' <remarks>获取文件路径的组成部分</remarks>
+    ''' <summary>
+    ''' Get the part of the file|获取文件的组成部分
+    ''' </summary>
+    ''' <param name="FilePath">File absolute path|文件绝对路径</param>
+    ''' <param name="FilePart">Part of the file|文件的部分</param>
+    ''' <returns></returns>
     Public Function GetFilePart(ByVal FilePath As String, Optional FilePart As EnmFilePart = EnmFilePart.FileTitle) As String
         Dim strTemp As String, i As Long, lngLen As Long
         Dim strPath As String = "", strFileTitle As String = ""
-        Dim strOsPathSep As String = Me.OsPathSep
+        Dim strOsPathSep As String = ""
         Try
+            If InStr(FilePath, "/") > 0 Then
+                strOsPathSep = "/"
+            Else
+                strOsPathSep = "\"
+            End If
             GetFilePart = ""
             Select Case FilePart
                 Case EnmFilePart.DriveNo
@@ -590,11 +601,11 @@ Public Class PigFunc
 
     ''' <remarks>截取字符串</remarks>
     Public Function GetStr(ByRef SourceStr As String, strBegin As String, strEnd As String, Optional IsCut As Boolean = True) As String
-        Dim lngBegin As Long
-        Dim lngEnd As Long
-        Dim lngBeginLen As Long
-        Dim lngEndLen As Long
         Try
+            Dim lngBegin As Long
+            Dim lngEnd As Long
+            Dim lngBeginLen As Long
+            Dim lngEndLen As Long
             lngBeginLen = Len(strBegin)
             lngBegin = InStr(SourceStr, strBegin, CompareMethod.Text)
             lngEndLen = Len(strEnd)
@@ -602,17 +613,16 @@ Public Class PigFunc
                 lngEnd = Len(SourceStr) + 1
             Else
                 lngEnd = InStr(lngBegin + lngBeginLen + 1, SourceStr, strEnd, CompareMethod.Text)
-                If lngBegin = 0 Then Err.Raise(-1, , "lngBegin=0")
+                If lngBegin = 0 Then Return "" 'Throw New Exception("lngBegin=0")
             End If
-            If lngEnd <= lngBegin Then Err.Raise(-1, , "lngEnd <= lngBegin")
-            If lngBegin = 0 Then Err.Raise(-1, , "lngBegin=0[2]")
-
+            If lngEnd <= lngBegin Then Return "" ' Throw New Exception("lngEnd <= lngBegin")
+            If lngBegin = 0 Then Return "" 'Throw New Exception("lngBegin=0[2]")
             GetStr = Mid(SourceStr, lngBegin + lngBeginLen, (lngEnd - lngBegin - lngBeginLen))
             If IsCut = True Then
                 SourceStr = Left(SourceStr, lngBegin - 1) & Mid(SourceStr, lngEnd + lngEndLen)
             End If
         Catch ex As Exception
-            GetStr = ""
+            Return ""
             Me.SetSubErrInf("GetStr", ex)
         End Try
     End Function
