@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.25.1
+'* Version: 1.26.1
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -30,9 +30,9 @@
 '* 1.22   8/11/2022  Add PigSendDemo
 '* 1.23   15/11/2022 Modify PigFuncDemo,PigRsa
 '* 1.25   18/1/2023 Modify PigMLangDemo
+'* 1.26   2/4/2023  Remove reference to PigCmdLib
 '************************************
 Imports PigToolsLiteLib
-Imports PigCmdLib
 Imports System.Xml
 Imports System.Globalization
 Public Class ConsoleDemo
@@ -71,7 +71,7 @@ Public Class ConsoleDemo
     Public EnvVar As String
     Public CsvLine As String
     Public BcpLine As String
-    Public PigConsole As New PigCmdLib.PigConsole
+    Public PigConsole As New PigConsole
     Public PigProcApp As PigProcApp
     Public PID As Integer
     Public ProcName As String
@@ -845,6 +845,7 @@ Public Class ConsoleDemo
                 Case Else
                     Console.WriteLine("Coming soon...")
             End Select
+            Me.PigConsole.DisplayPause()
         Loop
     End Sub
 

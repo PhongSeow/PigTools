@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsLiteLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.3.126</Version>
+    <Version>3.3.126.2</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigToolsLiteLib</Description>
@@ -18,11 +18,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.2.16" />
+    <Folder Include="My Project\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="My Project\" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.126" />
   </ItemGroup>
 
 </Project>
