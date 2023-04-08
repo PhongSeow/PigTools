@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.37
+'* Version: 1.38
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -46,6 +46,7 @@
 '*1.35   18/1/2023  Modify GetUUID,GetMachineGUID, add mGetUUID,mGetMachineGUID
 '*1.36   19/1/2023  Modify mGetUUID,GetUUID,GetMachineGUID, add GetBootID,GetProductUuid
 '*1.37   31/3/2023  Modify GetFilePart,GetStr
+'*1.38   7/4/2023  Add GetPathPart
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -59,7 +60,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.27.8"
+    Private Const CLS_VERSION As String = "1.38.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -85,6 +86,32 @@ Public Class PigFunc
         FileTitle = 2    '文件名
         ExtName = 3      '扩展名
         DriveNo = 4      '驱动器名
+    End Enum
+
+    ''' <summary>
+    ''' 路径的部分|Part of the path
+    ''' </summary>
+    Public Enum EnmFathPart
+        ''' <summary>
+        ''' 父路径|Parent Path
+        ''' </summary>
+        ParentPath = 1
+        ''' <summary>
+        ''' 文件或目录名|File or directory name
+        ''' </summary>
+        FileOrDirTitle = 2
+        ''' <summary>
+        ''' 扩展名|File extensions
+        ''' </summary>
+        ExtName = 3
+        ''' <summary>
+        ''' 驱动器名(Windows)|Drive Letter (Windows)
+        ''' </summary>
+        DriveLetter = 4
+        ''' <summary>
+        ''' 文件或目录名（不含扩展名）|File or directory name(without extension)
+        ''' </summary>
+        FileOrDirTitleWithoutExtName = 5
     End Enum
 
     ''' <summary>获取随机字符串的方式</summary>
@@ -528,6 +555,39 @@ Public Class PigFunc
             MainIp = ""
         End Try
     End Sub
+
+    Public Function GetPathPart(ByVal FileOrDirPath As String, Optional PathPart As EnmFathPart = EnmFathPart.FileOrDirTitle) As String
+        Try
+            Dim strPathPart As String = ""
+            Select Case PathPart
+                Case EnmFathPart.DriveLetter
+                    strPathPart = Path.GetPathRoot(FileOrDirPath)
+                    If InStr(strPathPart, ":") > 0 Then
+                        strPathPart = UCase(Left(strPathPart, 1))
+                    Else
+                        strPathPart = ""
+                    End If
+                Case EnmFathPart.ExtName
+                    strPathPart = Path.GetExtension(FileOrDirPath)
+                    If InStr(strPathPart, ".") > 0 Then
+                        strPathPart = Mid(strPathPart, 2)
+                    End If
+                Case EnmFathPart.FileOrDirTitle
+                    strPathPart = Path.GetFileName(FileOrDirPath)
+                Case EnmFathPart.ParentPath
+                    strPathPart = Path.GetDirectoryName(FileOrDirPath)
+                Case EnmFathPart.FileOrDirTitleWithoutExtName
+                    strPathPart = Path.GetFileNameWithoutExtension(FileOrDirPath)
+                Case Else
+                    Throw New Exception("Invalid FilePart")
+            End Select
+            Return strPathPart
+        Catch ex As Exception
+            Me.SetSubErrInf("GetPathPart", ex)
+            Return ""
+        End Try
+    End Function
+
 
     ''' <summary>
     ''' Get the part of the file|获取文件的组成部分
