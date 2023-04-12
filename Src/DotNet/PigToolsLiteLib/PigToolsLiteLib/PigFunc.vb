@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.38
+'* Version: 1.39
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -46,7 +46,8 @@
 '*1.35   18/1/2023  Modify GetUUID,GetMachineGUID, add mGetUUID,mGetMachineGUID
 '*1.36   19/1/2023  Modify mGetUUID,GetUUID,GetMachineGUID, add GetBootID,GetProductUuid
 '*1.37   31/3/2023  Modify GetFilePart,GetStr
-'*1.38   7/4/2023  Add GetPathPart
+'*1.38   7/4/2023   Add GetPathPart
+'*1.39   12/4/2023  Add SQLCDate
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -775,6 +776,15 @@ Public Class PigFunc
         Catch ex As Exception
             Me.SetSubErrInf("GECDate", ex)
             Return DateTime.MinValue
+        End Try
+    End Function
+
+    Public Function SQLCDate(vData As String) As DateTime
+        Try
+            Return Date.Parse(vData)
+        Catch ex As Exception
+            Me.SetSubErrInf("SQLCDate", ex)
+            Return #1/1/1753#
         End Try
     End Function
 

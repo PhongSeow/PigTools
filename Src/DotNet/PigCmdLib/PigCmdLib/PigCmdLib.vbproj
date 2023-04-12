@@ -21,7 +21,7 @@ Asynchronous processing.
 Wmic calls and operating system commands.
 Get host hardware and software information.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.2.18</Version>
+    <Version>2.2.20</Version>
     <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
@@ -33,7 +33,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.128" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.130" />
   </ItemGroup>
 
 </Project>
