@@ -2,17 +2,19 @@
 
   <PropertyGroup>
     <RootNamespace>PigHostLib</RootNamespace>
-    <TargetFrameworks>net20;net30;net40;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
-    <Version>1.0.50</Version>
+    <Version>1.1.2</Version>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Description>Get local information
-It can run on Windows only.
+    <Description>
+		Get local information
+		Host Directory scanning and file read and write operations based on SQL Server support file duplication and compression.
+		It can run on Windows only.
 
-</Description>
+	</Description>
     <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageIconUrl />
@@ -34,8 +36,9 @@ It can run on Windows only.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.1.12" />
-    <PackageReference Include="PigSQLSrvLib" Version="2.8.26" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.5.10" />
+    <PackageReference Include="PigCmdLib" Version="2.2.20" />
+    <PackageReference Include="PigSQLSrvLib" Version="2.8.72" />
   </ItemGroup>
 
 </Project>

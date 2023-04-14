@@ -32,7 +32,6 @@
 '* 1.25   18/1/2023 Modify PigMLangDemo
 '************************************
 Imports PigToolsLiteLib
-Imports PigCmdLib
 Imports System.Xml
 Imports System.Globalization
 Public Class ConsoleDemo
@@ -71,7 +70,7 @@ Public Class ConsoleDemo
     Public EnvVar As String
     Public CsvLine As String
     Public BcpLine As String
-    Public PigConsole As New PigCmdLib.PigConsole
+    Public PigConsole As New PigConsole
     Public PigProcApp As PigProcApp
     Public PID As Integer
     Public ProcName As String
