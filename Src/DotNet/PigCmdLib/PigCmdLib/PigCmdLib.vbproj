@@ -8,7 +8,7 @@
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2022-2023 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLib</RepositoryUrl>
@@ -21,7 +21,7 @@ Asynchronous processing.
 Wmic calls and operating system commands.
 Get host hardware and software information.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.2.20</Version>
+    <Version>2.2.22</Version>
     <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
   </PropertyGroup>
 
@@ -33,7 +33,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.130" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.132" />
   </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
-    <Version>1.1.2</Version>
+    <Version>1.1.6</Version>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -38,7 +38,7 @@
   <ItemGroup>
     <PackageReference Include="GetFileAndDirListLib" Version="1.5.10" />
     <PackageReference Include="PigCmdLib" Version="2.2.20" />
-    <PackageReference Include="PigSQLSrvLib" Version="2.8.72" />
+    <PackageReference Include="PigSQLSrvLib" Version="2.8.80" />
   </ItemGroup>
 
 </Project>

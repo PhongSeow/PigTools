@@ -4,12 +4,12 @@
     <RootNamespace>PigWebCtrlLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.1.20</Version>
+    <Version>2.1.22</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigWebCtrlLib.</Description>
-    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
     <RepositoryType>GIT</RepositoryType>
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigWebCtrlLibDemo</RepositoryUrl>
     <PackageTags>Demo PigWebCtrlLib .net develop windows linux weblogic tomcat nginx apache web administration-port-enabled</PackageTags>
@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigWebCtrlLib" Version="2.1.20" />
+    <PackageReference Include="PigWebCtrlLib" Version="2.1.22" />
   </ItemGroup>
 
 </Project>

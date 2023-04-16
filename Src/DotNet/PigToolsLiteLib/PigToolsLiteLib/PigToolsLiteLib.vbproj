@@ -4,32 +4,28 @@
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.3.130</Version>
+    <Version>3.3.132</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
-A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared Memory, md5 and compression.
+A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, JSON,shared Memory, md5 ,registry,HTTP request and compression.
 AES, 3DES and RSA encryption processing.
 Configuration file management supporting configuration item encryption.
 Simple sorting processing.
-HTTP request processing.
-Registry processing.
-Text processing.
-Xml processing.
 Key value and cache processing.
-Simplified logging and error handling.
+Logging and error handling.
 Multilingual processing.
 It can run on Windows and Linux platforms.
 </Description>
     <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop byte compressor log error file md5 text xml sharemem usetime http web request windows linux json aes rsa 3des uuid cache keyvalue debug multilingual encryption decrypt sql send process configure sort registry host</PackageTags>
-    <PackageReleaseNotes>Add SQLCDate of PigFunc.</PackageReleaseNotes>
+    <PackageReleaseNotes>Update project information.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

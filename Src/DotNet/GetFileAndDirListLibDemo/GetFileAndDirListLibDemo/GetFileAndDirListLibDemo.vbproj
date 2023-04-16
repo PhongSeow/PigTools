@@ -6,13 +6,13 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Demo console program for GetFileAndDirListLib.
 It can run on Windows and Linux platforms.</Description>
-    <Version>1.5.10</Version>
+    <Version>1.5.12</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Product>GetFileAndDirListLib Demo Console</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
-    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/GetFileAndDirListLibDemo</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>GetFileAndDirListLib Windows Linux Demo .net develop File Dir List scan folder</PackageTags>
@@ -20,8 +20,8 @@ It can run on Windows and Linux platforms.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.5.10" />
-    <PackageReference Include="PigCmdLib" Version="2.2.20" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.5.12" />
+    <PackageReference Include="PigCmdLib" Version="2.2.22" />
   </ItemGroup>
 
 </Project>

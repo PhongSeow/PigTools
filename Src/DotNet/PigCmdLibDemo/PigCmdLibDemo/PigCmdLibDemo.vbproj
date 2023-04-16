@@ -3,13 +3,13 @@
   <PropertyGroup>
     <RootNamespace>PigCmdLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>2.2.20</Version>
+    <Version>2.2.22</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for PigCmdLib.</Description>
     <Copyright>Copyright (c) 2022-2023 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLibDemo</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>Demo PigCmdLib .net develop shell command windows Linux VB6 password string  cmdShell CallFile StandardOutput StandardError StandardInput</PackageTags>
@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.2.20" />
+    <PackageReference Include="PigCmdLib" Version="2.2.22" />
   </ItemGroup>
 
 </Project>
