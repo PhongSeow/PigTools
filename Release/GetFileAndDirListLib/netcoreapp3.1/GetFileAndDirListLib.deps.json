@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "GetFileAndDirListLib/1.5.12": {
+      "GetFileAndDirListLib/1.5.16": {
         "dependencies": {
           "PigObjFsLib": "2.0.32",
           "PigToolsLiteLib": "3.3.132"
@@ -100,7 +100,7 @@
     }
   },
   "libraries": {
-    "GetFileAndDirListLib/1.5.12": {
+    "GetFileAndDirListLib/1.5.16": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
