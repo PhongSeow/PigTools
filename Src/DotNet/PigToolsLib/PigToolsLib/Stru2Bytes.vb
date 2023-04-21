@@ -13,6 +13,9 @@
 
 Imports System.Runtime.InteropServices
 Imports System.IO
+''' <summary>
+''' Structure and byte array processing class|结构与字节数组处理类
+''' </summary>
 Public Class Stru2Bytes
     '256 bytes
     Private Structure sSftDataHeader
@@ -117,7 +120,7 @@ Public Class Stru2Bytes
         Try
             Dim oSize As Integer = Marshal.SizeOf(TarType)
             If oSize > SrcBytes.Length Then
-                Err.Raise(-1, , "源数据长度不足")
+                Throw New Exception("Insufficient source data length")
             End If
 
             Dim tPtr As IntPtr = Marshal.AllocHGlobal(oSize)

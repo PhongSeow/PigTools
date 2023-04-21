@@ -2,12 +2,15 @@
 '* Name: PigProcs
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: PigProc 的集合类|Collection class of PigProc
+'* Describe: Process Collection Class|进程集合类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.1
 '* Create Time: 20/3/2022
 '* 1.1    26/3/2022   Modify New
 '************************************
+''' <summary>
+''' Process Collection Class|进程集合类
+''' </summary>
 Public Class PigProcs
     Inherits PigBaseMini
     Implements IEnumerable(Of PigProc)

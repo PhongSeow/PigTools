@@ -2,7 +2,7 @@
 '* Name: PigHttpContext
 '* Author: Seow Phong
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: 各种注册表操作
+'* Describe: Registry Processing Class|注册表处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.2
 '* Create Time: 5/11/2019
@@ -12,6 +12,9 @@
 '* 1.2  20/8/2021   Use Throw New Exception
 '************************************
 Imports Microsoft.Win32
+''' <summary>
+''' Registry Processing Class|注册表处理类
+''' </summary>
 Public Class PigReg
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.2.3"
@@ -59,22 +62,22 @@ Public Class PigReg
 
     ''' <summary>读取特定注册表值</summary>
     ''' <param name="WhatReg">获取什么注册表项</param>
-    Public Overloads Function GetSomeRegValue(WhatReg As emnGetWhatRegItem) As String
+    Public Overloads Function GetSomeRegValue(WhatReg As EmnGetWhatRegItem) As String
         Dim strStepName As String = ""
         Try
             Dim strRet As String = ""
-            Dim intRegRoot As emnRegRoot, strRegPath As String = "", strRegName As String = ""
+            Dim intRegRoot As EmnRegRoot, strRegPath As String = "", strRegName As String = ""
             Select Case WhatReg
-                Case emnGetWhatRegItem.MachineGUID
-                    intRegRoot = emnRegRoot.LOCAL_MACHINE
+                Case EmnGetWhatRegItem.MachineGUID
+                    intRegRoot = EmnRegRoot.LOCAL_MACHINE
                     strRegPath = "SOFTWARE\Microsoft\Cryptography"
                     strRegName = "MachineGuid"
-                Case emnGetWhatRegItem.WinProductId
-                    intRegRoot = emnRegRoot.LOCAL_MACHINE
+                Case EmnGetWhatRegItem.WinProductId
+                    intRegRoot = EmnRegRoot.LOCAL_MACHINE
                     strRegPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion"
                     strRegName = "ProductId"
                 Case Else
-                    Err.Raise(-1, , "无效WhatReg" & WhatReg.ToString)
+                    Throw New Exception("Invalid WhatReg" & WhatReg.ToString)
             End Select
             strStepName = "mGetRegValue(" & strRegPath & "," & strRegName & ")"
             GetSomeRegValue = Me.mGetRegValue(intRegRoot, strRegPath, strRegName, "", strRet)
@@ -143,7 +146,7 @@ Public Class PigReg
     ''' <param name="RegName">项名</param>
     ''' <param name="DefaValue">默认值，取不到则返回这个，传空则不取</param>
     ''' <param name="TxRes">键名路径</param>
-    Private Function mGetRegValue(RegRoot As emnRegRoot, RegPath As String, RegName As String, DefaValue As Object, ByRef TxRes As String) As Object
+    Private Function mGetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Object, ByRef TxRes As String) As Object
         Dim strStepName As String = ""
         Try
             strStepName = "mOpenRegPath"
@@ -167,7 +170,7 @@ Public Class PigReg
     ''' <summary>判断注册表键是否存在</summary>
     ''' <param name="RegRoot">根区</param>
     ''' <param name="RegPath">键名路径</param>
-    Public ReadOnly Property IsRegKeyExists(RegRoot As emnRegRoot, RegPath As String) As Boolean
+    Public ReadOnly Property IsRegKeyExists(RegRoot As EmnRegRoot, RegPath As String) As Boolean
         Get
             Try
                 Dim strRet As String = ""
@@ -190,24 +193,24 @@ Public Class PigReg
     ''' <param name="RegPath">键名路径</param>
     ''' <returns>操作结果</returns>
     ''' <remarks></remarks>
-    Public Function CreateRegKey(RegRoot As emnRegRoot, RegPath As String) As String
+    Public Function CreateRegKey(RegRoot As EmnRegRoot, RegPath As String) As String
         Dim strStepName As String = ""
         Try
             Dim rkAny As RegistryKey
             Select Case RegRoot
-                Case emnRegRoot.CLASSES_ROOT
+                Case EmnRegRoot.CLASSES_ROOT
                     rkAny = Registry.ClassesRoot
-                Case emnRegRoot.CURRENT_USER
+                Case EmnRegRoot.CURRENT_USER
                     rkAny = Registry.CurrentUser
-                Case emnRegRoot.LOCAL_MACHINE
+                Case EmnRegRoot.LOCAL_MACHINE
                     rkAny = Registry.LocalMachine
-                Case emnRegRoot.PERFORMANCE_DATA
+                Case EmnRegRoot.PERFORMANCE_DATA
                     rkAny = Registry.PerformanceData
-                Case emnRegRoot.USERS
+                Case EmnRegRoot.USERS
                     rkAny = Registry.Users
                 Case Else
                     rkAny = Nothing
-                    Err.Raise(-1, , "Invalid RegRoot")
+                    Throw New Exception("Invalid RegRoot")
             End Select
             strStepName = "CreateSubKey(" & RegPath & ")"
             rkAny.CreateSubKey(RegPath)
@@ -225,20 +228,20 @@ Public Class PigReg
     ''' <param name="TxRes">操作结果</param>
     ''' <returns>注册表键</returns>
     ''' <remarks></remarks>
-    Private Function mOpenRegPath(RegRoot As emnRegRoot, RegPath As String, IsReadOnly As Boolean, ByRef TxRes As String) As RegistryKey
+    Private Function mOpenRegPath(RegRoot As EmnRegRoot, RegPath As String, IsReadOnly As Boolean, ByRef TxRes As String) As RegistryKey
         Dim strStepName As String = ""
         Try
             Dim rkRoot As RegistryKey
             Select Case RegRoot
-                Case emnRegRoot.CLASSES_ROOT
+                Case EmnRegRoot.CLASSES_ROOT
                     rkRoot = Registry.ClassesRoot
-                Case emnRegRoot.CURRENT_USER
+                Case EmnRegRoot.CURRENT_USER
                     rkRoot = Registry.CurrentUser
-                Case emnRegRoot.LOCAL_MACHINE
+                Case EmnRegRoot.LOCAL_MACHINE
                     rkRoot = Registry.LocalMachine
-                Case emnRegRoot.PERFORMANCE_DATA
+                Case EmnRegRoot.PERFORMANCE_DATA
                     rkRoot = Registry.PerformanceData
-                Case emnRegRoot.USERS
+                Case EmnRegRoot.USERS
                     rkRoot = Registry.Users
                 Case Else
                     rkRoot = Nothing

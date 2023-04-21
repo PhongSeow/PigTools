@@ -2,10 +2,10 @@
 '''************************************
 '''* Name: PigMLang
 '''* Author: Seow Phong
-'''* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'''* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '''* Describe: A lightweight multi language processing class, As long as you refer to this class, you can implement multilingual processing|一个轻量的多语言处理类，只要引用本类就可以实现多语言处理。 
 '''* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'''* Version: 1.6
+'''* Version: 1.7
 '''* Create Time: 30/11/2020
 '''* 1.0.2  1/12/2020   Modify GetAllLangInf, Add GetMLangText
 '''* 1.0.3  1/12/2020   Modify mInitCultureSortList
@@ -22,15 +22,19 @@
 '''* 1.3 18/10/2022     Add GetCanUseCultureXml,SetCurrCulture,mInitCultureSortList
 '''* 1.5 19/10/2022     Add MLangTextCnt
 '''* 1.6 31/10/2022     Modify mGetMLangText
+'''* 1.7 18/1/2022     Modify MkMLangText
 '''************************************
 ''' </summary>
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.IO
 
+''' <summary>
+''' Multilingual processing class|多语言处理类
+''' </summary>
 Public Class PigMLang
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.8"
+    Private Const CLS_VERSION As String = "1.7.2"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mFS As New mFileSystemObject
@@ -820,6 +824,7 @@ Public Class PigMLang
     Public Function GetCanUseCultureXml() As String
         Dim LOG As New PigStepLog("GetCanUseCultureXml")
         Try
+            GetCanUseCultureXml = ""
             LOG.StepName = "RefCanUseCultureList"
             Me.RefCanUseCultureList()
             If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
@@ -998,15 +1003,15 @@ Public Class PigMLang
     ''' </summary>
     ''' <param name="GlobalKey">键值|Key value</param>
     ''' <param name="MLangText">多语言文本|Multilingual text</param>
-    Public Function MkMLangTextDemo(GlobalKey As String, MLangText As String) As String
+    Public Function MkMLangText(GlobalKey As String, MLangText As String) As String
         Dim strRet As String = ""
         Try
-            MkMLangTextDemo = ""
-            strRet = Me.mMkMLangTextDemo("Global", GlobalKey, MLangText, MkMLangTextDemo)
+            MkMLangText = ""
+            strRet = Me.mMkMLangText("Global", GlobalKey, MLangText, MkMLangText)
             If strRet <> "OK" Then Throw New Exception(strRet)
         Catch ex As Exception
-            MkMLangTextDemo = ""
-            Return Me.GetSubErrInf("MkMLangTextDemo", ex)
+            MkMLangText = ""
+            Return Me.GetSubErrInf("MkMLangText", ex)
         End Try
     End Function
 
@@ -1016,26 +1021,26 @@ Public Class PigMLang
     ''' <param name="ObjName">对象名称|Object Name</param>
     ''' <param name="Key">键值|Key value</param>
     ''' <param name="MLangText">多语言文本|Multilingual text</param>
-    Public Function MkMLangTextDemo(ObjName As String, Key As String, MLangText As String) As String
+    Public Function MkMLangText(ObjName As String, Key As String, MLangText As String) As String
         Dim strRet As String = ""
         Try
-            MkMLangTextDemo = ""
-            strRet = Me.mMkMLangTextDemo(ObjName, Key, MLangText, MkMLangTextDemo)
+            MkMLangText = ""
+            strRet = Me.mMkMLangText(ObjName, Key, MLangText, MkMLangText)
             If strRet <> "OK" Then Throw New Exception(strRet)
         Catch ex As Exception
-            MkMLangTextDemo = ""
-            Return Me.GetSubErrInf("MkMLangTextDemo", ex)
+            MkMLangText = ""
+            Return Me.GetSubErrInf("MkMLangText", ex)
         End Try
     End Function
 
-    Private Function mMkMLangTextDemo(ObjName As String, Key As String, MLangText As String, ByRef OutMLangText As String) As String
+    Private Function mMkMLangText(ObjName As String, Key As String, MLangText As String, ByRef OutMLangText As String) As String
         Try
             Me.mPigFunc.EscapeStr(MLangText)
             OutMLangText = "{" & ObjName & "}" & Me.OsCrLf
             OutMLangText &= "[" & Key & "]=" & MLangText & Me.OsCrLf
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mMkMLangTextDemo", ex)
+            Return Me.GetSubErrInf("mMkMLangText", ex)
         End Try
     End Function
 

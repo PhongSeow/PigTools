@@ -2,7 +2,7 @@
 '* Name: 豚豚配置应用|PigConfigApp
 '* Author: Seow Phong
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: 配置应用类|Configure application classes
+'* Describe: Configuration Processing Class|配置处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.15
 '* Create Time: 18/12/2021
@@ -23,8 +23,11 @@
 '* 1.15   15/8/2022    Modify New,mNew, add EnmEncType
 '**********************************
 Imports Microsoft.VisualBasic
+''' <summary>
+''' Configuration Processing Class|配置处理类
+''' </summary>
 Public Class PigConfigApp
-    Inherits PigBaseMini
+	Inherits PigBaseMini
 	Private Const CLS_VERSION As String = "1.15.6"
 	Public Enum EnmEncType
 		RSA_AES = 0

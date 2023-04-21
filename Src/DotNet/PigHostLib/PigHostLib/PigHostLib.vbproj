@@ -8,7 +8,7 @@
     <Version>1.1.6</Version>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Description>
 		Get local information
 		Host Directory scanning and file read and write operations based on SQL Server support file duplication and compression.
@@ -36,9 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.5.10" />
-    <PackageReference Include="PigCmdLib" Version="2.2.20" />
-    <PackageReference Include="PigSQLSrvLib" Version="2.8.80" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.5.16" />
+    <PackageReference Include="PigCmdLib" Version="2.2.22" />
+    <PackageReference Include="PigSQLSrvLib" Version="2.8.82" />
   </ItemGroup>
 
 </Project>

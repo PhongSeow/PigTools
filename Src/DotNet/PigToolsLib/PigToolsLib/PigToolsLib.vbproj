@@ -2,30 +2,31 @@
 
   <PropertyGroup>
     <RootNamespace>PigToolsLib</RootNamespace>
-    <TargetFrameworks>net5.0;netcoreapp3.1;net6.0;</TargetFrameworks>
-    <Version>3.3.60</Version>
+    <TargetFrameworks>net5.0;netcoreapp3.1;net6.0;net7.0;</TargetFrameworks>
+    <Version>3.3.136</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
-A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, shared Memory and compression.
+A simplified tool interface class library based on .net platform, including function set, array, text, file, XML, JSON,shared Memory, md5 ,registry,HTTP request and compression.
 AES, 3DES and RSA encryption processing.
 Configuration file management supporting configuration item encryption.
 Simple sorting processing.
-HTTP request processing.
-Registry processing.
-Xml processing.
 Key value and cache processing.
-It can run on Windows and Linux platforms.</Description>
-    <Copyright>Copyright (c) 2020-2022 Seow Phong</Copyright>
+Logging and error handling.
+Multilingual processing.
+Including HTTP context processing, it is possible to develop class libraries that run on Asp.net.
+It can run on Windows and Linux platforms.
+</Description>
+    <Copyright>Copyright (c) 2020-2023 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr</PackageTags>
+    <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows JSon Register HttpContext host ASP.net</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>Synchronize PigToolsLiteLib code.</PackageReleaseNotes>
+    <PackageReleaseNotes>Synchronize PigToolsLiteLib code and add PigHttpContext for ASP.net</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

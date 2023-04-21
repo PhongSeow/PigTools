@@ -4,15 +4,19 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: And generate VB code|且于生成VB的代码
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 16/6/2021
 '* 1.1  1/7/2022    Modify MkCollectionClass
 '* 1.2  6/7/2022    Modify MkCollectionClass
 '* 1.3  2/11/2022   Add mMkBytes2Func,MkBytes2Func
+'* 1.5  8/11/2022   Modify MkStr2Func,MkBytes2Func
 '**********************************
+''' <summary>
+''' VB code generation processing class|VB代码生成处理类
+''' </summary>
 Public Class PigVBCode
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.18"
+    Private Const CLS_VERSION As String = "1.5.8"
 
     Private Enum EnmMkBytes2FuncRetType
         RetString = 0
@@ -203,7 +207,16 @@ Public Class PigVBCode
     ''' <param name="FuncCode">输出的函数代码|Output function code</param>
     ''' <returns></returns>
     Public Function MkBytes2Func(InBytes As Byte(), FuncName As String, ByRef FuncCode As String) As String
-        Return Me.mMkBytes2Func(InBytes, FuncName, EnmMkBytes2FuncRetType.RetBytes, FuncCode)
+        Dim LOG As New PigStepLog("MkBytes2Func")
+        Try
+            LOG.StepName = "mMkBytes2Func"
+            LOG.Ret = Me.mMkBytes2Func(InBytes, FuncName, EnmMkBytes2FuncRetType.RetBytes, FuncCode)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            FuncCode = "''' <summary>" & Convert.ToBase64String(InBytes) & "</summary>" & Me.OsCrLf & FuncCode
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
     End Function
 
     ''' <summary>
@@ -223,6 +236,7 @@ Public Class PigVBCode
             LOG.StepName = "mMkBytes2Func"
             LOG.Ret = Me.mMkBytes2Func(ptIn.TextBytes, FuncName, EnmMkBytes2FuncRetType.RetString, FuncCode, TextType)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            FuncCode = "''' <summary>" & InpStr & "</summary>" & Me.OsCrLf & FuncCode
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)

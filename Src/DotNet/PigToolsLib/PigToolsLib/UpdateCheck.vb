@@ -9,6 +9,9 @@
 '* Create Time: 25/6/2019
 '************************************
 
+''' <summary>
+''' Detect whether the set member changes the processing class|检测集合成员是否变动处理类
+''' </summary>
 Public Class UpdateCheck
     Private Property mKeyList As String = ""
     Public Property LastUpdateTime As DateTime = #1/1/1900#

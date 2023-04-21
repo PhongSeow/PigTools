@@ -36,6 +36,9 @@
 
 Imports System.Xml
 Imports System.Text
+''' <summary>
+''' XML Processing Class|XML处理类
+''' </summary>
 Public Class PigXml
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.16.12"
@@ -467,14 +470,6 @@ Public Class PigXml
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("mEscapeXmlValue", ex)
-        End Try
-    End Function
-
-    Public Function UnEscapeXmlValue() As String
-        Try
-
-        Catch ex As Exception
-
         End Try
     End Function
 

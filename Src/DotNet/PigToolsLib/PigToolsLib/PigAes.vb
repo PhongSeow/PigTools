@@ -2,9 +2,9 @@
 '* Name: PigAes
 '* Author: Seow Phong
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: Handle operations related to byte array division 【处理除字节数组相关的操作】
+'* Describe: AES Processing Class|AES处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 2019-10-27
 '1.0.2  2019-10-29
 '1.0.3  2019-10-31  稳定版本，去掉 EncriptStr 和 DecriptStr
@@ -12,18 +12,21 @@
 '1.0.6  24/8/2021   Modify mDecrypt,mEncrypt,mMkEncKey
 '1.1  16/10/2021   Modify mDecrypt,mEncrypt,LoadEncKey,LoadEncKey,Decrypt
 '1.2  11/9/2021   Modify mMkEncKey
+'1.3  17/2/2023   Modify LoadEncKey,mEncrypt,mDecrypt
 '************************************
 Imports System.Security.Cryptography
 Imports System.Text
+''' <summary>
+''' AES Processing Class|AES处理类
+''' </summary>
 Public Class PigAes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.3"
+    Private Const CLS_VERSION As String = "1.3.12"
     Private mabEncKey As Byte()
 
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
-    Private maesMain As System.Security.Cryptography.Aes = System.Security.Cryptography.Aes.Create("AES")
+    Private maesMain As Aes = Aes.Create("AES")
 #End If
-
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
@@ -87,22 +90,22 @@ Public Class PigAes
 
     ''' <remarks>解密数据（内部）</remarks>
     Private Function mDecrypt(EncBytes As Byte(), ByRef UnEncBytes As Byte()) As String
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("mDecrypt")
         Try
             If Me.mIsLoadEncKey = False Then
                 Throw New Exception("Key not imported")
             End If
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
-            strStepName = "CreateDecryptor"
+            LOG.StepName = "maesMain.CreateDecryptor"
             Dim ictAny As ICryptoTransform = maesMain.CreateDecryptor()
-            strStepName = "TransformFinalBlock"
+            LOG.StepName = "TransformFinalBlock"
             UnEncBytes = ictAny.TransformFinalBlock(EncBytes, 0, EncBytes.Length)
 #Else
             Throw New Exception("Need to run in .net 4.0 or higher framework")
 #End If
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mDecrypt", ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -132,12 +135,15 @@ Public Class PigAes
 
     ''' <remarks>加密数据（内部）</remarks>
     Private Function mEncrypt(SrcBytes As Byte(), ByRef EncBytes As Byte()) As String
+        Dim LOG As New PigStepLog("mEncrypt")
         Try
             If Me.mIsLoadEncKey = False Then
                 Throw New Exception("Key not imported")
             End If
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+            LOG.StepName = "maesMain.CreateEncryptor"
             Dim ictAny As ICryptoTransform = maesMain.CreateEncryptor()
+            LOG.StepName = "TransformFinalBlock"
             EncBytes = ictAny.TransformFinalBlock(SrcBytes, 0, SrcBytes.Length)
             ictAny = Nothing
 #Else
@@ -145,7 +151,7 @@ Public Class PigAes
 #End If
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mEncrypt", ex, False)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -268,10 +274,15 @@ Public Class PigAes
 
     ''' <remarks>导入密钥</remarks>
     Public Overloads Function LoadEncKey(Base64EncKey As String) As String
+        Dim LOG As New PigStepLog("LoadEncKey.Base64EncKey")
         Try
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+            LOG.StepName = "New PigText"
             Dim oPigText As New PigText(Base64EncKey, PigText.enmTextType.UTF8, PigText.enmNewFmt.FromBase64)
+            If oPigText.LastErr <> "" Then Throw New Exception(oPigText.LastErr)
+            LOG.StepName = "New MD5CryptoServiceProvider"
             mabEncKey = (New MD5CryptoServiceProvider).ComputeHash(oPigText.TextBytes)
+            LOG.StepName = "Set maesMain"
             With maesMain
                 .BlockSize = mabEncKey.Length * 8
                 .Key = mabEncKey
@@ -279,22 +290,25 @@ Public Class PigAes
                 .Mode = CipherMode.CBC
                 .Padding = PaddingMode.PKCS7
             End With
-            me.mIsLoadEncKey = True
+            Me.mIsLoadEncKey = True
 #Else
             Throw New Exception("Need to run in .net 4.0 or higher framework")
 #End If
             Return "OK"
         Catch ex As Exception
             Me.mIsLoadEncKey = False
-            Return Me.GetSubErrInf("LoadEncKey", ex, False)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
     ''' <remarks>导入密钥</remarks>
     Public Overloads Function LoadEncKey(EncKey As Byte()) As String
+        Dim LOG As New PigStepLog("LoadEncKey.EncKey")
         Try
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+            LOG.StepName = "New MD5CryptoServiceProvider"
             mabEncKey = (New MD5CryptoServiceProvider).ComputeHash(EncKey)
+            LOG.StepName = "Set maesMain"
             With maesMain
                 .BlockSize = mabEncKey.Length * 8
                 .Key = mabEncKey
@@ -302,14 +316,14 @@ Public Class PigAes
                 .Mode = CipherMode.CBC
                 .Padding = PaddingMode.PKCS7
             End With
-            me.mIsLoadEncKey = True
+            Me.mIsLoadEncKey = True
 #Else
             Throw New Exception("Need to run in .net 4.0 or higher framework")
 #End If
             Return "OK"
         Catch ex As Exception
             Me.mIsLoadEncKey = False
-            Return Me.GetSubErrInf("LoadEncKey", ex, False)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 

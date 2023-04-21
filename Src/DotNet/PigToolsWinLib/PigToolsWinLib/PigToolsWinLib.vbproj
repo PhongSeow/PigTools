@@ -26,7 +26,7 @@ It can run on Windows platforms only.
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsWinLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows JSon Register HttpContext  host</PackageTags>
+    <PackageTags>.net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr Windows JSon Register HttpContext host IIS</PackageTags>
     <PackageReleaseNotes>Update project information.</PackageReleaseNotes>
   </PropertyGroup>
 

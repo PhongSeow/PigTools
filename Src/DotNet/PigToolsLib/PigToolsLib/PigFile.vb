@@ -21,6 +21,9 @@
 '*1.6  30/9/2022    Add GetTailText,GetTopText
 '**********************************
 Imports System.IO
+''' <summary>
+''' File processing set|文件处理集
+''' </summary>
 Public Class PigFile
     Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1.6.10"
