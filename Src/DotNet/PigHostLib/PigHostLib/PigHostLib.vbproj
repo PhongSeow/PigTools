@@ -5,23 +5,21 @@
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
-    <Version>1.1.6</Version>
+    <Version>1.1.8</Version>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Description>
-		Get local information
-		Host Directory scanning and file read and write operations based on SQL Server support file duplication and compression.
-		It can run on Windows only.
-
+    <Description>Get host information
+Host Directory scanning and file read and write operations based on SQL Server support file duplication and compression.
+It can run on Windows only.
 	</Description>
-    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigHostLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>host user file disk windows linux</PackageTags>
-    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
+    <PackageTags>host user file disk windows linux directory</PackageTags>
+    <PackageReleaseNotes>Add host directory processing function.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

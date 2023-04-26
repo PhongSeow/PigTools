@@ -9,42 +9,23 @@
 	  <Product>PigTools Demo Console</Product>
 	  <Description>Demo console program for PigToolsLib</Description>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+	  <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
 	  <RepositoryType>GIT</RepositoryType>
 	  <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/master/Src/DotNet/PigToolsDemo</RepositoryUrl>
-	  <Version>2.9.10</Version>
+	  <Version>2.9.12</Version>
 	  <PackageTags>PigToolsLib .net develop PigBytes PigCompressor PigFile PigMD5 PigText PigXml ShareMem Stru2Bytes UseTime PigWebReq windows linux bytes text xml md5 filepart RandNum RandStr</PackageTags>
 	  <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
 	  <AssemblyVersion>2.9.10.0</AssemblyVersion>
 	  <FileVersion>2.9.10.0</FileVersion>
-	  <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
+	  <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-    <PackageReference Include="PigToolsLib">
-      <Version>1.0.3</Version>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <PackageReference Include="PigToolsLib">
-      <Version>1.0.3</Version>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-    <PackageReference Include="PigToolsLib">
-      <Version>1.0.3</Version>
-    </PackageReference>
-  </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="1.10.12" />
-    <PackageReference Include="PigToolsLib" Version="2.9.60" />
+    <PackageReference Include="PigToolsLib" Version="3.3.136" />
   </ItemGroup>
 
 </Project>
