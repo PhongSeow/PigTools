@@ -1188,6 +1188,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press I To SaveShareMem")
             Console.WriteLine("Press J To GetShareMem")
             Console.WriteLine("Press K To CheckFileDiff")
+            Console.WriteLine("Press L To IsFileDiff")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
@@ -1336,6 +1337,11 @@ Public Class ConsoleDemo
                     Console.WriteLine("CheckFileDiff=" & Me.Ret)
                     Console.WriteLine("IsDiff=" & bolIsDiff)
                     Console.WriteLine("UseTime=" & oUseTime.AllDiffSeconds)
+                Case ConsoleKey.L
+                    Me.PigConsole.GetLine("Input file1 path", Me.SrcFile)
+                    Me.PigConsole.GetLine("Input file2 path", Me.TarFile)
+                    Console.WriteLine(CStr(Me.PigFunc.IsFileDiff(Me.SrcFile, Me.TarFile, Me.Ret)))
+                    If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
             End Select
         Loop
     End Sub

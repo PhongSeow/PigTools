@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.39
+'* Version: 1.50
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -48,6 +48,7 @@
 '*1.37   31/3/2023  Modify GetFilePart,GetStr
 '*1.38   7/4/2023   Add GetPathPart
 '*1.39   12/4/2023  Add SQLCDate
+'*1.50   26/4/2023  Add IsFileDiff
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -61,7 +62,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.38.2"
+    Private Const CLS_VERSION As String = "1.50.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -1739,6 +1740,52 @@ Public Class PigFunc
         End If
     End Function
 
+
+    Public Function IsFileDiff(FilePath1 As String, FilePath2 As String, Optional ByRef Res As String = "OK") As Boolean
+        Try
+            Dim strRet As String
+            If FilePath1 = FilePath2 Then
+                IsFileDiff = True
+            Else
+                Dim pfSrc As New PigFile(FilePath1)
+                Dim lngSize1 As Long = pfSrc.Size
+                If lngSize1 < 0 Then Throw New Exception(FilePath1 & " size invalid")
+                Dim pfTar As New PigFile(FilePath2)
+                Dim lngSize2 As Long = pfTar.Size
+                If lngSize2 < 0 Then Throw New Exception(FilePath2 & " size invalid")
+                If lngSize1 <> lngSize2 Then
+                    IsFileDiff = False
+                Else
+                    Dim pmSrc As PigMD5 = Nothing, pmTar As PigMD5 = Nothing
+                    strRet = pfSrc.GetFastPigMD5(pmSrc)
+                    If strRet <> "OK" Then Throw New Exception(strRet)
+                    strRet = pfSrc.GetFastPigMD5(pmTar)
+                    If strRet <> "OK" Then Throw New Exception(strRet)
+                    If pmSrc.PigMD5 <> pmTar.PigMD5 Then
+                        IsFileDiff = False
+                    Else
+                        strRet = pfSrc.GetFullPigMD5(pmSrc)
+                        If strRet <> "OK" Then Throw New Exception(strRet)
+                        strRet = pfSrc.GetFullPigMD5(pmTar)
+                        If strRet <> "OK" Then Throw New Exception(strRet)
+                        If pmSrc.PigMD5 <> pmTar.PigMD5 Then
+                            IsFileDiff = False
+                        Else
+                            IsFileDiff = True
+                        End If
+                    End If
+                    pmSrc = Nothing
+                    pmTar = Nothing
+                End If
+                pfTar = Nothing
+                pfSrc = Nothing
+            End If
+        Catch ex As Exception
+            IsFileDiff = False
+            Res = Me.GetSubErrInf("IsFileDiff", ex)
+        End Try
+    End Function
+
     Public Function CheckFileDiff(SrcFile As String, TarFile As String, ByRef IsDiff As Boolean, Optional CheckDiffType As EnmCheckDiffType = EnmCheckDiffType.Size_Date_FastPigMD5) As String
         Dim strStepName As String = "", strRet As String = ""
         Try
@@ -1798,7 +1845,7 @@ Public Class PigFunc
             End If
             Return "OK"
         Catch ex As Exception
-            IsDiff = Nothing
+            IsDiff = False
             Return Me.GetSubErrInf("IsFileDiff", strStepName, ex)
         End Try
     End Function

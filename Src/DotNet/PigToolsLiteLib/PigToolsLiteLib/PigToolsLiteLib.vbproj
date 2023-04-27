@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>PigToolsLiteLib</RootNamespace>
-    <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;net7.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>3.3.136</Version>
     <Authors>Seow Phong</Authors>
