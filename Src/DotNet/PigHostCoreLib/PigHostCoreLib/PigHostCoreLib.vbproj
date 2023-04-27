@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PigHostCoreLib</RootNamespace>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0;net7.0;</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.1.10</Version>
+    <Authors>Seow Phong</Authors>
+    <Company>Seow Phong Studio</Company>
+    <Description>Get local information
+Host Directory scanning and file read and write operations based on SQL Server support file duplication and compression.
+It can run on Windows and Linux platforms.
+</Description>
+    <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
+    <PackageIcon>SeowPhongLogo.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigHostCoreLib</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>host user file disk windows linux directory</PackageTags>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="SeowPhongLogo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GetFileAndDirListLib" Version="1.5.18" />
+    <PackageReference Include="PigCmdLib" Version="2.2.26" />
+    <PackageReference Include="PigSQLSrvCoreLib" Version="2.8.86" />
+  </ItemGroup>
+
+</Project>

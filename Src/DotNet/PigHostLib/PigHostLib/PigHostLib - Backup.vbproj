@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PigHostLib</RootNamespace>
+    <TargetFrameworks>net20;net30;net40;net5.0;netcoreapp3.1;</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Seow Phong</Authors>
+    <Version>1.0.18</Version>
+    <Company>Seow Phong Studio</Company>
+    <Copyright>Copyright (c) 2021-2022 Seow Phong</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Get local information
+It can run on Windows and Linux platforms.
+
+</Description>
+    <PackageProjectUrl>https://en.seowphong.com/oss/PigTools/</PackageProjectUrl>
+    <PackageIcon>SeowPhongLogo.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigHostLib</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>host user file disk windows linux</PackageTags>
+    <PackageReleaseNotes>Adjust to be more compatible with .net core and .net framework at the same time.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="SeowPhongLogo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PigCmdLib" Version="1.10.68" />
+  </ItemGroup>
+
+</Project>

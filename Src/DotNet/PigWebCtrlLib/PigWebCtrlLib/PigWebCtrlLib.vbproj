@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <RootNamespace>PigWebCtrlLib</RootNamespace>
-    <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
+    <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;net7.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.1.22</Version>
+    <Version>2.1.26</Version>
     <Authors>Seow Phong</Authors>
     <Product>Seow Phong Studio</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -30,8 +30,8 @@ It can run on Windows and Linux platforms.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.2.22" />
-    <PackageReference Include="PigObjFsLib" Version="2.0.36" />
+    <PackageReference Include="PigCmdLib" Version="2.2.26" />
+    <PackageReference Include="PigObjFsLib" Version="2.0.38" />
   </ItemGroup>
 
 </Project>
