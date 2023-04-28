@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: AES Processing Class|AES处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 2019-10-27
 '1.0.2  2019-10-29
 '1.0.3  2019-10-31  稳定版本，去掉 EncriptStr 和 DecriptStr
@@ -13,6 +13,7 @@
 '1.1  16/10/2021   Modify mDecrypt,mEncrypt,LoadEncKey,LoadEncKey,Decrypt
 '1.2  11/9/2021   Modify mMkEncKey
 '1.3  17/2/2023   Modify LoadEncKey,mEncrypt,mDecrypt
+'1.5  28/4/2023   Add Decrypt,Encrypt
 '************************************
 Imports System.Security.Cryptography
 Imports System.Text
@@ -21,7 +22,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigAes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.12"
+    Private Const CLS_VERSION As String = "1.5.18"
     Private mabEncKey As Byte()
 
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
@@ -42,7 +43,13 @@ Public Class PigAes
     End Property
 
 
-    ''' <remarks>解密数据</remarks>
+    ''' <summary>
+    ''' 解密|Decrypt
+    ''' </summary>
+    ''' <param name="EncBase64Str">加密后的字节数组的Base64|Base64 of encrypted byte array</param>
+    ''' <param name="UnEncStr">解密后的源字符串|Decrypted source string</param>
+    ''' <param name="TextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
     Public Overloads Function Decrypt(EncBase64Str As String, ByRef UnEncStr As String, TextType As PigText.enmTextType) As String
         Dim strStepName As String = ""
         Dim strRet As String
@@ -62,7 +69,35 @@ Public Class PigAes
         End Try
     End Function
 
-    ''' <remarks>解密数据</remarks>
+    ''' <summary>
+    ''' 解密|Decrypt
+    ''' </summary>
+    ''' <param name="EncBase64Str">加密后的字节数组的Base64|Base64 of encrypted byte array</param>
+    ''' <param name="UnEncBytes">解密后的源字节数组|Decrypted source byte array</param>
+    ''' <param name="TextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
+    Public Overloads Function Decrypt(EncBase64Str As String, ByRef UnEncBytes As Byte(), TextType As PigText.enmTextType) As String
+        Dim strStepName As String = ""
+        Dim strRet As String
+        Try
+            Dim oPigText As New PigText(EncBase64Str, TextType, PigText.enmNewFmt.FromBase64)
+            strStepName = "mDecrypt"
+            strRet = Me.mDecrypt(oPigText.TextBytes, UnEncBytes)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            oPigText = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("Decrypt", strStepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 解密|Decrypt
+    ''' </summary>
+    ''' <param name="EncBytes">加密后的字节数组|Encrypted byte array</param>
+    ''' <param name="UnEncStr">解密后的源字符串|Decrypted source string</param>
+    ''' <param name="TextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
     Public Overloads Function Decrypt(EncBytes As Byte(), ByRef UnEncStr As String, TextType As PigText.enmTextType) As String
         Dim strStepName As String = ""
         Dim strRet As String
@@ -82,7 +117,12 @@ Public Class PigAes
         End Try
     End Function
 
-    ''' <remarks>解密数据</remarks>
+    ''' <summary>
+    ''' 解密|Decrypt
+    ''' </summary>
+    ''' <param name="EncBytes">加密后的字节数组|Encrypted byte array</param>
+    ''' <param name="UnEncBytes">解密后的源字节数组|Decrypted source byte array</param>
+    ''' <returns></returns>
     Public Overloads Function Decrypt(EncBytes As Byte(), ByRef UnEncBytes As Byte()) As String
         Return Me.mDecrypt(EncBytes, UnEncBytes)
     End Function
@@ -109,7 +149,57 @@ Public Class PigAes
         End Try
     End Function
 
-    ''' <remarks>加密数据</remarks>
+    ''' <summary>
+    ''' 加密|encryption
+    ''' </summary>
+    ''' <param name="SrcString">源字符串</param>
+    ''' <param name="EncBase64Str">加密后的字节数组的Base64|Base64 of encrypted byte array</param>
+    ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
+    Public Function Encrypt(SrcString As String, ByRef EncBase64Str As String, Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
+        Dim LOG As New PigStepLog("Encrypt")
+        Try
+            Dim ptSrc As New PigText(SrcString, SrcTextType)
+            Dim abEnc(0) As Byte
+            LOG.StepName = "mEncrypt"
+            LOG.Ret = Me.mEncrypt(ptSrc.TextBytes, abEnc)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            EncBase64Str = Convert.ToBase64String(abEnc)
+            ptSrc = Nothing
+            Return "OK"
+        Catch ex As Exception
+            EncBase64Str = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 加密|encryption
+    ''' </summary>
+    ''' <param name="SrcString">源字符串</param>
+    ''' <param name="EncBytes">加密后的字节数组|Encrypted byte array</param>
+    ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
+    Public Function Encrypt(SrcString As String, ByRef EncBytes As Byte(), Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
+        Dim LOG As New PigStepLog("Encrypt")
+        Try
+            Dim ptSrc As New PigText(SrcString, SrcTextType)
+            LOG.StepName = "mEncrypt"
+            LOG.Ret = Me.mEncrypt(ptSrc.TextBytes, EncBytes)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            ptSrc = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 加密|encryption
+    ''' </summary>
+    ''' <param name="SrcBytes">源字节数组|Source Byte Array</param>
+    ''' <param name="EncBase64Str">加密后的字节数组的Base64|Base64 of encrypted byte array</param>
+    ''' <returns></returns>
     Public Function Encrypt(SrcBytes As Byte(), ByRef EncBase64Str As String) As String
         Dim strStepName As String = ""
         Dim strRet As String
@@ -127,7 +217,12 @@ Public Class PigAes
     End Function
 
 
-    ''' <remarks>加密数据</remarks>
+    ''' <summary>
+    ''' 加密|encryption
+    ''' </summary>
+    ''' <param name="SrcBytes">源字节数组|Source Byte Array</param>
+    ''' <param name="EncBytes">加密后的字节数组|Encrypted byte array</param>
+    ''' <returns></returns>
     Public Function Encrypt(SrcBytes As Byte(), ByRef EncBytes As Byte()) As String
         Return Me.mEncrypt(SrcBytes, EncBytes)
     End Function

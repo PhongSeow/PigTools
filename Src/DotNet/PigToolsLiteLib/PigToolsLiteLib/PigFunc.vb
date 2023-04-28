@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.50
+'* Version: 1.51
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -49,6 +49,7 @@
 '*1.38   7/4/2023   Add GetPathPart
 '*1.39   12/4/2023  Add SQLCDate
 '*1.50   26/4/2023  Add IsFileDiff
+'*1.51   28/4/2023  Modify GetWindowsProductId
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -62,7 +63,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.50.2"
+    Private Const CLS_VERSION As String = "1.51.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -1379,7 +1380,7 @@ Public Class PigFunc
         End Try
     End Function
 
-    Public Function GetWindowsProductId() As String
+    Public Function GetWindowsProductId(Optional ByRef Res As String = "OK") As String
         Dim LOG As New PigStepLog("GetWindowsProductId")
         Try
             If Me.IsWindows = True Then
@@ -1392,6 +1393,7 @@ Public Class PigFunc
                 Throw New Exception("Only run on Windows")
             End If
         Catch ex As Exception
+            Res = ex.Message.ToString
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return ""
         End Try

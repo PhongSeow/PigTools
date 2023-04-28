@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>PigHostCoreLibDemo</RootNamespace>
+    <TargetFrameworks>net6.0;net7.0;</TargetFrameworks>
+    <Authors>Seow Phong</Authors>
+    <Company>Seow Phong Studio</Company>
+    <Description>Demo console program for PigHostCoreLib</Description>
+    <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
+    <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigHostCoreLibDemo</RepositoryUrl>
+    <Version>1.1.10</Version>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PigHostCoreLib" Version="1.1.10" />
+  </ItemGroup>
+
+</Project>
