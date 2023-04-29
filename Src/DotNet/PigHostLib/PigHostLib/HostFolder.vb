@@ -17,7 +17,7 @@
 '* Author: Seow Phong
 '* Describe: 主机文件夹类|Host folder class
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.16
+'* Version: 1.17
 '* Create Time: 7/3/2023
 '* 1.1	10/3/2023   Add fFillByRs
 '* 1.2	13/3/2023   Modify New
@@ -32,7 +32,8 @@
 '* 1.12	12/10/2022	Modify Date Initial Time
 '* 1.13	12/10/2022	Modify New
 '* 1.15	18/10/2022	Modify New
-'* 1.16	23/10/2022	Modify fGetFileAndDirListApp_ScanOK,fLoadHostFiles
+'* 1.16	23/4/2023	Modify fGetFileAndDirListApp_ScanOK,fLoadHostFiles
+'* 1.17	29/4/2023	Add StaticInf,StaticInf_TimeoutMinutes, modify BeginScan,IsScanTimeout,New,ActiveInf
 '**********************************
 #If NETFRAMEWORK Then
 Imports PigSQLSrvLib
@@ -45,7 +46,7 @@ Imports PigObjFsLib
 
 Public Class HostFolder
 	Inherits PigBaseLocal
-	Private Const CLS_VERSION As String = "1.16.10"
+	Private Const CLS_VERSION As String = "1.17.18"
 
 	Public ReadOnly Property HostDirs As New HostDirs
 	Friend ReadOnly Property fParent As Host
@@ -85,7 +86,6 @@ Public Class HostFolder
 			If strRet <> "OK" Then Throw New Exception(strRet)
 			Me.HostID = HostID
 			Me.FolderPath = FolderPath
-			Dim o As Host = Me.fParent
 			Me.fParent = Parent
 		Catch ex As Exception
 			Me.SetSubErrInf("New", ex)
@@ -135,7 +135,7 @@ Public Class HostFolder
 	Public ReadOnly Property IsScanTimeout() As Boolean
 		Get
 			Try
-				If DateDiff(DateInterval.Minute, Me.ScanBeginTime, Now) > 10 Then
+				If DateDiff(DateInterval.Minute, Me.ScanBeginTime, Now) > Me.mStaticInf_TimeoutMinutes Then
 					Return True
 				Else
 					Return False
@@ -159,6 +159,29 @@ Public Class HostFolder
 		End Set
 	End Property
 
+	Private mStaticInfXml As PigXml
+	Public Property StaticInf() As String
+		Get
+			If mStaticInfXml Is Nothing Then Me.mRefStaticInfXml()
+			Return mStaticInfXml.MainXmlStr
+		End Get
+		Friend Set(value As String)
+			Try
+				If mStaticInfXml Is Nothing Then
+					mStaticInfXml = New PigXml(False)
+					mStaticInfXml.SetMainXml(value)
+					Me.mUpdateCheck.Add("StaticInf")
+				ElseIf value <> mStaticInfXml.MainXmlStr Then
+					mStaticInfXml = New PigXml(False)
+					mStaticInfXml.SetMainXml(value)
+					Me.mUpdateCheck.Add("StaticInf")
+				End If
+			Catch ex As Exception
+				Me.SetSubErrInf("StaticInf.Set", ex)
+			End Try
+		End Set
+	End Property
+
 	Private mActiveInfXml As PigXml
 	Public Property ActiveInf() As String
 		Get
@@ -168,10 +191,12 @@ Public Class HostFolder
 		Friend Set(value As String)
 			Try
 				If mActiveInfXml Is Nothing Then
-					mActiveInfXml = New PigXml(value)
+					mActiveInfXml = New PigXml(False)
+					mActiveInfXml.SetMainXml(value)
 					Me.mUpdateCheck.Add("ActiveInf")
 				ElseIf value <> mActiveInfXml.MainXmlStr Then
-					mActiveInfXml = New PigXml(value)
+					mActiveInfXml = New PigXml(False)
+					mActiveInfXml.SetMainXml(value)
 					Me.mUpdateCheck.Add("ActiveInf")
 				End If
 			Catch ex As Exception
@@ -179,6 +204,23 @@ Public Class HostFolder
 			End Try
 		End Set
 	End Property
+
+	Private Function mRefStaticInfXml() As String
+		Try
+			Dim strXml As String = ""
+			If mStaticInfXml IsNot Nothing Then strXml = mStaticInfXml.MainXmlStr
+			mStaticInfXml = New PigXml(False)
+			With mStaticInfXml
+				.AddEle("TimeoutMinutes", Me.mStaticInf_TimeoutMinutes)
+				If .MainXmlStr <> strXml Then
+					Me.mUpdateCheck.Add("StaticInf")
+				End If
+			End With
+			Return "OK"
+		Catch ex As Exception
+			Return Me.GetSubErrInf("mRefStaticInfXml", ex)
+		End Try
+	End Function
 
 	Private Function mRefActiveInfXml() As String
 		Try
@@ -197,9 +239,38 @@ Public Class HostFolder
 		End Try
 	End Function
 
-	Private mActiveInf_ErrInf As String
+
+	Private mStaticInf_TimeoutMinutes As Integer = 0
+	Public Property StaticInf_TimeoutMinutes() As Integer
+		Get
+			Try
+				If mStaticInf_TimeoutMinutes <= 0 Then
+					mStaticInf_TimeoutMinutes = mStaticInfXml.XmlGetInt("TimeoutMinutes")
+				End If
+			Catch ex As Exception
+				mStaticInf_TimeoutMinutes = 0
+			End Try
+			Return mStaticInf_TimeoutMinutes
+		End Get
+		Friend Set(value As Integer)
+			If value <> mStaticInf_TimeoutMinutes Then
+				mStaticInf_TimeoutMinutes = value
+				Me.mRefStaticInfXml()
+			End If
+		End Set
+	End Property
+
+
+	Private mActiveInf_ErrInf As String = ""
 	Public Property ActiveInf_ErrInf() As String
 		Get
+			Try
+				If mActiveInf_ErrInf = "" Then
+					mActiveInf_ErrInf = mActiveInfXml.XmlGetStr("ErrInf")
+				End If
+			Catch ex As Exception
+				mActiveInf_ErrInf = ""
+			End Try
 			Return mActiveInf_ErrInf
 		End Get
 		Friend Set(value As String)
@@ -310,18 +381,18 @@ Public Class HostFolder
 			End If
 		End Set
 	End Property
-	Private mStaticInf As String
-	Public Property StaticInf() As String
-		Get
-			Return mStaticInf
-		End Get
-		Friend Set(value As String)
-			If value <> mStaticInf Then
-				Me.mUpdateCheck.Add("StaticInf")
-				mStaticInf = value
-			End If
-		End Set
-	End Property
+	'Private mStaticInf As String
+	'Public Property StaticInf() As String
+	'	Get
+	'		Return mStaticInf
+	'	End Get
+	'	Friend Set(value As String)
+	'		If value <> mStaticInf Then
+	'			Me.mUpdateCheck.Add("StaticInf")
+	'			mStaticInf = value
+	'		End If
+	'	End Set
+	'End Property
 
 
 	Private mScanBeginTime As DateTime = #1/1/1753#
@@ -571,7 +642,7 @@ Public Class HostFolder
 	End Function
 
 	Public Function BeginScan() As String
-		Dim LOG As New PigStepLog("fBeginScanDBFolder")
+		Dim LOG As New PigStepLog("BeginScan")
 		Try
 			LOG.StepName = "fRefHostFolder"
 			LOG.Ret = Me.fParent.fParent.fRefHostFolder(Me.fParent, Me)
@@ -614,7 +685,7 @@ Public Class HostFolder
 							Throw New Exception(fGetFileAndDirListApp.LastErr)
 						End If
 						LOG.StepName = "GetFileAndDirListApp.Start"
-						Me.fGetFileAndDirListApp.Start()
+						Me.fGetFileAndDirListApp.Start(, Me.mStaticInf_TimeoutMinutes)
 						If Me.fGetFileAndDirListApp.LastErr <> "" Then Throw New Exception(Me.fGetFileAndDirListApp.LastErr)
 						LOG.StepName = "fUpdHostFolder(Scanning)"
 						LOG.Ret = Me.fParent.fParent.fUpdHostFolder(Me)

@@ -17,7 +17,7 @@
 '* Author: Seow Phong
 '* Describe: 主机应用|Host Applications
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.20
+'* Version: 1.21
 '* Create Time: 1/10/2022
 '* 1.1  1/10/2022   Add RefDBConn
 '* 1.2  15/10/2022  Add mCreateTable_HostInf, modify RefDBConn
@@ -38,6 +38,7 @@
 '* 1.18	18/4/2023   Add mCreateTable_HostConfInf, modify RefDBConn,RefHostFolder,fRefHostFolder,AddNewHostFolder,RefHostFolder
 '* 1.19	23/4/2023   Modify fMergeHostDirInf
 '* 1.20	24/4/2023   Modify fMergeHostFileInf
+'* 1.21	29/4/2023   Modify AddNewHostFolder,mAddNewHostFolder
 '**********************************
 Imports System.Data
 Imports System.IO
@@ -55,7 +56,7 @@ Imports PigCmdLib
 
 Public Class PigHostApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.20.16"
+    Private Const CLS_VERSION As String = "1.21.6"
 
     Public ReadOnly Property BaseDirPath As String
     Private ReadOnly Property mMyHostID As String
@@ -687,7 +688,7 @@ Public Class PigHostApp
     ''' <param name="FolderPath">文件夹绝对路径|Folder absolute path</param>
     ''' <param name="IsLocalPath">是否本地路径|Is Local path</param>
     ''' <returns></returns>
-    Public Function AddNewHostFolder(InHost As Host, FolderPath As String, Optional IsLocalPath As Boolean = False) As String
+    Public Function AddNewHostFolder(InHost As Host, FolderPath As String, Optional IsLocalPath As Boolean = False, Optional TimeoutMinutes As Integer = 10) As String
         Dim LOG As New PigStepLog("AddNewHostFolder")
         Try
             If IsLocalPath = True Then
@@ -697,6 +698,7 @@ Public Class PigHostApp
             LOG.StepName = "New HostFolder"
             Dim oHostFolder As New HostFolder(FolderPath, InHost.HostID, InHost)
             If oHostFolder.LastErr <> "" Then Throw New Exception(oHostFolder.LastErr)
+            oHostFolder.StaticInf_TimeoutMinutes = TimeoutMinutes
             LOG.StepName = "mAddNewHostFolder"
             LOG.Ret = Me.mAddNewHostFolder(InHost, oHostFolder)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -728,8 +730,8 @@ Public Class PigHostApp
                 .AddMultiLineText(strSQL, "SELECT 'Host ID and Folder Path already exists'", 1)
                 .AddMultiLineText(strSQL, "ELSE")
                 .AddMultiLineText(strSQL, "BEGIN")
-                .AddMultiLineText(strSQL, "INSERT INTO dbo._ptHFFolderInf(FolderID,HostID,FolderName,FolderPath,FolderType,FolderDesc,IsUse,ScanStatus)", 1)
-                .AddMultiLineText(strSQL, "VALUES(@FolderID,@HostID,@FolderName,@FolderPath,@FolderType,@FolderDesc,@IsUse,@ScanStatus)", 1)
+                .AddMultiLineText(strSQL, "INSERT INTO dbo._ptHFFolderInf(FolderID,HostID,FolderName,FolderPath,FolderType,FolderDesc,IsUse,ScanStatus,StaticInf)", 1)
+                .AddMultiLineText(strSQL, "VALUES(@FolderID,@HostID,@FolderName,@FolderPath,@FolderType,@FolderDesc,@IsUse,@ScanStatus,@StaticInf)", 1)
                 .AddMultiLineText(strSQL, "SELECT 'OK'", 1)
                 .AddMultiLineText(strSQL, "END")
             End With
@@ -752,6 +754,8 @@ Public Class PigHostApp
                 .ParaValue("@IsUse") = InObj.IsUse
                 .AddPara("@ScanStatus", Data.SqlDbType.Int)
                 .ParaValue("@ScanStatus") = InObj.ScanStatus
+                .AddPara("@StaticInf", Data.SqlDbType.VarChar, 8000)
+                .ParaValue("@StaticInf") = InObj.StaticInf
             End With
             Dim rsMain As Recordset = Nothing
             LOG.StepName = "mExecCmdSQLSrvSp"
