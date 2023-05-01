@@ -1,5 +1,6 @@
 ﻿Imports GetFileAndDirListLib
 Imports PigCmdLib
+Imports PigObjFsLib
 Imports PigToolsLiteLib
 
 
@@ -20,6 +21,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press A to New")
             Console.WriteLine("Press B to Start")
             Console.WriteLine("Press C to Show Status")
+            Console.WriteLine("Press D to ScanSubFolders")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey().Key
                 Case ConsoleKey.Q
@@ -77,6 +79,17 @@ Public Class ConsoleDemo
                             Console.WriteLine("LogFilePath=" & .LogFilePath)
                         End With
                     End If
+                Case ConsoleKey.D
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("ScanSubFolders")
+                    Console.WriteLine("*******************")
+                    If Me.GetFileAndDirListApp Is Nothing Then
+                        Console.WriteLine("GetFileAndDirListApp Is Nothing")
+                    Else
+                        With Me.GetFileAndDirListApp
+                            .ScanSubFolders()
+                        End With
+                    End If
             End Select
         Loop
     End Sub
@@ -91,5 +104,18 @@ Public Class ConsoleDemo
 
     Private Sub GetFileAndDirListApp_ScanOK() Handles GetFileAndDirListApp.ScanOK
         Console.WriteLine("GetFileAndDirListApp_ScanOK")
+    End Sub
+
+    Private Sub GetFileAndDirListApp_FindFolderOK(oFolder As Folder, FindFolders As Long) Handles GetFileAndDirListApp.FindFolderOK
+        Me.PigFunc.OptLogInf(oFolder.Path, Me.LogFilePath)
+    End Sub
+
+
+    Private Sub GetFileAndDirListApp_FindFolderEnd(FindFolders As Long) Handles GetFileAndDirListApp.FindFolderEnd
+        Me.PigFunc.OptLogInf(FindFolders, Me.LogFilePath)
+    End Sub
+
+    Private Sub GetFileAndDirListApp_FindFolderNoScan(oFolder As Folder) Handles GetFileAndDirListApp.FindFolderNoScan
+        Me.PigFunc.OptLogInf("NoScan=" & oFolder.Path, Me.LogFilePath)
     End Sub
 End Class

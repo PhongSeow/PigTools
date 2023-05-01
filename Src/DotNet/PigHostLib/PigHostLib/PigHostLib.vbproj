@@ -5,7 +5,7 @@
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Seow Phong</Authors>
-    <Version>1.1.16</Version>
+    <Version>1.1.18</Version>
     <Company>Seow Phong Studio</Company>
     <Copyright>Copyright (c) 2021-2023 Seow Phong</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -19,7 +19,7 @@ It can run on Windows only.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigHostLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>host user file disk windows linux directory</PackageTags>
-    <PackageReleaseNotes>Add scan timeout definition for HostFolder.</PackageReleaseNotes>
+    <PackageReleaseNotes>Optimize scanning directories and modify bugs.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,7 +34,7 @@ It can run on Windows only.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.5.20" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.5.28" />
     <PackageReference Include="PigCmdLib" Version="2.2.28" />
     <PackageReference Include="PigSQLSrvLib" Version="2.8.88" />
   </ItemGroup>

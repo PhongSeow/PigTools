@@ -17,7 +17,7 @@
 '* Author: Seow Phong
 '* Describe: 主机信息处理|Host information processing
 '* Home Url: https://en.seowphong.com
-'* Version: 1.12
+'* Version: 1.15
 '* Create Time: 8/10/2021
 '* 1.1    12/10/2021   Add New
 '* 1.2    18/10/2021   Modify New
@@ -31,6 +31,7 @@
 '* 1.11   18/4/2023  Regenerate partial code automatically
 '* 1.12   21/4/2023  Modify RefHostFolders
 '* 1.13   21/4/2023  Modify New
+'* 1.15   29/4/2023  Modify RefHostFolders
 '********************************************************************
 Imports PigToolsLiteLib
 #If NETFRAMEWORK Then
@@ -42,7 +43,7 @@ Imports PigCmdLib
 
 Public Class Host
     Inherits PigBaseLocal
-	Private Const CLS_VERSION As String = "1.13.2"
+	Private Const CLS_VERSION As String = "1.15.6"
 
 	''' <summary>
 	''' 主机名|host name
@@ -404,9 +405,9 @@ Public Class Host
 			Return Me.GetSubErrInf("fFillByXmlRs", ex)
 		End Try
 	End Function
-	Public Function RefHostFolders(Optional IsDirtyRead As Boolean = True) As String
+	Public Function RefHostFolders(Optional IsDirtyRead As Boolean = True, Optional IsShowIsUseOnly As Boolean = False) As String
 		Try
-			Return Me.fParent.fRefHostFolders(Me, IsDirtyRead)
+			Return Me.fParent.fRefHostFolders(Me, IsDirtyRead, IsShowIsUseOnly)
 		Catch ex As Exception
 			Return Me.GetSubErrInf("RefHostFolders", ex)
 		End Try

@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v7.0": {
-      "PigHostCoreLib/1.1.16": {
+      "PigHostCoreLib/1.1.18": {
         "dependencies": {
-          "GetFileAndDirListLib": "1.5.20",
+          "GetFileAndDirListLib": "1.5.28",
           "PigCmdLib": "2.2.28",
           "PigSQLSrvCoreLib": "2.8.88"
         },
@@ -50,15 +50,15 @@
           }
         }
       },
-      "GetFileAndDirListLib/1.5.20": {
+      "GetFileAndDirListLib/1.5.28": {
         "dependencies": {
           "PigObjFsLib": "2.0.38",
           "PigToolsLiteLib": "3.3.138"
         },
         "runtime": {
           "lib/net7.0/GetFileAndDirListLib.dll": {
-            "assemblyVersion": "1.5.20.0",
-            "fileVersion": "1.5.20.0"
+            "assemblyVersion": "1.5.28.0",
+            "fileVersion": "1.5.28.0"
           }
         }
       },
@@ -460,7 +460,7 @@
     }
   },
   "libraries": {
-    "PigHostCoreLib/1.1.16": {
+    "PigHostCoreLib/1.1.18": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -479,12 +479,12 @@
       "path": "azure.identity/1.7.0",
       "hashPath": "azure.identity.1.7.0.nupkg.sha512"
     },
-    "GetFileAndDirListLib/1.5.20": {
+    "GetFileAndDirListLib/1.5.28": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-V99JyUOaTe9gLj69kffKMWFhkhGKZHlrmLEiwRI6gLgr/fjZN6HtDJSwFwS2VbCCKD4j/Xwpw/N1xCB+Onu4pw==",
-      "path": "getfileanddirlistlib/1.5.20",
-      "hashPath": "getfileanddirlistlib.1.5.20.nupkg.sha512"
+      "sha512": "sha512-UQiA/+JwHXn+/OO/LPcHsNa287iSh+j5l0MzeLP8sFT62Bk3/RnfqIK4sE6sm2QRDwGl262G9gC1yGqcF505ig==",
+      "path": "getfileanddirlistlib/1.5.28",
+      "hashPath": "getfileanddirlistlib.1.5.28.nupkg.sha512"
     },
     "Microsoft.Bcl.AsyncInterfaces/1.1.1": {
       "type": "package",

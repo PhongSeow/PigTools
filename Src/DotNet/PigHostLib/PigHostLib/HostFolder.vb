@@ -17,7 +17,7 @@
 '* Author: Seow Phong
 '* Describe: 主机文件夹类|Host folder class
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.17
+'* Version: 1.18
 '* Create Time: 7/3/2023
 '* 1.1	10/3/2023   Add fFillByRs
 '* 1.2	13/3/2023   Modify New
@@ -28,12 +28,13 @@
 '* 1.8	6/4/2023    Modify fGetFileAndDirListApp_ScanOK, add PigObjFsLib
 '* 1.9	8/4/2023    Modify BeginScan
 '* 1.10	10/4/2023   Modify fFillByRs,fFillByXmlRs,BeginScan,fGetFileAndDirListApp_ScanOK
-'* 1.11	11/4/2023   Modify fGetFileAndDirListApp_ScanOK, add HostDirs,mGetDBDirID
+'* 1.11	11/4/2023   Modify fGetFileAndDirListApp_ScanOK, add HostDirs,mGetHostDirID
 '* 1.12	12/10/2022	Modify Date Initial Time
 '* 1.13	12/10/2022	Modify New
 '* 1.15	18/10/2022	Modify New
 '* 1.16	23/4/2023	Modify fGetFileAndDirListApp_ScanOK,fLoadHostFiles
-'* 1.17	29/4/2023	Add StaticInf,StaticInf_TimeoutMinutes, modify BeginScan,IsScanTimeout,New,ActiveInf
+'* 1.17	29/4/2023	Add StaticInf,StaticInf_TimeoutMinutes, modify BeginScan,IsScanTimeout,New,ActiveInf,fGetFileAndDirListApp_ScanOK
+'* 1.18	30/4/2023	Modify mGetHostDirID, add fGetFileAndDirListApp_FindFolderEnd,fGetFileAndDirListApp_FindFolderOK
 '**********************************
 #If NETFRAMEWORK Then
 Imports PigSQLSrvLib
@@ -43,10 +44,11 @@ Imports PigSQLSrvCoreLib
 Imports PigToolsLiteLib
 Imports GetFileAndDirListLib
 Imports PigObjFsLib
+Imports System.Threading
 
 Public Class HostFolder
 	Inherits PigBaseLocal
-	Private Const CLS_VERSION As String = "1.17.18"
+	Private Const CLS_VERSION As String = "1.18.18"
 
 	Public ReadOnly Property HostDirs As New HostDirs
 	Friend ReadOnly Property fParent As Host
@@ -431,7 +433,7 @@ Public Class HostFolder
 			End If
 		End Set
 	End Property
-	Private mIsUse As Boolean
+	Private mIsUse As Boolean = True
 	Public Property IsUse() As Boolean
 		Get
 			Return mIsUse
@@ -678,14 +680,23 @@ Public Class HostFolder
 						.ScanStatus = HostFolder.EnmScanStatus.Scanning
 						.ScanBeginTime = Now
 						If .ActiveInf_ErrInf <> "" Then .ActiveInf_ErrInf = ""
+						LOG.StepName = "fRefHostDirs"
+						LOG.Ret = Me.fRefHostDirs(False)
+						If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+						If Me.mStaticInf_TimeoutMinutes <= 0 Then
+							Me.mStaticInf_TimeoutMinutes = 10
+							LOG.StepName = "fUpdHostFolder"
+							LOG.Ret = Me.fParent.fParent.fUpdHostFolder(Me)
+							If LOG.Ret <> "OK" Then Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
+						End If
 						LOG.StepName = "New GetFileAndDirListApp"
 						fGetFileAndDirListApp = New GetFileAndDirListApp(.FolderPath, False, Me.fParent.fParent.LogFilePath)
 						If fGetFileAndDirListApp.LastErr <> "" Then
 							LOG.AddStepNameInf(.FolderPath)
 							Throw New Exception(fGetFileAndDirListApp.LastErr)
 						End If
-						LOG.StepName = "GetFileAndDirListApp.Start"
-						Me.fGetFileAndDirListApp.Start(, Me.mStaticInf_TimeoutMinutes)
+						LOG.StepName = "GetFileAndDirListApp.ScanSubFolders"
+						Me.fGetFileAndDirListApp.ScanSubFolders()
 						If Me.fGetFileAndDirListApp.LastErr <> "" Then Throw New Exception(Me.fGetFileAndDirListApp.LastErr)
 						LOG.StepName = "fUpdHostFolder(Scanning)"
 						LOG.Ret = Me.fParent.fParent.fUpdHostFolder(Me)
@@ -704,33 +715,108 @@ Public Class HostFolder
 		End Try
 	End Function
 
-	Private Function mGetDBDirID(DirPath As String) As String
+	Private Function mBeginScanOLD() As String
+		Dim LOG As New PigStepLog("mBeginScanOLD")
+		Try
+			LOG.StepName = "fRefHostFolder"
+			LOG.Ret = Me.fParent.fParent.fRefHostFolder(Me.fParent, Me)
+			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+			Select Case Me.ScanStatus
+				Case HostFolder.EnmScanStatus.Scanning
+					If Me.IsScanTimeout = True Then
+						Me.ScanStatus = HostFolder.EnmScanStatus.ScanTimeout
+						LOG.StepName = "fUpdHostFolder(ScanTimeout)"
+						LOG.Ret = Me.fParent.fParent.fUpdHostFolder(Me)
+						If LOG.Ret <> "OK" Then
+							Throw New Exception(LOG.Ret)
+						Else
+							Throw New Exception("Scan Timeout.")
+						End If
+					End If
+				Case Else
+					With Me
+						LOG.StepName = "Before scanning"
+						If .FolderType = EnmFolderType.Unknow Then
+							.FolderType = .fParent.fParent.fAutoGetFolderType(.FolderPath)
+						End If
+						Select Case .FolderType
+							Case EnmFolderType.WinFolder, EnmFolderType.LinuxFolder
+							Case Else
+								LOG.AddStepNameInf(.FolderPath)
+								Throw New Exception("Unsupported FolderType is " & .FolderType.ToString)
+						End Select
+						If Me.fPigFunc.IsFolderExists(.FolderPath) = False Then
+							LOG.AddStepNameInf(.FolderPath)
+							Throw New Exception("Folder not found.")
+						End If
+						.ScanStatus = HostFolder.EnmScanStatus.Scanning
+						.ScanBeginTime = Now
+						If .ActiveInf_ErrInf <> "" Then .ActiveInf_ErrInf = ""
+						LOG.StepName = "New GetFileAndDirListApp"
+						fGetFileAndDirListApp = New GetFileAndDirListApp(.FolderPath, False, Me.fParent.fParent.LogFilePath)
+						If fGetFileAndDirListApp.LastErr <> "" Then
+							LOG.AddStepNameInf(.FolderPath)
+							Throw New Exception(fGetFileAndDirListApp.LastErr)
+						End If
+						If Me.fPigFunc.IsFileExists(fGetFileAndDirListApp.DirListPath) = True And Me.fPigFunc.IsFileExists(fGetFileAndDirListApp.FileListPath) = True Then
+							Dim oThread As New Thread(AddressOf fGetFileAndDirListApp_ScanOK)
+							oThread.Start()
+							oThread = Nothing
+						Else
+							If Me.mStaticInf_TimeoutMinutes <= 0 Then
+								Me.mStaticInf_TimeoutMinutes = 10
+								LOG.StepName = "fUpdHostFolder"
+								LOG.Ret = Me.fParent.fParent.fUpdHostFolder(Me)
+								If LOG.Ret <> "OK" Then Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
+							End If
+							LOG.StepName = "GetFileAndDirListApp.Start"
+							Me.fGetFileAndDirListApp.Start(, Me.mStaticInf_TimeoutMinutes)
+							If Me.fGetFileAndDirListApp.LastErr <> "" Then Throw New Exception(Me.fGetFileAndDirListApp.LastErr)
+						End If
+						LOG.StepName = "fUpdHostFolder(Scanning)"
+						LOG.Ret = Me.fParent.fParent.fUpdHostFolder(Me)
+						If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+					End With
+			End Select
+			Return "OK"
+		Catch ex As Exception
+			Dim strErr As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+			With Me
+				.ActiveInf_ErrInf = strErr
+				.ScanStatus = EnmScanStatus.ScanError
+				.fParent.fParent.fUpdHostFolder(Me)
+			End With
+			Return strErr
+		End Try
+	End Function
+
+	Private Function mGetHostDirID(DirPath As String) As String
 		Try
 			If Me.FolderType = EnmFolderType.WinFolder Then
 				DirPath = UCase(DirPath)
 			End If
 			DirPath = Me.FolderID & ">" & DirPath
-			mGetDBDirID = ""
-			Dim strRet As String = Me.fPigFunc.GetTextPigMD5(DirPath, PigMD5.enmTextType.UTF8, mGetDBDirID)
+			mGetHostDirID = ""
+			Dim strRet As String = Me.fPigFunc.GetTextPigMD5(DirPath, PigMD5.enmTextType.UTF8, mGetHostDirID)
 			If strRet <> "OK" Then Throw New Exception(strRet)
 		Catch ex As Exception
-			Me.SetSubErrInf("mGetDBDirID", ex)
+			Me.SetSubErrInf("mGetHostDirID", ex)
 			Return ""
 		End Try
 	End Function
 
 
-	Private Function mGetDBFileID(FilePath As String) As String
+	Private Function mGetHostFileID(FilePath As String) As String
 		Try
 			If Me.FolderType = EnmFolderType.WinFolder Then
 				FilePath = UCase(FilePath)
 			End If
 			FilePath = Me.FolderID & ">" & FilePath
-			mGetDBFileID = ""
-			Dim strRet As String = Me.fPigFunc.GetTextPigMD5(FilePath, PigMD5.enmTextType.UTF8, mGetDBFileID)
+			mGetHostFileID = ""
+			Dim strRet As String = Me.fPigFunc.GetTextPigMD5(FilePath, PigMD5.enmTextType.UTF8, mGetHostFileID)
 			If strRet <> "OK" Then Throw New Exception(strRet)
 		Catch ex As Exception
-			Me.SetSubErrInf("mGetDBFileID", ex)
+			Me.SetSubErrInf("mGetHostFileID", ex)
 			Return ""
 		End Try
 	End Function
@@ -769,6 +855,18 @@ Public Class HostFolder
 				End If
 			Next
 			oHostFolder = Nothing
+			LOG.StepName = "DeleteFile"
+			LOG.Ret = Me.fPigFunc.DeleteFile(Me.fGetFileAndDirListApp.DirListPath)
+			If LOG.Ret <> "OK" Then
+				LOG.AddStepNameInf(Me.fGetFileAndDirListApp.DirListPath)
+				Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
+			End If
+			LOG.StepName = "DeleteFile"
+			LOG.Ret = Me.fPigFunc.DeleteFile(Me.fGetFileAndDirListApp.FileListPath)
+			If LOG.Ret <> "OK" Then
+				LOG.AddStepNameInf(Me.fGetFileAndDirListApp.FileListPath)
+				Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
+			End If
 			With Me
 				.ScanEndTime = Now
 				.ScanStatus = EnmScanStatus.ScanComplete
@@ -835,7 +933,7 @@ Public Class HostFolder
 				End If
 				Dim strDirPath As String = Me.fPigFunc.GetPathPart(strFilePath, PigFunc.EnmFathPart.ParentPath)
 				If strDirPath = "." Then strDirPath = Left(strFilePath, 2)
-				Dim strDirID As String = Me.mGetDBDirID(strDirPath)
+				Dim strDirID As String = Me.mGetHostDirID(strDirPath)
 				Dim strFileName As String = Me.fPigFunc.GetPathPart(strFilePath, PigFunc.EnmFathPart.FileOrDirTitle)
 				If oHostDir IsNot Nothing Then If oHostDir.DirID <> strDirID Then oHostDir = Nothing
 				If oHostDir Is Nothing Then If Me.HostDirs.IsItemExists(strDirID) = True Then oHostDir = Me.HostDirs.Item(strDirID)
@@ -845,7 +943,7 @@ Public Class HostFolder
 					LOG.AddStepNameInf("LineNo is " & lngLineNo)
 					Me.fParent.fParent.PrintDebugLog(Me.MyClassName, LOG.StepLogInf)
 				Else
-					Dim strFileID As String = Me.mGetDBFileID(strFilePath)
+					Dim strFileID As String = Me.mGetHostFileID(strFilePath)
 					With oHostDir.HostFiles.AddOrGet(strFileID)
 						.FileName = strFileName
 						.FileSize = Me.fPigFunc.GECLng(strFileSize)
@@ -885,7 +983,7 @@ Public Class HostFolder
 					LOG.AddStepNameInf("LineNo:" & lngLineNo)
 					Throw New Exception("Not a relative path")
 				End If
-				Dim strDirID As String = Me.mGetDBDirID(strDirPath)
+				Dim strDirID As String = Me.mGetHostDirID(strDirPath)
 				LOG.StepName = "HostDirs.AddOrGet(" & lngLineNo & ")"
 				With Me.HostDirs.AddOrGet(strDirID, Me)
 					.DirPath = strDirPath
@@ -906,4 +1004,70 @@ Public Class HostFolder
 		Return Me.fParent.fParent.fRefHostDirs(Me, IsDirtyRead, IsScanOnly)
 	End Function
 
+	Private Sub fGetFileAndDirListApp_FindFolderOK(oFolder As Folder, FindFolders As Long) Handles fGetFileAndDirListApp.FindFolderOK
+		Dim LOG As New PigStepLog("fGetFileAndDirListApp_FindFolderOK")
+		Try
+			Dim oFindHostDir As HostDir = Nothing
+			Dim strDirID As String = Me.mGetHostDirID(oFolder.Path)
+			LOG.StepName = "New HostDir"
+			oFindHostDir = New HostDir(strDirID, Me)
+			With oFindHostDir
+				.DirPath = oFolder.Path
+				.DirUpdateTime = oFolder.DateLastModified
+			End With
+			For Each oFile As File In oFolder.Files
+				Dim strFileID As String = Me.mGetHostFileID(oFile.Path)
+				With oFindHostDir.HostFiles.AddOrGet(strFileID)
+					.FileName = oFile.Name
+					.FileSize = oFile.Size
+					Dim oPigFile As New PigFile(oFile.Path)
+					Dim oPigMD5 As PigMD5 = Nothing
+					LOG.StepName = "GetFastPigMD5"
+					LOG.Ret = oPigFile.GetFastPigMD5(oPigMD5)
+					If LOG.Ret <> "OK" Then
+						LOG.AddStepNameInf(oFile.Path)
+						Throw New Exception(LOG.Ret)
+					End If
+					.FastPigMD5 = oPigMD5.PigMD5
+					oPigMD5 = Nothing
+				End With
+			Next
+			LOG.StepName = "RefByHostFiles"
+			LOG.Ret = oFindHostDir.RefByHostFiles()
+			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+			LOG.StepName = "fMergeHostDirInf"
+			LOG.Ret = Me.fParent.fParent.fMergeHostDirInf(oFindHostDir)
+			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+			If oFindHostDir.IsScan = True Then
+				LOG.StepName = "fMergeHostFileInf"
+				LOG.Ret = oFindHostDir.fMergeHostFileInf()
+				If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+			End If
+		Catch ex As Exception
+			Dim strErr As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+			Me.fParent.fParent.fPrintErrLogInf(strErr)
+		End Try
+	End Sub
+
+	Private Sub fGetFileAndDirListApp_FindFolderEnd(FindFolders As Long) Handles fGetFileAndDirListApp.FindFolderEnd
+		Dim LOG As New PigStepLog("fGetFileAndDirListApp_FindFolderEnd")
+		Try
+			With Me
+				.ScanEndTime = Now
+				.ScanStatus = EnmScanStatus.ScanComplete
+				LOG.StepName = "fUpdHostFolder(ScanComplete)"
+				LOG.Ret = Me.fParent.fParent.fUpdHostFolder(Me)
+				If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+			End With
+		Catch ex As Exception
+			Dim strErr As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+			With Me
+				.ScanEndTime = Now
+				.ScanStatus = EnmScanStatus.ScanError
+				.ActiveInf_ErrInf = strErr
+				Me.fParent.fParent.fUpdHostFolder(Me)
+			End With
+			Me.fParent.fParent.PrintDebugLog(Me.MyClassName, strErr)
+		End Try
+	End Sub
 End Class

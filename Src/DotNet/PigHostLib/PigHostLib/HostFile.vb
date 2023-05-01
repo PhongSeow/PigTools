@@ -17,7 +17,7 @@
 '* Author: Seow Phong
 '* Describe: 数据库文件类|Database file class
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 7/3/2023
 '* 1.1	8/3/2023	Modify New
 '* 1.2	8/3/2023	Modify fFillByXmlRs,fFillByRs
@@ -33,10 +33,10 @@ Imports PigSQLSrvCoreLib
 Imports PigToolsLiteLib
 Public Class HostFile
 	Inherits PigBaseLocal
-	Private Const CLS_VERSION As String = "1.6.2"
+	Private Const CLS_VERSION As String = "1.6.3"
 
 
-	Friend ReadOnly Property DBFileSegments As New HostFileSegments
+	Friend ReadOnly Property HostFileSegments As New HostFileSegments
 	Public Sub New(FileID As String)
 		MyBase.New(CLS_VERSION)
 		Me.FileID = FileID

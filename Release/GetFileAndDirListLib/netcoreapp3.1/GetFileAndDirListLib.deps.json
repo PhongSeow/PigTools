@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "GetFileAndDirListLib/1.5.20": {
+      "GetFileAndDirListLib/1.5.28": {
         "dependencies": {
           "PigObjFsLib": "2.0.38",
           "PigToolsLiteLib": "3.3.138"
@@ -100,7 +100,7 @@
     }
   },
   "libraries": {
-    "GetFileAndDirListLib/1.5.20": {
+    "GetFileAndDirListLib/1.5.28": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -129,7 +129,7 @@
     "PigToolsLiteLib/3.3.138": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-sg/saZFzFjUlJMIbVjGKJS+ahM0BC313ouD6VFXDe/jDK4EH1M0SuS6lHBHpsE4QgFTtStQve5GR0/Kq1XESiQ==",
+      "sha512": "sha512-eUVcTPzkviUQ5Lzmzw7QqZwYVh1Iau4Yil7GwOLlA4nPsRNrabqtl6lFynyVydgbNexJSnT+jxGlHU0atPdPuA==",
       "path": "pigtoolslitelib/3.3.138",
       "hashPath": "pigtoolslitelib.3.3.138.nupkg.sha512"
     },

@@ -30,7 +30,7 @@
 '* 1.9	3/4/2023    Modify RefHostFolders, add fRefHostFolder
 '* 1.10	4/4/2023    Modify fBeginScanHostFolder
 '* 1.11	5/4/2023    Add GetFolderType
-'* 1.12	6/4/2023    Add GetFolderType, modify mPrintErrLogInf,fMergeDFPathInf
+'* 1.12	6/4/2023    Add GetFolderType, modify fPrintErrLogInf,fMergeDFPathInf
 '* 1.13	8/4/2023    Modify RefDBConn
 '* 1.15	10/4/2023   Modify New,AutoGetFolderType,fUpdHFFileInf,fUpdHostFolder and add fScanHFFileInf,fAddHFFileInf,mCreateTable_HFFolderInf
 '* 1.16	11/4/2023   Add fCreateTable_TmpFileList,fInsTmpFileList,mCreateTable_HFDirInf, modify RefDBConn
@@ -39,6 +39,7 @@
 '* 1.19	23/4/2023   Modify fMergeHostDirInf
 '* 1.20	24/4/2023   Modify fMergeHostFileInf
 '* 1.21	29/4/2023   Modify AddNewHostFolder,mAddNewHostFolder
+'* 1.22	30/4/2023   Modify AddNewHostFolder,mAddNewHostFolder
 '**********************************
 Imports System.Data
 Imports System.IO
@@ -56,7 +57,7 @@ Imports PigCmdLib
 
 Public Class PigHostApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.21.6"
+    Private Const CLS_VERSION As String = "1.21.22"
 
     Public ReadOnly Property BaseDirPath As String
     Private ReadOnly Property mMyHostID As String
@@ -160,7 +161,7 @@ Public Class PigHostApp
             Me.ClearErr()
         Catch ex As Exception
             Dim strErr As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
-            Me.mPrintErrLogInf(strErr)
+            Me.fPrintErrLogInf(strErr)
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
@@ -391,7 +392,7 @@ Public Class PigHostApp
             oCmdSQLSrvText = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -431,7 +432,7 @@ Public Class PigHostApp
             oCmdSQLSrvText = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -529,6 +530,78 @@ Public Class PigHostApp
             Return "OK"
         Catch ex As Exception
             RsOut = Nothing
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Friend Function fMergeHostDirInf(ByRef InHostDir As HostDir) As String
+        Dim LOG As New PigStepLog("fMergeHostDirInf")
+        Dim strSQL As String = ""
+        Try
+            Dim oCmdSQLSrvText As CmdSQLSrvText
+            LOG.StepName = "Generate SQL"
+            With Me.mPigFunc
+                strSQL = ""
+                .AddMultiLineText(strSQL, "DECLARE @Rows int")
+                .AddMultiLineText(strSQL, "IF NOT EXISTS(SELECT TOP 1 1 FROM dbo._ptHFDirInf WHERE DirID=@DirID)")
+                .AddMultiLineText(strSQL, "BEGIN")
+                .AddMultiLineText(strSQL, "INSERT INTO dbo._ptHFDirInf(DirID,FolderID,DirPath,DirSize,DirFiles,FastPigMD5,DirUpdateTime,IsDel,IsScan,LastScanTime)", 1)
+                .AddMultiLineText(strSQL, "VALUES(@DirID,@FolderID,@DirPath,@DirSize,@DirFiles,@FastPigMD5,@DirUpdateTime,0,0,GETDATE())", 1)
+                .AddMultiLineText(strSQL, "SET @Rows=@@ROWCOUNT", 1)
+                .AddMultiLineText(strSQL, "END")
+                .AddMultiLineText(strSQL, "ELSE")
+                .AddMultiLineText(strSQL, "BEGIN")
+                .AddMultiLineText(strSQL, "UPDATE dbo._ptHFDirInf", 1)
+                .AddMultiLineText(strSQL, "SET DirSize=@DirSize,DirFiles=@DirFiles,FastPigMD5=@FastPigMD5,DirUpdateTime=@DirUpdateTime", 1)
+                .AddMultiLineText(strSQL, "WHERE DirID=@DirID", 1)
+                .AddMultiLineText(strSQL, "AND (DirSize!=@DirSize OR DirFiles!=@DirFiles OR FastPigMD5!=@FastPigMD5 OR DirUpdateTime=@DirUpdateTime)", 2)
+                .AddMultiLineText(strSQL, "SET @Rows=@@ROWCOUNT", 1)
+                .AddMultiLineText(strSQL, "UPDATE dbo._ptHFDirInf SET LastScanTime=GETDATE() WHERE DirID=@DirID", 1)
+                '.AddMultiLineText(strSQL, "UPDATE dbo._ptHFDirInf SET FolderID=@FolderID WHERE DirID=@DirID", 1)
+                .AddMultiLineText(strSQL, "UPDATE dbo._ptHFDirInf SET DirPath=@DirPath WHERE DirID=@DirID", 1)
+                .AddMultiLineText(strSQL, "END")
+                .AddMultiLineText(strSQL, "SELECT @Rows Rows")
+                '.AddMultiLineText(strSQL, "MERGE dbo._ptHFDirInf t")
+                '.AddMultiLineText(strSQL, "USING (SELECT @DirID,@DirPath,@DirSize,@DirFiles,@FastPigMD5,@DirUpdateTime,@FolderID,@IsDel,@IsScan) s (DirID,DirPath,DirSize,DirFiles,FastPigMD5,DirUpdateTime,FolderID,IsDel,IsScan) ON t.DirID=s.DirID")
+                '.AddMultiLineText(strSQL, "WHEN MATCHED THEN")
+                '.AddMultiLineText(strSQL, "UPDATE SET t.DirPath=s.DirPath,t.DirSize=s.DirSize,t.DirFiles=s.DirFiles,t.FastPigMD5=s.FastPigMD5,t.DirUpdateTime=s.DirUpdateTime,t.FolderID=s.FolderID,t.IsDel=s.IsDel,t.IsScan=s.IsScan", 1)
+                '.AddMultiLineText(strSQL, "WHEN NOT MATCHED THEN")
+                '.AddMultiLineText(strSQL, "INSERT(DirID,DirPath,DirSize,DirFiles,FastPigMD5,DirUpdateTime,FolderID,IsDel,IsScan)", 1)
+                '.AddMultiLineText(strSQL, "VALUES(s.DirID,s.DirPath,s.DirSize,s.DirFiles,s.FastPigMD5,s.DirUpdateTime,s.FolderID,s.IsDel,s.IsScan);", 1)
+            End With
+            LOG.StepName = "ExecuteNonQuery"
+            oCmdSQLSrvText = New CmdSQLSrvText(strSQL)
+            With oCmdSQLSrvText
+                .ActiveConnection = Me.mConnSQLSrv.Connection
+                .AddPara("@DirID", Data.SqlDbType.VarChar, 32)
+                .AddPara("@FolderID", Data.SqlDbType.VarChar, 32)
+                .AddPara("@DirPath", Data.SqlDbType.VarChar, 4096)
+                .AddPara("@DirSize", Data.SqlDbType.Money)
+                .AddPara("@DirFiles", Data.SqlDbType.Int)
+                .AddPara("@FastPigMD5", Data.SqlDbType.VarChar, 32)
+                .AddPara("@DirUpdateTime", Data.SqlDbType.DateTime)
+                .ParaValue("@DirID") = InHostDir.DirID
+                .ParaValue("@FolderID") = InHostDir.fParent.FolderID
+                .ParaValue("@DirPath") = InHostDir.DirPath
+                .ParaValue("@DirSize") = InHostDir.DirSize
+                .ParaValue("@DirFiles") = InHostDir.DirFiles
+                .ParaValue("@FastPigMD5") = InHostDir.FastPigMD5
+                .ParaValue("@DirUpdateTime") = InHostDir.DirUpdateTime
+                Me.PrintDebugLog(LOG.StepLogInf, .DebugStr)
+                Dim rsMain As Recordset = Nothing
+                LOG.StepName = "mExecCmdSQLSrvSp"
+                LOG.Ret = Me.mExecCmdSQLSrvText(oCmdSQLSrvText, rsMain, False,, True)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                If rsMain.Fields.Item("Rows").IntValue > 0 Then
+                    InHostDir.IsScan = True
+                Else
+                    InHostDir.IsScan = False
+                End If
+            End With
+            Return "OK"
+        Catch ex As Exception
+            InHostDir.IsScan = False
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -634,10 +707,8 @@ Public Class PigHostApp
             End With
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
-            Dim strErr As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
-            Me.PrintDebugLog(Me.MyClassName, strErr)
-            Return strErr
+            Me.fPrintErrLogInf(strSQL)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -676,7 +747,7 @@ Public Class PigHostApp
             oCmdSQLSrvText = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -706,7 +777,7 @@ Public Class PigHostApp
         Catch ex As Exception
             LOG.AddStepNameInf(FolderPath)
             Dim strRet As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
-            Me.mPrintErrLogInf(strRet)
+            Me.fPrintErrLogInf(strRet)
             Return strRet
         End Try
     End Function
@@ -724,10 +795,13 @@ Public Class PigHostApp
             If InObj.FolderPath = "" Then Throw New Exception("No folder absolute path specified")
             If InObj.FolderID = "" Then Throw New Exception("Unable to get folder ID")
             With Me.mPigFunc
+                .AddMultiLineText(strSQL, "DECLARE @ExistsFolderPath varchar(2048)")
                 .AddMultiLineText(strSQL, "IF EXISTS(SELECT 1 FROM dbo._ptHFFolderInf WHERE FolderID=@FolderID)")
                 .AddMultiLineText(strSQL, "SELECT 'Folder ID already exists'", 1)
                 .AddMultiLineText(strSQL, "ELSE IF EXISTS(SELECT 1 FROM dbo._ptHFFolderInf WHERE HostID=@HostID AND FolderPath=@FolderPath)")
                 .AddMultiLineText(strSQL, "SELECT 'Host ID and Folder Path already exists'", 1)
+                .AddMultiLineText(strSQL, "ELSE IF EXISTS(SELECT TOP 1 1 FROM _ptHFFolderInf p WHERE LEFT(@FolderPath,LEN(p.FolderPath))=p.FolderPath AND p.IsUse=1 AND HostID=@HostID)")
+                .AddMultiLineText(strSQL, "SELECT TOP 1 'There is a defined top-level folder named '+FolderPath FROM _ptHFFolderInf p WHERE LEFT(@FolderPath,LEN(p.FolderPath))=p.FolderPath AND p.IsUse=1 AND HostID=@HostID", 1)
                 .AddMultiLineText(strSQL, "ELSE")
                 .AddMultiLineText(strSQL, "BEGIN")
                 .AddMultiLineText(strSQL, "INSERT INTO dbo._ptHFFolderInf(FolderID,HostID,FolderName,FolderPath,FolderType,FolderDesc,IsUse,ScanStatus,StaticInf)", 1)
@@ -771,25 +845,26 @@ Public Class PigHostApp
             oCmdSQLSrvText = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
-    Private Function mPrintErrLogInf(ErrInf As String) As String
+    Friend Function fPrintErrLogInf(ErrInf As String) As String
         Try
             Me.mPigFunc.ASyncOptLogInf(ErrInf, Me.mLogFilePath)
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mPrintErrLogInf", ex)
+            Return Me.GetSubErrInf("fPrintErrLogInf", ex)
         End Try
     End Function
 
-    Friend Function fRefHostFolders(ByRef InHost As Host, Optional IsDirtyRead As Boolean = True) As String
+    Friend Function fRefHostFolders(ByRef InHost As Host, Optional IsDirtyRead As Boolean = True, Optional IsShowIsUseOnly As Boolean = False) As String
         Dim LOG As New PigStepLog("fRefHostFolders")
         Dim strSQL As String = "SELECT * FROM dbo._ptHFFolderInf"
         If IsDirtyRead = True Then strSQL &= " WITH (NOLOCK)"
         strSQL &= " WHERE HostID=@HostID"
+        If IsShowIsUseOnly = True Then strSQL &= " AND IsUse=1"
         strSQL &= " ORDER BY FolderName"
         Try
             LOG.StepName = "New CmdSQLSrvText"
@@ -827,7 +902,7 @@ Public Class PigHostApp
             oCmdSQLSrvText = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -876,7 +951,7 @@ Public Class PigHostApp
             oCmdSQLSrvText = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -923,7 +998,7 @@ Public Class PigHostApp
             oCmdSQLSrvText = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -955,7 +1030,7 @@ Public Class PigHostApp
             End With
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -989,7 +1064,7 @@ Public Class PigHostApp
             End With
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -1025,7 +1100,7 @@ Public Class PigHostApp
             End With
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -1072,7 +1147,7 @@ Public Class PigHostApp
             End With
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -1114,7 +1189,7 @@ Public Class PigHostApp
             End With
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -1158,7 +1233,7 @@ Public Class PigHostApp
             End With
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -1237,7 +1312,7 @@ Public Class PigHostApp
             oCmdSQLSrvText = Nothing
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
+            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -1347,10 +1422,8 @@ Public Class PigHostApp
             End With
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strSQL)
-            Dim strErr As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
-            Me.PrintDebugLog(Me.MyClassName, strErr)
-            Return strErr
+            Me.fPrintErrLogInf(strSQL)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 

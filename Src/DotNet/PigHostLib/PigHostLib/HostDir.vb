@@ -169,6 +169,18 @@ Public Class HostDir
 			End If
 		End Set
 	End Property
+	Private mIsDel As Boolean
+	Public Property IsDel() As Boolean
+		Get
+			Return mIsDel
+		End Get
+		Friend Set(value As Boolean)
+			If value <> mIsDel Then
+				Me.mUpdateCheck.Add("IsDel")
+				mIsDel = value
+			End If
+		End Set
+	End Property
 	Private mIsScan As Boolean
 	Public Property IsScan() As Boolean
 		Get
@@ -226,6 +238,12 @@ Public Class HostDir
 					If .IsItemExists("CreateTime") = True Then
 						If Me.CreateTime <> .Item("CreateTime").DateValue Then
 							Me.CreateTime = .Item("CreateTime").DateValue
+							UpdateCnt += 1
+						End If
+					End If
+					If .IsItemExists("IsDel") = True Then
+						If Me.IsDel <> .Item("IsDel").BooleanValue Then
+							Me.IsDel = .Item("IsDel").BooleanValue
 							UpdateCnt += 1
 						End If
 					End If
@@ -288,6 +306,12 @@ Public Class HostDir
 					If .IsColExists(RSNo, "CreateTime") = True Then
 						If Me.CreateTime <> .DateValue(RSNo, RowNo, "CreateTime") Then
 							Me.CreateTime = .DateValue(RSNo, RowNo, "CreateTime")
+							UpdateCnt += 1
+						End If
+					End If
+					If .IsColExists(RSNo, "IsDel") = True Then
+						If Me.IsDel <> .BooleanValue(RSNo, RowNo, "IsDel") Then
+							Me.IsDel = .BooleanValue(RSNo, RowNo, "IsDel")
 							UpdateCnt += 1
 						End If
 					End If

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Get file and directory list application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 21/6/2021
 '* 1.0.2  23/6/2021   Add LogFilePath,IsAbsolutePath,RootDirPath
 '* 1.0.3  23/6/2021   Modify Start
@@ -17,6 +17,7 @@
 '* 1.5  28/2/2023  Modify Start, add WorkPath,StatusFilePath,RunStatus
 '* 1.6  1/3/2023  Modify mNew,SaveStatus,RefStatus,add 
 '* 1.7  2/3/2023  Modify mNew,Start,RefNoScanDir, add mStart
+'* 1.8  29/4/2023  Add ScanSubFolders,mGetSubFolder,ScanSubFolders
 '************************************
 Imports System.Threading
 Imports PigObjFsLib
@@ -27,13 +28,16 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class GetFileAndDirListApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.7.30"
+    Private Const CLS_VERSION As String = "1.8.16"
     Private Property mFS As New FileSystemObject
     Private Property mPigFunc As New PigFunc
 
     Public Event ScanOK()
     Public Event ScanFail(ErrInf As String)
-    'Private ReadOnly Property MyProcThreadID As String = Me.mPigFunc.GetProcThreadID()
+    Public Event FindFolderOK(oFolder As Folder, FindFolders As Long)
+    Public Event FindFolderErr(oFolder As Folder, ErrInf As String)
+    Public Event FindFolderNoScan(oFolder As Folder)
+    Public Event FindFolderEnd(FindFolders As Long)
 
     Private mStatusFilePath As String
     Public Property StatusFilePath() As String
@@ -288,6 +292,56 @@ Public Class GetFileAndDirListApp
             mRootDirPath = value
         End Set
     End Property
+
+    Public Function ScanSubFolders() As String
+        Try
+            Me.RefNoScanDir()
+            Dim oThread As New Thread(AddressOf mScanSubFolders)
+            oThread.Start()
+            oThread = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("ScanSubFolders", ex)
+        End Try
+    End Function
+
+    Private Sub mScanSubFolders()
+        Dim LOG As New PigStepLog("mScanSubFolders")
+        Try
+            Dim lngFindCnt As Long = 0
+            Dim oRootFolder As Folder = Me.mFS.GetFolder(Me.mRootDirPath)
+            Me.mGetSubFolder(oRootFolder, lngFindCnt)
+            RaiseEvent FindFolderEnd(lngFindCnt)
+        Catch ex As Exception
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Sub
+
+
+
+    Private Sub mGetSubFolder(ByRef ParentFolder As Folder, ByRef FindCnt As Long)
+        Dim strParentFolderPath As String = ParentFolder.Path
+        Try
+            If Me.mIsNoScanDir(strParentFolderPath) = True Then
+                RaiseEvent FindFolderNoScan(ParentFolder)
+                Exit Sub
+            End If
+            FindCnt += 1
+            RaiseEvent FindFolderOK(ParentFolder, FindCnt)
+            Dim lngSubCount As Long
+#If NETCOREAPP Or NET40_OR_GREATER Then
+            lngSubCount = ParentFolder.SubFolders.Count
+#Else
+            lngSubCount = ParentFolder.SubFolders.Length
+#End If
+            If lngSubCount = 0 Then Exit Sub
+            For Each oSubFolder In ParentFolder.SubFolders
+                Me.mGetSubFolder(oSubFolder, FindCnt£©
+            Next
+        Catch ex As Exception
+            RaiseEvent FindFolderErr(ParentFolder, ex.Message.ToString)
+        End Try
+    End Sub
 
 
     Public Sub Start(Optional IsFullPigMD5 As Boolean = False, Optional TimeoutMinutes As Integer = 10)
