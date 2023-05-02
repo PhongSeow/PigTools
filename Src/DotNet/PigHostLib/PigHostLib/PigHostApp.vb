@@ -55,9 +55,10 @@ Imports PigObjFsLib
 Imports PigToolsLiteLib
 Imports PigCmdLib
 
+
 Public Class PigHostApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.21.22"
+    Private Const CLS_VERSION As String = "1.22.28"
 
     Public ReadOnly Property BaseDirPath As String
     Private ReadOnly Property mMyHostID As String
@@ -534,6 +535,37 @@ Public Class PigHostApp
         End Try
     End Function
 
+    Friend Function fSetDelHostDirInf(ByRef InHostDir As HostDir) As String
+        Dim LOG As New PigStepLog("fSetDelHostDirInf")
+        Dim strSQL As String = ""
+        Try
+            Dim oCmdSQLSrvText As CmdSQLSrvText
+            LOG.StepName = "Generate SQL"
+            With Me.mPigFunc
+                strSQL = ""
+                .AddMultiLineText(strSQL, "UPDATE dbo._ptHFDirInf")
+                .AddMultiLineText(strSQL, "SET IsDel=1")
+                .AddMultiLineText(strSQL, "WHERE DirID=@DirID AND IsDel=0", 1)
+            End With
+            LOG.StepName = "ExecuteNonQuery"
+            oCmdSQLSrvText = New CmdSQLSrvText(strSQL)
+            With oCmdSQLSrvText
+                .ActiveConnection = Me.mConnSQLSrv.Connection
+                .AddPara("@DirID", Data.SqlDbType.VarChar, 32)
+                .ParaValue("@DirID") = InHostDir.DirID
+                Me.PrintDebugLog(LOG.StepLogInf, .DebugStr)
+                LOG.StepName = "ExecuteNonQuery"
+                LOG.Ret = .ExecuteNonQuery()
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End With
+            Return "OK"
+        Catch ex As Exception
+            InHostDir.IsScan = False
+            Me.fPrintErrLogInf(strSQL)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
     Friend Function fMergeHostDirInf(ByRef InHostDir As HostDir) As String
         Dim LOG As New PigStepLog("fMergeHostDirInf")
         Dim strSQL As String = ""
@@ -545,29 +577,21 @@ Public Class PigHostApp
                 .AddMultiLineText(strSQL, "DECLARE @Rows int")
                 .AddMultiLineText(strSQL, "IF NOT EXISTS(SELECT TOP 1 1 FROM dbo._ptHFDirInf WHERE DirID=@DirID)")
                 .AddMultiLineText(strSQL, "BEGIN")
-                .AddMultiLineText(strSQL, "INSERT INTO dbo._ptHFDirInf(DirID,FolderID,DirPath,DirSize,DirFiles,FastPigMD5,DirUpdateTime,IsDel,IsScan,LastScanTime)", 1)
-                .AddMultiLineText(strSQL, "VALUES(@DirID,@FolderID,@DirPath,@DirSize,@DirFiles,@FastPigMD5,@DirUpdateTime,0,0,GETDATE())", 1)
+                .AddMultiLineText(strSQL, "INSERT INTO dbo._ptHFDirInf(DirID,FolderID,DirPath,DirSize,DirFiles,FastPigMD5,DirUpdateTime,IsDel,IsScan,LastScanTime,MaxFileUpdateTime)", 1)
+                .AddMultiLineText(strSQL, "VALUES(@DirID,@FolderID,@DirPath,@DirSize,@DirFiles,@FastPigMD5,@DirUpdateTime,0,0,GETDATE(),@MaxFileUpdateTime)", 1)
                 .AddMultiLineText(strSQL, "SET @Rows=@@ROWCOUNT", 1)
                 .AddMultiLineText(strSQL, "END")
                 .AddMultiLineText(strSQL, "ELSE")
                 .AddMultiLineText(strSQL, "BEGIN")
                 .AddMultiLineText(strSQL, "UPDATE dbo._ptHFDirInf", 1)
-                .AddMultiLineText(strSQL, "SET DirSize=@DirSize,DirFiles=@DirFiles,FastPigMD5=@FastPigMD5,DirUpdateTime=@DirUpdateTime", 1)
+                .AddMultiLineText(strSQL, "SET DirSize=@DirSize,DirFiles=@DirFiles,FastPigMD5=@FastPigMD5,DirUpdateTime=@DirUpdateTime,MaxFileUpdateTime=@MaxFileUpdateTime", 1)
                 .AddMultiLineText(strSQL, "WHERE DirID=@DirID", 1)
-                .AddMultiLineText(strSQL, "AND (DirSize!=@DirSize OR DirFiles!=@DirFiles OR FastPigMD5!=@FastPigMD5 OR DirUpdateTime=@DirUpdateTime)", 2)
+                .AddMultiLineText(strSQL, "AND (DirSize!=@DirSize OR DirFiles!=@DirFiles OR FastPigMD5!=@FastPigMD5 OR DirUpdateTime!=@DirUpdateTime OR MaxFileUpdateTime!=@MaxFileUpdateTime)", 2)
                 .AddMultiLineText(strSQL, "SET @Rows=@@ROWCOUNT", 1)
                 .AddMultiLineText(strSQL, "UPDATE dbo._ptHFDirInf SET LastScanTime=GETDATE() WHERE DirID=@DirID", 1)
-                '.AddMultiLineText(strSQL, "UPDATE dbo._ptHFDirInf SET FolderID=@FolderID WHERE DirID=@DirID", 1)
                 .AddMultiLineText(strSQL, "UPDATE dbo._ptHFDirInf SET DirPath=@DirPath WHERE DirID=@DirID", 1)
                 .AddMultiLineText(strSQL, "END")
                 .AddMultiLineText(strSQL, "SELECT @Rows Rows")
-                '.AddMultiLineText(strSQL, "MERGE dbo._ptHFDirInf t")
-                '.AddMultiLineText(strSQL, "USING (SELECT @DirID,@DirPath,@DirSize,@DirFiles,@FastPigMD5,@DirUpdateTime,@FolderID,@IsDel,@IsScan) s (DirID,DirPath,DirSize,DirFiles,FastPigMD5,DirUpdateTime,FolderID,IsDel,IsScan) ON t.DirID=s.DirID")
-                '.AddMultiLineText(strSQL, "WHEN MATCHED THEN")
-                '.AddMultiLineText(strSQL, "UPDATE SET t.DirPath=s.DirPath,t.DirSize=s.DirSize,t.DirFiles=s.DirFiles,t.FastPigMD5=s.FastPigMD5,t.DirUpdateTime=s.DirUpdateTime,t.FolderID=s.FolderID,t.IsDel=s.IsDel,t.IsScan=s.IsScan", 1)
-                '.AddMultiLineText(strSQL, "WHEN NOT MATCHED THEN")
-                '.AddMultiLineText(strSQL, "INSERT(DirID,DirPath,DirSize,DirFiles,FastPigMD5,DirUpdateTime,FolderID,IsDel,IsScan)", 1)
-                '.AddMultiLineText(strSQL, "VALUES(s.DirID,s.DirPath,s.DirSize,s.DirFiles,s.FastPigMD5,s.DirUpdateTime,s.FolderID,s.IsDel,s.IsScan);", 1)
             End With
             LOG.StepName = "ExecuteNonQuery"
             oCmdSQLSrvText = New CmdSQLSrvText(strSQL)
@@ -580,6 +604,7 @@ Public Class PigHostApp
                 .AddPara("@DirFiles", Data.SqlDbType.Int)
                 .AddPara("@FastPigMD5", Data.SqlDbType.VarChar, 32)
                 .AddPara("@DirUpdateTime", Data.SqlDbType.DateTime)
+                .AddPara("@MaxFileUpdateTime", Data.SqlDbType.DateTime)
                 .ParaValue("@DirID") = InHostDir.DirID
                 .ParaValue("@FolderID") = InHostDir.fParent.FolderID
                 .ParaValue("@DirPath") = InHostDir.DirPath
@@ -587,6 +612,7 @@ Public Class PigHostApp
                 .ParaValue("@DirFiles") = InHostDir.DirFiles
                 .ParaValue("@FastPigMD5") = InHostDir.FastPigMD5
                 .ParaValue("@DirUpdateTime") = InHostDir.DirUpdateTime
+                .ParaValue("@MaxFileUpdateTime") = InHostDir.MaxFileUpdateTime
                 Me.PrintDebugLog(LOG.StepLogInf, .DebugStr)
                 Dim rsMain As Recordset = Nothing
                 LOG.StepName = "mExecCmdSQLSrvSp"
@@ -908,14 +934,32 @@ Public Class PigHostApp
     End Function
 
 
-    Friend Function fRefHostDirs(ByRef InHostFolder As HostFolder, Optional IsDirtyRead As Boolean = True, Optional IsScanOnly As Boolean = False) As String
+    Friend Function fRefHostDirs(ByRef InHostFolder As HostFolder, Optional IsDirtyRead As Boolean = True) As String
         Dim LOG As New PigStepLog("fRefHostDirs")
-        Dim strSQL As String = "SELECT * FROM dbo._ptHFDirInf"
-        If IsDirtyRead = True Then strSQL &= " WITH (NOLOCK)"
-        strSQL &= " WHERE FolderID=@FolderID"
-        If IsScanOnly = True Then strSQL &= " AND IsScan=1"
-        strSQL &= " ORDER BY FolderID"
+        Dim strSQL As String = ""
         Try
+            With Me.mPigFunc
+                strSQL = ""
+                Select Case InHostFolder.StaticInf_ScanLevel
+                    Case HostFolder.EnmScanLevel.Complete
+                        .AddMultiLineText(strSQL, "SELECT *")
+                    Case HostFolder.EnmScanLevel.Standard
+                        .AddMultiLineText(strSQL, "SELECT DirID,DirSize,DirFiles,FastPigMD5,DirUpdateTime,MaxFileUpdateTime")
+                    Case HostFolder.EnmScanLevel.Fast
+                        .AddMultiLineText(strSQL, "SELECT DirID,DirSize,DirFiles,DirUpdateTime,MaxFileUpdateTime")
+                    Case HostFolder.EnmScanLevel.VeryFast
+                        .AddMultiLineText(strSQL, "SELECT DirID,DirUpdateTime,MaxFileUpdateTime")
+                    Case Else
+                        .AddMultiLineText(strSQL, "SELECT DirID,DirUpdateTime,MaxFileUpdateTime")
+                End Select
+                If IsDirtyRead = True Then
+                    .AddMultiLineText(strSQL, "FROM dbo._ptHFDirInf WITH (NOLOCK)")
+                Else
+                    .AddMultiLineText(strSQL, "FROM dbo._ptHFDirInf")
+                End If
+                .AddMultiLineText(strSQL, "WHERE FolderID=@FolderID AND IsDel=0")
+                .AddMultiLineText(strSQL, "ORDER BY  DirID")
+            End With
             LOG.StepName = "New CmdSQLSrvText"
             Dim oCmdSQLSrvText As New CmdSQLSrvText(strSQL)
             With oCmdSQLSrvText
@@ -949,6 +993,9 @@ Public Class PigHostApp
             If rsMain IsNot Nothing Then rsMain.Close()
             rsMain = Nothing
             oCmdSQLSrvText = Nothing
+            For Each oHostDir As HostDir In InHostFolder.HostDirs
+                oHostDir.IsDel = True
+            Next
             Return "OK"
         Catch ex As Exception
             Me.fPrintErrLogInf(strSQL)
@@ -1165,6 +1212,7 @@ Public Class PigHostApp
                 .AddMultiLineText(strSQL, ",DirFiles int NOT NULL", 1)
                 .AddMultiLineText(strSQL, ",FastPigMD5 varchar(32) NOT NULL", 1)
                 .AddMultiLineText(strSQL, ",DirUpdateTime datetime NOT NULL", 1)
+                .AddMultiLineText(strSQL, ",MaxFileUpdateTime datetime NOT NULL", 1)
                 .AddMultiLineText(strSQL, ",CreateTime datetime NOT NULL DEFAULT(GetDate())", 1)
                 .AddMultiLineText(strSQL, ",IsDel bit NOT NULL", 1)
                 .AddMultiLineText(strSQL, ",IsScan bit NOT NULL", 1)

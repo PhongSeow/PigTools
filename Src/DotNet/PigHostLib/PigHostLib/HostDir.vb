@@ -17,15 +17,18 @@
 '* Author: Seow Phong
 '* Describe: 主机目录类|Host directory class
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 11/4/2023
 '* 1.1	12/10/2022	Modify Date Initial Time
-'* 1.2	13/10/2022	Add EnmMateStatus
-'* 1.3	23/10/2022	Add HostFiles,fMergeHostFileInf, modify RefByHostFiles
-'* 1.5	24/10/2022	Remove EnmMateStatus, add IsScan, modify RefByHostFiles
+'* 1.2	13/4/2023	Add EnmMateStatus
+'* 1.3	23/4/2023	Add HostFiles,fMergeHostFileInf, modify RefByHostFiles
+'* 1.5	24/4/2023	Remove EnmMateStatus, add IsScan, modify RefByHostFiles
+'* 1.6	1/5/2023	Modify FullDirPath,RefByHostFiles, add GetMaxFileUpdateTime
 '********************************************************************
 
 Imports PigToolsLiteLib
+Imports PigObjFsLib
+Imports System.Text
 #If NETFRAMEWORK Then
 Imports PigSQLSrvLib
 #Else
@@ -35,7 +38,7 @@ Imports PigSQLSrvCoreLib
 
 Public Class HostDir
 	Inherits PigBaseLocal
-	Private Const CLS_VERSION As String = "1.5.12"
+	Private Const CLS_VERSION As String = "1.6.8"
 
 	Friend ReadOnly Property fParent As HostFolder
 	Friend ReadOnly Property fPigFunc As New PigFunc
@@ -45,13 +48,7 @@ Public Class HostDir
 	Public ReadOnly Property FullDirPath As String
 		Get
 			Try
-				FullDirPath = Me.fParent.FolderPath
-				Select Case Right(FullDirPath, 1)
-					Case "/", "\"
-						FullDirPath = Left(FullDirPath, Len(FullDirPath) - 1)
-				End Select
-				If Left(Me.DirPath, 1) <> "." Then Throw New Exception("DirPath not relative path.")
-				FullDirPath &= Mid(Me.DirPath, 2)
+				FullDirPath = Me.fParent.FolderPath & Me.DirPath
 			Catch ex As Exception
 				Me.SetSubErrInf("FullDirPath", ex)
 				Return ""
@@ -157,6 +154,18 @@ Public Class HostDir
 			End If
 		End Set
 	End Property
+	Private mMaxFileUpdateTime As DateTime = #1/1/1753#
+	Public Property MaxFileUpdateTime() As DateTime
+		Get
+			Return mMaxFileUpdateTime
+		End Get
+		Friend Set(value As DateTime)
+			If value <> mMaxFileUpdateTime Then
+				Me.mUpdateCheck.Add("MaxFileUpdateTime")
+				mMaxFileUpdateTime = value
+			End If
+		End Set
+	End Property
 	Private mCreateTime As DateTime = #1/1/1753#
 	Public Property CreateTime() As DateTime
 		Get
@@ -235,6 +244,12 @@ Public Class HostDir
 							UpdateCnt += 1
 						End If
 					End If
+					If .IsItemExists("MaxFileUpdateTime") = True Then
+						If Me.MaxFileUpdateTime <> .Item("MaxFileUpdateTime").DateValue Then
+							Me.MaxFileUpdateTime = .Item("MaxFileUpdateTime").DateValue
+							UpdateCnt += 1
+						End If
+					End If
 					If .IsItemExists("CreateTime") = True Then
 						If Me.CreateTime <> .Item("CreateTime").DateValue Then
 							Me.CreateTime = .Item("CreateTime").DateValue
@@ -303,6 +318,12 @@ Public Class HostDir
 							UpdateCnt += 1
 						End If
 					End If
+					If .IsColExists(RSNo, "MaxFileUpdateTime") = True Then
+						If Me.MaxFileUpdateTime <> .DateValue(RSNo, RowNo, "MaxFileUpdateTime") Then
+							Me.MaxFileUpdateTime = .DateValue(RSNo, RowNo, "MaxFileUpdateTime")
+							UpdateCnt += 1
+						End If
+					End If
 					If .IsColExists(RSNo, "CreateTime") = True Then
 						If Me.CreateTime <> .DateValue(RSNo, RowNo, "CreateTime") Then
 							Me.CreateTime = .DateValue(RSNo, RowNo, "CreateTime")
@@ -330,9 +351,30 @@ Public Class HostDir
 		End Try
 	End Function
 
-	Friend Function RefByHostFiles() As String
+	Friend Function RefByHostFiles(oFolder As Folder) As String
 		Dim LOG As New PigStepLog("RefByHostFiles")
 		Try
+			Me.HostFiles.Clear()
+			For Each oFile As File In oFolder.Files
+				Dim strFileID As String = Me.fParent.fGetHostFileID(oFile.Path)
+				With Me.HostFiles.AddOrGet(strFileID)
+					.FileName = oFile.Name
+					.FileSize = oFile.Size
+					Dim oPigFile As New PigFile(oFile.Path)
+					Dim oPigMD5 As PigMD5 = Nothing
+					LOG.StepName = "GetFastPigMD5"
+					LOG.Ret = oPigFile.GetFastPigMD5(oPigMD5)
+					If LOG.Ret <> "OK" Then
+						LOG.AddStepNameInf(oFile.Path)
+						Me.fParent.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
+						.FastPigMD5 = ""
+					Else
+						.FastPigMD5 = oPigMD5.PigMD5
+					End If
+					.FileUpdateTime = oFile.DateLastModified
+					oPigMD5 = Nothing
+				End With
+			Next
 			With Me
 				.DirSize = 0
 				.FastPigMD5 = ""
@@ -356,6 +398,25 @@ Public Class HostDir
 
 	Friend Function fMergeHostFileInf() As String
 		Return Me.fParent.fParent.fParent.fMergeHostFileInf(Me)
+	End Function
+
+	Public Function GetMaxFileUpdateTime(oFolder As Folder) As Date
+		Try
+			Dim sbData As New StringBuilder("")
+			For Each oFile As File In oFolder.Files
+				sbData.Append(Me.fPigFunc.GetFmtDateTime(oFile.DateLastModified) & vbCrLf)
+			Next
+			Dim strMaxTime As String = Me.fPigFunc.GetMaxStr(sbData.ToString, vbCrLf)
+			If IsDate(strMaxTime) = True Then
+				GetMaxFileUpdateTime = CDate(strMaxTime)
+			Else
+				GetMaxFileUpdateTime = #1/1/1753#
+			End If
+			sbData = Nothing
+		Catch ex As Exception
+			Me.SetSubErrInf("GetMaxFileUpdateTime", ex)
+			Return #1/1/1753#
+		End Try
 	End Function
 
 End Class
