@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <RootNamespace>PigHostLibDemo</RootNamespace>
@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigHostLib" Version="1.1.8" />
+    <PackageReference Include="PigHostLib" Version="1.1.22" />
   </ItemGroup>
 
 </Project>

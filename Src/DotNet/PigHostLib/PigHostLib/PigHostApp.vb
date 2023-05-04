@@ -535,7 +535,7 @@ Public Class PigHostApp
         End Try
     End Function
 
-    Friend Function fSetDelHostDirInf(ByRef InHostDir As HostDir) As String
+    Friend Function fSetDelHostDirInf(ByRef InHostFolder As HostFolder) As String
         Dim LOG As New PigStepLog("fSetDelHostDirInf")
         Dim strSQL As String = ""
         Try
@@ -552,16 +552,20 @@ Public Class PigHostApp
             With oCmdSQLSrvText
                 .ActiveConnection = Me.mConnSQLSrv.Connection
                 .AddPara("@DirID", Data.SqlDbType.VarChar, 32)
-                .ParaValue("@DirID") = InHostDir.DirID
-                Me.PrintDebugLog(LOG.StepLogInf, .DebugStr)
-                LOG.StepName = "ExecuteNonQuery"
-                LOG.Ret = .ExecuteNonQuery()
-                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                For Each oHostDir As HostDir In InHostFolder.HostDirs
+                    If oHostDir.IsDel = True Then
+                        .ParaValue("@DirID") = oHostDir.DirID
+                        Me.PrintDebugLog(LOG.StepLogInf, .DebugStr)
+                        LOG.StepName = "ExecuteNonQuery"
+                        LOG.Ret = .ExecuteNonQuery()
+                        If LOG.Ret <> "OK" Then
+                            Me.fPrintErrLogInf(LOG.StepLogInf)
+                        End If
+                    End If
+                Next
             End With
             Return "OK"
         Catch ex As Exception
-            InHostDir.IsScan = False
-            Me.fPrintErrLogInf(strSQL)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -948,9 +952,9 @@ Public Class PigHostApp
                     Case HostFolder.EnmScanLevel.Fast
                         .AddMultiLineText(strSQL, "SELECT DirID,DirSize,DirFiles,DirUpdateTime,MaxFileUpdateTime")
                     Case HostFolder.EnmScanLevel.VeryFast
-                        .AddMultiLineText(strSQL, "SELECT DirID,DirUpdateTime,MaxFileUpdateTime")
+                        .AddMultiLineText(strSQL, "SELECT DirID,DirUpdateTime")
                     Case Else
-                        .AddMultiLineText(strSQL, "SELECT DirID,DirUpdateTime,MaxFileUpdateTime")
+                        .AddMultiLineText(strSQL, "SELECT DirID,DirUpdateTime")
                 End Select
                 If IsDirtyRead = True Then
                     .AddMultiLineText(strSQL, "FROM dbo._ptHFDirInf WITH (NOLOCK)")

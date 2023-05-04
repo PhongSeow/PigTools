@@ -47,6 +47,7 @@ Imports PigToolsLiteLib
 Imports GetFileAndDirListLib
 Imports PigObjFsLib
 Imports System.Threading
+Imports System.ComponentModel.Design
 
 Public Class HostFolder
 	Inherits PigBaseLocal
@@ -1071,7 +1072,7 @@ Public Class HostFolder
 		Try
 			Dim intFolderPath As Integer = Len(Me.FolderPath)
 			If Left(oFolder.Path, intFolderPath) <> Me.FolderPath Then Throw New Exception(oFolder.Path & " does not match " & Me.FolderPath)
-			Dim bolIsScan As Boolean = False, bolIsFind As Boolean = False
+			Dim bolIsScan As Boolean, bolIsFind As Boolean = False
 			Dim strDirID As String = Me.mGetHostDirID(oFolder.Path)
 			Dim oFindHostDir As HostDir = Nothing
 			LOG.StepName = "New HostDir"
@@ -1081,26 +1082,45 @@ Public Class HostFolder
 				.DirFiles = oFolder.FileCount
 				.MaxFileUpdateTime = .GetMaxFileUpdateTime(oFolder)
 			End With
+			bolIsScan = False
 			For Each oHostDir As HostDir In Me.HostDirs
 				If oHostDir.DirID = strDirID Then
-					If Math.Abs(DateDiff(DateInterval.Second, oHostDir.DirUpdateTime, oFindHostDir.DirUpdateTime)) > 1 Then
-						bolIsScan = True
-					ElseIf oHostDir.DirFiles <> oFindHostDir.DirFiles Then
-						bolIsScan = True
-					ElseIf Math.Abs(DateDiff(DateInterval.Second, oHostDir.MaxFileUpdateTime, oFindHostDir.MaxFileUpdateTime)) > 1 Then
-						bolIsScan = True
-						'Else
-						'	oFindHostDir.DirPath = Mid(oFolder.Path, intFolderPath + 1)
-						'	LOG.StepName = "RefByHostFiles"
-						'	LOG.Ret = oFindHostDir.RefByHostFiles(oFolder)
-						'	If LOG.Ret <> "OK" Then
-						'		LOG.AddStepNameInf(Me.FolderPath)
-						'		Throw New Exception(LOG.Ret)
-						'	End If
-						'	If oHostDir.FastPigMD5 <> oFindHostDir.FastPigMD5 Then
-						'		bolIsScan = True
-						'	End If
-					End If
+					bolIsScan = False
+					Select Case Me.StaticInf_ScanLevel
+						Case EnmScanLevel.Complete
+							bolIsScan = True
+						Case EnmScanLevel.Standard
+							If Math.Abs(DateDiff(DateInterval.Second, oHostDir.DirUpdateTime, oFindHostDir.DirUpdateTime)) > 1 Then
+								bolIsScan = True
+							ElseIf oHostDir.DirFiles <> oFindHostDir.DirFiles Then
+								bolIsScan = True
+							ElseIf Math.Round(oHostDir.DirSize, 2) <> Math.Round(oFindHostDir.DirSize, 2) Then
+								bolIsScan = True
+							Else
+								oFindHostDir.DirPath = Mid(oFolder.Path, intFolderPath + 1)
+								LOG.StepName = "RefByHostFiles"
+								LOG.Ret = oFindHostDir.RefByHostFiles(oFolder)
+								If LOG.Ret <> "OK" Then
+									LOG.AddStepNameInf(Me.FolderPath)
+									Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
+								End If
+								If oHostDir.FastPigMD5 <> oFindHostDir.FastPigMD5 Then
+									bolIsScan = True
+								End If
+							End If
+						Case EnmScanLevel.Fast
+							If Math.Abs(DateDiff(DateInterval.Second, oHostDir.DirUpdateTime, oFindHostDir.DirUpdateTime)) > 1 Then
+								bolIsScan = True
+							ElseIf oHostDir.DirFiles <> oFindHostDir.DirFiles Then
+								bolIsScan = True
+							ElseIf Math.Round(oHostDir.DirSize, 2) <> Math.Round(oFindHostDir.DirSize, 2) Then
+								bolIsScan = True
+							End If
+						Case EnmScanLevel.VeryFast
+							If Math.Abs(DateDiff(DateInterval.Second, oHostDir.DirUpdateTime, oFindHostDir.DirUpdateTime)) > 1 Then
+								bolIsScan = True
+							End If
+					End Select
 					bolIsFind = True
 					oHostDir.IsDel = False
 					Exit For
@@ -1137,11 +1157,9 @@ Public Class HostFolder
 	Private Sub fGetFileAndDirListApp_FindFolderEnd(FindFolders As Long) Handles fGetFileAndDirListApp.FindFolderEnd
 		Dim LOG As New PigStepLog("fGetFileAndDirListApp_FindFolderEnd")
 		Try
-			For Each oHostDir As HostDir In Me.HostDirs
-				If oHostDir.IsDel = True Then
-					Me.fParent.fParent.fSetDelHostDirInf(oHostDir)
-				End If
-			Next
+			LOG.StepName = "fSetDelHostDirInf"
+			LOG.Ret = Me.fParent.fParent.fSetDelHostDirInf(Me)
+			If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 			With Me
 				.ScanEndTime = Now
 				.ScanStatus = EnmScanStatus.ScanComplete

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: ConsoleDemo for PigSQLSrv
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.28.1
+'* Version: 1.30.2
 '* Create Time: 17/4/2021
 '* 1.2	23/9/2021	Add Test Cache Query
 '* 1.3	5/10/2021	Imports PigKeyCacheLib
@@ -30,26 +30,28 @@
 '* 1.25	6/3/2023	Add HostDemo
 '* 1.26	5/4/2023	Modify Main,HostDemo
 '* 1.27	17/4/2023	Modify MainFunc,HostDemo
+'* 1.28	28/4/2023	Database password encryption save
+'* 1.29	29/4/2023	Modify HostDemo
+'* 1.30	2/5/2023	Modify HostDemo
 '**********************************
 Imports System.Data
 '--------
-'#If NETFRAMEWORK Then
-'Imports PigSQLSrvLib
-'Imports System.Data.SqlClient
-'Imports PigHostLib
-'#Else
-'Imports PigSQLSrvCoreLib
-'Imports Microsoft.Data.SqlClient
-'Imports PigHostCoreLib
-'#End If
-'--------
 Imports PigToolsLiteLib
-'--.------
+'--------
+#If NETFRAMEWORK Then
 Imports PigSQLSrvLib
 Imports System.Data.SqlClient
 Imports PigHostLib
-Imports System.Data.SqlTypes
-'--------
+#Else
+Imports PigSQLSrvCoreLib
+Imports Microsoft.Data.SqlClient
+Imports PigHostCoreLib
+#End If
+''-------
+'Imports PigSQLSrvLib
+'Imports System.Data.SqlClient
+'Imports PigHostLib
+''-------
 
 Public Class ConsoleDemo
     Public ConnSQLSrv As ConnSQLSrv
@@ -94,8 +96,30 @@ Public Class ConsoleDemo
     Public CurrHost As Host
     Public HostFolderID As String
     Public FolderType As HostFolder.EnmFolderType
-
+    Public PigAes As New PigAes
+    Public TimeoutMinutes As Integer = 10
+    Public SelectDefinition As String
+    Public SelectKey As String
+    Public ScanLevel As HostFolder.EnmScanLevel
     Public Sub MainFunc()
+        Dim strInitKey As String = Me.PigFunc.GetHostIpList(), strTmp As String = ""
+        'If Me.PigFunc.IsOsWindows = True Then
+        '    Me.PigFunc.ClearErr()
+        '    strInitKey = Me.PigFunc.GetWindowsProductId()
+        '    If strInitKey = "" Or Me.PigFunc.LastErr <> "" Then
+        '        Console.WriteLine("GetWindowsProductId:" & Me.PigFunc.LastErr)
+        '        Me.PigConsole.DisplayPause()
+        '        Exit Sub
+        '    End If
+        'Else
+        '    Me.PigFunc.GetProductUuid(strInitKey)
+        'End If
+
+        Me.PigFunc.GetTextPigMD5(strInitKey, PigMD5.enmTextType.UTF8, strTmp)
+        strInitKey &= strTmp
+        Dim oPigText As New PigText(strInitKey, PigText.enmTextType.UTF8)
+        Me.Ret = Me.PigAes.LoadEncKey(oPigText.Base64）
+        If Me.Ret <> "OK" Then Console.WriteLine("LoadEncKey error:" & Me.Ret)
         Do While True
             Console.Clear()
             Console.WriteLine("*******************")
@@ -126,7 +150,14 @@ Public Class ConsoleDemo
                             Me.DBSrv = oPigXml.XmlGetStr("DBSrv")
                             Me.CurrDB = oPigXml.XmlGetStr("CurrDB")
                             Me.DBUser = oPigXml.XmlGetStr("DBUser")
-                            Me.DBPwd = oPigXml.XmlGetStr("DBPwd")
+                            If Me.DBUser <> "" Then
+                                Console.WriteLine("Input DB Password:")
+                                Me.DBPwd = Me.PigConsole.GetPwdStr
+                            End If
+                            'Dim strDBPwd As String = ""
+                            'Me.Ret = Me.PigAes.Decrypt(oPigXml.XmlGetStr("DBPwd"), strDBPwd, PigText.enmTextType.UTF8)
+                            'If Me.Ret <> "OK" Then Console.WriteLine("Get DBPwd error:" & Me.Ret)
+                            'Me.DBPwd = strDBPwd
                         End If
                     End If
                     If Me.PigConsole.IsYesOrNo("Do you want to manually set up the database connection?") = True Then
@@ -154,7 +185,10 @@ Public Class ConsoleDemo
                             .AddEle("DBSrv", Me.DBSrv)
                             .AddEle("CurrDB", Me.CurrDB)
                             .AddEle("DBUser", Me.DBUser)
-                            .AddEle("DBPwd", Me.DBPwd)
+                            'Dim strPwdBase64 As String = ""
+                            'Me.Ret = Me.PigAes.Encrypt(Me.DBPwd, strPwdBase64, PigText.enmTextType.UTF8)
+                            'If Me.Ret <> "OK" Then Console.WriteLine("Encrypt DBPwd error:" & Me.Ret)
+                            '.AddEle("DBPwd", strPwdBase64)
                         End With
                         Me.PigFunc.SaveTextToFile(Me.ConfFilePath, oPigXml.MainXmlStr)
                     End If
@@ -242,8 +276,14 @@ Public Class ConsoleDemo
                     If Me.CurrHostFolder Is Nothing Then
                         Console.WriteLine("CurrHostFolder Is Nothing")
                     Else
+                        Me.SelectDefinition = ""
+                        Me.SelectDefinition &= HostFolder.EnmScanLevel.VeryFast & "#" & HostFolder.EnmScanLevel.VeryFast.ToString & "|"
+                        Me.SelectDefinition &= HostFolder.EnmScanLevel.Fast & "#" & HostFolder.EnmScanLevel.Fast.ToString & "|"
+                        Me.SelectDefinition &= HostFolder.EnmScanLevel.Standard & "#" & HostFolder.EnmScanLevel.Standard.ToString & "|"
+                        Me.SelectDefinition &= HostFolder.EnmScanLevel.Complete & "#" & HostFolder.EnmScanLevel.Complete.ToString & "|"
+                        Me.Ret = Me.PigConsole.SelectControl("Select ScanLevel", Me.SelectDefinition, Me.SelectKey, True)
                         Console.WriteLine("BeginScan...")
-                        Me.Ret = Me.CurrHostFolder.BeginScan
+                        Me.Ret = Me.CurrHostFolder.BeginScan(CInt(Me.SelectKey))
                         Console.WriteLine(Me.Ret)
                         Console.WriteLine(Me.CurrHostFolder.ScanStatus.ToString)
                     End If
@@ -297,8 +337,9 @@ Public Class ConsoleDemo
                     Else
                         Me.PigConsole.GetLine("Input FolderPath", Me.FolderPath)
                         Dim bolIsLocalPath As Boolean = Me.PigConsole.IsYesOrNo("IsLocalPath")
+                        Me.PigConsole.GetLine("Input scan TimeoutMinutes", Me.TimeoutMinutes)
                         Console.WriteLine("AddNewHostFolder")
-                        Me.Ret = Me.PigHostApp.AddNewHostFolder(Me.CurrHost, Me.FolderPath, bolIsLocalPath)
+                        Me.Ret = Me.PigHostApp.AddNewHostFolder(Me.CurrHost, Me.FolderPath, bolIsLocalPath, Me.TimeoutMinutes)
                         Console.WriteLine(Me.Ret)
                     End If
                 Case "New"
@@ -334,11 +375,14 @@ Public Class ConsoleDemo
 
     Public Sub ShowHostFolder(oHostFolder As HostFolder)
         With oHostFolder
+            Console.WriteLine("------------------------")
             Console.WriteLine("HostID=" & .HostID)
             Console.WriteLine("FolderID=" & .FolderID)
             Console.WriteLine("FolderName=" & .FolderName)
             Console.WriteLine("FolderPath=" & .FolderPath)
             Console.WriteLine("FolderType=" & .FolderType.ToString)
+            Console.WriteLine("StaticInf_TimeoutMinutes=" & .StaticInf_TimeoutMinutes)
+            Console.WriteLine("ScanStatus=" & .ScanStatus.ToString)
         End With
     End Sub
 

@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;net7.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.3.138</Version>
+    <Version>3.3.150</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>A tool set class library that simplifies the .net development interface.
@@ -25,7 +25,7 @@ It can run on Windows and Linux platforms.
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop byte compressor log error file md5 text xml sharemem usetime http web request windows linux json aes rsa 3des uuid cache keyvalue debug multilingual encryption decrypt sql send process configure sort registry host</PackageTags>
-    <PackageReleaseNotes>Optimize functions of PigFunc, and add new functions of PigAes.</PackageReleaseNotes>
+    <PackageReleaseNotes>Optimize and fixs bugs of PigFile.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
