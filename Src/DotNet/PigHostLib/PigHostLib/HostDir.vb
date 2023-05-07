@@ -166,6 +166,18 @@ Public Class HostDir
 			End If
 		End Set
 	End Property
+	Private mAvgFileUpdateTime As DateTime = #1/1/1753#
+	Public Property AvgFileUpdateTime() As DateTime
+		Get
+			Return mAvgFileUpdateTime
+		End Get
+		Friend Set(value As DateTime)
+			If value <> mAvgFileUpdateTime Then
+				Me.mUpdateCheck.Add("AvgFileUpdateTime")
+				mAvgFileUpdateTime = value
+			End If
+		End Set
+	End Property
 	Private mCreateTime As DateTime = #1/1/1753#
 	Public Property CreateTime() As DateTime
 		Get
@@ -250,6 +262,12 @@ Public Class HostDir
 							UpdateCnt += 1
 						End If
 					End If
+					If .IsItemExists("AvgFileUpdateTime") = True Then
+						If Me.AvgFileUpdateTime <> .Item("AvgFileUpdateTime").DateValue Then
+							Me.AvgFileUpdateTime = .Item("AvgFileUpdateTime").DateValue
+							UpdateCnt += 1
+						End If
+					End If
 					If .IsItemExists("CreateTime") = True Then
 						If Me.CreateTime <> .Item("CreateTime").DateValue Then
 							Me.CreateTime = .Item("CreateTime").DateValue
@@ -324,6 +342,12 @@ Public Class HostDir
 							UpdateCnt += 1
 						End If
 					End If
+					If .IsColExists(RSNo, "AvgFileUpdateTime") = True Then
+						If Me.AvgFileUpdateTime <> .DateValue(RSNo, RowNo, "AvgFileUpdateTime") Then
+							Me.AvgFileUpdateTime = .DateValue(RSNo, RowNo, "AvgFileUpdateTime")
+							UpdateCnt += 1
+						End If
+					End If
 					If .IsColExists(RSNo, "CreateTime") = True Then
 						If Me.CreateTime <> .DateValue(RSNo, RowNo, "CreateTime") Then
 							Me.CreateTime = .DateValue(RSNo, RowNo, "CreateTime")
@@ -354,6 +378,7 @@ Public Class HostDir
 	Friend Function RefByHostFiles(oFolder As Folder) As String
 		Dim LOG As New PigStepLog("RefByHostFiles")
 		Try
+			Dim strFastPigMD5 As String = ""
 			Me.HostFiles.Clear()
 			For Each oFile As File In oFolder.Files
 				Dim strFileID As String = Me.fParent.fGetHostFileID(oFile.Path)
@@ -361,18 +386,16 @@ Public Class HostDir
 					.FileName = oFile.Name
 					.FileSize = oFile.Size
 					Dim oPigFile As New PigFile(oFile.Path)
-					Dim oPigMD5 As PigMD5 = Nothing
 					LOG.StepName = "GetFastPigMD5"
-					LOG.Ret = oPigFile.GetFastPigMD5(oPigMD5)
+					LOG.Ret = oPigFile.GetFastPigMD5(strFastPigMD5)
 					If LOG.Ret <> "OK" Then
 						LOG.AddStepNameInf(oFile.Path)
 						Me.fParent.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
 						.FastPigMD5 = ""
 					Else
-						.FastPigMD5 = oPigMD5.PigMD5
+						.FastPigMD5 = strFastPigMD5
 					End If
 					.FileUpdateTime = oFile.DateLastModified
-					oPigMD5 = Nothing
 				End With
 			Next
 			With Me
@@ -380,7 +403,7 @@ Public Class HostDir
 				.FastPigMD5 = ""
 				.DirFiles = Me.HostFiles.Count
 			End With
-			Dim lngCnt As Long = 0, strFastPigMD5 As String = ""
+			Dim lngCnt As Long = 0
 			For Each oDBFile As HostFile In Me.HostFiles
 				Me.DirSize += oDBFile.FileSize
 				strFastPigMD5 &= oDBFile.FastPigMD5
@@ -417,6 +440,25 @@ Public Class HostDir
 			Me.SetSubErrInf("GetMaxFileUpdateTime", ex)
 			Return #1/1/1753#
 		End Try
+	End Function
+
+	Public Function GetAvgFileUpdateTime(oFolder As Folder) As Date
+		'Try
+		'	Dim sbData As New StringBuilder("")
+		'	For Each oFile As File In oFolder.Files
+		'		sbData.Append(Me.fPigFunc.GetFmtDateTime(oFile.DateLastModified) & vbCrLf)
+		'	Next
+		'	Dim strMaxTime As String = Me.fPigFunc.GetMaxStr(sbData.ToString, vbCrLf)
+		'	If IsDate(strMaxTime) = True Then
+		'		GetAvgFileUpdateTime = CDate(strMaxTime)
+		'	Else
+		'		GetAvgFileUpdateTime = #1/1/1753#
+		'	End If
+		'	sbData = Nothing
+		'Catch ex As Exception
+		'	Me.SetSubErrInf("GetAvgFileUpdateTime", ex)
+		'	Return #1/1/1753#
+		'End Try
 	End Function
 
 End Class

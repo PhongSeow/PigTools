@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.16
+'* Version: 1.18
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -32,6 +32,8 @@
 '1.15 20/10/2022  Add IsAutoUnEscValue, modify XmlDocGetStr,mXmlGetStr,XmlGetLong
 '1.16 21/10/2022  Modify SetMainXml, Add FlushMainXml
 '1.17 2/11/2022  Add IsMainXmlEmpty
+'1.18 6/5/2023  Modify mGetXmlDoc, add SetXmlDocText
+'1.19 7/5/2023  Add IsXmlNodeExists,SetXmlDocValue
 '*******************************************************
 
 Imports System.Xml
@@ -41,7 +43,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.16.12"
+    Private Const CLS_VERSION As String = "1.19.6"
     Private Property mMainXml As String = ""
     Private msbMain As New StringBuilder("")    '主体的XML
 
@@ -726,6 +728,117 @@ Public Class PigXml
         End Try
     End Function
 
+    Public Function SetXmlDocValue(XmlKey As String, Value As Date) As String
+        Dim strValue As String = Me.mPigFunc.GetFmtDateTime(Value)
+        Return Me.mSetXmlDocValue(XmlKey, strValue, 0)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As Date, SkipTimes As Integer) As String
+        Dim strValue As String = Me.mPigFunc.GetFmtDateTime(Value)
+        Return Me.mSetXmlDocValue(XmlKey, strValue, SkipTimes)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As Boolean) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, 0)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As Boolean, SkipTimes As Integer) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, SkipTimes)
+    End Function
+
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As Decimal) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, 0)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As Decimal, SkipTimes As Integer) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, SkipTimes)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As Long, SkipTimes As Integer) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, SkipTimes)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As Integer) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, 0)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As Integer, SkipTimes As Integer) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, SkipTimes)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As Long) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, 0)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As String, SkipTimes As Integer) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, SkipTimes)
+    End Function
+
+    Public Function SetXmlDocValue(XmlKey As String, Value As String) As String
+        Return Me.mSetXmlDocValue(XmlKey, Value, 0)
+    End Function
+
+    Public Function IsXmlNodeExists(XmlKey As String, SkipTimes As Integer) As Boolean
+        Try
+            Dim bolIsExists As Boolean = False
+            Dim strRet As String = Me.mIsXmlNodeExists(XmlKey, SkipTimes, bolIsExists)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return bolIsExists
+        Catch ex As Exception
+            Me.SetSubErrInf("IsXmlNodeExists", ex)
+            Return False
+        End Try
+    End Function
+
+    Public Function IsXmlNodeExists(XmlKey As String) As Boolean
+        Try
+            Dim bolIsExists As Boolean = False
+            Dim strRet As String = Me.mIsXmlNodeExists(XmlKey, 0, bolIsExists)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return bolIsExists
+        Catch ex As Exception
+            Me.SetSubErrInf("IsXmlNodeExists", ex)
+            Return False
+        End Try
+    End Function
+
+    Private Function mIsXmlNodeExists(XmlKey As String, SkipTimes As Integer, ByRef IsExists As Boolean) As String
+        Try
+            Dim oXmlNode As XmlNode = Nothing
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Node, XmlKey, , oXmlNode, , SkipTimes)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            If oXmlNode IsNot Nothing Then
+                IsExists = True
+            Else
+                IsExists = False
+            End If
+            Return "OK"
+        Catch ex As Exception
+            IsExists = False
+            Return Me.GetSubErrInf("IsXmlNodeExists", ex)
+        End Try
+    End Function
+
+
+    Private Function mSetXmlDocValue(XmlKey As String, Value As Object, SkipTimes As Integer) As String
+        Dim oXmlNode As XmlNode = Nothing
+        Try
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Node, XmlKey, , oXmlNode, , SkipTimes)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            If oXmlNode IsNot Nothing Then
+                oXmlNode.InnerText = CStr(Value)
+            Else
+                Throw New Exception("XmlNode " & XmlKey & " not found.")
+            End If
+            oXmlNode = Nothing
+            Return "OK"
+        Catch ex As Exception
+            oXmlNode = Nothing
+            Return Me.GetSubErrInf("GetXmlDocText", ex)
+        End Try
+    End Function
+
     ''' <summary>
     ''' 快速获取一个元素的属性|Get the attributes of an element quickly
     ''' </summary>
@@ -772,7 +885,7 @@ Public Class PigXml
     End Function
 
     Private Function mGetXmlDoc(WhatGetXmlDoc As EmnGetXmlDoc, XmlKey As String, Optional FromXmlNode As XmlNode = Nothing, Optional ByRef OutNode As XmlNode = Nothing, Optional ByRef OutTextAttribute As String = "", Optional SkipTimes As Integer = 0) As String
-        Dim LOG As New PigStepLog("mGetXmlDocText")
+        Dim LOG As New PigStepLog("mGetXmlDoc")
         Try
             LOG.StepName = "Check XmlKey"
             Select Case Right(XmlKey, 1)

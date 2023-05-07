@@ -17,7 +17,7 @@
 '* Author: Seow Phong
 '* Describe: 主机文件夹类|Host folder class
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.20
+'* Version: 1.21
 '* Create Time: 7/3/2023
 '* 1.1	10/3/2023   Add fFillByRs
 '* 1.2	13/3/2023   Modify New
@@ -37,6 +37,7 @@
 '* 1.18	30/4/2023	Modify mGetHostDirID, add fGetFileAndDirListApp_FindFolderEnd,fGetFileAndDirListApp_FindFolderOK
 '* 1.19	1/5/2023	Modify fRefHostDirs,fGetFileAndDirListApp_FindFolderOK
 '* 1.20	2/5/2023	Modify BeginScan, add mBeginScan,Refresh
+'* 1.21	4/5/2023	Add AvgFileUpdateTime
 '**********************************
 #If NETFRAMEWORK Then
 Imports PigSQLSrvLib
@@ -51,12 +52,14 @@ Imports System.ComponentModel.Design
 
 Public Class HostFolder
 	Inherits PigBaseLocal
-	Private Const CLS_VERSION As String = "1.20.12"
+	Private Const CLS_VERSION As String = "1.21.6"
 
 	Public ReadOnly Property HostDirs As New HostDirs
 	Friend ReadOnly Property fParent As Host
 	Friend ReadOnly Property fPigFunc As New PigFunc
 	Private ReadOnly Property mFS As New FileSystemObject
+
+	Private mLastActiveTime As Date
 
 	Friend WithEvents fGetFileAndDirListApp As GetFileAndDirListApp
 
@@ -284,9 +287,9 @@ Public Class HostFolder
 						mStaticInf_ScanLevel = mStaticInfXml.XmlGetInt("ScanLevel")
 				End Select
 			Catch ex As Exception
-				mStaticInf_TimeoutMinutes = EnmScanLevel.Fast
+				mStaticInf_ScanLevel = EnmScanLevel.Fast
 			End Try
-			Return mStaticInf_TimeoutMinutes
+			Return mStaticInf_ScanLevel
 		End Get
 		Friend Set(value As EnmScanLevel)
 			If value <> mStaticInf_ScanLevel Then
@@ -1148,6 +1151,11 @@ Public Class HostFolder
 					If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
 				End If
 			End If
+			If Math.Abs(DateDiff(DateInterval.Minute, Me.mLastActiveTime, Now)) > 10 Then
+				Me.ActiveTime = Now
+				Me.Update()
+			End If
+
 		Catch ex As Exception
 			Dim strErr As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
 			Me.fParent.fParent.fPrintErrLogInf(strErr)
