@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.29
+'* Version: 1.30
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -35,6 +35,7 @@
 '*1.27  6/2/2023 Add setDomainEnvPath,WL_HOME,SUN_JAVA_HOME,DEFAULT_SUN_JAVA_HOME,WLS_MEM_ARGS_64BIT,WLS_MEM_ARGS_32BIT
 '*1.28  7/2/2023 Add GetDomainEnvInf,mGetFileKeyValue
 '*1.29  28/2/2023 Add WebLogicDeploys
+'*1.30  11/5/2023 Resolve initialization date issue.
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -47,7 +48,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.29.6"
+    Private Const CLS_VERSION As String = "1.30.2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -483,7 +484,7 @@ Public Class WebLogicDomain
                 Me.mPigFunc.GetFileUpdateTime(Me.AccessLogPath, AccessLogTime)
             Catch ex As Exception
                 Me.SetSubErrInf("AccessLogTime", ex)
-                Return Date.MinValue
+                Return TEMP_DATE
             End Try
         End Get
     End Property
@@ -494,7 +495,7 @@ Public Class WebLogicDomain
                 Me.mPigFunc.GetFileUpdateTime(Me.ConsolePath, ConsoleLogTime)
             Catch ex As Exception
                 Me.SetSubErrInf("ConsoleLogTime", ex)
-                Return Date.MinValue
+                Return TEMP_DATE
             End Try
         End Get
     End Property

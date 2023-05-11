@@ -17,7 +17,7 @@
 '* Author: Seow Phong
 '* Describe: 主机文件夹类|Host folder class
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.21
+'* Version: 1.22
 '* Create Time: 7/3/2023
 '* 1.1	10/3/2023   Add fFillByRs
 '* 1.2	13/3/2023   Modify New
@@ -38,6 +38,7 @@
 '* 1.19	1/5/2023	Modify fRefHostDirs,fGetFileAndDirListApp_FindFolderOK
 '* 1.20	2/5/2023	Modify BeginScan, add mBeginScan,Refresh
 '* 1.21	4/5/2023	Add AvgFileUpdateTime
+'* 1.22	7/5/2023	Modify StaticInf 
 '**********************************
 #If NETFRAMEWORK Then
 Imports PigSQLSrvLib
@@ -52,7 +53,7 @@ Imports System.ComponentModel.Design
 
 Public Class HostFolder
 	Inherits PigBaseLocal
-	Private Const CLS_VERSION As String = "1.21.6"
+	Private Const CLS_VERSION As String = "1.22.20"
 
 	Public ReadOnly Property HostDirs As New HostDirs
 	Friend ReadOnly Property fParent As Host
@@ -151,7 +152,7 @@ Public Class HostFolder
 	Public ReadOnly Property IsScanTimeout() As Boolean
 		Get
 			Try
-				If DateDiff(DateInterval.Minute, Me.ScanBeginTime, Now) > Me.mStaticInf_TimeoutMinutes Then
+				If DateDiff(DateInterval.Minute, Me.ScanBeginTime, Now) > Me.StaticInf_TimeoutMinutes Then
 					Return True
 				Else
 					Return False
@@ -175,24 +176,54 @@ Public Class HostFolder
 		End Set
 	End Property
 
+	Private Function mInitStaticInf() As String
+		Try
+			mStaticInfXml = New PigXml(False)
+			With mStaticInfXml
+				.AddEleLeftSign("Root")
+				.AddEle("ScanLevel", EnmScanLevel.Fast)
+				.AddEle("TimeoutMinutes", 10)
+				.AddEleRightSign("Root")
+				Dim strRet As String = .InitXmlDocument()
+				If strRet <> "OK" Then Throw New Exception(strRet)
+			End With
+			Return "OK"
+		Catch ex As Exception
+			Return Me.GetSubErrInf("mInitStaticInf", ex)
+		End Try
+	End Function
+
 	Private mStaticInfXml As PigXml
 	Public Property StaticInf() As String
 		Get
-			If mStaticInfXml Is Nothing Then Me.mRefStaticInfXml()
-			Return mStaticInfXml.MainXmlStr
+			Try
+				If mStaticInfXml Is Nothing Then
+					Dim strRet As String = Me.mInitStaticInf
+					If strRet <> "OK" Then Throw New Exception(strRet)
+				End If
+				Return mStaticInfXml.MainXmlStr
+			Catch ex As Exception
+				Me.SetSubErrInf("StaticInf.Get", ex)
+				Return ""
+			End Try
 		End Get
 		Friend Set(value As String)
 			Try
+				Dim bolIsInit As Boolean = False
 				If mStaticInfXml Is Nothing Then
-					mStaticInfXml = New PigXml(False)
-					mStaticInfXml.SetMainXml(value)
-					Me.mUpdateCheck.Add("StaticInf")
+					bolIsInit = True
 				ElseIf value <> mStaticInfXml.MainXmlStr Then
+					bolIsInit = True
+				End If
+				If bolIsInit = True Then
 					mStaticInfXml = New PigXml(False)
 					mStaticInfXml.SetMainXml(value)
+					Dim strRet As String = mStaticInfXml.InitXmlDocument()
+					If strRet <> "OK" Then Throw New Exception(strRet)
 					Me.mUpdateCheck.Add("StaticInf")
 				End If
 			Catch ex As Exception
+				Me.mInitStaticInf()
 				Me.SetSubErrInf("StaticInf.Set", ex)
 			End Try
 		End Set
@@ -224,11 +255,15 @@ Public Class HostFolder
 	Private Function mRefStaticInfXml() As String
 		Try
 			Dim strXml As String = ""
-			If mStaticInfXml IsNot Nothing Then strXml = mStaticInfXml.MainXmlStr
-			mStaticInfXml = New PigXml(False)
+			If mStaticInfXml Is Nothing Then
+				mStaticInfXml = New PigXml(False)
+			End If
+			strXml = mStaticInfXml.MainXmlStr
 			With mStaticInfXml
-				.AddEle("TimeoutMinutes", Me.mStaticInf_TimeoutMinutes)
-				.AddEle("ScanLevel", Me.mStaticInf_ScanLevel)
+				.AddEleLeftSign("Root")
+				.AddEle("TimeoutMinutes", Me.StaticInf_TimeoutMinutes)
+				.AddEle("ScanLevel", Me.StaticInf_ScanLevel)
+				.AddEleRightSign("Root")
 				If .MainXmlStr <> strXml Then
 					Me.mUpdateCheck.Add("StaticInf")
 				End If
@@ -257,45 +292,57 @@ Public Class HostFolder
 	End Function
 
 
-	Private mStaticInf_TimeoutMinutes As Integer = 0
 	Public Property StaticInf_TimeoutMinutes() As Integer
 		Get
 			Try
-				If mStaticInf_TimeoutMinutes <= 0 Then
-					mStaticInf_TimeoutMinutes = mStaticInfXml.XmlGetInt("TimeoutMinutes")
+				If mStaticInfXml IsNot Nothing Then
+					Return mStaticInfXml.XmlDocGetInt("Root.TimeoutMinutes")
+				Else
+					Return 10
 				End If
 			Catch ex As Exception
-				mStaticInf_TimeoutMinutes = 0
+				Me.SetSubErrInf("StaticInf_TimeoutMinutes.Get", ex)
+				Return -1
 			End Try
-			Return mStaticInf_TimeoutMinutes
 		End Get
 		Friend Set(value As Integer)
-			If value <> mStaticInf_TimeoutMinutes Then
-				mStaticInf_TimeoutMinutes = value
-				Me.mRefStaticInfXml()
-			End If
+			Try
+				If mStaticInfXml Is Nothing Then
+				ElseIf value <> Me.StaticInf_ScanLevel Then
+					Dim strRet As String = mStaticInfXml.SetXmlDocValue("Root.TimeoutMinutes", value)
+					If strRet <> "OK" Then Throw New Exception(strRet)
+					Me.mUpdateCheck.Add("StaticInf")
+				End If
+			Catch ex As Exception
+				Me.SetSubErrInf("StaticInf_TimeoutMinutes.Set", ex)
+			End Try
 		End Set
 	End Property
 
-	Private mStaticInf_ScanLevel As EnmScanLevel = EnmScanLevel.Fast
 	Public Property StaticInf_ScanLevel() As EnmScanLevel
 		Get
 			Try
-				Select Case mStaticInf_ScanLevel
-					Case EnmScanLevel.Complete, EnmScanLevel.Fast, EnmScanLevel.Standard, EnmScanLevel.VeryFast
-					Case Else
-						mStaticInf_ScanLevel = mStaticInfXml.XmlGetInt("ScanLevel")
-				End Select
+				If mStaticInfXml IsNot Nothing Then
+					Return mStaticInfXml.XmlDocGetInt("Root.ScanLevel")
+				Else
+					Return EnmScanLevel.Fast
+				End If
 			Catch ex As Exception
-				mStaticInf_ScanLevel = EnmScanLevel.Fast
+				Me.SetSubErrInf("StaticInf_ScanLevel.Get", ex)
+				Return EnmScanLevel.Fast
 			End Try
-			Return mStaticInf_ScanLevel
 		End Get
 		Friend Set(value As EnmScanLevel)
-			If value <> mStaticInf_ScanLevel Then
-				mStaticInf_ScanLevel = value
-				Me.mRefStaticInfXml()
-			End If
+			Try
+				If mStaticInfXml Is Nothing Then
+				ElseIf value <> Me.StaticInf_ScanLevel Then
+					Dim strRet As String = mStaticInfXml.SetXmlDocValue("Root.ScanLevel", value)
+					If strRet <> "OK" Then Throw New Exception(strRet)
+					Me.mUpdateCheck.Add("StaticInf")
+				End If
+			Catch ex As Exception
+				Me.SetSubErrInf("StaticInf_ScanLevel.Set", ex)
+			End Try
 		End Set
 	End Property
 
@@ -753,7 +800,7 @@ Public Class HostFolder
 						.ScanStatus = HostFolder.EnmScanStatus.Scanning
 						.ScanBeginTime = Now
 						If .ActiveInf_ErrInf <> "" Then .ActiveInf_ErrInf = ""
-						If Me.mStaticInf_TimeoutMinutes <= 0 Then Me.mStaticInf_TimeoutMinutes = 10
+						If Me.StaticInf_TimeoutMinutes <= 0 Then Me.StaticInf_TimeoutMinutes = 10
 						LOG.StepName = "Update"
 						LOG.Ret = Me.Update
 						If LOG.Ret <> "OK" Then Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
@@ -1083,7 +1130,22 @@ Public Class HostFolder
 			With oFindHostDir
 				.DirUpdateTime = oFolder.DateLastModified
 				.DirFiles = oFolder.FileCount
-				.MaxFileUpdateTime = .GetMaxFileUpdateTime(oFolder)
+				Select Case Me.StaticInf_ScanLevel
+					Case EnmScanLevel.Standard, EnmScanLevel.Fast, EnmScanLevel.Complete
+						.DirSize = .GetDirSize(oFolder)
+						.MaxFileUpdateTime = .GetMaxFileUpdateTime(oFolder)
+						.AvgFileUpdateTime = .GetAvgFileUpdateTime(oFolder)
+				End Select
+				Select Case Me.StaticInf_ScanLevel
+					Case EnmScanLevel.Standard, EnmScanLevel.Complete
+						oFindHostDir.DirPath = Mid(oFolder.Path, intFolderPath + 1)
+						LOG.StepName = "RefByHostFiles"
+						LOG.Ret = oFindHostDir.RefByHostFiles(oFolder)
+						If LOG.Ret <> "OK" Then
+							LOG.AddStepNameInf(Me.FolderPath)
+							Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
+						End If
+				End Select
 			End With
 			bolIsScan = False
 			For Each oHostDir As HostDir In Me.HostDirs
@@ -1099,17 +1161,12 @@ Public Class HostFolder
 								bolIsScan = True
 							ElseIf Math.Round(oHostDir.DirSize, 2) <> Math.Round(oFindHostDir.DirSize, 2) Then
 								bolIsScan = True
-							Else
-								oFindHostDir.DirPath = Mid(oFolder.Path, intFolderPath + 1)
-								LOG.StepName = "RefByHostFiles"
-								LOG.Ret = oFindHostDir.RefByHostFiles(oFolder)
-								If LOG.Ret <> "OK" Then
-									LOG.AddStepNameInf(Me.FolderPath)
-									Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
-								End If
-								If oHostDir.FastPigMD5 <> oFindHostDir.FastPigMD5 Then
-									bolIsScan = True
-								End If
+							ElseIf Math.Abs(DateDiff(DateInterval.Second, oHostDir.MaxFileUpdateTime, oFindHostDir.MaxFileUpdateTime)) > 1 Then
+								bolIsScan = True
+							ElseIf Math.Abs(DateDiff(DateInterval.Second, oHostDir.AvgFileUpdateTime, oFindHostDir.AvgFileUpdateTime)) > 1 Then
+								bolIsScan = True
+							ElseIf oHostDir.FastPigMD5 <> oFindHostDir.FastPigMD5 Then
+								bolIsScan = True
 							End If
 						Case EnmScanLevel.Fast
 							If Math.Abs(DateDiff(DateInterval.Second, oHostDir.DirUpdateTime, oFindHostDir.DirUpdateTime)) > 1 Then
@@ -1118,9 +1175,15 @@ Public Class HostFolder
 								bolIsScan = True
 							ElseIf Math.Round(oHostDir.DirSize, 2) <> Math.Round(oFindHostDir.DirSize, 2) Then
 								bolIsScan = True
+							ElseIf Math.Abs(DateDiff(DateInterval.Second, oHostDir.MaxFileUpdateTime, oFindHostDir.MaxFileUpdateTime)) > 1 Then
+								bolIsScan = True
+							ElseIf Math.Abs(DateDiff(DateInterval.Second, oHostDir.AvgFileUpdateTime, oFindHostDir.AvgFileUpdateTime)) > 1 Then
+								bolIsScan = True
 							End If
 						Case EnmScanLevel.VeryFast
 							If Math.Abs(DateDiff(DateInterval.Second, oHostDir.DirUpdateTime, oFindHostDir.DirUpdateTime)) > 1 Then
+								bolIsScan = True
+							ElseIf oHostDir.DirFiles <> oFindHostDir.DirFiles Then
 								bolIsScan = True
 							End If
 					End Select
@@ -1133,15 +1196,24 @@ Public Class HostFolder
 				bolIsScan = True
 			End If
 			If bolIsScan = True Then
-				If oFindHostDir.FastPigMD5 = "" Then
-					oFindHostDir.DirPath = Mid(oFolder.Path, intFolderPath + 1)
-					LOG.StepName = "RefByHostFiles"
-					LOG.Ret = oFindHostDir.RefByHostFiles(oFolder)
-					If LOG.Ret <> "OK" Then
-						LOG.AddStepNameInf(Me.FolderPath)
-						Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
-					End If
-				End If
+				With oFindHostDir
+					.DirPath = Mid(oFolder.Path, intFolderPath + 1)
+					Select Case Me.StaticInf_ScanLevel
+						Case EnmScanLevel.Fast, EnmScanLevel.VeryFast
+							LOG.StepName = "RefByHostFiles"
+							LOG.Ret = .RefByHostFiles(oFolder)
+							If LOG.Ret <> "OK" Then
+								LOG.AddStepNameInf(Me.FolderPath)
+								Me.fParent.fParent.fPrintErrLogInf(LOG.StepLogInf)
+							End If
+					End Select
+					Select Case Me.StaticInf_ScanLevel
+						Case EnmScanLevel.VeryFast
+							.DirSize = .GetDirSize(oFolder)
+							.MaxFileUpdateTime = .GetMaxFileUpdateTime(oFolder)
+							.AvgFileUpdateTime = .GetAvgFileUpdateTime(oFolder)
+					End Select
+				End With
 				LOG.StepName = "fMergeHostDirInf"
 				LOG.Ret = Me.fParent.fParent.fMergeHostDirInf(oFindHostDir)
 				If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)

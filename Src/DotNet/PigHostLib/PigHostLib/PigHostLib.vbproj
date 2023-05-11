@@ -34,9 +34,9 @@ It can run on Windows only.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.5.32" />
-    <PackageReference Include="PigCmdLib" Version="2.2.30" />
-    <PackageReference Include="PigSQLSrvLib" Version="2.8.90" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.5.36" />
+    <PackageReference Include="PigCmdLib" Version="2.2.32" />
+    <PackageReference Include="PigSQLSrvLib" Version="2.8.92" />
   </ItemGroup>
 
 </Project>

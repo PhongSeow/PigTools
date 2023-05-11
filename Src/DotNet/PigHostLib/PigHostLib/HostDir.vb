@@ -17,13 +17,14 @@
 '* Author: Seow Phong
 '* Describe: 主机目录类|Host directory class
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 11/4/2023
 '* 1.1	12/10/2022	Modify Date Initial Time
 '* 1.2	13/4/2023	Add EnmMateStatus
 '* 1.3	23/4/2023	Add HostFiles,fMergeHostFileInf, modify RefByHostFiles
 '* 1.5	24/4/2023	Remove EnmMateStatus, add IsScan, modify RefByHostFiles
 '* 1.6	1/5/2023	Modify FullDirPath,RefByHostFiles, add GetMaxFileUpdateTime
+'* 1.7	7/5/2023	Add GetDirSize
 '********************************************************************
 
 Imports PigToolsLiteLib
@@ -38,7 +39,7 @@ Imports PigSQLSrvCoreLib
 
 Public Class HostDir
 	Inherits PigBaseLocal
-	Private Const CLS_VERSION As String = "1.6.8"
+	Private Const CLS_VERSION As String = "1.7.2"
 
 	Friend ReadOnly Property fParent As HostFolder
 	Friend ReadOnly Property fPigFunc As New PigFunc
@@ -398,14 +399,8 @@ Public Class HostDir
 					.FileUpdateTime = oFile.DateLastModified
 				End With
 			Next
-			With Me
-				.DirSize = 0
-				.FastPigMD5 = ""
-				.DirFiles = Me.HostFiles.Count
-			End With
 			Dim lngCnt As Long = 0
 			For Each oDBFile As HostFile In Me.HostFiles
-				Me.DirSize += oDBFile.FileSize
 				strFastPigMD5 &= oDBFile.FastPigMD5
 				If lngCnt Mod 1000 = 0 Then
 					Me.fPigFunc.GetTextPigMD5(strFastPigMD5, PigMD5.enmTextType.UTF8, Me.FastPigMD5)
@@ -442,23 +437,33 @@ Public Class HostDir
 		End Try
 	End Function
 
+	Public Function GetDirSize(oFolder As Folder) As Decimal
+		Try
+			GetDirSize = 0
+			For Each oFile As File In oFolder.Files
+				GetDirSize += oFile.Size
+			Next
+		Catch ex As Exception
+			Me.SetSubErrInf("GetDirSize", ex)
+			Return 0
+		End Try
+	End Function
+
 	Public Function GetAvgFileUpdateTime(oFolder As Folder) As Date
-		'Try
-		'	Dim sbData As New StringBuilder("")
-		'	For Each oFile As File In oFolder.Files
-		'		sbData.Append(Me.fPigFunc.GetFmtDateTime(oFile.DateLastModified) & vbCrLf)
-		'	Next
-		'	Dim strMaxTime As String = Me.fPigFunc.GetMaxStr(sbData.ToString, vbCrLf)
-		'	If IsDate(strMaxTime) = True Then
-		'		GetAvgFileUpdateTime = CDate(strMaxTime)
-		'	Else
-		'		GetAvgFileUpdateTime = #1/1/1753#
-		'	End If
-		'	sbData = Nothing
-		'Catch ex As Exception
-		'	Me.SetSubErrInf("GetAvgFileUpdateTime", ex)
-		'	Return #1/1/1753#
-		'End Try
+		Try
+			Dim decTotalSec As Decimal = 0, lngCnt As Long = 0
+			Dim dteNow As Date = Now
+			For Each oFile As File In oFolder.Files
+				lngCnt += 1
+				decTotalSec += DateDiff(DateInterval.Second, oFile.DateLastModified, dteNow)
+			Next
+			Dim lngDiff As Long = 0
+			If lngCnt > 0 Then lngDiff = decTotalSec / lngCnt
+			GetAvgFileUpdateTime = DateAdd(DateInterval.Second, lngDiff, dteNow)
+		Catch ex As Exception
+			Me.SetSubErrInf("GetAvgFileUpdateTime", ex)
+			Return #1/1/1753#
+		End Try
 	End Function
 
 End Class
