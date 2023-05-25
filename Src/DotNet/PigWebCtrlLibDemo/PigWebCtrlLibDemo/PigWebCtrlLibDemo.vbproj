@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigWebCtrlLib" Version="2.1.22" />
+    <PackageReference Include="PigWebCtrlLib" Version="2.1.52" />
   </ItemGroup>
 
 </Project>

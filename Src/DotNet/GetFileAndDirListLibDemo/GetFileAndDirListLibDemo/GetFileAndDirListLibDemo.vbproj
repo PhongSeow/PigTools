@@ -3,17 +3,25 @@
   <PropertyGroup>
     <RootNamespace>GetFileAndDirListLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
-    <Version>1.5.36</Version>
+    <Version>1.5.38</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Demo console program for GetFileAndDirListLib.</Description>
     <Copyright>Copyright (c) 2022-2023 Seow Phong</Copyright>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageReadmeFile>SampleDemo.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GetFileAndDirListLib" Version="1.5.36" />
-    <PackageReference Include="PigCmdLib" Version="2.2.32" />
+    <PackageReference Include="GetFileAndDirListLib" Version="1.5.38" />
+    <PackageReference Include="PigCmdLib" Version="2.2.38" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="SampleDemo.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
