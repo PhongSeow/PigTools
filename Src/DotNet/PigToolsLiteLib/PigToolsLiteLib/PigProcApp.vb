@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Process Processing Class|进程处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 20/3/2022
 '* 1.1    26/3/2022  Modify GetPigProc(PID), Add GetPigProcs
 '* 1.2    1/8/2022   Add KillProc,KillProcs
 '* 1.3    1/8/2022   Modify KillProc
 '* 1.4    16/8/2022  Add IsOtherExeExists
 '* 1.5    17/8/2022  Add KillOtherExe
+'* 1.6    15/5/2023  Modify IsOtherExeExists
 '**********************************
 
 ''' <summary>
@@ -18,7 +19,7 @@
 ''' </summary>
 Public Class PigProcApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.3"
+    Private Const CLS_VERSION As String = "1.6.2"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
@@ -93,7 +94,7 @@ Public Class PigProcApp
     End Function
 
     Public Function IsOtherExeExists(ExeName As String) As Boolean
-        Dim LOG As New PigStepLog("KillProcs")
+        Dim LOG As New PigStepLog("IsOtherExeExists")
         Try
             LOG.StepName = "GetPigProcs"
             Dim oPigProcs As PigProcs = Me.GetPigProcs(ExeName)

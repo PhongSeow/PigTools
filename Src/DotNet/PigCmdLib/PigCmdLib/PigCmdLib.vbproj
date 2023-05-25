@@ -21,8 +21,10 @@ Asynchronous processing.
 Wmic calls and operating system commands.
 Get host hardware and software information.
 It can run on Windows and Linux platforms.</Description>
-    <Version>2.2.32</Version>
-    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
+    <Version>2.2.38</Version>
+    <PackageReleaseNotes>Add PigSudo for the Processing of sudo Command.</PackageReleaseNotes>
+    <Title>Pig command library</Title>
+    <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,6 +36,13 @@ It can run on Windows and Linux platforms.</Description>
 
   <ItemGroup>
     <PackageReference Include="PigToolsLiteLib" Version="3.3.152" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Readme.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

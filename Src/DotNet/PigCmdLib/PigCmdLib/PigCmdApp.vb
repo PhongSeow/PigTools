@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigCmdApp
 '* Author: Seow Phong
-'* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.11
+'* Version: 1.12
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -17,6 +17,7 @@
 '*1.9  26/5/2022  Modify mCallFile
 '*1.10 26/7/2022  Modify Imports
 '*1.11 29/7/2022  Modify Imports
+'*1.12 22/5/2023  Add Nohup,Sudo
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -26,10 +27,10 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.11.2"
+    Private Const CLS_VERSION As String = "1.12.12"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
-    Private WithEvents moPigFunc As New PigFunc
+    Private WithEvents mPigFunc As New PigFunc
     Private moPigProcApp As PigProcApp
 
 
@@ -42,7 +43,7 @@ Public Class PigCmdApp
     Public Sub New()
         MyBase.New(CLS_VERSION)
         If Me.IsWindows = True Then
-            Me.WindowsCmdPath = moPigFunc.GetEnvVar("windir") & "\System32\cmd.exe"
+            Me.WindowsCmdPath = mPigFunc.GetEnvVar("windir") & "\System32\cmd.exe"
         End If
     End Sub
 
@@ -552,5 +553,69 @@ Public Class PigCmdApp
             Return Nothing
         End Try
     End Function
+
+    'Private Function Nohup(Cmd As String, OutFilePath As String) As String
+    '    Return Me.mNohup(Cmd, OutFilePath)
+    'End Function
+
+    'Private Function Nohup(Cmd As String, OutFilePath As String, SudoUser As String) As String
+    '    Return Me.mNohup(Cmd, OutFilePath, SudoUser)
+    'End Function
+
+    'Public Function Sudo(Cmd As String, SudoUser As String, Optional IsBackRun As Boolean = True) As String
+    '    Dim LOG As New PigStepLog("Sudo")
+    '    Dim strCmd As String = ""
+    '    Try
+    '        If Me.IsWindows = True Then Throw New Exception("Cannot execute on Windows")
+    '        strCmd = "sudo -u " & SudoUser
+    '        If IsBackRun = True Then strCmd &= " -b"
+    '        strCmd &= " " & Cmd
+    '        If Me.IsDebug = True Then Me.PrintDebugLog(LOG.SubName, strCmd)
+    '        Dim intThreadID As Integer
+    '        LOG.StepName = "AsyncCmdShell"
+    '        LOG.Ret = Me.AsyncCmdShell(strCmd, intThreadID)
+    '        If LOG.Ret <> "OK" Then
+    '            LOG.AddStepNameInf(intThreadID)
+    '            Throw New Exception(LOG.Ret)
+    '        End If
+    '        Return "OK"
+    '    Catch ex As Exception
+    '        LOG.AddStepNameInf(strCmd)
+    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+    '    End Try
+    'End Function
+
+
+    'Private Function mNohup(Cmd As String, OutFilePath As String, Optional SuDoUser As String = "") As String
+    '    Dim LOG As New PigStepLog("mNohup")
+    '    Dim strCmd As String = ""
+    '    Try
+    '        If Me.IsWindows = True Then Throw New Exception("Cannot execute on Windows")
+    '        strCmd = "nohup " & Cmd & " > " & OutFilePath
+    '        If SuDoUser <> "" Then
+    '            strCmd = "sudo -u " & SuDoUser & " " & strCmd & " &"
+    '        Else
+    '            strCmd &= " 2>&1 &"
+    '        End If
+    '        If Me.IsDebug = True Then Me.PrintDebugLog(LOG.SubName, strCmd)
+    '        If SuDoUser <> "" Then
+    '            Dim intThreadID As Integer
+    '            LOG.StepName = "AsyncCmdShell"
+    '            LOG.Ret = Me.AsyncCmdShell(strCmd, intThreadID)
+    '            If LOG.Ret <> "OK" Then
+    '                LOG.AddStepNameInf(intThreadID)
+    '                Throw New Exception(LOG.Ret)
+    '            End If
+    '        Else
+    '            LOG.StepName = "CmdShell"
+    '            LOG.Ret = Me.CmdShell(strCmd)
+    '            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+    '        End If
+    '        Return "OK"
+    '    Catch ex As Exception
+    '        LOG.AddStepNameInf(strCmd)
+    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+    '    End Try
+    'End Function
 
 End Class

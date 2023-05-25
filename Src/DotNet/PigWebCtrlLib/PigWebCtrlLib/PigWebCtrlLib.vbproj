@@ -4,7 +4,7 @@
     <RootNamespace>PigWebCtrlLib</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;net7.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.1.38</Version>
+    <Version>2.1.52</Version>
     <Authors>Seow Phong</Authors>
     <Product>Seow Phong Studio</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -14,12 +14,11 @@
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigWebCtrlLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop windows Linux weblogic tomcat nginx web administration-port-enabled</PackageTags>
-    <Description>An application class library for dealing with mainstream Web Services.
-Manage and control Weblogic.
-It can run on Windows and Linux platforms.
-</Description>
-    <PackageReleaseNotes>Resolve compatibility issues between initialization date and database.</PackageReleaseNotes>
+    <Description>An application class library for dealing with mainstream Web Services.</Description>
+    <PackageReleaseNotes>Reference the latest class library.</PackageReleaseNotes>
     <Copyright>Copyright (c) 2022-2023 Seow Phong</Copyright>
+    <Title>Pig Web control library</Title>
+    <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,8 +29,15 @@ It can run on Windows and Linux platforms.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.2.32" />
+    <PackageReference Include="PigCmdLib" Version="2.2.38" />
     <PackageReference Include="PigObjFsLib" Version="2.0.50" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Readme.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 2.2.2
+'* Version: 2.6.2
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -19,8 +19,11 @@
 '* 1.11   17/6/2022  Modify PigSysCmdDemo, add GetProcListenPortList
 '* 1.12   23/7/2022  Modify PigSysCmdDemo, add GetWmicSimpleXml
 '* 1.13   17/11/2022  Add SelectControl demo
-'* 2.1    29/12/2022  Modify PigSysCmdDemo, add GetBootUpTime
-'* 2.2.2  17/1/2023  Add PigHostDemo
+'* 2.1  29/12/2022  Modify PigSysCmdDemo, add GetBootUpTime
+'* 2.2  17/1/2023  Add PigHostDemo
+'* 2.3  22/5/2023  Modify PigCmdAppDemo
+'* 2.5  23/5/2023  Add PigSudo
+'* 2.6  24/5/2023  Add PigNohup
 '************************************
 
 Imports PigCmdLib
@@ -51,7 +54,14 @@ Public Class ConsoleDemo
     Public WmicCmd As String
     Public UUID As String
     Public BootUpTime As Date
+    Public SuDoUser As String
+    Public OutFile As String
+    Public IsBackRun As Boolean
+    Public WithEvents PigSudo As PigSudo
+    Public PigNohup As PigNohup
+
     Public Sub PigCmdAppDemo()
+        Me.PigCmdApp.SetDebug(Me.PigFunc.GetMyExePath & ".log")
         Do While True
             Console.Clear()
             Me.MenuDefinition = "HideShell#HideShell|"
@@ -238,8 +248,40 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "PigConsoleDemo#PigConsole Demo|"
             Me.MenuDefinition &= "PigSysCmdDemo#PigSysCmd Demo|"
             Me.MenuDefinition &= "PigHostDemo#PigHost Demo|"
+            Me.MenuDefinition &= "PigSudo#PigSudo|"
+            Me.MenuDefinition &= "PigNohup#PigNohup|"
             Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
             Select Case Me.MenuKey
+                Case "PigNohup"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("PigNohup")
+                    Console.WriteLine("*******************")
+                    Me.PigConsole.GetLine("Input Command", Me.Cmd)
+                    Me.PigConsole.GetLine("Input OutFile path", Me.OutFile)
+                    Me.PigNohup = New PigNohup(Me.Cmd, Me.OutFile)
+                    Me.PigNohup.SetDebug("/tmp/PigNohup.log")
+                    Me.Ret = Me.PigNohup.Run()
+                    Console.WriteLine(Me.Ret)
+                    Me.PigConsole.DisplayPause()
+                Case "PigSudo"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("PigSudo")
+                    Console.WriteLine("*******************")
+                    Me.PigConsole.GetLine("Input Command", Me.Cmd)
+                    Me.PigConsole.GetLine("Input sudo user", Me.SuDoUser)
+                    Me.IsBackRun = Me.PigConsole.IsYesOrNo("Is back run")
+                    Me.PigSudo = New PigSudo(Me.Cmd, Me.SuDoUser, Me.IsBackRun)
+                    Me.PigNohup.SetDebug("/tmp/PigSudo.log")
+                    If Me.PigConsole.IsYesOrNo("Is execute asynchronously") = True Then
+                        Me.Ret = Me.PigSudo.AsyncRun()
+                        Console.WriteLine(Me.Ret)
+                    Else
+                        Me.Ret = Me.PigSudo.Run()
+                        Console.WriteLine(Me.Ret)
+                        Console.WriteLine("StandardOutput=" & Me.PigSudo.StandardOutput)
+                        Console.WriteLine("StandardError=" & Me.PigSudo.StandardError)
+                    End If
+                    Me.PigConsole.DisplayPause()
                 Case "PigHostDemo"
                     Me.PigHostDemo()
                 Case "PigCmdAppDemo"
@@ -375,5 +417,12 @@ Public Class ConsoleDemo
         Loop
     End Sub
 
+    Private Sub PigSudo_AsyncRet_FullString(AsyncRet As PigAsync, StandardOutput As String, StandardError As String) Handles PigSudo.AsyncRet_FullString
+        Console.WriteLine("PigSudo_AsyncRet_FullString")
+        Console.WriteLine("AsyncRet.AsyncRet=" & AsyncRet.AsyncRet)
+        Console.WriteLine("AsyncRet.AsyncThreadID=" & AsyncRet.AsyncThreadID)
+        Console.WriteLine("StandardOutput=" & StandardOutput)
+        Console.WriteLine("StandardError=" & StandardError)
+    End Sub
 
 End Class
