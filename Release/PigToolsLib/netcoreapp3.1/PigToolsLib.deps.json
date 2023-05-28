@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "PigToolsLib/3.3.136": {
+      "PigToolsLib/3.3.158": {
         "dependencies": {
           "Microsoft.AspNetCore.Http": "2.2.2",
           "Microsoft.Win32.Registry": "5.0.0"
@@ -189,7 +189,7 @@
     }
   },
   "libraries": {
-    "PigToolsLib/3.3.136": {
+    "PigToolsLib/3.3.158": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v6.0": {
-      "PigToolsDemo/2.9.12": {
+      "PigToolsDemo/3.3.158": {
         "dependencies": {
-          "PigToolsLib": "3.3.136"
+          "PigToolsLib": "3.3.158"
         },
         "runtime": {
           "PigToolsDemo.dll": {}
@@ -124,15 +124,15 @@
           "System.Security.Principal.Windows": "5.0.0"
         }
       },
-      "PigToolsLib/3.3.136": {
+      "PigToolsLib/3.3.158": {
         "dependencies": {
           "Microsoft.AspNetCore.Http": "2.2.2",
           "Microsoft.Win32.Registry": "5.0.0"
         },
         "runtime": {
           "lib/net6.0/PigToolsLib.dll": {
-            "assemblyVersion": "3.3.136.0",
-            "fileVersion": "3.3.136.0"
+            "assemblyVersion": "3.3.158.0",
+            "fileVersion": "3.3.158.0"
           }
         }
       },
@@ -151,7 +151,7 @@
     }
   },
   "libraries": {
-    "PigToolsDemo/2.9.12": {
+    "PigToolsDemo/3.3.158": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -233,12 +233,12 @@
       "path": "microsoft.win32.registry/5.0.0",
       "hashPath": "microsoft.win32.registry.5.0.0.nupkg.sha512"
     },
-    "PigToolsLib/3.3.136": {
+    "PigToolsLib/3.3.158": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-QtS1K4O3mG2HpNSiM1GfZj9KMYss3eUzIlStB71sJOEILiBofSerejaM5/U/+8nOh8AAhqYavU7JESAW20H3sw==",
-      "path": "pigtoolslib/3.3.136",
-      "hashPath": "pigtoolslib.3.3.136.nupkg.sha512"
+      "sha512": "sha512-/JvNR8T2XVhPtWib6THGodWUO9cr28/3LcxJehORMjnDHdNrF3L4hnb9/XOoCEcqOgAwwUJAuQuPRH6UztN1Aw==",
+      "path": "pigtoolslib/3.3.158",
+      "hashPath": "pigtoolslib.3.3.158.nupkg.sha512"
     },
     "System.Buffers/4.5.0": {
       "type": "package",

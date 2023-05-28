@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GetFileAndDirListLibDemo", "GetFileAndDirListLibDemo\GetFileAndDirListLibDemo.vbproj", "{B0BE9E51-A21A-41A5-8CB0-F6A509748BC7}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GetFileAndDirListLibDemo", "GetFileAndDirListLibDemo\GetFileAndDirListLibDemo.vbproj", "{CA48643A-20FA-4B90-B569-04582919217E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B0BE9E51-A21A-41A5-8CB0-F6A509748BC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B0BE9E51-A21A-41A5-8CB0-F6A509748BC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B0BE9E51-A21A-41A5-8CB0-F6A509748BC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B0BE9E51-A21A-41A5-8CB0-F6A509748BC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA48643A-20FA-4B90-B569-04582919217E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA48643A-20FA-4B90-B569-04582919217E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA48643A-20FA-4B90-B569-04582919217E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA48643A-20FA-4B90-B569-04582919217E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {CB2190E1-3EF6-4AF3-A1CC-5928054F694C}
+		SolutionGuid = {4CEF17BE-4ECE-480C-888F-D50A35983BF7}
 	EndGlobalSection
 EndGlobal
