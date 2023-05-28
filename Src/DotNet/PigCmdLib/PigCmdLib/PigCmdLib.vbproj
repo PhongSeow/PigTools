@@ -14,15 +14,9 @@
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigCmdLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous system wmic host hardware software CPU</PackageTags>
-    <Description>Application of calling operating system commands and call file.
-Get enhancements for parent and child processes
-A series of console functions, including reading lines, whether to select, simple menus, etc.
-Asynchronous processing.
-Wmic calls and operating system commands.
-Get host hardware and software information.
-It can run on Windows and Linux platforms.</Description>
-    <Version>2.2.38</Version>
-    <PackageReleaseNotes>Add PigSudo for the Processing of sudo Command.</PackageReleaseNotes>
+    <Description>Simplify process calls, command line read and write operations, host operating system commands, and other functions.</Description>
+    <Version>2.2.50</Version>
+    <PackageReleaseNotes>Reference the latest class library and update readme.</PackageReleaseNotes>
     <Title>Pig command library</Title>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
@@ -35,7 +29,7 @@ It can run on Windows and Linux platforms.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.3.152" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.3.158" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.18
+'* Version: 1.20
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -34,6 +34,7 @@
 '1.17 2/11/2022  Add IsMainXmlEmpty
 '1.18 6/5/2023  Modify mGetXmlDoc, add SetXmlDocText
 '1.19 7/5/2023  Add IsXmlNodeExists,SetXmlDocValue
+'1.20 26/5/2023  Add GetXmlDocText,XmlDocGetBool,XmlDocGetBoolEmpTrue,XmlDocGetDate,XmlDocGetDec,XmlDocGetInt,XmlDocGetLong,XmlDocGetStr
 '*******************************************************
 
 Imports System.Xml
@@ -43,7 +44,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.19.6"
+    Private Const CLS_VERSION As String = "1.20.88"
     Private Property mMainXml As String = ""
     Private msbMain As New StringBuilder("")    '主体的XML
 
@@ -715,6 +716,24 @@ Public Class PigXml
     ''' 快速获取一个元素的值|Get the value of an element quickly
     ''' </summary>
     ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N]|Key value, for example: element 1 Element 2 [... Element n]</param>
+    ''' <param name="FromNode">源XML节点|Source XML Node</param>
+    ''' <returns></returns>
+    Public Function GetXmlDocText(XmlKey As String, FromNode As XmlNode) As String
+        Try
+            GetXmlDocText = ""
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Text, XmlKey, FromNode,, GetXmlDocText)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocText", ex)
+            Return ""
+        End Try
+    End Function
+
+
+    ''' <summary>
+    ''' 快速获取一个元素的值|Get the value of an element quickly
+    ''' </summary>
+    ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N]|Key value, for example: element 1 Element 2 [... Element n]</param>
     ''' <param name="SkipTimes">最后一个元素，如有名称重复，此为跳过的次数|If the name of the last element is repeated, this is the number of times to skip</param>
     ''' <returns></returns>
     Public Function GetXmlDocText(XmlKey As String, SkipTimes As Integer) As String
@@ -727,6 +746,7 @@ Public Class PigXml
             Return ""
         End Try
     End Function
+
 
     Public Function SetXmlDocValue(XmlKey As String, Value As Date) As String
         Dim strValue As String = Me.mPigFunc.GetFmtDateTime(Value)
@@ -848,6 +868,17 @@ Public Class PigXml
         Try
             GetXmlDocAttribute = ""
             Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Attribute, XmlKey,,, GetXmlDocAttribute)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocAttribute", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetXmlDocAttribute(XmlKey As String, FromNode As XmlNode) As String
+        Try
+            GetXmlDocAttribute = ""
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Attribute, XmlKey, FromNode,, GetXmlDocAttribute)
             If strRet <> "OK" Then Throw New Exception(strRet)
         Catch ex As Exception
             Me.SetSubErrInf("GetXmlDocAttribute", ex)
@@ -1060,6 +1091,19 @@ Public Class PigXml
         End Try
     End Function
 
+    Public Function XmlDocGetInt(FromNode As XmlNode, XmlKey As String, Optional IsAttribute As Boolean = False) As Integer
+        Try
+            If IsAttribute = True Then
+                Return CInt(Me.GetXmlDocAttribute(XmlKey, FromNode))
+            Else
+                Return CInt(Me.GetXmlDocText(XmlKey, FromNode))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetInt", ex)
+            Return 0
+        End Try
+    End Function
+
     Public Function XmlDocGetInt(XmlKey As String, Optional IsAttribute As Boolean = False) As Integer
         Try
             If IsAttribute = True Then
@@ -1069,6 +1113,19 @@ Public Class PigXml
             End If
         Catch ex As Exception
             Me.SetSubErrInf("XmlDocGetInt", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlDocGetLong(FromNode As XmlNode, XmlKey As String, Optional IsAttribute As Boolean = False) As Long
+        Try
+            If IsAttribute = True Then
+                Return CLng(Me.GetXmlDocAttribute(XmlKey, FromNode))
+            Else
+                Return CLng(Me.GetXmlDocText(XmlKey, FromNode))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetLong", ex)
             Return 0
         End Try
     End Function
@@ -1086,6 +1143,19 @@ Public Class PigXml
         End Try
     End Function
 
+    Public Function XmlDocGetDec(FromNode As XmlNode, XmlKey As String, Optional IsAttribute As Boolean = False) As Decimal
+        Try
+            If IsAttribute = True Then
+                Return CDec(Me.GetXmlDocAttribute(XmlKey, FromNode))
+            Else
+                Return CDec(Me.GetXmlDocText(XmlKey, FromNode))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetDec", ex)
+            Return 0
+        End Try
+    End Function
+
     Public Function XmlDocGetDec(XmlKey As String, Optional IsAttribute As Boolean = False) As Decimal
         Try
             If IsAttribute = True Then
@@ -1095,6 +1165,19 @@ Public Class PigXml
             End If
         Catch ex As Exception
             Me.SetSubErrInf("XmlDocGetDec", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlDocGetBool(FromNode As XmlNode, XmlKey As String, Optional IsAttribute As Boolean = False) As Boolean
+        Try
+            If IsAttribute = True Then
+                Return CBool(Me.GetXmlDocAttribute(XmlKey, FromNode))
+            Else
+                Return CBool(Me.GetXmlDocText(XmlKey, FromNode))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetBool", ex)
             Return 0
         End Try
     End Function
@@ -1111,6 +1194,21 @@ Public Class PigXml
             Return 0
         End Try
     End Function
+
+    Public Function XmlDocGetStr(FromNode As XmlNode, XmlKey As String, Optional IsAttribute As Boolean = False) As String
+        Try
+            If IsAttribute = True Then
+                XmlDocGetStr = Me.GetXmlDocAttribute(XmlKey, FromNode)
+            Else
+                XmlDocGetStr = Me.GetXmlDocText(XmlKey, FromNode)
+            End If
+            If Me.IsAutoUnEscValue = True Then Me.mUnEscapeXmlValue(XmlDocGetStr)
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetStr", ex)
+            Return ""
+        End Try
+    End Function
+
 
     Public Function XmlDocGetStr(XmlKey As String, Optional IsAttribute As Boolean = False) As String
         Try
@@ -1153,6 +1251,43 @@ Public Class PigXml
         Catch ex As Exception
             Me.SetSubErrInf("XmlDocGetBoolEmpTrue", ex)
             Return 0
+        End Try
+    End Function
+
+    Public Function XmlDocGetBoolEmpTrue(FromNode As XmlNode, XmlKey As String, Optional IsAttribute As Boolean = False) As Boolean
+        Try
+            Dim strData As String
+            If IsAttribute = True Then
+                strData = Me.GetXmlDocAttribute(XmlKey, FromNode)
+                If strData = "" Then
+                    Return True
+                Else
+                    Return CBool(strData)
+                End If
+            Else
+                strData = Me.GetXmlDocText(XmlKey, FromNode)
+                If strData = "" Then
+                    Return True
+                Else
+                    Return CBool(strData)
+                End If
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetBoolEmpTrue", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlDocGetDate(FromNode As XmlNode, XmlKey As String, Optional IsAttribute As Boolean = False) As DateTime
+        Try
+            If IsAttribute = True Then
+                Return CDate(Me.GetXmlDocAttribute(XmlKey, FromNode))
+            Else
+                Return CDate(Me.GetXmlDocText(XmlKey, FromNode))
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("XmlDocGetDate", ex)
+            Return DateTime.MinValue
         End Try
     End Function
 
