@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* Describe: Simple JSON class, which can assemble and parse JSON definitions without components.
 '* Home Url: http://www.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 8/8/2019
 '* 1.0.2    10/8/2020   Code changed from VB6 to VB.NET
 '* 1.0.3    12/8/2020   Some Function debugging 
@@ -23,15 +23,17 @@
 '* 1.1      14/9/2021  Modify xpJSonEleType,mAddJSonStr, and add AddOneObjectEle
 '* 1.2      14/9/2021  Modify GetDateValue
 '* 1.3      15/12/2021 Use LOG
+'* 1.5      1/6/2023  Use PigBaseLocal, Imports PigToolsLiteLib
 '*******************************************************
 Imports System.Text
+Imports PigToolsLiteLib
 
 ''' <summary>
 ''' JSON processing class|JSon处理类
 ''' </summary>
 Public Class PigJSon
-    Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.10"
+    Inherits PigBaseLocal
+    Private Const CLS_VERSION As String = "1.5.2"
 
     ''' <summary>The type of the JSON element</summary>
     Public Enum xpJSonEleType
