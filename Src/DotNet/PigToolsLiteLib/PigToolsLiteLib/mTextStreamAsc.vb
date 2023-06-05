@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Reference Scripting.TextStream through ActiveX
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.1
 '* Create Time: 13/3/2022
 '* 1.1 13/3/2021   Modify New

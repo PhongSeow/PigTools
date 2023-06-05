@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing TripleDES encryption algorithm
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.3
 '* Create Time: 20/8/2022
 '1.1  23/8/2002 Modify New, add IsLoadEncKey,LoadEncKey

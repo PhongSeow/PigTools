@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.12
+'* Version: 1.13
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -18,6 +18,7 @@
 '*1.10 26/7/2022  Modify Imports
 '*1.11 29/7/2022  Modify Imports
 '*1.12 22/5/2023  Add Nohup,Sudo
+'*1.13 5/6/2023   Modify EnmStandardOutputReadType,CmdShell,CallFile,AsyncCallFile,AsyncCmdShell,mCallFile
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -27,7 +28,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.12.12"
+    Private Const CLS_VERSION As String = "1.13.8"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -37,7 +38,7 @@ Public Class PigCmdApp
     Public Enum EnmStandardOutputReadType
         FullString = 0
         StringArray = 1
-        StreamReader = 2
+        'StreamReader = 2
     End Enum
 
     Public Sub New()
@@ -125,8 +126,10 @@ Public Class PigCmdApp
     ''' 执行操作系统命令|Execute operating system commands
     ''' </summary>
     ''' <param name="Cmd">命令语句|Command statement</param>
+    ''' <param name="StandardOutputReadType">标准输出读类型|Standard output read type</param>
     ''' <returns></returns>
-    Public Function CmdShell(Cmd As String) As String
+    Public Function CmdShell(Cmd As String, Optional StandardOutputReadType As EnmStandardOutputReadType = EnmStandardOutputReadType.FullString) As String
+        Me.StandardOutputReadType = StandardOutputReadType
         Dim struMain As mStruCmdShell
         With struMain
             .Cmd = Cmd
@@ -139,9 +142,12 @@ Public Class PigCmdApp
     ''' 执行操作系统命令|Execute operating system commands
     ''' </summary>
     ''' <param name="Cmd">命令语句|Command statement</param>
+    ''' <param name="OutThreadID">输出的线程标识|Output thread ID</param>
+    ''' <param name="StandardOutputReadType">标准输出读类型|Standard output read type</param>
     ''' <returns></returns>
-    Public Function AsyncCmdShell(Cmd As String, ByRef OutThreadID As Integer) As String
+    Public Function AsyncCmdShell(Cmd As String, ByRef OutThreadID As Integer, Optional StandardOutputReadType As EnmStandardOutputReadType = EnmStandardOutputReadType.FullString) As String
         Try
+            Me.StandardOutputReadType = StandardOutputReadType
             Dim struMain As mStruCmdShell
             With struMain
                 .Cmd = Cmd
@@ -162,9 +168,11 @@ Public Class PigCmdApp
     ''' </summary>
     ''' <param name="FilePath">调用文件的路径|Path to the calling file</param>
     ''' <param name="Para">调用文件的参数|Call file parameters</param>
+    ''' <param name="StandardOutputReadType">标准输出读类型|Standard output read type</param>
     ''' <returns></returns>
-    Public Function AsyncCallFile(FilePath As String, Para As String, ByRef OutThreadID As Integer) As String
+    Public Function AsyncCallFile(FilePath As String, Para As String, ByRef OutThreadID As Integer, Optional StandardOutputReadType As EnmStandardOutputReadType = EnmStandardOutputReadType.FullString) As String
         Try
+            Me.StandardOutputReadType = StandardOutputReadType
             Dim struMain As mStruCallFile
             With struMain
                 .FilePath = FilePath
@@ -295,8 +303,10 @@ Public Class PigCmdApp
     ''' </summary>
     ''' <param name="FilePath">调用文件的路径|Path to the calling file</param>
     ''' <param name="Para">调用文件的参数|Call file parameters</param>
+    ''' <param name="StandardOutputReadType">标准输出读类型|Standard output read type</param>
     ''' <returns></returns>
-    Public Function CallFile(FilePath As String, Para As String) As String
+    Public Function CallFile(FilePath As String, Para As String, Optional StandardOutputReadType As EnmStandardOutputReadType = EnmStandardOutputReadType.FullString) As String
+        Me.StandardOutputReadType = StandardOutputReadType
         Dim struMain As mStruCallFile
         With struMain
             .FilePath = FilePath
@@ -358,7 +368,7 @@ Public Class PigCmdApp
                     LOG.StepName = "StreamReader.Close"
                     oStreamReader.Close()
                     If StruMain.IsAsync = False Then Me.StandardOutput = strStandardOutput
-                Case EnmStandardOutputReadType.StreamReader
+'                Case EnmStandardOutputReadType.StreamReader
                 Case EnmStandardOutputReadType.StringArray
                     Dim i As Integer = 0
                     If StruMain.IsAsync = True Then
@@ -417,6 +427,7 @@ Public Class PigCmdApp
                 End Select
             Else
                 Me.StandardOutput = strStandardOutput
+                Me.StandardError = strStandardError
             End If
             Return "OK"
         Catch ex As Exception
@@ -474,7 +485,6 @@ Public Class PigCmdApp
                 LOG.AddStepNameInf("PID=" & lngParentPID.ToString)
                 Throw New Exception(GetParentProc.LastErr)
             End If
-
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
@@ -553,69 +563,5 @@ Public Class PigCmdApp
             Return Nothing
         End Try
     End Function
-
-    'Private Function Nohup(Cmd As String, OutFilePath As String) As String
-    '    Return Me.mNohup(Cmd, OutFilePath)
-    'End Function
-
-    'Private Function Nohup(Cmd As String, OutFilePath As String, SudoUser As String) As String
-    '    Return Me.mNohup(Cmd, OutFilePath, SudoUser)
-    'End Function
-
-    'Public Function Sudo(Cmd As String, SudoUser As String, Optional IsBackRun As Boolean = True) As String
-    '    Dim LOG As New PigStepLog("Sudo")
-    '    Dim strCmd As String = ""
-    '    Try
-    '        If Me.IsWindows = True Then Throw New Exception("Cannot execute on Windows")
-    '        strCmd = "sudo -u " & SudoUser
-    '        If IsBackRun = True Then strCmd &= " -b"
-    '        strCmd &= " " & Cmd
-    '        If Me.IsDebug = True Then Me.PrintDebugLog(LOG.SubName, strCmd)
-    '        Dim intThreadID As Integer
-    '        LOG.StepName = "AsyncCmdShell"
-    '        LOG.Ret = Me.AsyncCmdShell(strCmd, intThreadID)
-    '        If LOG.Ret <> "OK" Then
-    '            LOG.AddStepNameInf(intThreadID)
-    '            Throw New Exception(LOG.Ret)
-    '        End If
-    '        Return "OK"
-    '    Catch ex As Exception
-    '        LOG.AddStepNameInf(strCmd)
-    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
-    '    End Try
-    'End Function
-
-
-    'Private Function mNohup(Cmd As String, OutFilePath As String, Optional SuDoUser As String = "") As String
-    '    Dim LOG As New PigStepLog("mNohup")
-    '    Dim strCmd As String = ""
-    '    Try
-    '        If Me.IsWindows = True Then Throw New Exception("Cannot execute on Windows")
-    '        strCmd = "nohup " & Cmd & " > " & OutFilePath
-    '        If SuDoUser <> "" Then
-    '            strCmd = "sudo -u " & SuDoUser & " " & strCmd & " &"
-    '        Else
-    '            strCmd &= " 2>&1 &"
-    '        End If
-    '        If Me.IsDebug = True Then Me.PrintDebugLog(LOG.SubName, strCmd)
-    '        If SuDoUser <> "" Then
-    '            Dim intThreadID As Integer
-    '            LOG.StepName = "AsyncCmdShell"
-    '            LOG.Ret = Me.AsyncCmdShell(strCmd, intThreadID)
-    '            If LOG.Ret <> "OK" Then
-    '                LOG.AddStepNameInf(intThreadID)
-    '                Throw New Exception(LOG.Ret)
-    '            End If
-    '        Else
-    '            LOG.StepName = "CmdShell"
-    '            LOG.Ret = Me.CmdShell(strCmd)
-    '            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-    '        End If
-    '        Return "OK"
-    '    Catch ex As Exception
-    '        LOG.AddStepNameInf(strCmd)
-    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
-    '    End Try
-    'End Function
 
 End Class

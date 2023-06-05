@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Structure and byte array conversion 结构与字节数组转换
 
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.0.3
 '* Create Time: 25/10/2019
 '1.0.2  2019-11-2   修改 Stru2Bytes

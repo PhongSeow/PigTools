@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Http Web Request operation
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.1
 '* Create Time: 5/2/2021
 '*1.0.2  25/2/2021   Add Me.ClearErr()

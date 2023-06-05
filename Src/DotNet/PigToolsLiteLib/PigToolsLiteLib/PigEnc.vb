@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: A localized encryption and decryption class, ciphertext cannot be decrypted to other machines.
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.2
 '* Create Time: 20/8/2022
 '1.1  6/9/2022   Add EnmEncKeySaveType,EnmEncType

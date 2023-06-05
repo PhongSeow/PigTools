@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Sending and receiving data processing class|发送和接收数据处理类
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.2
 '* Create Time: 6/11/2021
 '* 1.1  7/11/2022   Add InitEnc

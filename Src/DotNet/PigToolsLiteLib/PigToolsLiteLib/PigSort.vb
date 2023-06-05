@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Sort processing class|排序处理类
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.1
 '* Create Time: 6/9/2022
 '* 1.1  10/9/2022   Modify New, add AddValue,MaxSortNo,MinSortNo,GetValue

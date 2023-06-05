@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: And generate VB code|且于生成VB的代码
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.5
 '* Create Time: 16/6/2021
 '* 1.1  1/7/2022    Modify MkCollectionClass

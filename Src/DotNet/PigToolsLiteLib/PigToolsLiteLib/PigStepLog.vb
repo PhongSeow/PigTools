@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigStepLog is for logging and error handling in the process.
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.7.2
 '* Create Time: 8/12/2019
 '1.1    18/12/2021  Add TrackID,ErrInf2User, modify mNew,StepName

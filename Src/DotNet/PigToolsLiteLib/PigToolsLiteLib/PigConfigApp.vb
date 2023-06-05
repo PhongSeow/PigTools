@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Configuration Processing Class|配置处理类
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.15
 '* Create Time: 18/12/2021
 '* 1.1    20/12/2020   Add mNew,MkEncKey,mLoadConfig,GetEncStr

@@ -3,7 +3,7 @@
 '* Author: Part of the source code found on the Internet, I do not know who is the author, organized by Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Use time processing 使用时间处理
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.1.2
 '* Create Time: 10/8/2019
 '* 1.0.2  2019-10-12  GoBegin,Step2NowSeconds,Step2NowSeconds优化,新增 AllDiffChnMain

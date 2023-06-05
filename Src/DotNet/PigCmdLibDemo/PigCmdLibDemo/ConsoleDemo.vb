@@ -23,7 +23,7 @@
 '* 2.2  17/1/2023  Add PigHostDemo
 '* 2.3  22/5/2023  Modify PigCmdAppDemo
 '* 2.5  23/5/2023  Add PigSudo
-'* 2.6  24/5/2023  Add PigNohup
+'* 2.6  5/6/2023  Modify PigCmdAppDemo
 '************************************
 
 Imports PigCmdLib
@@ -57,8 +57,8 @@ Public Class ConsoleDemo
     Public SuDoUser As String
     Public OutFile As String
     Public IsBackRun As Boolean
+    Public StandardOutputReadType As PigCmdApp.EnmStandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.FullString
     Public WithEvents PigSudo As PigSudo
-    Public PigNohup As PigNohup
 
     Public Sub PigCmdAppDemo()
         Me.PigCmdApp.SetDebug(Me.PigFunc.GetMyExePath & ".log")
@@ -107,18 +107,31 @@ Public Class ConsoleDemo
                     Console.WriteLine("CmdShell")
                     Console.WriteLine("*******************")
                     Me.PigConsole.GetLine("Input Command", Me.Cmd)
+                    If Me.PigConsole.IsYesOrNo("Is FullString") = True Then
+                        Me.StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.FullString
+                    Else
+                        Me.StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
+                    End If
                     If Me.PigConsole.IsYesOrNo("Is asynchronous processing") = True Then
                         Me.Ret = PigCmdApp.AsyncCmdShell(Me.Cmd, Me.OutThreadID)
                         Console.WriteLine(vbCrLf & "OutThreadID=" & Me.OutThreadID)
                         Console.WriteLine("Delay(1000)")
                         Me.PigFunc.Delay(1000)
                     Else
-                        Me.Ret = PigCmdApp.CmdShell(Me.Cmd)
+                        Me.Ret = PigCmdApp.CmdShell(Me.Cmd, Me.StandardOutputReadType)
                         Console.WriteLine("CmdShell=" & Me.Ret)
                         If Me.Ret = "OK" Then
                             Console.WriteLine("PID=" & Me.PigCmdApp.PID)
-                            Console.WriteLine("StandardOutput=" & Me.PigCmdApp.StandardOutput)
-                            Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
+                            If Me.StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.FullString Then
+                                Console.WriteLine("StandardOutput=" & Me.PigCmdApp.StandardOutput)
+                                Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
+                            Else
+                                Console.WriteLine("StandardOutputArray.Count=" & Me.PigCmdApp.StandardOutputArray.Length)
+                                For i = 0 To Me.PigCmdApp.StandardOutputArray.Length - 1
+                                    Console.WriteLine("StandardOutputArray(" & i & ")=" & Me.PigCmdApp.StandardOutputArray(i))
+                                Next
+                                Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
+                            End If
                         End If
                     End If
                 Case "GetParentProc"
@@ -252,17 +265,6 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "PigNohup#PigNohup|"
             Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
             Select Case Me.MenuKey
-                Case "PigNohup"
-                    Console.WriteLine("*******************")
-                    Console.WriteLine("PigNohup")
-                    Console.WriteLine("*******************")
-                    Me.PigConsole.GetLine("Input Command", Me.Cmd)
-                    Me.PigConsole.GetLine("Input OutFile path", Me.OutFile)
-                    Me.PigNohup = New PigNohup(Me.Cmd, Me.OutFile)
-                    Me.PigNohup.SetDebug("/tmp/PigNohup.log")
-                    Me.Ret = Me.PigNohup.Run()
-                    Console.WriteLine(Me.Ret)
-                    Me.PigConsole.DisplayPause()
                 Case "PigSudo"
                     Console.WriteLine("*******************")
                     Console.WriteLine("PigSudo")
@@ -271,7 +273,6 @@ Public Class ConsoleDemo
                     Me.PigConsole.GetLine("Input sudo user", Me.SuDoUser)
                     Me.IsBackRun = Me.PigConsole.IsYesOrNo("Is back run")
                     Me.PigSudo = New PigSudo(Me.Cmd, Me.SuDoUser, Me.IsBackRun)
-                    Me.PigNohup.SetDebug("/tmp/PigSudo.log")
                     If Me.PigConsole.IsYesOrNo("Is execute asynchronously") = True Then
                         Me.Ret = Me.PigSudo.AsyncRun()
                         Console.WriteLine(Me.Ret)
@@ -424,5 +425,4 @@ Public Class ConsoleDemo
         Console.WriteLine("StandardOutput=" & StandardOutput)
         Console.WriteLine("StandardError=" & StandardError)
     End Sub
-
 End Class
