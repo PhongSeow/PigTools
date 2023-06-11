@@ -7,6 +7,7 @@ AES, 3DES and RSA encryption processing.
 - Key value and cache processing.
 - Logging and error handling.
 - Multilingual processing.
+- Directory and file operations.
 - It can run on Windows and Linux platforms.
 - [View demo ](https://www.nuget.org/packages/PigToolsLiteLibDemo/)
 

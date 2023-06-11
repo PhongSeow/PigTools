@@ -16,8 +16,8 @@
     <PackageIconUrl />
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
-    <PackageTags>.net develop byte compressor log error file md5 text xml sharemem usetime http web request windows linux json aes rsa 3des uuid cache keyvalue debug multilingual encryption decrypt sql send process configure sort registry host folder scan files</PackageTags>
-    <PackageReleaseNotes>Add PigFolderScan for scan directories and find files.</PackageReleaseNotes>
+    <PackageTags>.net develop byte compressor log error file md5 text xml sharemem usetime http web request windows linux json aes rsa 3des uuid cache keyvalue debug multilingual encryption decrypt sql send process configure sort registry host folder scan files,filesystem</PackageTags>
+    <PackageReleaseNotes>Add PigFileSystem for directory and file operations.</PackageReleaseNotes>
     <Title>PigTools lite library</Title>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
