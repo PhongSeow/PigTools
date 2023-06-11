@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.26.1
+'* Version: 1.28.10
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -31,6 +31,8 @@
 '* 1.23   15/11/2022 Modify PigFuncDemo,PigRsa
 '* 1.25   18/1/2023 Modify PigMLangDemo
 '* 1.26   2/4/2023  Remove reference to PigCmdLib
+'* 1.27   28/4/2023  Modify Aes code
+'* 1.28   11/6/2023  Add PigFSDemo
 '************************************
 Imports PigToolsLiteLib
 Imports System.Xml
@@ -44,6 +46,7 @@ Public Class ConsoleDemo
     Public Ret As String
     Public Base64Str As String
     Public Base64EncKey As String
+    Public BytesEncKey As Byte()
     Public PigConfigApp As PigConfigApp
     Public PigConfigSession As PigConfigSession
     Public PigConfig As PigConfig
@@ -53,6 +56,8 @@ Public Class ConsoleDemo
     Public SessionDesc As String
     Public ConfDesc As String
     Public ConfData As String
+    Public FolderPath As String
+    Public PigFolder As PigFolder
     Public FilePath As String
     Public FilePath2 As String
     Public FilePart As PigFunc.EnmFilePart
@@ -84,6 +89,7 @@ Public Class ConsoleDemo
     Public ThreadID As Integer
     Public PigXml As New PigXml(True)
     Public XmlKey As String
+    Public TextValue As String
     Public XmlKey2 As String
     Public XmlStr As String = "<a><b id='1'>b1</b><b id='2'>b2</b><b id='3'>b3</b></a>"
     Public SkipTimes As String = "0"
@@ -112,6 +118,8 @@ Public Class ConsoleDemo
     Public PigWebReq As PigWebReq
     Public PigSend As PigSend
     Public InitStr As String
+    Public EncKeyFilePath As String
+    Public PigFS As New PigFileSystem
 
     Public Sub Main()
         Dim o As New PigXml(False)
@@ -139,11 +147,14 @@ Public Class ConsoleDemo
             Console.WriteLine("Press P to SeowEnc")
             Console.WriteLine("Press R to PigMLang")
             Console.WriteLine("Press S to PigSend")
+            Console.WriteLine("Press T to PigFileSystem")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
                     Exit Do
+                Case ConsoleKey.T
+                    Me.PigFSDemo()
                 Case ConsoleKey.O
                     Console.WriteLine("*******************")
                     Console.WriteLine("PigSort")
@@ -199,17 +210,15 @@ Public Class ConsoleDemo
                     If Me.PigConsole.IsYesOrNo("Is test FastPigMD5") = True Then
                         Me.PigFile = New PigFile(Me.FilePath)
                         Console.WriteLine()
-                        Dim oPigMD5 As PigMD5 = Nothing
+                        Dim strPigMD5 As String = ""
                         Console.WriteLine("GetFastPigMD5")
                         Dim oUseTime As New UseTime
                         oUseTime.GoBegin()
-                        Me.Ret = Me.PigFile.GetFastPigMD5(oPigMD5)
+                        Me.Ret = Me.PigFile.GetFastPigMD5(strPigMD5)
                         oUseTime.ToEnd()
                         Console.WriteLine(Me.Ret)
-                        If oPigMD5 IsNot Nothing Then
-                            Console.WriteLine("PigMD5=" & oPigMD5.PigMD5)
-                            Console.WriteLine("UseTime=" & oUseTime.AllDiffSeconds)
-                        End If
+                        Console.WriteLine("PigMD5=" & strPigMD5)
+                        Console.WriteLine("UseTime=" & oUseTime.AllDiffSeconds)
                         If Me.PigConsole.IsYesOrNo("Is test SegLoadFile") = True Then
                             Dim intSegSize As Integer = 2048
                             Me.PigConsole.GetLine("Input Segment size", Me.Line)
@@ -356,44 +365,130 @@ Public Class ConsoleDemo
                         Console.WriteLine("Press Q to Up")
                         Console.WriteLine("Press A to MkEncKey")
                         Console.WriteLine("Press B to LoadEncKey")
-                        Console.WriteLine("Press C to Encrypt")
-                        Console.WriteLine("Press D to Decrypt")
+                        Console.WriteLine("Press C to Encrypt(Text)")
+                        Console.WriteLine("Press D to Decrypt(Text)")
+                        Console.WriteLine("Press E to Encrypt(Bytes)")
+                        Console.WriteLine("Press F to Decrypt(Bytes)")
                         Console.WriteLine("*******************")
                         Select Case Console.ReadKey(True).Key
                             Case ConsoleKey.Q
                                 Exit Do
                             Case ConsoleKey.A
-                                Me.Ret = oPigAes.MkEncKey(Me.Base64EncKey)
-                                Console.WriteLine("MkEncKey=" & Me.Ret)
-                                Console.WriteLine("Base64EncKey=" & Me.Base64EncKey)
+                                Dim bolIsInitKey As Boolean = Me.PigConsole.IsYesOrNo("Is there an InitKey")
+                                Dim bolIsBase64 As Boolean = Me.PigConsole.IsYesOrNo("Whether to use Base64")
+                                If bolIsInitKey = True Then
+                                    Dim strIniKey As String = ""
+                                    Me.PigConsole.GetLine("Input InitKey", strIniKey)
+                                    Dim ptInitKey As New PigText(strIniKey, PigText.enmTextType.UTF8)
+                                    If bolIsBase64 = True Then
+                                        Console.WriteLine("MkEncKey(Base64InitKey As String, ByRef Base64EncKey As String)")
+                                        Me.Ret = oPigAes.MkEncKey(ptInitKey.Base64, Me.Base64EncKey)
+                                    Else
+                                        Console.WriteLine("MkEncKey(InitKey As Byte(), ByRef EncKey As Byte())")
+                                        Me.Ret = oPigAes.MkEncKey(ptInitKey.TextBytes, Me.BytesEncKey)
+                                    End If
+                                ElseIf bolIsBase64 = True Then
+                                    Console.WriteLine("MkEncKey(ByRef Base64EncKey As String)")
+                                    Me.Ret = oPigAes.MkEncKey(Me.Base64EncKey)
+                                Else
+                                    Console.WriteLine("MkEncKey(ByRef EncKey As Byte())")
+                                    Me.Ret = oPigAes.MkEncKey(Me.BytesEncKey)
+                                End If
+                                Console.WriteLine(Me.Ret)
+                                Me.PigConsole.GetLine("Input EncKey file path", Me.EncKeyFilePath)
+                                If bolIsBase64 = True Then
+                                    Console.WriteLine("SaveTextToFile")
+                                    Me.Ret = Me.PigFunc.SaveTextToFile(Me.EncKeyFilePath, Me.Base64EncKey)
+                                Else
+                                    Dim oPigFile As New PigFile(Me.EncKeyFilePath)
+                                    Console.WriteLine("SetData")
+                                    Me.Ret = oPigFile.SetData(Me.BytesEncKey)
+                                    Console.WriteLine(Me.Ret)
+                                    Console.WriteLine("SaveFile")
+                                    Me.Ret = oPigFile.SaveFile()
+                                End If
+                                Console.WriteLine(Me.Ret)
                             Case ConsoleKey.B
-                                Console.WriteLine("Inupt Base64EncKey:" & vbCrLf & Me.Base64EncKey)
-                                Me.Line = Console.ReadLine
-                                If Me.Line <> "" Then
-                                    Me.Base64EncKey = Me.Line
+                                Dim bolIsBase64 As Boolean = Me.PigConsole.IsYesOrNo("Whether to use Base64")
+                                Dim strEncKeyBase64 As String = "", abEncKey(0) As Byte
+                                Me.PigConsole.GetLine("Input EncKey file path", Me.EncKeyFilePath)
+                                If bolIsBase64 = True Then
+                                    Console.WriteLine("GetFileText(Base64EncKey)")
+                                    Me.PigFunc.GetFileText(Me.EncKeyFilePath, Me.Base64EncKey)
+                                    Console.WriteLine(Me.Ret)
+                                    Console.WriteLine("LoadEncKey")
+                                    Me.Ret = oPigAes.LoadEncKey(Me.Base64EncKey)
+                                Else
+                                    Dim oPigFile As New PigFile(Me.EncKeyFilePath)
+                                    Console.WriteLine("LoadFile")
+                                    Me.Ret = oPigFile.LoadFile
+                                    Console.WriteLine(Me.Ret)
+                                    If Me.Ret = "OK" Then
+                                        Console.WriteLine("LoadEncKey")
+                                        Me.Ret = oPigAes.LoadEncKey(oPigFile.GbMain.Main)
+                                    End If
                                 End If
-                                Me.Ret = oPigAes.LoadEncKey(Me.Base64EncKey)
-                                Console.WriteLine("LoadEncKey=" & Me.Ret)
+                                Console.WriteLine(Me.Ret)
                             Case ConsoleKey.C
-                                Console.WriteLine("Enter the string to encrypt:" & Me.SrcStr)
-                                Me.Line = Console.ReadLine
-                                If Me.Line <> "" Then
-                                    Me.SrcStr = Me.Line
-                                End If
-                                Dim oPigText As New PigText(Me.SrcStr, PigText.enmTextType.UTF8)
-                                Me.Ret = oPigAes.Encrypt(oPigText.TextBytes, Me.Base64EncStr)
-                                Console.WriteLine("Encrypt=" & Me.Ret)
-                                Console.WriteLine("Base64EncStr=" & vbCrLf & Me.Base64EncStr)
+                                Me.PigConsole.GetLine("Enter the string to encrypt", Me.SrcStr)
+                                Console.WriteLine("Encrypt(SrcString As String, ByRef EncBase64Str As String, Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8)")
+                                Me.Ret = oPigAes.Encrypt(Me.SrcStr, Me.Base64EncStr, PigText.enmTextType.UTF8)
+                                Console.WriteLine(Me.Ret)
+                                Console.WriteLine("Base64EncStr=" & Base64EncStr)
                             Case ConsoleKey.D
-                                Console.WriteLine("Enter the Base64EncStr:")
-                                Me.Line = Console.ReadLine
-                                If Me.Line <> "" Then
-                                    Me.Base64EncStr = Me.Line
-                                End If
-                                Me.SrcStr = ""
+                                Me.PigConsole.GetLine("Enter the Base64EncStr", Me.Base64EncStr)
+                                Console.WriteLine("Decrypt(EncBase64Str As String, ByRef UnEncStr As String, TextType As PigText.enmTextType)")
                                 Me.Ret = oPigAes.Decrypt(Me.Base64EncStr, Me.SrcStr, PigText.enmTextType.UTF8)
-                                Console.WriteLine("Decrypt=" & Me.Ret)
-                                Console.WriteLine("Decrypt string=" & vbCrLf & Me.SrcStr)
+                                Console.WriteLine(Me.Ret)
+                                Console.WriteLine("UnEncStr")
+                                Console.WriteLine(SrcStr)
+                            Case ConsoleKey.E
+                                Me.PigConsole.GetLine("Enter the source file path", Me.FilePath)
+                                Dim oPigFile As New PigFile(Me.FilePath)
+                                Console.WriteLine("LoadFile")
+                                Me.Ret = oPigFile.LoadFile
+                                Console.WriteLine(Me.Ret)
+                                Dim bolIsBase64 As Boolean = Me.PigConsole.IsYesOrNo("Whether to use Base64")
+                                If bolIsBase64 = True Then
+                                    Console.WriteLine("Encrypt(SrcBytes As Byte(), ByRef EncBase64Str As String)")
+                                    Me.Ret = oPigAes.Encrypt(oPigFile.GbMain.Main, Me.Base64EncStr)
+                                    Console.WriteLine(Me.Ret)
+                                    Console.WriteLine("Base64EncStr")
+                                    Console.WriteLine(Me.Base64EncStr)
+                                Else
+                                    Dim abEnc(0) As Byte
+                                    Console.WriteLine("Encrypt(SrcBytes As Byte(), ByRef EncBytes As Byte())")
+                                    Me.Ret = oPigAes.Encrypt(oPigFile.GbMain.Main, abEnc)
+                                    Console.WriteLine(Me.Ret)
+                                    If Me.Ret = "OK" Then
+                                        Me.PigConsole.GetLine("Enter the Encrypt file path", Me.FilePath2)
+                                        Dim oPigFile2 As New PigFile(Me.FilePath2)
+                                        Console.WriteLine("SetData")
+                                        Me.Ret = oPigFile2.SetData(abEnc)
+                                        Console.WriteLine(Me.Ret)
+                                        Console.WriteLine("SaveFile")
+                                        Me.Ret = oPigFile2.SaveFile()
+                                        Console.WriteLine(Me.Ret)
+                                    End If
+                                End If
+                            Case ConsoleKey.F
+                                Me.PigConsole.GetLine("Enter the encrypted file path", Me.FilePath2)
+                                Dim oPigFile2 As New PigFile(Me.FilePath2)
+                                Console.WriteLine("LoadFile")
+                                Me.Ret = oPigFile2.LoadFile
+                                Console.WriteLine(Me.Ret)
+                                Dim abUnEnc(0) As Byte
+                                Console.WriteLine("Decrypt(EncBytes As Byte(), ByRef UnEncBytes As Byte())")
+                                Me.Ret = oPigAes.Decrypt(oPigFile2.GbMain.Main, abUnEnc)
+                                Console.WriteLine(Me.Ret)
+                                Me.PigConsole.GetLine("Enter the decrypt file path", Me.FilePath)
+                                Dim oPigFile As New PigFile(Me.FilePath)
+                                Console.WriteLine("SetData")
+                                Me.Ret = oPigFile.SetData(abUnEnc)
+                                Console.WriteLine(Me.Ret)
+                                Console.WriteLine("SaveFile")
+                                Me.Ret = oPigFile.SaveFile()
+                                Console.WriteLine(Me.Ret)
                         End Select
                     Loop
                 Case ConsoleKey.I
@@ -868,13 +963,19 @@ Public Class ConsoleDemo
             Me.MenuDefinition2 = "LoadXmlDocumentByFile#Load XmlDocument by file|"
             Me.MenuDefinition2 &= "LoadXmlDocumentByXml#Load XmlDocument by xml string|"
             Me.MenuDefinition2 &= "GetXmlDocText#GetXmlDocText|"
+            Me.MenuDefinition2 &= "SetXmlDocValue#SetXmlDocValue|"
+            Me.MenuDefinition2 &= "ShowXmdDocMainStr#Show XmdDocMainStr|"
             Me.MenuDefinition2 &= "GetXmlDocAttribute#GetXmlDocAttribute|"
             Me.MenuDefinition2 &= "GetXmlDocNode#GetXmlDocNode|"
+            Me.MenuDefinition2 &= "GetXmlDocTextFromNode#GetXmlDocText(FromNode)|"
+            Me.MenuDefinition2 &= "GetXmlDocAttributeFromNode#GetXmlDocAttribute(FromNode)|"
             Me.MenuDefinition2 &= "XmlAddTest#XmlAdd test|"
             Me.PigConsole.SimpleMenu("PigXml", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey2
                 Case ""
                     Exit Do
+                Case "ShowXmdDocMainStr"
+                    Console.WriteLine("XmdDocMainStr=" & Me.PigXml.XmdDocMainStr)
                 Case "NewPigXml"
                     Dim bolIsCrLf As Boolean = Me.PigConsole.IsYesOrNo("Is need CrLf")
                     Me.PigXml = New PigXml(bolIsCrLf)
@@ -917,9 +1018,30 @@ Public Class ConsoleDemo
                     Me.PigConsole.GetLine("Input xml key", Me.XmlKey)
                     Me.PigConsole.GetLine("Input SkipTimes", Me.SkipTimes)
                     If IsNumeric(Me.SkipTimes) = False Or Me.SkipTimes <= 0 Then
+                        Console.WriteLine("IsXmlNodeExists(" & Me.XmlKey & ")=" & Me.PigXml.IsXmlNodeExists(Me.XmlKey))
                         Console.WriteLine(Me.XmlKey & "=" & Me.PigXml.GetXmlDocText(Me.XmlKey))
                     Else
+                        Console.WriteLine("IsXmlNodeExists(" & Me.XmlKey & ")=" & Me.PigXml.IsXmlNodeExists(Me.XmlKey, CInt(Me.SkipTimes)))
                         Console.WriteLine(Me.XmlKey & "=" & Me.PigXml.GetXmlDocText(Me.XmlKey, CInt(Me.SkipTimes)))
+                    End If
+                Case "SetXmlDocValue"
+                    Me.PigConsole.GetLine("Input xml key", Me.XmlKey)
+                    Me.PigConsole.GetLine("Input SkipTimes", Me.SkipTimes)
+                    Me.PigConsole.GetLine("Input Value", Me.TextValue)
+                    If IsNumeric(Me.SkipTimes) = False Or Me.SkipTimes <= 0 Then
+                        Console.WriteLine("Set String value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.TextValue))
+                        Console.WriteLine("Set Integer value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GEInt(Me.TextValue)))
+                        Console.WriteLine("Set Long value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GECLng(Me.TextValue)))
+                        Console.WriteLine("Set Date value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GECBool(Me.TextValue)))
+                        Console.WriteLine("Set CBool value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GECDate(Me.TextValue)))
+                        Console.WriteLine("Set Decimal value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GEDec(Me.TextValue)))
+                    Else
+                        Console.WriteLine("Set String value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.TextValue, CInt(Me.SkipTimes)))
+                        Console.WriteLine("Set Integer value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GEInt(Me.TextValue), CInt(Me.SkipTimes)))
+                        Console.WriteLine("Set Long value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GECLng(Me.TextValue), CInt(Me.SkipTimes)))
+                        Console.WriteLine("Set Date value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GECBool(Me.TextValue), CInt(Me.SkipTimes)))
+                        Console.WriteLine("Set CBool value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GECDate(Me.TextValue), CInt(Me.SkipTimes)))
+                        Console.WriteLine("Set Decimal value:" & Me.PigXml.SetXmlDocValue(Me.XmlKey, Me.PigFunc.GEDec(Me.TextValue), CInt(Me.SkipTimes)))
                     End If
                 Case "GetXmlDocAttribute"
                     Me.PigConsole.GetLine("Input xml key", Me.XmlKey)
@@ -928,6 +1050,28 @@ Public Class ConsoleDemo
                         Console.WriteLine(Me.XmlKey & "=" & Me.PigXml.GetXmlDocAttribute(Me.XmlKey))
                     Else
                         Console.WriteLine(Me.XmlKey & "=" & Me.PigXml.GetXmlDocAttribute(Me.XmlKey, CInt(Me.SkipTimes)))
+                    End If
+                Case "GetXmlDocTextFromNode"
+                    If Me.XmlNode Is Nothing Then
+                        Console.WriteLine("XmlNode Is Nothing")
+                    Else
+                        Me.PigConsole.GetLine("Input xml key", Me.XmlKey)
+                        Console.WriteLine("GetXmlDocText")
+                        Console.WriteLine(Me.PigXml.GetXmlDocText(Me.XmlKey, Me.XmlNode))
+                        If Me.PigXml.LastErr <> "" Then
+                            Console.WriteLine(Me.PigXml.LastErr)
+                        End If
+                    End If
+                Case "GetXmlDocAttributeFromNode"
+                    If Me.XmlNode Is Nothing Then
+                        Console.WriteLine("XmlNode Is Nothing")
+                    Else
+                        Me.PigConsole.GetLine("Input xml key", Me.XmlKey)
+                        Console.WriteLine("GetXmlDocAttribute")
+                        Console.WriteLine(Me.PigXml.GetXmlDocAttribute(Me.XmlKey, Me.XmlNode))
+                        If Me.PigXml.LastErr <> "" Then
+                            Console.WriteLine(Me.PigXml.LastErr)
+                        End If
                     End If
                 Case "GetXmlDocNode"
                     Me.PigConsole.GetLine("Input xml key", Me.XmlKey)
@@ -1360,6 +1504,11 @@ Public Class ConsoleDemo
                 Console.WriteLine("Size=" & .Size)
                 Console.WriteLine("MD5=" & .MD5)
                 Console.WriteLine("PigMD5=" & .PigMD5)
+                Dim strPigMD5 As String = ""
+                .GetFastPigMD5(strPigMD5)
+                Console.WriteLine("GetFastPigMD5=" & strPigMD5)
+                .GetFullPigMD5(strPigMD5)
+                Console.WriteLine("GetFullPigMD5=" & strPigMD5)
             End If
         End With
         If Me.PigConsole.IsYesOrNo("Is load file?") = True Then
@@ -1585,5 +1734,50 @@ Public Class ConsoleDemo
             Me.PigConsole.DisplayPause()
         Loop
     End Sub
+
+    Public Sub PigFSDemo()
+
+        Console.WriteLine("*******************")
+        Console.WriteLine("PigFileSystem Demo")
+        Console.WriteLine("*******************")
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition2 = ""
+            Me.MenuDefinition2 &= "GetPigFolder#GetPigFolder|"
+            Me.MenuDefinition2 &= "GetPigFile#GetPigFile|"
+            Me.PigConsole.SimpleMenu("PigFileSystem Demo", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Dim strData As String = ""
+            Select Case Me.MenuKey2
+                Case ""
+                    Exit Do
+                Case "GetPigFolder"
+                    Me.PigConsole.GetLine("Input folder path", Me.FolderPath)
+                    Me.PigFolder = Me.PigFS.GetPigFolder(Me.FolderPath)
+                    With Me.PigFolder
+                        Console.WriteLine("FolderName=" & .FolderName)
+                        Console.WriteLine("FolderPath=" & .FolderPath)
+                        Console.WriteLine("CreationTime=" & .CreationTime)
+                        Console.WriteLine("UpdateTime=" & .UpdateTime)
+                        Console.WriteLine("IsRootFolder=" & .IsRootFolder)
+                    End With
+                Case "GetPigFile"
+                    Me.PigConsole.GetLine("Input file path", Me.FilePath)
+                    Me.PigFile = Me.PigFS.GetPigFile(Me.FilePath)
+                    With Me.PigFile
+                        Console.WriteLine("FileTitle=" & .FileTitle)
+                        Console.WriteLine("FilePath=" & .FilePath)
+                        Console.WriteLine("CreationTime=" & .CreationTime)
+                        Console.WriteLine("UpdateTime=" & .UpdateTime)
+                    End With
+            End Select
+            If Me.Ret <> "OK" Then
+                Console.WriteLine(Me.Ret)
+            Else
+                Me.PigFunc.SaveTextToFile(Me.FilePath, strData)
+            End If
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
 
 End Class
