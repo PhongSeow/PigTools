@@ -92,7 +92,7 @@ Public Class PigFile
     ''' <summary>设置数据</summary>
     Public Overloads Function SetData(DataBytes As Byte()) As String
         Try
-            If Not Me.GbMain Is Nothing Then Me.GbMain = Nothing
+            If Me.GbMain IsNot Nothing Then Me.GbMain = Nothing
             Me.GbMain = New PigBytes(DataBytes)
             Return "OK"
         Catch ex As Exception
