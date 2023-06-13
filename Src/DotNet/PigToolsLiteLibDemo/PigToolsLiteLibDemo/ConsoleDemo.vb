@@ -1745,11 +1745,67 @@ Public Class ConsoleDemo
             Me.MenuDefinition2 = ""
             Me.MenuDefinition2 &= "GetPigFolder#GetPigFolder|"
             Me.MenuDefinition2 &= "GetPigFile#GetPigFile|"
+            Me.MenuDefinition2 &= "PigFolder_RefSubPigFolders#PigFolder.RefSubPigFolders|"
+            Me.MenuDefinition2 &= "PigFolder_RefPigFiles#PigFolder.RefPigFiles|"
+            Me.MenuDefinition2 &= "PigFolder_FindSubFolders#PigFolder.FindSubFolders|"
             Me.PigConsole.SimpleMenu("PigFileSystem Demo", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Dim strData As String = ""
             Select Case Me.MenuKey2
                 Case ""
                     Exit Do
+                Case "PigFolder_FindSubFolders"
+                    If Me.PigFolder Is Nothing Then
+                        Console.WriteLine("Me.PigFolder Is Nothing")
+                    Else
+                        Dim bolIsDeep As Boolean, oPigFolders As PigFolders = Nothing
+                        bolIsDeep = Me.PigConsole.IsYesOrNo("IsDeep")
+                        Console.WriteLine("FindSubFolders")
+                        Me.Ret = Me.PigFolder.FindSubFolders(bolIsDeep, oPigFolders)
+                        Console.WriteLine(Me.Ret)
+                        If oPigFolders IsNot Nothing Then
+                            For Each oPigFolder In oPigFolders
+                                With oPigFolder
+                                    Console.WriteLine("----------------------")
+                                    Console.WriteLine("FolderPath=" & .FolderPath)
+                                End With
+                            Next
+                        End If
+                    End If
+                Case "PigFolder_RefPigFiles"
+                    If Me.PigFolder Is Nothing Then
+                        Console.WriteLine("Me.PigFolder Is Nothing")
+                    Else
+                        Console.WriteLine("RefPigFiles")
+                        Me.Ret = Me.PigFolder.RefPigFiles
+                        Console.WriteLine(Me.Ret)
+                        For Each oPigFile In Me.PigFolder.PigFiles
+                            With oPigFile
+                                Console.WriteLine("----------------------")
+                                Console.WriteLine("FileTitle=" & .FileTitle)
+                                Console.WriteLine("FilePath=" & .FilePath)
+                                Console.WriteLine("CreationTime=" & .CreationTime)
+                                Console.WriteLine("UpdateTime=" & .UpdateTime)
+                            End With
+                        Next
+                    End If
+                Case "PigFolder_RefSubPigFolders"
+                    If Me.PigFolder Is Nothing Then
+                        Console.WriteLine("Me.PigFolder Is Nothing")
+                    Else
+                        Console.WriteLine("RefSubPigFolders")
+                        Me.Ret = Me.PigFolder.RefSubPigFolders
+                        Console.WriteLine(Me.Ret)
+                        For Each oPigFolder In Me.PigFolder.SubPigFolders
+                            With oPigFolder
+                                Console.WriteLine("----------------------")
+                                Console.WriteLine("FolderName=" & .FolderName)
+                                Console.WriteLine("FolderPath=" & .FolderPath)
+                                Console.WriteLine("CreationTime=" & .CreationTime)
+                                Console.WriteLine("UpdateTime=" & .UpdateTime)
+                                Console.WriteLine("IsRootFolder=" & .IsRootFolder)
+                            End With
+                        Next
+                    End If
                 Case "GetPigFolder"
                     Me.PigConsole.GetLine("Input folder path", Me.FolderPath)
                     Me.PigFolder = Me.PigFS.GetPigFolder(Me.FolderPath)
