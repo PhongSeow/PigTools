@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.12
+'* Version: 1.13
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -18,6 +18,7 @@
 '*1.10 17/1/2023  Modify GetCmdRetRows,GetWmicSimpleXml
 '*1.11 19/1/2023  Modify GetUUID,GetCmdRetRows
 '*1.12 20/1/2023  Modify GetUUID
+'*1.13 14/6/2023  Modify GetListenPortProcID
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -25,7 +26,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.12.8"
+    Private Const CLS_VERSION As String = "1.13.2"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -116,14 +117,14 @@ Public Class PigSysCmd
         Try
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
             With oPigCmdApp
-                .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
+                '.StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
                 If Me.IsWindows = True Then
                     strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr :" & ListenPort.ToString
                 Else
                     strCmd = "netstat -apn|grep tcp|grep LISTEN|grep :" & ListenPort.ToString
                 End If
                 LOG.StepName = "CmdShell"
-                LOG.Ret = .CmdShell(strCmd)
+                LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
                 If LOG.Ret <> "OK" Then
                     LOG.AddStepNameInf(strCmd)
                     Throw New Exception(LOG.Ret)
