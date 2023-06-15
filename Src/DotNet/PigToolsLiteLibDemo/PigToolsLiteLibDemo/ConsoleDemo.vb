@@ -33,6 +33,7 @@
 '* 1.26   2/4/2023  Remove reference to PigCmdLib
 '* 1.27   28/4/2023  Modify Aes code
 '* 1.28   11/6/2023  Add PigFSDemo
+'* 1.29   15/6/2023  Modify PigFSDemo
 '************************************
 Imports PigToolsLiteLib
 Imports System.Xml
@@ -120,6 +121,7 @@ Public Class ConsoleDemo
     Public InitStr As String
     Public EncKeyFilePath As String
     Public PigFS As New PigFileSystem
+    Public IsOverwrite As Boolean
 
     Public Sub Main()
         Dim o As New PigXml(False)
@@ -1745,6 +1747,8 @@ Public Class ConsoleDemo
             Me.MenuDefinition2 = ""
             Me.MenuDefinition2 &= "GetPigFolder#GetPigFolder|"
             Me.MenuDefinition2 &= "GetPigFile#GetPigFile|"
+            Me.MenuDefinition2 &= "CopyFile#CopyFile|"
+            Me.MenuDefinition2 &= "MoveFile#MoveFile|"
             Me.MenuDefinition2 &= "PigFolder_RefSubPigFolders#PigFolder.RefSubPigFolders|"
             Me.MenuDefinition2 &= "PigFolder_RefPigFiles#PigFolder.RefPigFiles|"
             Me.MenuDefinition2 &= "PigFolder_FindSubFolders#PigFolder.FindSubFolders|"
@@ -1753,6 +1757,20 @@ Public Class ConsoleDemo
             Select Case Me.MenuKey2
                 Case ""
                     Exit Do
+                Case "MoveFile"
+                    Me.PigConsole.GetLine("SourceFile=", Me.SrcFile)
+                    Me.PigConsole.GetLine("TargetFile=", Me.TarFile)
+                    Me.IsOverwrite = Me.PigConsole.IsYesOrNo("IsOverwrite=")
+                    Console.WriteLine("MoveFile")
+                    Me.Ret = Me.PigFS.MoveFile(Me.SrcFile, Me.TarFile, Me.IsOverwrite)
+                    Console.WriteLine(Me.Ret)
+                Case "CopyFile"
+                    Me.PigConsole.GetLine("SourceFile=", Me.SrcFile)
+                    Me.PigConsole.GetLine("TargetFile=", Me.TarFile)
+                    Me.IsOverwrite = Me.PigConsole.IsYesOrNo("IsOverwrite=")
+                    Console.WriteLine("CopyFile")
+                    Me.Ret = Me.PigFS.CopyFile(Me.SrcFile, Me.TarFile, Me.IsOverwrite)
+                    Console.WriteLine(Me.Ret)
                 Case "PigFolder_FindSubFolders"
                     If Me.PigFolder Is Nothing Then
                         Console.WriteLine("Me.PigFolder Is Nothing")
@@ -1826,11 +1844,11 @@ Public Class ConsoleDemo
                         Console.WriteLine("UpdateTime=" & .UpdateTime)
                     End With
             End Select
-            If Me.Ret <> "OK" Then
-                Console.WriteLine(Me.Ret)
-            Else
-                Me.PigFunc.SaveTextToFile(Me.FilePath, strData)
-            End If
+            'If Me.Ret <> "OK" Then
+            '    Console.WriteLine(Me.Ret)
+            'Else
+            '    Me.PigFunc.SaveTextToFile(Me.FilePath, strData)
+            'End If
             Me.PigConsole.DisplayPause()
         Loop
     End Sub
