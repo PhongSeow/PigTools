@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigConfigSession 的集合类|Collection class of PigConfigSession
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.7
 '* Create Time: 21/12/2021
 '* 1.1    23/12/2020   Add Parent, modify New,Add

@@ -3,14 +3,15 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigStepLog is for logging and error handling in the process.
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6.18
+'* Home Url: https://en.seowphong.com
+'* Version: 1.7.2
 '* Create Time: 8/12/2019
 '1.1    18/12/2021  Add TrackID,ErrInf2User, modify mNew,StepName
 '1.2    21/12/2021  Modify TrackID
 '1.3    10/2/2022  Add StepLogInf
 '1.5    30/8/2022  Modify New
 '1.6    8/12/2022  Modify mNew,StepName
+'1.7    1/6/2023  Modify ErrInf2User
 '************************************
 ''' <summary>
 ''' Error tracking processing class|错误跟踪处理类
@@ -34,15 +35,17 @@ Public Class PigStepLog
     Private moUseTime As UseTime
 
     ''' <summary>
-    ''' 显示给用户看的错误信息，不能显示内部错误内容。
+    ''' 显示给用户看的错误信息，不能显示内部错误内容。|The error message displayed to the user cannot display internal error content.
     ''' </summary>
     Private mstrErrInf2User As String
-    Public Property ErrInf2User As String
+    Public Property ErrInf2User(Optional IsTrackID As Boolean = True) As String
         Get
             If Me.TrackID = "" Then
                 Return mstrErrInf2User
-            Else
+            ElseIf IsTrackID = True Then
                 Return mstrErrInf2User & "(" & Me.TrackID & ")"
+            Else
+                Return mstrErrInf2User
             End If
         End Get
         Set(value As String)

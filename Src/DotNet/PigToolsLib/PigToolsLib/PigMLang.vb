@@ -4,7 +4,7 @@
 '''* Author: Seow Phong
 '''* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '''* Describe: A lightweight multi language processing class, As long as you refer to this class, you can implement multilingual processing|一个轻量的多语言处理类，只要引用本类就可以实现多语言处理。 
-'''* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'''* Home Url: https://en.seowphong.com
 '''* Version: 1.7
 '''* Create Time: 30/11/2020
 '''* 1.0.2  1/12/2020   Modify GetAllLangInf, Add GetMLangText

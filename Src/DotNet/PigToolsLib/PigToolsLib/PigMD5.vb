@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Standard MD5 treatment and personalized MD5 treatment.
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.0.4
 '* Create Time: 1/12/2018
 '1.0.2  增加小猪MD5，即取源串来的16位MD5加上源串的前128个字节（不足取源串长度）的16位MD5

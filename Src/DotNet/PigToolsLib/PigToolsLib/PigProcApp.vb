@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Process Processing Class|进程处理类
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.6
 '* Create Time: 20/3/2022
 '* 1.1    26/3/2022  Modify GetPigProc(PID), Add GetPigProcs

@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Registry Processing Class|注册表处理类
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.2
 '* Create Time: 5/11/2019
 '* 1.0.2  2019-11-7   修改BUG

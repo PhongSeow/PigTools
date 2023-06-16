@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Handle text conversion, MD5, Base64, etc.|处理文本转换，MD5，Base64等。
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.0.16
 '* Create Time: 1/9/2019
 '1.0.2  2019-9-2    增加 mNew(IsFromBase64)

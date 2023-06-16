@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.8
 '* Create Time: 4/11/2019
 '*1.0.2  2019-11-5   增加mSaveFile
@@ -92,7 +92,7 @@ Public Class PigFile
     ''' <summary>设置数据</summary>
     Public Overloads Function SetData(DataBytes As Byte()) As String
         Try
-            If Not Me.GbMain Is Nothing Then Me.GbMain = Nothing
+            If Me.GbMain IsNot Nothing Then Me.GbMain = Nothing
             Me.GbMain = New PigBytes(DataBytes)
             Return "OK"
         Catch ex As Exception

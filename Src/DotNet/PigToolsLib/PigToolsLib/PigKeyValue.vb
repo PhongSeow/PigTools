@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 豚豚键值|Pig key value
-'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Home Url: https://en.seowphong.com
 '* Version: 1.5
 '* Create Time: 3/8/2022
 '* 1.1		5/8/2022	Modify SortedList,mSaveKeyValue, add mSaveBodyToFile
