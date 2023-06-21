@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.51
+'* Version: 1.52
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -50,6 +50,7 @@
 '*1.39   12/4/2023  Add SQLCDate
 '*1.50   26/4/2023  Add IsFileDiff
 '*1.51   28/4/2023  Modify GetWindowsProductId
+'*1.52   21/6/2023  Add IsDeviationTime,IsTimeout
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -2076,5 +2077,45 @@ Public Class PigFunc
     Public Overloads Sub ClearErr()
         MyBase.ClearErr()
     End Sub
+
+    ''' <summary>
+    ''' Deviation from reference time|是否偏离参考时间
+    ''' </summary>
+    ''' <param name="ReferenceTime">Reference time|参考时间</param>
+    ''' <param name="TimeCount">Time Count|时间计数</param>
+    ''' <param name="DateInterval">Date Interval|日期间隔</param>
+    ''' <returns></returns>
+    Public Function IsDeviationTime(ReferenceTime As Date, TimeCount As Integer, Optional DateInterval As DateInterval = DateInterval.Minute) As Boolean
+        Try
+            If Math.Abs(DateDiff(DateInterval, ReferenceTime, Now)) > TimeCount Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsDeviationTime", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Timed out or not|是否超时
+    ''' </summary>
+    ''' <param name="BeginTime">Begin time|开始时间</param>
+    ''' <param name="TimeCount">Time Count|时间计数</param>
+    ''' <param name="DateInterval">Date Interval|日期间隔</param>
+    ''' <returns></returns>
+    Public Function IsTimeout(BeginTime As Date, TimeCount As Integer, Optional DateInterval As DateInterval = DateInterval.Minute) As Boolean
+        Try
+            If DateDiff(DateInterval, BeginTime, Now) > TimeCount Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsTimeout", ex)
+            Return Nothing
+        End Try
+    End Function
 
 End Class
