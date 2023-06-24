@@ -5,7 +5,7 @@
 '''* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '''* Describe: A lightweight multi language processing class, As long as you refer to this class, you can implement multilingual processing|一个轻量的多语言处理类，只要引用本类就可以实现多语言处理。 
 '''* Home Url: https://en.seowphong.com
-'''* Version: 1.7
+'''* Version: 1.8
 '''* Create Time: 30/11/2020
 '''* 1.0.2  1/12/2020   Modify GetAllLangInf, Add GetMLangText
 '''* 1.0.3  1/12/2020   Modify mInitCultureSortList
@@ -23,6 +23,7 @@
 '''* 1.5 19/10/2022     Add MLangTextCnt
 '''* 1.6 31/10/2022     Modify mGetMLangText
 '''* 1.7 18/1/2022     Modify MkMLangText
+'''* 1.8 24/6/2023     Modify PigFileSystem
 '''************************************
 ''' </summary>
 Imports System.Globalization
@@ -34,10 +35,10 @@ Imports System.IO
 ''' </summary>
 Public Class PigMLang
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.7.2"
+    Private Const CLS_VERSION As String = "1.8.2"
 
     Private ReadOnly Property mPigFunc As New PigFunc
-    Private ReadOnly Property mFS As New mFileSystemObject
+    Private ReadOnly Property mFS As New PigFileSystem
 
     ''' <summary>
     ''' 获取数据格式
@@ -926,9 +927,9 @@ Public Class PigMLang
             End If
             If Me.mPigFunc.IsFileExists(Me.CurrMLangFile) = False Then Throw New Exception("MLangFile" & Me.CurrMLangFile & " not found")
             mslMLangText = New SortedList
-            Dim tsMain As mTextStream
+            Dim tsMain As TextStream
             LOG.StepName = "OpenTextFile"
-            tsMain = Me.mFS.OpenTextFile(Me.CurrMLangFile, mFileSystemObject.IOMode.ForReading)
+            tsMain = Me.mFS.OpenTextFile(Me.CurrMLangFile, PigFileSystem.IOMode.ForReading)
             If Me.mFS.LastErr <> "" Then Throw New Exception(Me.mFS.LastErr)
             Dim strObjName As String = "", strNewObjName As String, strKey As String, strMLangText As String
             Do While Not tsMain.AtEndOfStream

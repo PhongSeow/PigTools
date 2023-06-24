@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.11
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add GetJavaVersion 
 '*1.2  6/3/2022   Add WlstPath 
@@ -16,17 +16,17 @@
 '*1.8  29/7/2022 Modify Imports
 '*1.9  7/9/2022  Add RunOpatch
 '*1.10 28/9/2022 Modify StartOrStopTimeout
+'*1.11 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
-Imports PigObjFsLib
 
 ''' <summary>
 ''' WebLogic Processing Class|WebLogic处理类
 ''' </summary>
 Public Class WebLogicApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.10.8"
+    Private Const CLS_VERSION As String = "1.11.2"
     Public ReadOnly Property HomeDirPath As String
     Public ReadOnly Property WorkTmpDirPath As String
     Public ReadOnly Property CallWlstTimeout As Integer = 300
@@ -35,7 +35,7 @@ Public Class WebLogicApp
     Public Property WebLogicDomains As WebLogicDomains
 
     Private WithEvents mPigCmdApp As New PigCmdApp
-    Private mFS As New FileSystemObject
+    Private mFS As New PigFileSystem
     Private mPigFunc As New PigFunc
 
     Private mGetJavaVersionThreadID As Integer

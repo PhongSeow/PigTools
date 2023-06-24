@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.30
+'* Version: 1.31
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -36,10 +36,10 @@
 '*1.28  7/2/2023 Add GetDomainEnvInf,mGetFileKeyValue
 '*1.29  28/2/2023 Add WebLogicDeploys
 '*1.30  11/5/2023 Resolve initialization date issue.
+'*1.31 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
-Imports PigObjFsLib
 Imports System.Runtime.InteropServices.ComTypes
 
 
@@ -48,11 +48,11 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.30.2"
+    Private Const CLS_VERSION As String = "1.31.2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
-    Private mFS As New FileSystemObject
+    Private mFS As New PigFileSystem
     Private mPigFunc As New PigFunc
     Private mPigProcApp As New PigProcApp
 
@@ -555,7 +555,7 @@ Public Class WebLogicDomain
                 End If
             End If
             LOG.StepName = "OpenTextFile"
-            Dim tsMain As TextStream = Me.mFS.OpenTextFile(Me.SecurityBootPath, FileSystemObject.IOMode.ForWriting, True)
+            Dim tsMain As TextStream = Me.mFS.OpenTextFile(Me.SecurityBootPath, PigFileSystem.IOMode.ForWriting, True)
             If Me.mFS.LastErr <> "" Then
                 LOG.AddStepNameInf(Me.SecurityBootPath)
                 Throw New Exception(LOG.Ret)
@@ -856,7 +856,7 @@ Public Class WebLogicDomain
                 LOG.StepName = "Set CallWlstPyPath"
                 .CallWlstPyPath = Me.fParent.WorkTmpDirPath & Me.OsPathSep & Me.mPigFunc.GetPKeyValue(Me.DomainName, False) ' & ".py"
                 LOG.StepName = "OpenTextFile"
-                tsMain = Me.mFS.OpenTextFile(.CallWlstPyPath, FileSystemObject.IOMode.ForWriting, True)
+                tsMain = Me.mFS.OpenTextFile(.CallWlstPyPath, PigFileSystem.IOMode.ForWriting, True)
                 If Me.mFS.LastErr <> "" Then
                     LOG.AddStepNameInf(.CallWlstPyPath)
                     Throw New Exception(Me.mFS.LastErr)
@@ -1443,7 +1443,7 @@ Public Class WebLogicDomain
         Dim LOG As New PigStepLog("GetDomainEnvInf")
         Try
             LOG.StepName = "OpenTextFile"
-            Dim tsMain As TextStream = Me.mFS.OpenTextFile(Me.setDomainEnvPath, FileSystemObject.IOMode.ForReading)
+            Dim tsMain As TextStream = Me.mFS.OpenTextFile(Me.setDomainEnvPath, PigFileSystem.IOMode.ForReading)
             If tsMain Is Nothing Then
                 LOG.AddStepNameInf(Me.setDomainEnvPath)
                 Throw New Exception("tsMain Is Nothing")

@@ -4,21 +4,20 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Reference Scripting.TextStream through ActiveX
 '* Home Url: https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 13/3/2022
 '* 1.1 13/3/2021   Modify New
+'* 1.2 24/6/2023   Modify Obj
 '**********************************
-Friend Class mTextStreamAsc
+Public Class TextStreamAsc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1.2.1"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
     End Sub
 
-#If NETFRAMEWORK Then
-    Friend Obj As Object
-
+    Friend Property Obj As Object
 
 
     Public Sub Close()
@@ -85,7 +84,5 @@ Friend Class mTextStreamAsc
             Me.SetSubErrInf("WriteLine", ex)
         End Try
     End Sub
-
-#End If
 
 End Class
