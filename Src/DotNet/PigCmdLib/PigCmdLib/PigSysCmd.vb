@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.13
+'* Version: 1.15
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -19,6 +19,7 @@
 '*1.11 19/1/2023  Modify GetUUID,GetCmdRetRows
 '*1.12 20/1/2023  Modify GetUUID
 '*1.13 14/6/2023  Modify GetListenPortProcID
+'*1.15 25/6/2023  Modify GetListenPortProcID,GetWmicSimpleXml,GetOSCaption,GetBootUpTime,GetCmdRetRows,GetProcListenPortList
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -26,7 +27,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.13.2"
+    Private Const CLS_VERSION As String = "1.15.6"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -47,14 +48,13 @@ Public Class PigSysCmd
         Try
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
             With oPigCmdApp
-                .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
                 If Me.IsWindows = True Then
                     strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr " & PID.ToString
                 Else
                     strCmd = "netstat -apn|grep tcp|grep LISTEN|grep " & PID.ToString
                 End If
                 LOG.StepName = "CmdShell"
-                LOG.Ret = .CmdShell(strCmd)
+                LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
                 If LOG.Ret <> "OK" Then
                     LOG.AddStepNameInf(strCmd)
                     Throw New Exception(LOG.Ret)
@@ -117,7 +117,6 @@ Public Class PigSysCmd
         Try
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
             With oPigCmdApp
-                '.StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
                 If Me.IsWindows = True Then
                     strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr :" & ListenPort.ToString
                 Else
@@ -200,9 +199,8 @@ Public Class PigSysCmd
             Dim oPigCmdApp As New PigCmdApp, intTotalRows As Integer = 0, bolIsNewRow As Boolean = False
             Dim oPigXml As New PigXml(IsCrLf)
             With oPigCmdApp
-                .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
                 LOG.StepName = "CmdShell"
-                LOG.Ret = .CmdShell(WmicCmd)
+                LOG.Ret = .CmdShell(WmicCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
                 If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
                 OutXml = ""
                 bolIsNewRow = False
@@ -254,14 +252,13 @@ Public Class PigSysCmd
         Try
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
             With oPigCmdApp
-                .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
                 If Me.IsWindows = True Then
                     strCmd = "wmic os get Caption"
                 Else
                     strCmd = "cat /etc/os-release|grep ""PRETTY_NAME="""
                 End If
                 LOG.StepName = "CmdShell"
-                LOG.Ret = .CmdShell(strCmd)
+                LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
                 If LOG.Ret <> "OK" Then
                     LOG.AddStepNameInf(strCmd)
                     Throw New Exception(LOG.Ret)
@@ -320,10 +317,9 @@ Public Class PigSysCmd
             If Me.IsWindows = False Then
                 Dim oPigCmdApp As New PigCmdApp, strCmd As String
                 With oPigCmdApp
-                    .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
                     strCmd = "last boot"
                     LOG.StepName = "CmdShell"
-                    LOG.Ret = .CmdShell(strCmd)
+                    LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
                     If LOG.Ret <> "OK" Then
                         LOG.AddStepNameInf(strCmd)
                         Throw New Exception(LOG.Ret)
@@ -384,9 +380,8 @@ Public Class PigSysCmd
         Try
             Dim oPigCmdApp As New PigCmdApp
             With oPigCmdApp
-                .StandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.StringArray
                 LOG.StepName = "CmdShell"
-                LOG.Ret = .CmdShell(Cmd)
+                LOG.Ret = .CmdShell(Cmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
                 If LOG.Ret <> "OK" Then
                     LOG.AddStepNameInf(Cmd)
                     Throw New Exception(LOG.Ret)
