@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.52
+'* Version: 1.53
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -51,6 +51,7 @@
 '*1.50   26/4/2023  Add IsFileDiff
 '*1.51   28/4/2023  Modify GetWindowsProductId
 '*1.52   21/6/2023  Add IsDeviationTime,IsTimeout
+'*1.53   23/7/2023  Add IsNewVersion
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -64,7 +65,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.51.2"
+    Private Const CLS_VERSION As String = "1.53.2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -2115,6 +2116,62 @@ Public Class PigFunc
         Catch ex As Exception
             Me.SetSubErrInf("IsTimeout", ex)
             Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Detect if there is a new version|检测是否新版本
+    ''' </summary>
+    ''' <param name="OldVersion">Older version|旧版本</param>
+    ''' <param name="LatestVersion">Latest version|新版本</param>
+    ''' <returns></returns>
+    Public Function IsNewVersion(OldVersion As String, LatestVersion As String, Optional ByRef Ret As String = "OK") As Boolean
+        Try
+            If InStr(OldVersion, ".") = 0 Or Right(OldVersion, 1) = "." Then Throw New Exception("Invalid version information(OldVersion)")
+            If InStr(LatestVersion, ".") = 0 Or Right(LatestVersion, 1) = "." Then Throw New Exception("Invalid version information(LatestVersion)")
+            Dim strOldVersion As String = "", strLatestVersion As String = ""
+            OldVersion &= "."
+            Do While True
+                Dim strPart As String = Me.GetStr(OldVersion, "", ".")
+                If strPart = "" Then Exit Do
+                strPart = Right("0000000000" & strPart, 10)
+                If strOldVersion = "" Then
+                    strOldVersion = strPart
+                Else
+                    strOldVersion &= "." & strPart
+                End If
+            Loop
+            OldVersion &= "."
+            Do While True
+                Dim strPart As String = Me.GetStr(OldVersion, "", ".")
+                If strPart = "" Then Exit Do
+                strPart = Right("0000000000" & strPart, 10)
+                If strOldVersion = "" Then
+                    strOldVersion = strPart
+                Else
+                    strOldVersion &= "." & strPart
+                End If
+            Loop
+            LatestVersion &= "."
+            Do While True
+                Dim strPart As String = Me.GetStr(LatestVersion, "", ".")
+                If strPart = "" Then Exit Do
+                strPart = Right("0000000000" & strPart, 10)
+                If strLatestVersion = "" Then
+                    strLatestVersion = strPart
+                Else
+                    strLatestVersion &= "." & strPart
+                End If
+            Loop
+            If strLatestVersion > strOldVersion Then
+                Return True
+            Else
+                Return False
+            End If
+            Ret = "OK"
+        Catch ex As Exception
+            Ret = Me.GetSubErrInf("IsNewVersion", ex)
+            Return False
         End Try
     End Function
 

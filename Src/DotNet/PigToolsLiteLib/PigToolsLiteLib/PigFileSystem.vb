@@ -14,7 +14,7 @@ Imports System.IO
 
 Public Class PigFileSystem
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.2"
+    Private Const CLS_VERSION As String = "1.3.6"
 
     Public Enum IOMode
         ForAppending = 8
@@ -99,7 +99,7 @@ Public Class PigFileSystem
     ''' <param name="IsOverWrite">Overwrite or not|是否覆盖</param>
     ''' <returns></returns>
     Public Function CopyFile(SourceFile As String, TargetFile As String, Optional IsOverwrite As Boolean = True) As String
-        Dim LOG As New PigStepLog("MoveFile")
+        Dim LOG As New PigStepLog("CopyFile")
         Try
             If SourceFile = TargetFile Then Throw New Exception("Cannot copy file itself.")
             If IsOverwrite = False Then
