@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.15
+'* Version: 1.16
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -20,6 +20,7 @@
 '*1.12 20/1/2023  Modify GetUUID
 '*1.13 14/6/2023  Modify GetListenPortProcID
 '*1.15 25/6/2023  Modify GetListenPortProcID,GetWmicSimpleXml,GetOSCaption,GetBootUpTime,GetCmdRetRows,GetProcListenPortList
+'*1.16 23/7/2023  Modify GetBootUpTime
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -27,7 +28,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.15.6"
+    Private Const CLS_VERSION As String = "1.16.6"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -317,32 +318,17 @@ Public Class PigSysCmd
             If Me.IsWindows = False Then
                 Dim oPigCmdApp As New PigCmdApp, strCmd As String
                 With oPigCmdApp
-                    strCmd = "last boot"
+                    strCmd = "cat /proc/uptime|awk '{print $1}'"
                     LOG.StepName = "CmdShell"
-                    LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+                    LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
                     If LOG.Ret <> "OK" Then
                         LOG.AddStepNameInf(strCmd)
                         Throw New Exception(LOG.Ret)
                     End If
-                    strOutBootUpTime = ""
-                    For i = 0 To .StandardOutputArray.Length - 1
-                        Dim strLine As String = Trim(.StandardOutputArray(i))
-                        Select Case strLine
-                            Case ""
-                            Case Else
-                                If Left(strLine, 12) = "wtmp begins " Then
-                                    'wtmp begins Thu Feb 24 10:17:56 2022
-                                    strOutBootUpTime = Me.mPigFunc.GetStr(strLine, "wtmp begins ", " ")
-                                    strOutBootUpTime = Right(strLine, 4) & " " & Me.mPigFunc.GetStr(strLine, "", " ")
-                                    strOutBootUpTime &= " " & Me.mPigFunc.GetStr(strLine, "", " ")
-                                    strOutBootUpTime &= " " & Me.mPigFunc.GetStr(strLine, "", " ")
-                                    Exit For
-                                End If
-                        End Select
-                    Next
-                    If strOutBootUpTime = "" Then Throw New Exception("Can not get BootUpTime.")
-                    LOG.StepName = "CDate(" & strOutBootUpTime & ")"
-                    OutBootUpTime = CDate(strOutBootUpTime)
+                    strOutBootUpTime = oPigCmdApp.StandardOutput
+                    If IsNumeric(strOutBootUpTime) = False Then Throw New Exception("Can not get BootUpTime.")
+                    LOG.StepName = "DateAdd(" & strOutBootUpTime & ")"
+                    OutBootUpTime = DateAdd(DateInterval.Second, 0 - CLng(strOutBootUpTime), Now)
                 End With
             Else
                 LOG.StepName = "GetWmicSimpleXml"
