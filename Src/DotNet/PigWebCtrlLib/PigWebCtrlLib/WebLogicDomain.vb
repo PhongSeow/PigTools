@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.31
+'* Version: 1.32
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -37,6 +37,7 @@
 '*1.29  28/2/2023 Add WebLogicDeploys
 '*1.30  11/5/2023 Resolve initialization date issue.
 '*1.31 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
+'*1.32 1/8/2023  Modify RefConf
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -48,7 +49,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.31.2"
+    Private Const CLS_VERSION As String = "1.32.8"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -1128,19 +1129,14 @@ Public Class WebLogicDomain
                     intSkipTimes = 0
                     Me.WebLogicDeploys.Clear()
                     Do While True
-                        Dim strLine As String = oPigXml.GetXmlDocText("domain.app-deployment.name", intSkipTimes)
-                        If strLine = "" Then Exit Do
-                        With Me.WebLogicDeploys.AddOrGet(strLine, Me)
-                            strLine = oPigXml.GetXmlDocText("domain.app-deployment.module-type", intSkipTimes)
-                            Select Case strLine
-                                Case "war"
-                                    .ModuleType = WebLogicDeploy.EnmModuleType.War
-                                Case "dir"
-                                    .ModuleType = WebLogicDeploy.EnmModuleType.Dir
-                                Case Else
-                                    .ModuleType = WebLogicDeploy.EnmModuleType.War
-                            End Select
-                            .SourcePath = oPigXml.GetXmlDocText("domain.app-deployment.source-path", intSkipTimes)
+                        Dim oXmlNode As Xml.XmlNode = oPigXml.GetXmlDocNode("domain.app-deployment", intSkipTimes)
+                        If oXmlNode Is Nothing Then Exit Do
+                        Dim strDeployName As String = oPigXml.XmlDocGetStr(oXmlNode, "name")
+                        Dim intModuleType As WebLogicDeploy.EnmModuleType = oPigXml.XmlDocGetInt(oXmlNode, "module-type")
+                        Dim strSourcePath As String = oPigXml.XmlDocGetStr(oXmlNode, "source-path")
+                        With Me.WebLogicDeploys.AddOrGet(strDeployName, Me)
+                            .ModuleType = intModuleType
+                            .SourcePath = strSourcePath
                         End With
                         intSkipTimes += 1
                     Loop

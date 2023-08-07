@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.13
+'* Version: 1.15
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -19,6 +19,7 @@
 '*1.11 29/7/2022  Modify Imports
 '*1.12 22/5/2023  Add Nohup,Sudo
 '*1.13 5/6/2023   Modify EnmStandardOutputReadType,CmdShell,CallFile,AsyncCallFile,AsyncCmdShell,mCallFile
+'*1.15 7/8/2023   Add CallFileWaitForExit
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -28,7 +29,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.13.8"
+    Private Const CLS_VERSION As String = "1.15.2"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -561,6 +562,34 @@ Public Class PigCmdApp
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Call a file and wait for return|调用一个文件并等待返回
+    ''' </summary>
+    ''' <param name="FilePath">Path to execute file|执行文件的路径</param>
+    ''' <returns></returns>
+    Public Function CallFileWaitForExit(FilePath As String) As String
+        Dim LOG As New PigStepLog("CallFileWaitForExit")
+        Try
+            If Me.mPigFunc.IsFileExists(FilePath) = False Then Throw New Exception("The execution file does not exist.")
+            LOG.StepName = "New ProcessStartInfo"
+            Dim oProcessStartInfo As ProcessStartInfo
+            oProcessStartInfo = New ProcessStartInfo(FilePath)
+            With oProcessStartInfo
+                .UseShellExecute = False
+            End With
+            Dim oProcess As New Process
+            LOG.StepName = "Start and WaitForExit"
+            oProcess.StartInfo = oProcessStartInfo
+            oProcess.Start()
+            oProcess.WaitForExit()
+            oProcess = Nothing
+            oProcessStartInfo = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
