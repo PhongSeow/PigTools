@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.16
+'* Version: 1.17
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -21,6 +21,7 @@
 '*1.13 14/6/2023  Modify GetListenPortProcID
 '*1.15 25/6/2023  Modify GetListenPortProcID,GetWmicSimpleXml,GetOSCaption,GetBootUpTime,GetCmdRetRows,GetProcListenPortList
 '*1.16 23/7/2023  Modify GetBootUpTime
+'*1.17 16/8/2023  Add ReBootHost
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -28,7 +29,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.16.6"
+    Private Const CLS_VERSION As String = "1.17.2"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -386,5 +387,39 @@ Public Class PigSysCmd
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+
+    ''' <summary>
+    ''' Restart the host|重启主机
+    ''' </summary>
+    ''' <returns></returns>
+    Public Function ReBootHost() As String
+        Dim LOG As New PigStepLog("ReBootHost")
+        Dim strCmd As String = ""
+        Try
+            Dim oPigCmdApp As New PigCmdApp
+            If Me.IsWindows = True Then
+                strCmd = "shutdown /r /t 10"
+                LOG.StepName = "CmdShell"
+                LOG.Ret = oPigCmdApp.CmdShell(strCmd)
+            Else
+                strCmd = "/usr/sbin/reboot"
+                LOG.StepName = "CallFile"
+                LOG.Ret = oPigCmdApp.CallFile(strCmd, "", PigCmdApp.EnmStandardOutputReadType.FullString)
+            End If
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            If oPigCmdApp.StandardError <> "" Then
+                LOG.AddStepNameInf(oPigCmdApp.StandardOutput)
+                LOG.Ret = oPigCmdApp.StandardError
+                Throw New Exception(LOG.Ret)
+            End If
+            oPigCmdApp = Nothing
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(strCmd)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
 End Class

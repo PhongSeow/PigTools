@@ -68,10 +68,19 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "CallFile#CallFile|"
             Me.MenuDefinition &= "CmdShell#CmdShell|"
             Me.MenuDefinition &= "GetParentProc#GetParentProc|"
+            Me.MenuDefinition &= "CallFileWaitForExit#CallFileWaitForExit|"
             Me.PigConsole.SimpleMenu("PigCmdAppDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "CallFileWaitForExit"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("CallFileWaitForExit")
+                    Console.WriteLine("*******************")
+                    Me.PigConsole.GetLine("Input exec file path", Me.CmdOrFilePath)
+                    Console.WriteLine("CallFileWaitForExit" & "->" & Me.CmdOrFilePath)
+                    Me.Ret = Me.PigCmdApp.CallFileWaitForExit(Me.CmdOrFilePath)
+                    Console.WriteLine(Me.Ret)
                 Case "HideShell"
                     Console.WriteLine("*******************")
                     Console.WriteLine("HideShell")
@@ -171,10 +180,16 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "GetUUID#GetUUID|"
             Me.MenuDefinition &= "GetBootUpTime#GetBootUpTime|"
             Me.MenuDefinition &= "GetWmicSimpleXml#GetWmicSimpleXml|"
+            Me.MenuDefinition &= "ReBootHost#ReBootHost|"
             Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "ReBootHost"
+                    If Me.PigConsole.IsYesOrNo("Is reboot host now?") = True Then
+                        Me.Ret = Me.PigSysCmd.ReBootHost
+                        Console.WriteLine(Me.Ret)
+                    End If
                 Case "GetUUID"
                     Console.WriteLine("*******************")
                     Console.WriteLine("GetUUID")
