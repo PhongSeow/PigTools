@@ -4,10 +4,11 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: CPU information class|CPU信息类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 1/16/2023
 '* 1.1  1/19/2023  Modify Model,Processors,CPUCores
 '* 1.2  1/20/2023  Add TotalProcessors
+'* 1.3  18/8/2023  Add HostCpuUseRate,RefCpuActInf
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -15,7 +16,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigCPU
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.2.6"
+    Private Const CLS_VERSION As String = "1.3.8"
 
     Public ReadOnly Property Parent As PigHost
 
@@ -23,6 +24,17 @@ Public Class PigCPU
         MyBase.New(CLS_VERSION)
         Me.Parent = Parent
     End Sub
+
+    Private mHostCpuUseRate As Decimal
+    Public Property HostCpuUseRate As Decimal
+        Get
+            Return mHostCpuUseRate
+        End Get
+        Friend Set(value As Decimal)
+            mHostCpuUseRate = value
+        End Set
+    End Property
+
 
     ''' <summary>
     ''' CPU model|CPU型号
@@ -34,9 +46,9 @@ Public Class PigCPU
             Try
                 If mModel = "" Then
                     If Me.IsWindows = True Then
-                        strRet = Me.Parent.GetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.WmicGetAll)
+                        strRet = Me.Parent.fGetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.WmicGetAll)
                     Else
-                        strRet = Me.Parent.GetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.Model)
+                        strRet = Me.Parent.fGetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.Model)
                     End If
                     If strRet <> "OK" Then Throw New Exception(strRet)
                 End If
@@ -61,9 +73,9 @@ Public Class PigCPU
             Try
                 If mCPUs <= 0 Then
                     If Me.IsWindows = True Then
-                        strRet = Me.Parent.GetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.WmicGetAll)
+                        strRet = Me.Parent.fGetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.WmicGetAll)
                     Else
-                        strRet = Me.Parent.GetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.CPUs)
+                        strRet = Me.Parent.fGetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.CPUs)
                     End If
                     If strRet <> "OK" Then Throw New Exception(strRet)
                 End If
@@ -88,9 +100,9 @@ Public Class PigCPU
             Try
                 If mCPUCores <= 0 Then
                     If Me.IsWindows = True Then
-                        strRet = Me.Parent.GetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.WmicGetAll)
+                        strRet = Me.Parent.fGetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.WmicGetAll)
                     Else
-                        strRet = Me.Parent.GetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.CPUCores)
+                        strRet = Me.Parent.fGetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.CPUCores)
                     End If
                     If strRet <> "OK" Then Throw New Exception(strRet)
                 End If
@@ -126,9 +138,9 @@ Public Class PigCPU
             Try
                 If mProcessors <= 0 Then
                     If Me.IsWindows = True Then
-                        strRet = Me.Parent.GetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.WmicGetAll)
+                        strRet = Me.Parent.fGetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.WmicGetAll)
                     Else
-                        strRet = Me.Parent.GetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.Processors)
+                        strRet = Me.Parent.fGetCPUBaseInf(Me, PigHost.EnmGetCPUBaseWhat.Processors)
                     End If
                     If strRet <> "OK" Then Throw New Exception(strRet)
                 End If
@@ -142,5 +154,80 @@ Public Class PigCPU
             mProcessors = value
         End Set
     End Property
+
+    Public Function RefCpuActInf() As String
+        Return Me.Parent.fRefCpuActInf(Me)
+    End Function
+
+    '''' <summary>
+    '''' Obtain the current host CPU usage rate|获取当前主机CPU使用率
+    '''' </summary>
+    '''' <returns></returns>
+    'Public Function GetHostCpuUseRate() As Decimal
+    '    Dim LOG As New PigStepLog("GetHostCpuUseRate")
+    '    Dim strCmd As String = ""
+    '    Try
+    '        If Me.IsWindows = True Then
+    '            Dim pxMain As PigXml = Nothing
+    '            strCmd = "cpu get loadpercentage"
+    '            LOG.StepName = "GetWmicSimpleXml"
+    '            LOG.Ret = Me.mPigSysCmd.GetWmicSimpleXml(strCmd, pxMain)
+    '            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+    '            GetHostCpuUseRate = pxMain.XmlDocGetDec("Root.LoadPercentage") / 100
+    '        Else
+    '            strCmd = "top -b -n 1|grep %Cpu|awk '{print $4}'"
+    '            LOG.StepName = "CmdShell"
+    '            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+    '            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+    '            If Me.mPigCmdApp.StandardError <> "" Then
+    '                LOG.AddStepNameInf(Me.mPigCmdApp.StandardOutput)
+    '                LOG.Ret = Me.mPigCmdApp.StandardError
+    '                Throw New Exception(LOG.Ret)
+    '            End If
+    '            GetHostCpuUseRate = Me.mPigFunc.GEDec(Me.mPigCmdApp.StandardOutput) / 100
+    '        End If
+    '        Return "OK"
+    '    Catch ex As Exception
+    '        GetHostCpuUseRate = -1
+    '        LOG.AddStepNameInf(strCmd)
+    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+    '    End Try
+    'End Function
+
+    '''' <summary>
+    '''' Obtain the current host memory usage rate|获取当前主机内存使用率
+    '''' </summary>
+    '''' <returns></returns>
+    'Public Function GetHostMemUseRate() As Decimal
+    '    Dim LOG As New PigStepLog("GetHostMemUseRate")
+    '    Dim strCmd As String = ""
+    '    Try
+    '        If Me.IsWindows = True Then
+    '            Dim pxMain As PigXml = Nothing, decTotalMem As Decimal = 0, deFreeMem As Decimal = 0
+    '            strCmd = "os get freephysicalmemory,MaxProcessMemorySize,TotalVisibleMemorySize"
+    '            LOG.StepName = "GetWmicSimpleXml"
+    '            LOG.Ret = Me.mPigSysCmd.GetWmicSimpleXml(strCmd, pxMain)
+    '            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+    '            deFreeMem = pxMain.XmlDocGetDec("Root.MaxProcessMemorySize")
+    '            decTotalMem = pxMain.XmlDocGetDec("Root.MaxProcessMemorySize")
+    '        Else
+    '            strCmd = "top -b -n 1|grep %Cpu|awk '{print $4}'"
+    '            LOG.StepName = "CmdShell"
+    '            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+    '            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+    '            If Me.mPigCmdApp.StandardError <> "" Then
+    '                LOG.AddStepNameInf(Me.mPigCmdApp.StandardOutput)
+    '                LOG.Ret = Me.mPigCmdApp.StandardError
+    '                Throw New Exception(LOG.Ret)
+    '            End If
+    '            GetHostMemUseRate = Me.mPigFunc.GEDec(Me.mPigCmdApp.StandardOutput) / 100
+    '        End If
+    '        Return "OK"
+    '    Catch ex As Exception
+    '        GetHostMemUseRate = -1
+    '        LOG.AddStepNameInf(strCmd)
+    '        Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+    '    End Try
+    'End Function
 
 End Class

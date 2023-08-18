@@ -9,13 +9,12 @@
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
-Imports PigObjFsLib
 ''' <summary>
 ''' WebLogic deployment application class|WebLogic部署应用类
 ''' </summary>
 Public Class WebLogicDeploy
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.0.8"
+    Private Const CLS_VERSION As String = "1.0.10"
 
     Public Enum EnmModuleType
         War = 0

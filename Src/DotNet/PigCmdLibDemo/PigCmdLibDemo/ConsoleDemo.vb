@@ -408,10 +408,22 @@ Public Class ConsoleDemo
             Console.Clear()
             Me.MenuDefinition = ""
             Me.MenuDefinition &= "DisplayProperties#Display Properties|"
+            Me.MenuDefinition &= "DisplayActInf#Display Activities|"
             Me.PigConsole.SimpleMenu("PigHostDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "DisplayActInf"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("Display Activities")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    With Me.PigHost
+                        '--------
+                        Me.Ret = Me.PigHost.CPU.RefCpuActInf()
+                        If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
+                        Console.WriteLine("CPU.HostCpuUseRate=" & .CPU.HostCpuUseRate)
+                    End With
                 Case "DisplayProperties"
                     Console.WriteLine("*******************")
                     Console.WriteLine("Display Properties")

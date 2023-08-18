@@ -4,11 +4,12 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Host class|主机类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 1/16/2023
 '* 1.1  1/18/2023  Modify GetCPUBaseInf,New
 '* 1.2  1/19/2023  Modify GetCPUBaseInf,New
 '* 1.3  1/20/2023  Modify New
+'* 1.5  18/8/2023  Add fRefCpuActInf
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -16,7 +17,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigHost
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.3.2"
+    Private Const CLS_VERSION As String = "1.5.2"
 
     Friend Enum EnmGetCPUBaseWhat
         Model = 0
@@ -35,6 +36,8 @@ Public Class PigHost
     Public ReadOnly Property OSCaption As String
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigSysCmd As New PigSysCmd
+    Private ReadOnly Property mPigCmdApp As New PigCmdApp
+
 
     Public Sub New(Optional HostID As String = "")
         MyBase.New(CLS_VERSION)
@@ -69,9 +72,40 @@ Public Class PigHost
         End Try
     End Sub
 
+    Friend Function fRefCpuActInf(ByRef InPigCPU As PigCPU) As String
+        Dim LOG As New PigStepLog("fGetCPUBaseInf")
+        Dim strCmd As String = ""
+        Try
+            If Me.IsWindows = True Then
+                Dim pxMain As PigXml = Nothing
+                strCmd = "cpu get loadpercentage"
+                LOG.StepName = "GetWmicSimpleXml"
+                LOG.Ret = Me.mPigSysCmd.GetWmicSimpleXml(strCmd, pxMain)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                InPigCPU.HostCpuUseRate = pxMain.XmlDocGetDec("WmicXml.Row1.LoadPercentage") / 100
+            Else
+                strCmd = "top -b -n 1|grep %Cpu|awk '{print $4}'"
+                LOG.StepName = "CmdShell"
+                LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                If Me.mPigCmdApp.StandardError <> "" Then
+                    LOG.AddStepNameInf(Me.mPigCmdApp.StandardOutput)
+                    LOG.Ret = Me.mPigCmdApp.StandardError
+                    Throw New Exception(LOG.Ret)
+                End If
+                InPigCPU.HostCpuUseRate = Me.mPigFunc.GEDec(Me.mPigCmdApp.StandardOutput) / 100
+            End If
+            Return "OK"
+        Catch ex As Exception
+            InPigCPU.HostCpuUseRate = -1
+            LOG.AddStepNameInf(strCmd)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
-    Friend Function GetCPUBaseInf(ByRef InPigCPU As PigCPU, GetCPUBaseWhat As EnmGetCPUBaseWhat) As String
-        Dim LOG As New PigStepLog("GetCPUBaseInf")
+
+    Friend Function fGetCPUBaseInf(ByRef InPigCPU As PigCPU, GetCPUBaseWhat As EnmGetCPUBaseWhat) As String
+        Dim LOG As New PigStepLog("fGetCPUBaseInf")
         Try
             If InPigCPU Is Nothing Then Throw New Exception("InPigCPU is Nothing")
             Dim strRetContent As String = ""
