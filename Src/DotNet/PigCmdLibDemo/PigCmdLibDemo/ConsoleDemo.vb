@@ -68,6 +68,7 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "CallFile#CallFile|"
             Me.MenuDefinition &= "CmdShell#CmdShell|"
             Me.MenuDefinition &= "GetParentProc#GetParentProc|"
+            Me.MenuDefinition &= "GetSubProcs#GetSubProcs|"
             Me.MenuDefinition &= "CallFileWaitForExit#CallFileWaitForExit|"
             Me.PigConsole.SimpleMenu("PigCmdAppDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
@@ -143,11 +144,36 @@ Public Class ConsoleDemo
                             End If
                         End If
                     End If
+                Case "GetSubProcs"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("GetSubProcs")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    Me.PigConsole.GetLine("Input PID", Me.PID)
+                    If IsNumeric(Me.PID) = False Then
+                        Console.WriteLine("PID is not Numeric")
+                    Else
+                        Dim oSubPigProcs As PigProcs = PigCmdApp.GetSubProcs(Me.PID)
+                        If PigCmdApp.LastErr <> "" Then
+                            Console.WriteLine(PigCmdApp.LastErr)
+                        Else
+                            For Each oPigProc As PigProc In oSubPigProcs
+                                With oPigProc
+                                    Console.WriteLine("ProcessID=" & .ProcessID)
+                                    Console.WriteLine("ProcessName=" & .ProcessName)
+                                    Console.WriteLine("FilePath=" & .FilePath)
+                                    Console.WriteLine("TotalProcessorTime=" & .TotalProcessorTime.ToString)
+                                    Console.WriteLine("UserProcessorTime=" & .UserProcessorTime.ToString)
+                                    Console.WriteLine("MemoryUse=" & Me.PigFunc.GetHumanSize(.MemoryUse))
+                                    Console.WriteLine("StartTime=" & .StartTime.ToString)
+                                End With
+                            Next
+                        End If
+                    End If
                 Case "GetParentProc"
                     Console.WriteLine("*******************")
                     Console.WriteLine("GetParentProc")
                     Console.WriteLine("*******************")
-                    Console.WriteLine("Cmd=" & Me.Cmd)
                     Console.CursorVisible = True
                     Me.PigConsole.GetLine("Input PID", Me.PID)
                     If IsNumeric(Me.PID) = False Then

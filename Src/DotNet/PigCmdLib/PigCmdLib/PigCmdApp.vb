@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.15
+'* Version: 1.16
 '* Create Time: 15/1/2022
 '*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
 '*1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -20,6 +20,7 @@
 '*1.12 22/5/2023  Add Nohup,Sudo
 '*1.13 5/6/2023   Modify EnmStandardOutputReadType,CmdShell,CallFile,AsyncCallFile,AsyncCmdShell,mCallFile
 '*1.15 7/8/2023   Add CallFileWaitForExit
+'*1.16 23/8/2023  Modify GetSubProcs,GetParentProc
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -29,7 +30,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.15.2"
+    Private Const CLS_VERSION As String = "1.16.6"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -461,9 +462,8 @@ Public Class PigCmdApp
             Else
                 strCmd = "ps -ef|awk '{if($2==""" & PID.ToString & """) print $3}'"
             End If
-            Me.StandardOutputReadType = EnmStandardOutputReadType.StringArray
             LOG.StepName = "CmdShell"
-            LOG.Ret = Me.CmdShell(strCmd)
+            LOG.Ret = Me.CmdShell(strCmd, EnmStandardOutputReadType.StringArray)
             If LOG.Ret <> "OK" Then
                 LOG.AddStepNameInf(strCmd)
                 Throw New Exception(LOG.Ret)
@@ -537,9 +537,8 @@ Public Class PigCmdApp
             Else
                 strCmd = "ps -ef|awk '{if($3==""" & PID.ToString & """) print $2}'"
             End If
-            Me.StandardOutputReadType = EnmStandardOutputReadType.StringArray
             LOG.StepName = "CmdShell"
-            LOG.Ret = Me.CmdShell(strCmd)
+            LOG.Ret = Me.CmdShell(strCmd, EnmStandardOutputReadType.StringArray)
             If LOG.Ret <> "OK" Then
                 LOG.AddStepNameInf(strCmd)
                 Throw New Exception(LOG.Ret)
