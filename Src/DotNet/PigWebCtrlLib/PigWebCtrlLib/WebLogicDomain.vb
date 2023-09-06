@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.32
+'* Version: 1.33
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -38,6 +38,7 @@
 '*1.30  11/5/2023 Resolve initialization date issue.
 '*1.31 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
 '*1.32 1/8/2023  Modify RefConf
+'*1.33 5/9/2023  Modify EnmDomainRunStatus,mIsRunBusy,HardStopDomain,StopDomain,RefRunStatus
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -198,6 +199,10 @@ Public Class WebLogicDomain
         ''' 执行WLST成功|WLST executed successfully
         ''' </summary>
         ExecWLSTOK = 5
+        ''' <summary>
+        ''' 启动部分就绪|Successfully started part
+        ''' </summary>
+        StartPartReady = 6
     End Enum
 
 
@@ -608,7 +613,7 @@ Public Class WebLogicDomain
     Private ReadOnly Property mIsRunBusy As Boolean
         Get
             Select Case Me.RunStatus
-                Case EnmDomainRunStatus.ExecutingWLST, EnmDomainRunStatus.Starting, EnmDomainRunStatus.Stopping
+                Case EnmDomainRunStatus.ExecutingWLST, EnmDomainRunStatus.Starting, EnmDomainRunStatus.Stopping, EnmDomainRunStatus.StartPartReady
                     Return True
                 Case Else
                     Return False
@@ -646,7 +651,12 @@ Public Class WebLogicDomain
                 Throw New Exception("File not found.")
             End If
 
-            If Me.RunStatus = EnmDomainRunStatus.Running Then Throw New Exception("Domain instance is already running")
+            Select Case Me.RunStatus
+                Case EnmDomainRunStatus.Running
+                    Throw New Exception("Domain instance is already running")
+                Case EnmDomainRunStatus.StartPartReady
+                    Throw New Exception("Domain instance is successfully started part")
+            End Select
 
             If Me.mIsFolderExists(Me.LogDirPath) = False Then
                 LOG.StepName = "CreateFolder"
@@ -718,7 +728,11 @@ Public Class WebLogicDomain
                 Throw New Exception("File not found.")
             End If
 
-            If Me.RunStatus <> EnmDomainRunStatus.Running Then Throw New Exception("Domain instance is not running")
+            Select Case Me.RunStatus
+                Case EnmDomainRunStatus.Running, EnmDomainRunStatus.StartPartReady
+                Case Else
+                    Throw New Exception("Domain instance is not running or successfully started part")
+            End Select
 
             If Me.mIsFolderExists(Me.LogDirPath) = False Then
                 LOG.StepName = "CreateFolder"
@@ -768,7 +782,11 @@ Public Class WebLogicDomain
                 Throw New Exception("File not found.")
             End If
 
-            If Me.RunStatus <> EnmDomainRunStatus.Running Then Throw New Exception("Domain instance is not running")
+            Select Case Me.RunStatus
+                Case EnmDomainRunStatus.Running, EnmDomainRunStatus.StartPartReady
+                Case Else
+                    Throw New Exception("Domain instance is not running or successfully started part")
+            End Select
 
             If Me.mIsFolderExists(Me.LogDirPath) = False Then
                 LOG.StepName = "CreateFolder"
@@ -778,17 +796,24 @@ Public Class WebLogicDomain
                     Throw New Exception(LOG.Ret)
                 End If
             End If
-            LOG.StepName = "AsyncCmdShell"
             Dim strCmd As String
             If Me.IsWindows = True Then
                 strCmd = "call " & Me.stopWebLogicPath
             Else
-                strCmd = "nohup " & Me.stopWebLogicPath
+                strCmd = Me.stopWebLogicPath
             End If
             Me.fParent.PrintDebugLog(LOG.SubName, LOG.StepName, strCmd)
             Me.RunStatus = EnmDomainRunStatus.Stopping
             Me.mStopDomainBeginTime = Now
-            LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mStopDomainThreadID)
+            If Me.IsWindows = True Then
+                LOG.StepName = "AsyncCmdShell"
+                LOG.Ret = Me.mPigCmdApp.AsyncCmdShell(strCmd, Me.mStopDomainThreadID)
+            Else
+                Dim oPigNohup As New PigNohup(strCmd)
+                LOG.StepName = "Run"
+                LOG.Ret = oPigNohup.Run()
+            End If
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Me.StopDomainRes = ""
             Return "OK"
         Catch ex As Exception
@@ -1202,11 +1227,11 @@ Public Class WebLogicDomain
                                     End If
                                 Case Else
                                     Dim intPID As Integer
-                                    LOG.StepName = "GetListenPortProcID"
+                                    LOG.StepName = "GetListenPortProcID.ListenPort"
                                     LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.ListenPort, intPID)
                                     If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
                                     If intPID >= 0 Then
-                                        LOG.StepName = "GetPigProc"
+                                        LOG.StepName = "GetPigProc.ListenPort"
                                         Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
                                         If Me.mPigProcApp.LastErr <> "" Then
                                             Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
@@ -1221,8 +1246,34 @@ Public Class WebLogicDomain
                                                 Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
                                             End If
                                         End If
-                                    ElseIf Me.RunStatus = EnmDomainRunStatus.Starting Then
-                                        If Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                    ElseIf Me.RunStatus = EnmDomainRunStatus.Starting Or Me.RunStatus = EnmDomainRunStatus.StartPartReady Then
+                                        If Me.AdminPort > 0 Then
+                                            LOG.StepName = "GetListenPortProcID.AdminPort"
+                                            LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.AdminPort, intPID)
+                                            If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
+                                            If intPID >= 0 Then
+                                                LOG.StepName = "GetPigProc.AdminPort"
+                                                Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
+                                                If Me.mPigProcApp.LastErr <> "" Then
+                                                    Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
+                                                Else
+                                                    If UCase(oPigProc.ProcessName) = "JAVA" Then
+                                                        Me.RunStatus = EnmDomainRunStatus.StartPartReady
+                                                        Me.JavaPID = oPigProc.ProcessID
+                                                        Me.JavaStartTime = oPigProc.StartTime
+                                                        Me.JavaCpuTime = oPigProc.UserProcessorTime
+                                                        Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
+                                                    Else
+                                                        Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
+                                                    End If
+                                                End If
+                                            ElseIf Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                                Me.RunStatus = EnmDomainRunStatus.StartFail
+                                                Me.StartDomainRes = "Start domain timeout."
+                                                'ElseIf Me.RunStatus = EnmDomainRunStatus.StartPartReady Then
+                                                '    Me.RunStatus = EnmDomainRunStatus.Stopped
+                                            End If
+                                        ElseIf Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
                                             Me.RunStatus = EnmDomainRunStatus.StartFail
                                             Me.StartDomainRes = "Start domain timeout."
                                         End If
@@ -1232,12 +1283,14 @@ Public Class WebLogicDomain
                             End Select
                     End Select
             End Select
-            If Me.RunStatus <> EnmDomainRunStatus.Running Then
-                Me.JavaPID = -1
-                Me.JavaStartTime = TEMP_DATE
-                Me.JavaCpuTime = TimeSpan.Zero
-                Me.JavaMemoryUse = 0
-            End If
+            Select Case Me.RunStatus
+                Case EnmDomainRunStatus.Running, EnmDomainRunStatus.StartPartReady
+                Case Else
+                    Me.JavaPID = -1
+                    Me.JavaStartTime = TEMP_DATE
+                    Me.JavaCpuTime = TimeSpan.Zero
+                    Me.JavaMemoryUse = 0
+            End Select
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)

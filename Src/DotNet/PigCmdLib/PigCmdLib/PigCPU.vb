@@ -5,9 +5,9 @@
 '* Describe: CPU information class|CPU信息类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.3
-'* Create Time: 1/16/2023
-'* 1.1  1/19/2023  Modify Model,Processors,CPUCores
-'* 1.2  1/20/2023  Add TotalProcessors
+'* Create Time: 16/1/2023
+'* 1.1  19/1/2023  Modify Model,Processors,CPUCores
+'* 1.2  10/1/2023  Add TotalProcessors
 '* 1.3  18/8/2023  Add HostCpuUseRate,RefCpuActInf
 '**********************************
 Imports PigToolsLiteLib
