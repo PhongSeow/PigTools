@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v7.0": {
-      "PigWebCtrlLib/2.1.98": {
+      "PigWebCtrlLib/2.1.100": {
         "dependencies": {
           "PigCmdLib": "2.2.88"
         },
@@ -36,7 +36,7 @@
     }
   },
   "libraries": {
-    "PigWebCtrlLib/2.1.98": {
+    "PigWebCtrlLib/2.1.100": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

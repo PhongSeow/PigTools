@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.33
+'* Version: 1.35
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -39,6 +39,7 @@
 '*1.31 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
 '*1.32 1/8/2023  Modify RefConf
 '*1.33 5/9/2023  Modify EnmDomainRunStatus,mIsRunBusy,HardStopDomain,StopDomain,RefRunStatus
+'*1.35 7/9/2023  Modify mIsRunBusy,RefRunStatus
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -50,7 +51,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.32.8"
+    Private Const CLS_VERSION As String = "1.35.6"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -613,7 +614,7 @@ Public Class WebLogicDomain
     Private ReadOnly Property mIsRunBusy As Boolean
         Get
             Select Case Me.RunStatus
-                Case EnmDomainRunStatus.ExecutingWLST, EnmDomainRunStatus.Starting, EnmDomainRunStatus.Stopping, EnmDomainRunStatus.StartPartReady
+                Case EnmDomainRunStatus.ExecutingWLST, EnmDomainRunStatus.Starting, EnmDomainRunStatus.Stopping
                     Return True
                 Case Else
                     Return False
@@ -1246,39 +1247,57 @@ Public Class WebLogicDomain
                                                 Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
                                             End If
                                         End If
-                                    ElseIf Me.RunStatus = EnmDomainRunStatus.Starting Or Me.RunStatus = EnmDomainRunStatus.StartPartReady Then
-                                        If Me.AdminPort > 0 Then
-                                            LOG.StepName = "GetListenPortProcID.AdminPort"
-                                            LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.AdminPort, intPID)
-                                            If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
-                                            If intPID >= 0 Then
-                                                LOG.StepName = "GetPigProc.AdminPort"
-                                                Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
-                                                If Me.mPigProcApp.LastErr <> "" Then
-                                                    Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
+                                    ElseIf Me.AdminPort > 0 Then
+                                        LOG.StepName = "GetListenPortProcID.AdminPort"
+                                        LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.AdminPort, intPID)
+                                        If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
+                                        If intPID >= 0 Then
+                                            LOG.StepName = "GetPigProc.AdminPort"
+                                            Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
+                                            If Me.mPigProcApp.LastErr <> "" Then
+                                                Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
+                                            Else
+                                                If UCase(oPigProc.ProcessName) = "JAVA" Then
+                                                    Me.RunStatus = EnmDomainRunStatus.StartPartReady
+                                                    Me.JavaPID = oPigProc.ProcessID
+                                                    Me.JavaStartTime = oPigProc.StartTime
+                                                    Me.JavaCpuTime = oPigProc.UserProcessorTime
+                                                    Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
                                                 Else
-                                                    If UCase(oPigProc.ProcessName) = "JAVA" Then
-                                                        Me.RunStatus = EnmDomainRunStatus.StartPartReady
-                                                        Me.JavaPID = oPigProc.ProcessID
-                                                        Me.JavaStartTime = oPigProc.StartTime
-                                                        Me.JavaCpuTime = oPigProc.UserProcessorTime
-                                                        Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
-                                                    Else
-                                                        Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
-                                                    End If
+                                                    Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
                                                 End If
-                                            ElseIf Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
-                                                Me.RunStatus = EnmDomainRunStatus.StartFail
-                                                Me.StartDomainRes = "Start domain timeout."
-                                                'ElseIf Me.RunStatus = EnmDomainRunStatus.StartPartReady Then
-                                                '    Me.RunStatus = EnmDomainRunStatus.Stopped
                                             End If
-                                        ElseIf Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
-                                            Me.RunStatus = EnmDomainRunStatus.StartFail
-                                            Me.StartDomainRes = "Start domain timeout."
+                                        Else
+                                            Select Case Me.RunStatus
+                                                Case EnmDomainRunStatus.Starting, EnmDomainRunStatus.StartPartReady
+                                                    If Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                                        Me.RunStatus = EnmDomainRunStatus.StartFail
+                                                        Me.StartDomainRes = "Start domain timeout."
+                                                    End If
+                                                Case EnmDomainRunStatus.Stopping
+                                                    If Math.Abs(DateDiff(DateInterval.Second, Me.mStopDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                                        Me.RunStatus = EnmDomainRunStatus.StopFail
+                                                        Me.StartDomainRes = "Stop domain timeout."
+                                                    End If
+                                                Case Else
+                                                    Me.RunStatus = EnmDomainRunStatus.Stopped
+                                            End Select
                                         End If
                                     Else
-                                        Me.RunStatus = EnmDomainRunStatus.Stopped
+                                        Select Case Me.RunStatus
+                                            Case EnmDomainRunStatus.Starting, EnmDomainRunStatus.StartPartReady
+                                                If Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                                    Me.RunStatus = EnmDomainRunStatus.StartFail
+                                                    Me.StartDomainRes = "Start domain timeout."
+                                                End If
+                                            Case EnmDomainRunStatus.Stopping
+                                                If Math.Abs(DateDiff(DateInterval.Second, Me.mStopDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                                    Me.RunStatus = EnmDomainRunStatus.StopFail
+                                                    Me.StartDomainRes = "Stop domain timeout."
+                                                End If
+                                            Case Else
+                                                Me.RunStatus = EnmDomainRunStatus.Stopped
+                                        End Select
                                     End If
                             End Select
                     End Select
