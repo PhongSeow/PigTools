@@ -7,5 +7,6 @@ Simplify process calls, command line read and write operations, host operating s
  - Asynchronous processing.
  - Wmic calls and operating system commands.
  - Get host hardware and software information.
+ - Processing Services.
  - It can run on Windows and Linux platforms.
  - [View demo ](https://www.nuget.org/packages/PigCmdLibDemo/)
