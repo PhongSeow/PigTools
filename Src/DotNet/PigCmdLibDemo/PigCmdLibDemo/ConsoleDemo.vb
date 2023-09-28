@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 2.6.2
+'* Version: 2.7.6
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -24,6 +24,7 @@
 '* 2.3  22/5/2023  Modify PigCmdAppDemo
 '* 2.5  23/5/2023  Add PigSudo
 '* 2.6  5/6/2023  Modify PigCmdAppDemo
+'* 2.7  16/9/2023  Add PigService
 '************************************
 
 Imports PigCmdLib
@@ -59,6 +60,13 @@ Public Class ConsoleDemo
     Public IsBackRun As Boolean
     Public StandardOutputReadType As PigCmdApp.EnmStandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.FullString
     Public WithEvents PigSudo As PigSudo
+    Public PigService As PigService
+    Public ServiceName As String
+    Public DisplayName As String
+    Public PathName As String
+    Public StartUser As String
+    Public StartUserPwd As String
+    Public StartMode As PigService.EnmStartMode
 
     Public Sub PigCmdAppDemo()
         Me.PigCmdApp.SetDebug(Me.PigFunc.GetMyExePath & ".log")
@@ -304,8 +312,11 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "PigHostDemo#PigHost Demo|"
             Me.MenuDefinition &= "PigSudo#PigSudo|"
             Me.MenuDefinition &= "PigNohup#PigNohup|"
+            Me.MenuDefinition &= "PigService#PigService|"
             Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
             Select Case Me.MenuKey
+                Case "PigService"
+                    Me.PigSrvcieDemo()
                 Case "PigSudo"
                     Console.WriteLine("*******************")
                     Console.WriteLine("PigSudo")
@@ -423,6 +434,92 @@ Public Class ConsoleDemo
                         Console.Write("Line is :")
                         Console.WriteLine(Me.Line)
                     End If
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
+    Public Sub PigSrvcieDemo()
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition = ""
+            Me.MenuDefinition &= "New#New|"
+            Me.MenuDefinition &= "Refresh#Refresh and display|"
+            Me.MenuDefinition &= "Create#Create|"
+            Me.MenuDefinition &= "Delete#Delete|"
+            Me.MenuDefinition &= "StartService#StartService|"
+            Me.MenuDefinition &= "StopService#StopService|"
+            Me.PigConsole.SimpleMenu("PigHostDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Select Case Me.MenuKey
+                Case ""
+                    Exit Do
+                Case "New"
+                    Me.PigConsole.GetLine("Input Service Name", Me.ServiceName)
+                    Me.PigService = New PigService(Me.ServiceName)
+                    If Me.PigService.LastErr <> "" Then Console.WriteLine(Me.PigService.LastErr)
+                Case "StopService"
+                    Me.Ret = Me.PigService.StopService
+                    Console.WriteLine(Me.Ret)
+                Case "StartService"
+                    Me.Ret = Me.PigService.StartService
+                    Console.WriteLine(Me.Ret)
+                Case "Delete"
+                    Me.Ret = Me.PigService.Delete
+                    Console.WriteLine(Me.Ret)
+                Case "Create"
+                    Me.PigConsole.GetLine("Input DisplayName", Me.DisplayName)
+                    Me.PigConsole.GetLine("Input PathName", Me.PathName)
+                    Dim intStartMode As PigService.EnmStartMode
+                    Me.SelectDefinition = ""
+                    intStartMode = PigService.EnmStartMode.Automatic : Me.SelectDefinition &= intStartMode & "#" & intStartMode.ToString & "|"
+                    intStartMode = PigService.EnmStartMode.Manual : Me.SelectDefinition &= intStartMode & "#" & intStartMode.ToString & "|"
+                    intStartMode = PigService.EnmStartMode.Disabled : Me.SelectDefinition &= intStartMode & "#" & intStartMode.ToString & "|"
+                    Me.PigConsole.SelectControl("Select StartMode", Me.SelectDefinition, Me.SelectKey, True)
+                    intStartMode = CInt(Me.SelectKey)
+                    If Me.PigConsole.IsYesOrNo("Is set StartUser") = True Then
+                        Me.PigConsole.GetLine("Input StartUser", Me.StartUser)
+                        Me.StartUserPwd = Me.PigConsole.GetPwdStr("Input StartUser password")
+                        Me.Ret = Me.PigService.Create(Me.DisplayName, Me.PathName, intStartMode, Me.StartUser, Me.StartUserPwd)
+                    Else
+                        Me.Ret = Me.PigService.Create(Me.DisplayName, Me.PathName, intStartMode)
+                    End If
+                    Console.WriteLine(Me.Ret)
+                Case "Refresh"
+                    If Me.PigService Is Nothing Then
+                        Console.WriteLine("PigService not new")
+                    Else
+                        Console.WriteLine("Refresh")
+                        Me.Ret = Me.PigService.Refresh()
+                        Console.WriteLine(Me.Ret)
+                        If Me.Ret = "OK" Then
+                            With Me.PigService
+                                Console.WriteLine("ServiceName=" & .ServiceName)
+                                Console.WriteLine("DisplayName=" & .DisplayName)
+                                Console.WriteLine("PathName=" & .PathName)
+                                Console.WriteLine("StartMode=" & .StartMode.ToString)
+                                Console.WriteLine("Description=" & .Description)
+                                Console.WriteLine("StartUser=" & .StartUser)
+                                Console.WriteLine("ServiceState=" & .ServiceState.ToString)
+                                Console.WriteLine("ProcessId=" & .ProcessId)
+                            End With
+                        End If
+                    End If
+                Case "DisplayProperties"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("Display Properties")
+                    Console.WriteLine("*******************")
+                    Console.CursorVisible = True
+                    With Me.PigHost
+                        Console.WriteLine("HostID=" & .HostID)
+                        Console.WriteLine("HostName=" & .HostName)
+                        Console.WriteLine("UUID=" & .UUID)
+                        Console.WriteLine("OSCaption=" & .OSCaption)
+                        '--------
+                        Console.WriteLine("CPU.Model=" & .CPU.Model)
+                        Console.WriteLine("CPU.CPUs=" & .CPU.CPUs)
+                        Console.WriteLine("CPU.CPUCores=" & .CPU.CPUCores)
+                        Console.WriteLine("CPU.Processors=" & .CPU.Processors)
+                    End With
             End Select
             Me.PigConsole.DisplayPause()
         Loop

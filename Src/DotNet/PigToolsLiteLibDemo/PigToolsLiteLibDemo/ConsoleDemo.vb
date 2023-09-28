@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.28.10
+'* Version: 1.30.2
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -34,6 +34,7 @@
 '* 1.27   28/4/2023  Modify Aes code
 '* 1.28   11/6/2023  Add PigFSDemo
 '* 1.29   15/6/2023  Modify PigFSDemo
+'* 1.30   28/9/2023  Modify MkStr2Func
 '************************************
 Imports PigToolsLiteLib
 Imports System.Xml
@@ -122,6 +123,10 @@ Public Class ConsoleDemo
     Public EncKeyFilePath As String
     Public PigFS As New PigFileSystem
     Public IsOverwrite As Boolean
+    Public OldVersion As String
+    Public LatestVersion As String
+    Public ToFuncStr As String
+    Public FuncStr As String
 
     Public Sub Main()
         Dim o As New PigXml(False)
@@ -1162,6 +1167,7 @@ Public Class ConsoleDemo
             Console.Clear()
             Me.MenuDefinition2 = "MkCollectionClass#MkCollectionClass|"
             Me.MenuDefinition2 &= "MkBytes2Func#MkBytes2Func|"
+            Me.MenuDefinition2 &= "MkStr2Func#MkStr2Func|"
             Me.PigConsole.SimpleMenu("PigVBCodeDemo", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Dim strData As String = ""
             Select Case Me.MenuKey2
@@ -1172,14 +1178,20 @@ Public Class ConsoleDemo
                     Me.PigConsole.GetLine("Input Member Class KeyName", Me.KeyName）
                     Me.Ret = Me.PigVBCode.MkCollectionClass(strData, Me.ClassName, Me.KeyName)
                 Case "MkBytes2Func"
+                    Me.PigConsole.GetLine("Enter a string to convert to a function", Me.ToFuncStr)
+                    Dim ptAny As New PigText(Me.ToFuncStr, PigText.enmTextType.UTF8)
                     Console.WriteLine("MkBytes2Func")
-                    Dim abIn As Byte() = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}, strFuncCode As String = ""
-                    Me.Ret = Me.PigVBCode.MkBytes2Func(abIn, "TestMkBytes2Func", strFuncCode)
-                    Console.WriteLine(strFuncCode)
-                    Console.WriteLine("MkBytes2Func")
-                    Me.PigConsole.GetLine("Input string", Me.Line)
-                    Me.Ret = Me.PigVBCode.MkStr2Func(Me.Line, PigText.enmTextType.UTF8, "TestMkStr2Func", strFuncCode)
-                    Console.WriteLine(strFuncCode)
+                    Me.Ret = Me.PigVBCode.MkBytes2Func(ptAny.TextBytes, "TestMkBytes2Func", Me.FuncStr)
+                    Console.WriteLine(Me.Ret)
+                    Console.WriteLine("FuncStr")
+                    Console.WriteLine(Me.FuncStr)
+                Case "MkStr2Func"
+                    Me.PigConsole.GetLine("Enter a string to convert to a function", Me.ToFuncStr)
+                    Console.WriteLine("MkStr2Func")
+                    Me.Ret = Me.PigVBCode.MkStr2Func(Me.ToFuncStr, PigText.enmTextType.UTF8, "TestMkStr2Func", Me.FuncStr)
+                    Console.WriteLine(Me.Ret)
+                    Console.WriteLine("FuncStr")
+                    Console.WriteLine(Me.FuncStr)
                 Case "DownloadFile"
             End Select
             If Me.Ret <> "OK" Then
@@ -1335,6 +1347,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press J To GetShareMem")
             Console.WriteLine("Press K To CheckFileDiff")
             Console.WriteLine("Press L To IsFileDiff")
+            Console.WriteLine("Press M To IsNewVersion")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
@@ -1487,6 +1500,11 @@ Public Class ConsoleDemo
                     Me.PigConsole.GetLine("Input file1 path", Me.SrcFile)
                     Me.PigConsole.GetLine("Input file2 path", Me.TarFile)
                     Console.WriteLine(CStr(Me.PigFunc.IsFileDiff(Me.SrcFile, Me.TarFile, Me.Ret)))
+                    If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
+                Case ConsoleKey.M
+                    Me.PigConsole.GetLine("Input OldVersion", Me.OldVersion)
+                    Me.PigConsole.GetLine("Input LatestVersion", Me.LatestVersion)
+                    Console.WriteLine(CStr(Me.PigFunc.IsNewVersion(Me.OldVersion, Me.LatestVersion, Me.Ret)))
                     If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
             End Select
         Loop
