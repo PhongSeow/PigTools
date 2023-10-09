@@ -69,6 +69,7 @@ Public Class ConsoleDemo
     Public StartMode As PigService.EnmStartMode
 
     Public Sub PigCmdAppDemo()
+        Me.PigCmdApp = New PigCmdApp
         Me.PigCmdApp.SetDebug(Me.PigFunc.GetMyExePath & ".log")
         Do While True
             Console.Clear()
@@ -88,7 +89,9 @@ Public Class ConsoleDemo
                     Console.WriteLine("*******************")
                     Me.PigConsole.GetLine("Input exec file path", Me.CmdOrFilePath)
                     Console.WriteLine("CallFileWaitForExit" & "->" & Me.CmdOrFilePath)
-                    Me.Ret = Me.PigCmdApp.CallFileWaitForExit(Me.CmdOrFilePath)
+                    Dim bolIsRunAsAdmin As Boolean
+                    bolIsRunAsAdmin = Me.PigConsole.IsYesOrNo("Is run at Admin or root")
+                    Me.Ret = Me.PigCmdApp.CallFileWaitForExit(Me.CmdOrFilePath, bolIsRunAsAdmin)
                     Console.WriteLine(Me.Ret)
                 Case "HideShell"
                     Console.WriteLine("*******************")

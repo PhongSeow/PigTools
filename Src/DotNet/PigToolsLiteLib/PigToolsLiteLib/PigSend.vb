@@ -1,20 +1,21 @@
 ﻿'**********************************
 '* Name: PigSend
 '* Author: Seow Phong
-'* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Sending and receiving data processing class|发送和接收数据处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 6/11/2021
 '* 1.1  7/11/2022   Add InitEnc
 '* 1.2  8/11/2022   Modify InitEnc
+'* 1.3  88/9/2023   Modify EnmEncType,mInitEnc,mSendData,mReceiveData
 '**********************************v
 ''' <summary>
 ''' Sending and receiving data processing class|发送和接收数据处理类
 ''' </summary>
 Public Class PigSend
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.68"
+    Private Const CLS_VERSION As String = "1.3.2"
 
     ''' <summary>
     ''' 加密方式|Encryption mode
@@ -23,6 +24,7 @@ Public Class PigSend
         Original = 0
         SeowEnc = 1
         SeowEncAndPigAes = 2
+        SeowEncAndPigRsa = 3
     End Enum
 
 
@@ -32,6 +34,8 @@ Public Class PigSend
     Private Property mSeowEnc As SeowEnc
 
     Private Property mPigAes As PigAes
+
+    Private Property mPigRsa As PigRsa
 
     Public Sub New(EncType As EnmEncType)
         MyBase.New(CLS_VERSION)
@@ -57,15 +61,20 @@ Public Class PigSend
         Return Me.mInitEnc(InSeowEnc, InPigAes)
     End Function
 
-    Private Function mInitEnc(InSeowEnc As SeowEnc, Optional InPigAes As PigAes = Nothing) As String
+    Public Function InitEnc(InSeowEnc As SeowEnc, InPigRsa As PigRsa) As String
+        Return Me.mInitEnc(InSeowEnc, , InPigRsa)
+    End Function
+    Private Function mInitEnc(InSeowEnc As SeowEnc, Optional InPigAes As PigAes = Nothing, Optional InPigRsa As PigRsa = Nothing) As String
         Dim LOG As New PigStepLog("mInitEnc")
         Try
-            Dim bolIsSeowEnc As Boolean = False, bolIsPigAes As Boolean = False
+            Dim bolIsSeowEnc As Boolean = False, bolIsPigAes As Boolean = False, bolIsPigRsa As Boolean = False
             Select Case Me.EncType
                 Case EnmEncType.SeowEnc
                     bolIsSeowEnc = True
                 Case EnmEncType.SeowEncAndPigAes
                     bolIsPigAes = True
+                Case EnmEncType.SeowEncAndPigRsa
+                    bolIsPigRsa = True
             End Select
             If bolIsSeowEnc = True Then
                 LOG.StepName = "Check InSeowEnc"
@@ -78,6 +87,12 @@ Public Class PigSend
                 If InPigAes Is Nothing Then Throw New Exception("InPigAes is nothing")
                 If InPigAes.IsLoadEncKey = False Then Throw New Exception("Is not LoadEncKey")
                 Me.mPigAes = InPigAes
+            End If
+            If bolIsPigRsa = True Then
+                LOG.StepName = "Check InPigRsa"
+                If InPigRsa Is Nothing Then Throw New Exception("InPigRsa is nothing")
+                If InPigRsa.IsLoadEncKey = False Then Throw New Exception("Is not LoadEncKey")
+                Me.mPigRsa = InPigRsa
             End If
             Me.IsReady = True
             Return "OK"
@@ -170,6 +185,14 @@ Public Class PigSend
                     LOG.StepName = "mPigAes.Encrypt"
                     LOG.Ret = Me.mPigAes.Encrypt(abOut, TarBytes)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                Case EnmEncType.SeowEncAndPigRsa
+                    Dim abOut(0) As Byte
+                    LOG.StepName = "mSeowEnc.Encrypt"
+                    LOG.Ret = Me.mSeowEnc.Encrypt(SendBytes, abOut)
+                    If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                    LOG.StepName = "mPigRsa.Encrypt"
+                    LOG.Ret = Me.mPigRsa.Encrypt(abOut, TarBytes)
+                    If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
                 Case Else
                     Throw New Exception("Invalid EncType")
             End Select
@@ -194,6 +217,14 @@ Public Class PigSend
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
                     LOG.StepName = "mPigAes.Decrypt"
                     LOG.Ret = Me.mPigAes.Decrypt(abOut, TarBytes)
+                    If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                Case EnmEncType.SeowEncAndPigRsa
+                    Dim abOut(0) As Byte
+                    LOG.StepName = "mSeowEnc.Decrypt"
+                    LOG.Ret = Me.mSeowEnc.Decrypt(ReceiveBytes, abOut)
+                    If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                    LOG.StepName = "mPigRsa.Decrypt"
+                    LOG.Ret = Me.mPigRsa.Decrypt(abOut, TarBytes)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
                 Case Else
                     Throw New Exception("Invalid EncType")

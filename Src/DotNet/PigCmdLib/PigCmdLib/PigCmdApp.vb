@@ -4,23 +4,24 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.16
+'* Version: 1.17
 '* Create Time: 15/1/2022
-'*1.1  31/1/2022   Add CallFile, modify mWinHideShell,mLinuxHideShell
-'*1.2  1/2/2022   Add CmdShell, modify CallFile
-'*1.3  31/3/2022  Add GetParentProc
-'*1.4  1/4/2022   Modify GetParentProc
-'*1.5  3/4/2022   Add EnmStandardOutputReadType,mCallFile, and modify CallFile
-'*1.6  5/4/2022   Add GetSubProcs
-'*1.7  17/5/2022  Add ASyncRet_CmdShell,mCmdShell,ASyncCmdShell, modify CmdShell
-'*1.8  18/5/2022  Modify mCallFile, add AsyncRet_CallFile_FullString,AsyncRet_CallFile_StringArray,AsyncRet_CmdShell_FullString,AsyncRet_CmdShell_StringArray,AsyncCallFile
-'*1.9  26/5/2022  Modify mCallFile
-'*1.10 26/7/2022  Modify Imports
-'*1.11 29/7/2022  Modify Imports
-'*1.12 22/5/2023  Add Nohup,Sudo
-'*1.13 5/6/2023   Modify EnmStandardOutputReadType,CmdShell,CallFile,AsyncCallFile,AsyncCmdShell,mCallFile
-'*1.15 7/8/2023   Add CallFileWaitForExit
-'*1.16 23/8/2023  Modify GetSubProcs,GetParentProc
+'* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
+'* 1.2  1/2/2022   Add CmdShell, modify CallFile
+'* 1.3  31/3/2022  Add GetParentProc
+'* 1.4  1/4/2022   Modify GetParentProc
+'* 1.5  3/4/2022   Add EnmStandardOutputReadType,mCallFile, and modify CallFile
+'* 1.6  5/4/2022   Add GetSubProcs
+'* 1.7  17/5/2022  Add ASyncRet_CmdShell,mCmdShell,ASyncCmdShell, modify CmdShell
+'* 1.8  18/5/2022  Modify mCallFile, add AsyncRet_CallFile_FullString,AsyncRet_CallFile_StringArray,AsyncRet_CmdShell_FullString,AsyncRet_CmdShell_StringArray,AsyncCallFile
+'* 1.9  26/5/2022  Modify mCallFile
+'* 1.10 26/7/2022  Modify Imports
+'* 1.11 29/7/2022  Modify Imports
+'* 1.12 22/5/2023  Add Nohup,Sudo
+'* 1.13 5/6/2023   Modify EnmStandardOutputReadType,CmdShell,CallFile,AsyncCallFile,AsyncCmdShell,mCallFile
+'* 1.15 7/8/2023   Add CallFileWaitForExit
+'* 1.16 23/8/2023  Modify GetSubProcs,GetParentProc
+'* 1.17 9/10/2023  Modify CallFileWaitForExit
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -30,7 +31,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.16.6"
+    Private Const CLS_VERSION As String = "1.17.6"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -247,13 +248,17 @@ Public Class PigCmdApp
         End If
     End Function
 
-    Private Function mWinHideShell(CmdFilePath As String) As Long
+    Private Function mWinHideShell(CmdFilePath As String, Optional IsRunAsAdmin As Boolean = False) As Long
         Dim LOG As New PigStepLog("mWinHideShell")
         Try
             LOG.StepName = "New ProcessStartInfo"
             Dim moProcessStartInfo As New ProcessStartInfo(CmdFilePath)
             With moProcessStartInfo
-                .UseShellExecute = True
+                If IsRunAsAdmin = True Then
+                    .Verb = "runas"
+                Else
+                    .UseShellExecute = False
+                End If
                 .CreateNoWindow = True
             End With
             LOG.StepName = "Process.Start"
@@ -568,8 +573,9 @@ Public Class PigCmdApp
     ''' Call a file and wait for return|调用一个文件并等待返回
     ''' </summary>
     ''' <param name="FilePath">Path to execute file|执行文件的路径</param>
+    ''' <param name="IsRunAsAdmin">Run as administrator|是否以管理员身份运行</param>
     ''' <returns></returns>
-    Public Function CallFileWaitForExit(FilePath As String) As String
+    Public Function CallFileWaitForExit(FilePath As String, Optional IsRunAsAdmin As Boolean = False) As String
         Dim LOG As New PigStepLog("CallFileWaitForExit")
         Try
             If Me.mPigFunc.IsFileExists(FilePath) = False Then Throw New Exception("The execution file does not exist.")
@@ -577,7 +583,11 @@ Public Class PigCmdApp
             Dim oProcessStartInfo As ProcessStartInfo
             oProcessStartInfo = New ProcessStartInfo(FilePath)
             With oProcessStartInfo
-                .UseShellExecute = False
+                If IsRunAsAdmin = True Then
+                    .Verb = "runas"
+                Else
+                    .UseShellExecute = False
+                End If
             End With
             Dim oProcess As New Process
             LOG.StepName = "Start and WaitForExit"
