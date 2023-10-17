@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://en.seowphong.com
-'* Version: 1.20
+'* Version: 1.21
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -35,6 +35,7 @@
 '1.18 6/5/2023  Modify mGetXmlDoc, add SetXmlDocText
 '1.19 7/5/2023  Add IsXmlNodeExists,SetXmlDocValue
 '1.20 26/5/2023  Add GetXmlDocText,XmlDocGetBool,XmlDocGetBoolEmpTrue,XmlDocGetDate,XmlDocGetDec,XmlDocGetInt,XmlDocGetLong,XmlDocGetStr
+'1.21 16/10/2023  Remove reference PigFunc
 '*******************************************************
 
 Imports System.Xml
@@ -44,7 +45,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.20.88"
+    Private Const CLS_VERSION As String = "1.21.8"
     Private Property mMainXml As String = ""
     Private msbMain As New StringBuilder("")    '主体的XML
 
@@ -55,7 +56,7 @@ Public Class PigXml
     ''' </summary>
     ''' <returns></returns>
     Public Property IsAutoUnEscValue As Boolean = True
-    Private ReadOnly Property mPigFunc As New PigFunc
+    'Private ReadOnly Property mPigFunc As New PigFunc
 
 
     'Private mslMain As SortedList
@@ -313,36 +314,6 @@ Public Class PigXml
     Public Overloads Function XmlGetStr(ByRef SrcXmlStr As String, XMLSign As String, IsCData As Boolean) As String
         XmlGetStr = Me.mXmlGetStr(SrcXmlStr, XMLSign, IsCData)
         If Me.IsAutoUnEscValue = True Then Me.mUnEscapeXmlValue(XmlGetStr)
-    End Function
-
-
-
-    ''' <remarks>截取字符串</remarks>
-    Private Function mGetStr(ByRef SrcStr As String, BeginKey As String, EndKey As String, Optional IsCut As Boolean = True) As String
-        Dim intBegin As Integer
-        Dim intEnd As Integer
-        Dim intBeginLen As Integer
-        Dim intEndLen As Integer
-        Try
-            intBeginLen = Len(BeginKey)
-            intBegin = InStr(SrcStr, BeginKey)
-            intEndLen = Len(EndKey)
-            If intEndLen = 0 Then
-                intEnd = Len(SrcStr) + 1
-            Else
-                intEnd = InStr(intBegin + intBeginLen + 1, SrcStr, EndKey)
-                If intEnd = 0 Then Throw New Exception("intEnd is 0")
-            End If
-            If intEnd <= intBegin Then Throw New Exception("intEnd <= intBegin")
-            If intBegin = 0 Then Throw New Exception("intBegin is 0")
-            mGetStr = Mid(SrcStr, intBegin + intBeginLen, (intEnd - intBegin - intBeginLen))
-            If IsCut = True Then
-                SrcStr = Left(SrcStr, intBegin - 1) & Mid(SrcStr, intEnd + intEndLen)
-            End If
-        Catch ex As Exception
-            Me.SetSubErrInf("mGetStr", ex)
-            Return ""
-        End Try
     End Function
 
 
@@ -747,14 +718,18 @@ Public Class PigXml
         End Try
     End Function
 
+    Private Function mGetFmtDateTime(SrcTime As DateTime, Optional TimeFmt As String = "yyyy-MM-dd HH:mm:ss.fff") As String
+        Return Format(SrcTime, TimeFmt)
+    End Function
+
 
     Public Function SetXmlDocValue(XmlKey As String, Value As Date) As String
-        Dim strValue As String = Me.mPigFunc.GetFmtDateTime(Value)
+        Dim strValue As String = Me.mGetFmtDateTime(Value)
         Return Me.mSetXmlDocValue(XmlKey, strValue, 0)
     End Function
 
     Public Function SetXmlDocValue(XmlKey As String, Value As Date, SkipTimes As Integer) As String
-        Dim strValue As String = Me.mPigFunc.GetFmtDateTime(Value)
+        Dim strValue As String = Me.mGetFmtDateTime(Value)
         Return Me.mSetXmlDocValue(XmlKey, strValue, SkipTimes)
     End Function
 
@@ -950,7 +925,7 @@ Public Class PigXml
                     Case Else
                         Throw New Exception("Invalid WhatGetXmlDoc is " & WhatGetXmlDoc.ToString)
                 End Select
-                Dim strNode As String = mPigFunc.GetStr(XmlKey, "", ".")
+                Dim strNode As String = Me.mGetStr(XmlKey, "", ".")
                 If oParentNode IsNot Nothing Then
                     LOG.StepName = "Set ChildNodes(ParentNode)"
                     oXmlNodeList = oParentNode.ChildNodes
@@ -1019,7 +994,7 @@ Public Class PigXml
                                         If oXmlNodeList.Item(j).Name = strNode Then
                                             If SkipTimes <= 0 Then
                                                 If InStr(XmlKey, "#") > 0 Then
-                                                    Dim strName As String = Me.mPigFunc.GetStr(XmlKey, "", "#")
+                                                    Dim strName As String = Me.mGetStr(XmlKey, "", "#")
                                                     If oXmlNodeList.Item(j).Attributes IsNot Nothing Then
                                                         For k = 0 To oXmlNodeList.Item(j).Attributes.Count - 1
                                                             If oXmlNodeList.Item(j).Attributes.Item(k).Name = strName Then
@@ -1077,7 +1052,7 @@ Public Class PigXml
                 If Me.IsDebug = True Then LOG.AddStepNameInf(msbMain.ToString)
                 Me.XmlDocument = New XmlDocument
                 Me.XmlDocument.LoadXml(msbMain.ToString)
-            ElseIf Me.mPigFunc.IsFileExists(XmlFilePath) = False Then
+            ElseIf Me.mIsFileExists(XmlFilePath) = False Then
                 LOG.AddStepNameInf(XmlFilePath)
                 Throw New Exception("File not found.")
             Else
@@ -1355,5 +1330,42 @@ Public Class PigXml
             End If
         End Get
     End Property
+
+    Private Function mIsFileExists(FilePath As String) As Boolean
+        Try
+            Return IO.File.Exists(FilePath)
+        Catch ex As Exception
+            Me.SetSubErrInf("mIsFileExists", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    Private Function mGetStr(ByRef SourceStr As String, strBegin As String, strEnd As String, Optional IsCut As Boolean = True) As String
+        Try
+            Dim lngBegin As Long
+            Dim lngEnd As Long
+            Dim lngBeginLen As Long
+            Dim lngEndLen As Long
+            lngBeginLen = Len(strBegin)
+            lngBegin = InStr(SourceStr, strBegin, CompareMethod.Text)
+            lngEndLen = Len(strEnd)
+            If lngEndLen = 0 Then
+                lngEnd = Len(SourceStr) + 1
+            Else
+                lngEnd = InStr(lngBegin + lngBeginLen + 1, SourceStr, strEnd, CompareMethod.Text)
+                If lngBegin = 0 Then Return "" 'Throw New Exception("lngBegin=0")
+            End If
+            If lngEnd <= lngBegin Then Return "" ' Throw New Exception("lngEnd <= lngBegin")
+            If lngBegin = 0 Then Return "" 'Throw New Exception("lngBegin=0[2]")
+            mGetStr = Mid(SourceStr, lngBegin + lngBeginLen, (lngEnd - lngBegin - lngBeginLen))
+            If IsCut = True Then
+                SourceStr = Left(SourceStr, lngBegin - 1) & Mid(SourceStr, lngEnd + lngEndLen)
+            End If
+        Catch ex As Exception
+            Return ""
+            Me.SetSubErrInf("GetStr", ex)
+        End Try
+    End Function
+
 
 End Class

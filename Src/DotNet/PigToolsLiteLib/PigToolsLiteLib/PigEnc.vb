@@ -4,14 +4,16 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: A localized encryption and decryption class, ciphertext cannot be decrypted to other machines.
 '* Home Url: https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 20/8/2022
 '1.1  6/9/2022   Add EnmEncKeySaveType,EnmEncType
 '1.2  25/9/2022  Modify EnmDataEncType
+'1.3  25/9/2023  Modify EnmDataEncType
 '**********************************
+
 Friend Class PigEnc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.2"
+    Private Const CLS_VERSION As String = "1.3.2"
 
     ''' <summary>
     ''' 密钥使用方式|How to use the key
@@ -61,9 +63,33 @@ Friend Class PigEnc
     Private Property mPigAes As PigAes
     Private Property mPigTripleDES As PigTripleDES
 
-    Public Sub New()
+    Public ReadOnly Property EncKeyUseType As EnmEncKeyUseType
+
+    Public Sub New(EncKeyUseType As EnmEncKeyUseType)
         MyBase.New(CLS_VERSION)
+        Me.EncKeyUseType = EncKeyUseType
     End Sub
+
+    Private mIsLoadEncKey As Boolean
+    Public ReadOnly Property IsLoadEncKey As Boolean
+        Get
+            IsLoadEncKey = mIsLoadEncKey
+        End Get
+    End Property
+
+    Private Function mLoadEncKey(EncKey As Byte()) As String
+        Dim LOG As New PigStepLog("mLoadEncKey")
+        Try
+            Select Case Me.EncKeyUseType
+                Case EnmEncKeyUseType.LocalHost
+
+            End Select
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
     Private Function mGetDataEncKey(DataEncType As EnmDataEncType) As String
         Try
@@ -88,6 +114,7 @@ Friend Class PigEnc
         Try
             Select Case EncKeyUseType
                 Case EnmEncKeyUseType.Multifocal
+                Case EnmEncKeyUseType.LocalHost
 
                 Case Else
                     Throw New Exception("Not supported yet")

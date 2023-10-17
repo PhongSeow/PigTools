@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.30.2
+'* Version: 1.31.6
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -35,6 +35,7 @@
 '* 1.28   11/6/2023  Add PigFSDemo
 '* 1.29   15/6/2023  Modify PigFSDemo
 '* 1.30   28/9/2023  Modify MkStr2Func
+'* 1.31   17/10/2023  Modify MkStr2Func
 '************************************
 Imports PigToolsLiteLib
 Imports System.Xml
@@ -125,6 +126,7 @@ Public Class ConsoleDemo
     Public IsOverwrite As Boolean
     Public OldVersion As String
     Public LatestVersion As String
+    Public FuncName As String
     Public ToFuncStr As String
     Public FuncStr As String
 
@@ -881,13 +883,26 @@ Public Class ConsoleDemo
                                 Console.WriteLine("MkEncKey=" & Me.Ret)
                                 Console.WriteLine("Base64EncKey=" & Me.Base64EncKey)
                             Case ConsoleKey.B
-                                Console.WriteLine("Inupt Base64EncKey:" & vbCrLf & Me.Base64EncKey)
-                                Me.Line = Console.ReadLine
-                                If Me.Line <> "" Then
-                                    Me.Base64EncKey = Me.Line
+                                Dim bolIsBase64 As Boolean = Me.PigConsole.IsYesOrNo("Whether to use Base64")
+                                Dim strEncKeyBase64 As String = "", abEncKey(0) As Byte
+                                Me.PigConsole.GetLine("Input EncKey file path", Me.EncKeyFilePath)
+                                If bolIsBase64 = True Then
+                                    Console.WriteLine("GetFileText(Base64EncKey)")
+                                    Me.PigFunc.GetFileText(Me.EncKeyFilePath, Me.Base64EncKey)
+                                    Console.WriteLine(Me.Ret)
+                                    Console.WriteLine("LoadEncKey")
+                                    Me.Ret = oSeowEnc.LoadEncKey(Me.Base64EncKey)
+                                Else
+                                    Dim oPigFile As New PigFile(Me.EncKeyFilePath)
+                                    Console.WriteLine("LoadFile")
+                                    Me.Ret = oPigFile.LoadFile
+                                    Console.WriteLine(Me.Ret)
+                                    If Me.Ret = "OK" Then
+                                        Console.WriteLine("LoadEncKey")
+                                        Me.Ret = oSeowEnc.LoadEncKey(oPigFile.GbMain.Main)
+                                    End If
                                 End If
-                                Me.Ret = oSeowEnc.LoadEncKey(Me.Base64EncKey)
-                                Console.WriteLine("LoadEncKey=" & Me.Ret)
+                                Console.WriteLine(Me.Ret)
                             Case ConsoleKey.C
                                 Console.WriteLine("Enter the string to encrypt:" & Me.SrcStr)
                                 Me.Line = Console.ReadLine
@@ -1178,20 +1193,24 @@ Public Class ConsoleDemo
                     Me.PigConsole.GetLine("Input Member Class KeyName", Me.KeyName）
                     Me.Ret = Me.PigVBCode.MkCollectionClass(strData, Me.ClassName, Me.KeyName)
                 Case "MkBytes2Func"
+                    Me.PigConsole.GetLine("Enter function name", Me.FuncName)
                     Me.PigConsole.GetLine("Enter a string to convert to a function", Me.ToFuncStr)
                     Dim ptAny As New PigText(Me.ToFuncStr, PigText.enmTextType.UTF8)
                     Console.WriteLine("MkBytes2Func")
-                    Me.Ret = Me.PigVBCode.MkBytes2Func(ptAny.TextBytes, "TestMkBytes2Func", Me.FuncStr)
+                    Me.Ret = Me.PigVBCode.MkBytes2Func(ptAny.TextBytes, Me.FuncName, Me.FuncStr)
                     Console.WriteLine(Me.Ret)
                     Console.WriteLine("FuncStr")
                     Console.WriteLine(Me.FuncStr)
+                    'My.Computer.Clipboard.SetText(Me.FuncStr)
                 Case "MkStr2Func"
+                    Me.PigConsole.GetLine("Enter function name", Me.FuncName)
                     Me.PigConsole.GetLine("Enter a string to convert to a function", Me.ToFuncStr)
                     Console.WriteLine("MkStr2Func")
-                    Me.Ret = Me.PigVBCode.MkStr2Func(Me.ToFuncStr, PigText.enmTextType.UTF8, "TestMkStr2Func", Me.FuncStr)
+                    Me.Ret = Me.PigVBCode.MkStr2Func(Me.ToFuncStr, PigText.enmTextType.UTF8, Me.FuncName, Me.FuncStr)
                     Console.WriteLine(Me.Ret)
                     Console.WriteLine("FuncStr")
                     Console.WriteLine(Me.FuncStr)
+                    'My.Computer.Clipboard.SetText(Me.FuncStr)
                 Case "DownloadFile"
             End Select
             If Me.Ret <> "OK" Then

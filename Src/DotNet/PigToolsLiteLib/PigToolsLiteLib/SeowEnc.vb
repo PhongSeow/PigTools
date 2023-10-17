@@ -4,23 +4,33 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 这是一个简单的压缩和移位加密算法，可以减少密文的长度，以及每次加密结果的密文都不相同，不要单独使用本加密算法，因为很容易破解，建议与其他加密算法一起使用，如AES、RSA和3DES等。|This is a simple compression and shift encryption algorithm, which can reduce the length of the ciphertext, and the ciphertext of each encryption result is different. Do not use this encryption algorithm alone, because it is easy to crack. It is recommended to use it together with other encryption algorithms, such as AES, RSA and 3DES.
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 11/9/2022
 '* 1.1  12/9/2022   Modify EmnComprssType,Encrypt
 '* 1.2  24/9/2022   Add IsRandAdd
 '* 1.3  8/11/2022   Modify mDecrypt,mEncrypt
+'* 1.5  13/10/2023   Modify New
 '************************************
 ''' <summary>
 ''' Seow encryption processing class|萧氏加密处理类
 ''' </summary>
 Public Class SeowEnc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.2"
+    Private Const CLS_VERSION As String = "1.5.2"
 
     Private mabEncKey As Byte()
     Public Sub New(ComprssType As EmnComprssType)
         MyBase.New(CLS_VERSION)
-        Me.ComprssType = ComprssType
+        Try
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+            Me.ComprssType = ComprssType
+#Else
+            Me.ComprssType = EmnComprssType.NoComprss
+            Throw New Exception("The current .net framework can only support NoCompess")
+#End If
+        Catch ex As Exception
+            Me.SetSubErrInf("New", ex)
+        End Try
     End Sub
 
     Public Enum EmnComprssType
