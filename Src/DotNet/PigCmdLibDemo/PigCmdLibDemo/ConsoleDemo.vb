@@ -89,9 +89,14 @@ Public Class ConsoleDemo
                     Console.WriteLine("*******************")
                     Me.PigConsole.GetLine("Input exec file path", Me.CmdOrFilePath)
                     Console.WriteLine("CallFileWaitForExit" & "->" & Me.CmdOrFilePath)
+                    Me.PigConsole.GetLine("Input command parameters", Me.CmdPara)
                     Dim bolIsRunAsAdmin As Boolean
                     bolIsRunAsAdmin = Me.PigConsole.IsYesOrNo("Is run at Admin or root")
-                    Me.Ret = Me.PigCmdApp.CallFileWaitForExit(Me.CmdOrFilePath, bolIsRunAsAdmin)
+                    If Me.CmdPara = "" Then
+                        Me.Ret = Me.PigCmdApp.CallFileWaitForExit(Me.CmdOrFilePath, bolIsRunAsAdmin)
+                    Else
+                        Me.Ret = Me.PigCmdApp.CallFileWaitForExit(Me.CmdOrFilePath, Me.CmdPara, bolIsRunAsAdmin)
+                    End If
                     Console.WriteLine(Me.Ret)
                 Case "HideShell"
                     Console.WriteLine("*******************")

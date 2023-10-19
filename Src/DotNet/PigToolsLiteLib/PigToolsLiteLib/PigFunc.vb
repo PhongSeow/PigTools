@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.53
+'* Version: 1.55
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -52,6 +52,7 @@
 '*1.51   28/4/2023  Modify GetWindowsProductId
 '*1.52   21/6/2023  Add IsDeviationTime,IsTimeout
 '*1.53   23/7/2023  Add IsNewVersion
+'*1.55   2183/10/2023  Add ClipboardGetText,ClipboardSetText
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -59,6 +60,7 @@ Imports System.Net.Sockets
 Imports System.Environment
 Imports System.Threading
 Imports System.Security.Cryptography
+Imports Microsoft.VisualBasic
 
 ''' <summary>
 ''' Function set|功能函数集
@@ -2172,6 +2174,35 @@ Public Class PigFunc
         Catch ex As Exception
             Ret = Me.GetSubErrInf("IsNewVersion", ex)
             Return False
+        End Try
+    End Function
+
+    Public Function ClipboardGetText() As String
+        Try
+#If NETFRAMEWORK Then
+            Return My.Computer.Clipboard.GetText()
+#Else
+            Throw New Exception("Only NETFRAMEWORK supported")
+#End If
+        Catch ex As Exception
+            Me.SetSubErrInf("ClipboardGetText", ex)
+            Return ""
+        End Try
+    End Function
+
+
+    Public Function ClipboardSetText(Text As String) As String
+        Dim LOG As New PigStepLog("ClipboardSetText")
+        Try
+#If NETFRAMEWORK Then
+            My.Computer.Clipboard.Clear()
+            My.Computer.Clipboard.SetText(Text)
+#Else
+            Throw New Exception("Only NETFRAMEWORK supported")
+#End If
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 

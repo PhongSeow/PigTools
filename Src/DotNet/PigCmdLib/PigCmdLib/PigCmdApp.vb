@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.17
+'* Version: 1.18
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -22,6 +22,7 @@
 '* 1.15 7/8/2023   Add CallFileWaitForExit
 '* 1.16 23/8/2023  Modify GetSubProcs,GetParentProc
 '* 1.17 9/10/2023  Modify CallFileWaitForExit
+'* 1.18 19/10/2023  Modify CallFileWaitForExit
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -31,7 +32,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.17.6"
+    Private Const CLS_VERSION As String = "1.18.8"
     Public LinuxShPath As String = "/bin/sh"
     Public WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -576,7 +577,22 @@ Public Class PigCmdApp
     ''' <param name="IsRunAsAdmin">Run as administrator|是否以管理员身份运行</param>
     ''' <returns></returns>
     Public Function CallFileWaitForExit(FilePath As String, Optional IsRunAsAdmin As Boolean = False) As String
-        Dim LOG As New PigStepLog("CallFileWaitForExit")
+        Return Me.mCallFileWaitForExit(FilePath, "", IsRunAsAdmin)
+    End Function
+
+    ''' <summary>
+    ''' Call a file and wait for return|调用一个文件并等待返回
+    ''' </summary>
+    ''' <param name="FilePath">Path to execute file|执行文件的路径</param>
+    ''' <param name="Para">Parameters passed to the execution file|传给执行文件的参数</param>
+    ''' <param name="IsRunAsAdmin">Run as administrator|是否以管理员身份运行</param>
+    ''' <returns></returns>
+    Public Function CallFileWaitForExit(FilePath As String, Para As String, Optional IsRunAsAdmin As Boolean = False) As String
+        Return Me.mCallFileWaitForExit(FilePath, Para, IsRunAsAdmin)
+    End Function
+
+    Private Function mCallFileWaitForExit(FilePath As String, Optional Para As String = "", Optional IsRunAsAdmin As Boolean = False) As String
+        Dim LOG As New PigStepLog("mCallFileWaitForExit")
         Try
             If Me.mPigFunc.IsFileExists(FilePath) = False Then Throw New Exception("The execution file does not exist.")
             LOG.StepName = "New ProcessStartInfo"
@@ -588,6 +604,7 @@ Public Class PigCmdApp
                 Else
                     .UseShellExecute = False
                 End If
+                .Arguments = Para
             End With
             Dim oProcess As New Process
             LOG.StepName = "Start and WaitForExit"
