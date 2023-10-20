@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.18
+'* Version: 1.19
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -23,6 +23,7 @@
 '*1.16 23/7/2023  Modify GetBootUpTime
 '*1.17 16/8/2023  Add ReBootHost
 '*1.18 18/8/2023  Add mGetWmicSimpleXml,GetWmicSimpleXml modify ReBootHost
+'*1.19 20/10/2023 Add GetDefaultIPGateway
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -30,7 +31,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.18.6"
+    Private Const CLS_VERSION As String = "1.19.8"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -448,6 +449,33 @@ Public Class PigSysCmd
             Return "OK"
         Catch ex As Exception
             LOG.AddStepNameInf(strCmd)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetDefaultIPGateway(ByRef DefaultIPGateway As String) As String
+        Dim LOG As New PigStepLog("GetDefaultIPGateway")
+        Try
+            Dim strCmd As String
+            If Me.IsWindows = True Then
+                strCmd = "wmic path Win32_NetworkAdapterConfiguration get DefaultIPGateway"
+            Else
+                strCmd = "route -n | grep '^0.0.0.0' | awk '{print $2}'"
+            End If
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            End If
+            If Me.IsWindows = True Then
+                DefaultIPGateway = Me.mPigFunc.GetStr(Me.mPigCmdApp.StandardOutput, "{", "}")
+            Else
+                DefaultIPGateway = Me.mPigCmdApp.StandardOutput
+            End If
+            Return "OK"
+        Catch ex As Exception
+            DefaultIPGateway = ""
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
