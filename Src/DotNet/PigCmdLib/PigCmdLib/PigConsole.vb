@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.18
+'* Version: 1.19
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -23,6 +23,7 @@
 '*1.16 18/10/2022  Modify SimpleMenu,IsYesOrNo
 '*1.17 19/10/2022  Add GetCanUseCultureXml
 '*1.18 17/11/2022  Add SelectControl
+'*1.19 23/10/2023  Modify SimpleMenu
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -31,7 +32,7 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.18.2"
+    Private Const CLS_VERSION As String = "1.19.6"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -514,12 +515,17 @@ Public Class PigConsole
                 If Len(abMenuName(intItems)) > intMaxLen Then intMaxLen = Len(abMenuName(intItems))
                 abLetter(intItems) = Chr(64 + intItems)
                 If MenuExitType <> EnmSimpleMenuExitType.Null And abLetter(intItems) >= "Q" Then
-                    abLetter(intItems) += Chr(64 + intItems + 1)
+                    abLetter(intItems) = Chr(64 + intItems + 1)
+                    '                    abLetter(intItems) += Chr(64 + intItems + 1)
                 End If
             Loop
-            If intItems <= 0 Then
-                Throw New Exception("No menu item defined")
-            End If
+            If intItems = 0 Then Throw New Exception("No menu item defined")
+            Select Case MenuExitType
+                Case EnmSimpleMenuExitType.QtoExit, EnmSimpleMenuExitType.QtoUp
+                    If intItems > 25 Then Throw New Exception("Supports defining up to 25 menu items")
+                Case EnmSimpleMenuExitType.Null
+                    If intItems > 26 Then Throw New Exception("Supports defining up to 26 menu items")
+            End Select
             intMaxLen += 8
             LOG.StepName = "Print Menu"
             Dim strStarLine As String = mPigFunc.GetRepeatStr(intMaxLen, "*")
@@ -537,8 +543,16 @@ Public Class PigConsole
             End Select
             For i = 1 To intItems
                 Dim strLetter As String = Chr(64 + i)
-                If strLetter = "Q" Then strLetter = Chr(65 + i)
-                Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+                Select Case i
+                    Case < 17
+                        Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+                    Case >= 17
+                        Select Case MenuExitType
+                            Case EnmSimpleMenuExitType.QtoExit, EnmSimpleMenuExitType.QtoUp
+                                strLetter = Chr(65 + i)
+                        End Select
+                        Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+                End Select
             Next
             Console.WriteLine(strStarLine)
             LOG.StepName = "Select Menu"
@@ -551,7 +565,17 @@ Public Class PigConsole
                         Else
                             Dim intKey As Integer = CInt(oConsoleKey) - 64
                             If MenuExitType <> EnmSimpleMenuExitType.Null And intKey > ConsoleKey.Q Then intKey -= 1
-                            OutMenuKey = abMenuKey(intKey)
+                            Select Case intKey
+                                Case < 17
+                                    OutMenuKey = abMenuKey(intKey)
+                                Case >= 17
+                                    Select Case MenuExitType
+                                        Case EnmSimpleMenuExitType.QtoExit, EnmSimpleMenuExitType.QtoUp
+                                            OutMenuKey = abMenuKey(intKey - 1)
+                                        Case EnmSimpleMenuExitType.Null
+                                            OutMenuKey = abMenuKey(intKey)
+                                    End Select
+                            End Select
                         End If
                         Exit Do
                 End Select
@@ -559,6 +583,8 @@ Public Class PigConsole
             Return "OK"
         Catch ex As Exception
             OutMenuKey = ""
+            Console.WriteLine(ex.Message.ToString)
+            Me.DisplayPause()
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
