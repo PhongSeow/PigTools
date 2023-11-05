@@ -40,6 +40,8 @@
 Imports PigToolsLiteLib
 Imports System.Xml
 Imports System.Globalization
+Imports Microsoft.VisualBasic
+
 Public Class ConsoleDemo
 
     Public ShareMem As ShareMem
@@ -1201,7 +1203,7 @@ Public Class ConsoleDemo
                     Console.WriteLine(Me.Ret)
                     Console.WriteLine("FuncStr")
                     Console.WriteLine(Me.FuncStr)
-                    'My.Computer.Clipboard.SetText(Me.FuncStr)
+                    Me.PigFunc.ClipboardSetText(Me.FuncStr)
                 Case "MkStr2Func"
                     Me.PigConsole.GetLine("Enter function name", Me.FuncName)
                     Me.PigConsole.GetLine("Enter a string to convert to a function", Me.ToFuncStr)
@@ -1210,7 +1212,7 @@ Public Class ConsoleDemo
                     Console.WriteLine(Me.Ret)
                     Console.WriteLine("FuncStr")
                     Console.WriteLine(Me.FuncStr)
-                    'My.Computer.Clipboard.SetText(Me.FuncStr)
+                    Me.PigFunc.ClipboardSetText(Me.FuncStr)
                 Case "DownloadFile"
             End Select
             If Me.Ret <> "OK" Then
@@ -1367,6 +1369,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press K To CheckFileDiff")
             Console.WriteLine("Press L To IsFileDiff")
             Console.WriteLine("Press M To IsNewVersion")
+            Console.WriteLine("Press O To OpenUrl")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
@@ -1421,6 +1424,7 @@ Public Class ConsoleDemo
                         Dim strValue As String = .EscapeStr("<1><2>")
                         Console.WriteLine(".EscapeStr(<1><2>)=" & strValue)
                         Console.WriteLine(".UnEscapeStr(" & strValue & ")=" & .UnEscapeStr(strValue))
+                        Console.WriteLine("DefaultBrowser=" & .GetDefaultBrowser())
                     End With
                 Case ConsoleKey.B
                     Console.CursorVisible = True
@@ -1525,6 +1529,11 @@ Public Class ConsoleDemo
                     Me.PigConsole.GetLine("Input LatestVersion", Me.LatestVersion)
                     Console.WriteLine(CStr(Me.PigFunc.IsNewVersion(Me.OldVersion, Me.LatestVersion, Me.Ret)))
                     If Me.Ret <> "OK" Then Console.WriteLine(Me.Ret)
+                Case ConsoleKey.O
+                    Me.PigConsole.GetLine("Input Url", Me.Url)
+                    Console.WriteLine("OpenUrl")
+                    Me.Ret = Me.PigFunc.OpenUrl(Me.Url)
+                    Console.WriteLine(Me.Ret)
             End Select
         Loop
     End Sub

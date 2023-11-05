@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.55
+'* Version: 1.56
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -52,7 +52,8 @@
 '*1.51   28/4/2023  Modify GetWindowsProductId
 '*1.52   21/6/2023  Add IsDeviationTime,IsTimeout
 '*1.53   23/7/2023  Add IsNewVersion
-'*1.55   2183/10/2023  Add ClipboardGetText,ClipboardSetText
+'*1.55   21/10/2023  Add ClipboardGetText,ClipboardSetText
+'*1.56   4/11/2023  Add OpenUrl,GetDefaultBrowser
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -67,7 +68,7 @@ Imports Microsoft.VisualBasic
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.53.2"
+    Private Const CLS_VERSION As String = "1.56.6"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -2205,5 +2206,44 @@ Public Class PigFunc
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+    Public Function OpenUrl(Url As String) As String
+        Try
+            Process.Start(Url)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("OpenUrl", ex)
+        End Try
+    End Function
+
+    Public Function GetDefaultBrowser() As String
+        Dim LOG As New PigStepLog("GetDefaultBrowser")
+        Dim strRegPath As String = "http\shell\open\command"
+        Try
+            If Me.IsWindows = False Then Throw New Exception("Only supports Windows")
+            Dim oPigReg As New PigReg, strRegValue As String
+            With oPigReg
+                LOG.StepName = ""
+                strRegValue = .GetRegValue(PigReg.EmnRegRoot.CLASSES_ROOT, strRegPath, "", "")
+                If .LastErr <> "" Then Throw New Exception(.LastErr)
+                If strRegValue = "" Then Throw New Exception("Unable to obtain registry value")
+            End With
+            oPigReg = Nothing
+            If InStr(strRegValue, "%1") > 0 Then
+                strRegValue = Replace(strRegValue, "%1", "")
+            End If
+            strRegValue = Trim(strRegValue)
+            If InStr（strRegValue, """") > 0 Then
+                strRegValue = Me.GetStr(strRegValue, """", """")
+            End If
+            Return strRegValue
+        Catch ex As Exception
+            LOG.AddStepNameInf("CLASSES_ROOT")
+            LOG.AddStepNameInf(strRegPath)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return ""
+        End Try
+    End Function
+
 
 End Class

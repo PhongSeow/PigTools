@@ -31,7 +31,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.19.8"
+    Private Const CLS_VERSION As String = "1.19.12"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -460,13 +460,17 @@ Public Class PigSysCmd
             If Me.IsWindows = True Then
                 strCmd = "wmic path Win32_NetworkAdapterConfiguration get DefaultIPGateway"
             Else
-                strCmd = "route -n | grep '^0.0.0.0' | awk '{print $2}'"
+                'strCmd = "route -n | grep '^0.0.0.0' | awk '{print $2}'"
+                strCmd = "route -n|awk '{if($1==""0.0.0.0"") print $2}'"
             End If
             LOG.StepName = "CmdShell"
             LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
             If LOG.Ret <> "OK" Then
                 LOG.AddStepNameInf(strCmd)
                 Throw New Exception(LOG.Ret)
+            ElseIf Me.mPigCmdApp.StandardError <> "" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(Me.mPigCmdApp.StandardError)
             End If
             If Me.IsWindows = True Then
                 DefaultIPGateway = Me.mPigFunc.GetStr(Me.mPigCmdApp.StandardOutput, "{", "}")
