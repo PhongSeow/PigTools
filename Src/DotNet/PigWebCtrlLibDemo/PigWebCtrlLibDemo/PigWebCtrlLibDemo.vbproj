@@ -4,7 +4,7 @@
     <RootNamespace>PigWebCtrlLibDemo</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.1.56</Version>
+    <Version>2.1.118</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigWebCtrlLib" Version="2.1.56" />
+    <PackageReference Include="PigWebCtrlLib" Version="2.1.118" />
   </ItemGroup>
 
 </Project>
