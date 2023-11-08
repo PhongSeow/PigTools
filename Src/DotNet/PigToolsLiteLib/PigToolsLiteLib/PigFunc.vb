@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.56
+'* Version: 1.57
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -54,6 +54,7 @@
 '*1.53   23/7/2023  Add IsNewVersion
 '*1.55   21/10/2023  Add ClipboardGetText,ClipboardSetText
 '*1.56   4/11/2023  Add OpenUrl,GetDefaultBrowser
+'*1.57   7/11/2023  Add GetTimeSlot
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -68,9 +69,20 @@ Imports Microsoft.VisualBasic
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.56.6"
+    Private Const CLS_VERSION As String = "1.57.18"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
+
+    Public Enum EnmTimeSlot
+        CurrentWeek = 0
+        CurrentMonth = 1
+        'CurrentQuarter = 2
+        CurrentYear = 3
+        LastWeek = 10
+        LastMonth = 11
+        'LastQuarter = 12
+        LastYear = 13
+    End Enum
 
     ''' <summary>对齐方式|Alignment</summary>
     Public Enum EnmAlignment
@@ -2245,5 +2257,54 @@ Public Class PigFunc
         End Try
     End Function
 
+    ''' <summary>
+    ''' Obtain the start and end times of the time period|获取时间段的开始和结束时间
+    ''' </summary>
+    ''' <param name="TimeSlot"></param>
+    ''' <param name="BeginTime"></param>
+    ''' <param name="EndTime"></param>
+    ''' <returns></returns>
+    Public Function GetTimeSlot(TimeSlot As EnmTimeSlot, ByRef BeginTime As Date, ByRef EndTime As Date) As String
+        Dim LOG As New PigStepLog("GetTimeSlot")
+        Try
+            Dim dteTmp As Date
+            LOG.StepName = TimeSlot.ToString
+            Select Case TimeSlot
+                Case EnmTimeSlot.CurrentWeek
+                    Dim intDayOfWeek As Integer = Now.DayOfWeek
+                    dteTmp = DateAdd(DateInterval.Day, 0 - intDayOfWeek, Now)
+                    BeginTime = CDate(Left(Me.GetFmtDateTime(dteTmp), 10))
+                    dteTmp = DateAdd(DateInterval.Day, 7 - intDayOfWeek, Now)
+                    EndTime = CDate(Left(Me.GetFmtDateTime(dteTmp), 10))
+                Case EnmTimeSlot.CurrentMonth
+                    BeginTime = CDate(Left(Me.GetFmtDateTime(Now), 8) & "01")
+                    dteTmp = DateAdd(DateInterval.Month, 1, Now)
+                    EndTime = CDate(Left(Me.GetFmtDateTime(dteTmp), 8) & "01")
+                Case EnmTimeSlot.CurrentYear
+                    BeginTime = CDate(Left(Me.GetFmtDateTime(Now), 5) & "01-01")
+                    dteTmp = DateAdd(DateInterval.Year, 1, Now)
+                    EndTime = CDate(Left(Me.GetFmtDateTime(dteTmp), 5) & "01-01")
+                Case EnmTimeSlot.LastWeek
+                    Dim intDayOfWeek As Integer = Now.DayOfWeek
+                    dteTmp = DateAdd(DateInterval.Day, 0 - intDayOfWeek - 7, Now)
+                    BeginTime = CDate(Left(Me.GetFmtDateTime(dteTmp), 10))
+                    dteTmp = DateAdd(DateInterval.Day, 0 - intDayOfWeek, Now)
+                    EndTime = CDate(Left(Me.GetFmtDateTime(dteTmp), 10))
+                Case EnmTimeSlot.LastMonth
+                    dteTmp = DateAdd(DateInterval.Month, -1, Now)
+                    BeginTime = CDate(Left(Me.GetFmtDateTime(dteTmp), 8) & "01")
+                    EndTime = CDate(Left(Me.GetFmtDateTime(Now), 8) & "01")
+                Case EnmTimeSlot.LastYear
+                    dteTmp = DateAdd(DateInterval.Year, -1, Now)
+                    BeginTime = CDate(Left(Me.GetFmtDateTime(dteTmp), 5) & "01-01")
+                    EndTime = CDate(Left(Me.GetFmtDateTime(Now), 5) & "01-01")
+            End Select
+            Return "OK"
+        Catch ex As Exception
+            BeginTime = Date.MinValue
+            EndTime = Date.MinValue
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 End Class
