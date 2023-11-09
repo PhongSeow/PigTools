@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 2.7.6
+'* Version: 2.8.6
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -25,6 +25,7 @@
 '* 2.5  23/5/2023  Add PigSudo
 '* 2.6  5/6/2023  Modify PigCmdAppDemo
 '* 2.7  16/9/2023  Add PigService
+'* 2.8  20/10/2023  Modify PigSysCmdDemo
 '************************************
 
 Imports PigCmdLib
@@ -54,6 +55,7 @@ Public Class ConsoleDemo
     Public OSCaption As String
     Public WmicCmd As String
     Public UUID As String
+    Public DefaultIPGateway
     Public BootUpTime As Date
     Public SuDoUser As String
     Public OutFile As String
@@ -223,10 +225,16 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "GetBootUpTime#GetBootUpTime|"
             Me.MenuDefinition &= "GetWmicSimpleXml#GetWmicSimpleXml|"
             Me.MenuDefinition &= "ReBootHost#ReBootHost|"
+            Me.MenuDefinition &= "GetDefaultIPGateway#GetDefaultIPGateway|"
             Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "GetDefaultIPGateway"
+                    Console.WriteLine("GetDefaultIPGateway")
+                    Me.Ret = Me.PigSysCmd.GetDefaultIPGateway(Me.DefaultIPGateway)
+                    Console.WriteLine(Me.Ret)
+                    Console.WriteLine("DefaultIPGateway=" & Me.DefaultIPGateway)
                 Case "ReBootHost"
                     If Me.PigConsole.IsYesOrNo("Is reboot host now?") = True Then
                         Me.Ret = Me.PigSysCmd.ReBootHost
@@ -321,8 +329,11 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "PigSudo#PigSudo|"
             Me.MenuDefinition &= "PigNohup#PigNohup|"
             Me.MenuDefinition &= "PigService#PigService|"
+            Me.MenuDefinition &= "TestAllMenu#TestAllMenu|"
             Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
             Select Case Me.MenuKey
+                Case "TestAllMenu"
+                    Me.TestAllMenu()
                 Case "PigService"
                     Me.PigSrvcieDemo()
                 Case "PigSudo"
@@ -528,6 +539,24 @@ Public Class ConsoleDemo
                         Console.WriteLine("CPU.CPUCores=" & .CPU.CPUCores)
                         Console.WriteLine("CPU.Processors=" & .CPU.Processors)
                     End With
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
+    Public Sub TestAllMenu()
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition = ""
+            For i = 1 To 25
+                Me.MenuDefinition &= "Menu" & i & "#Menu" & i & "|"
+            Next
+            Me.PigConsole.SimpleMenu("TestAllMenu", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Select Case Me.MenuKey
+                Case ""
+                    Exit Do
+                Case Else
+                    Console.WriteLine("You select " & Me.MenuKey)
             End Select
             Me.PigConsole.DisplayPause()
         Loop

@@ -1425,6 +1425,19 @@ Public Class ConsoleDemo
                         Console.WriteLine(".EscapeStr(<1><2>)=" & strValue)
                         Console.WriteLine(".UnEscapeStr(" & strValue & ")=" & .UnEscapeStr(strValue))
                         Console.WriteLine("DefaultBrowser=" & .GetDefaultBrowser())
+                        Dim dteBeginTime As Date, dteEndTime As Date
+                        Me.Ret = .GetTimeSlot(PigFunc.EnmTimeSlot.CurrentMonth, dteBeginTime, dteEndTime)
+                        Console.WriteLine("GetTimeSlot(CurrentMonth)=" & Me.Ret & "，BeginTime=" & .GetFmtDateTime(dteBeginTime) & ",EndTime=" & .GetFmtDateTime(dteEndTime))
+                        Me.Ret = .GetTimeSlot(PigFunc.EnmTimeSlot.CurrentWeek, dteBeginTime, dteEndTime)
+                        Console.WriteLine("GetTimeSlot(CurrentWeek)=" & Me.Ret & "，BeginTime=" & .GetFmtDateTime(dteBeginTime) & ",EndTime=" & .GetFmtDateTime(dteEndTime))
+                        Me.Ret = .GetTimeSlot(PigFunc.EnmTimeSlot.CurrentYear, dteBeginTime, dteEndTime)
+                        Console.WriteLine("GetTimeSlot(CurrentYear)=" & Me.Ret & "，BeginTime=" & .GetFmtDateTime(dteBeginTime) & ",EndTime=" & .GetFmtDateTime(dteEndTime))
+                        Me.Ret = .GetTimeSlot(PigFunc.EnmTimeSlot.LastMonth, dteBeginTime, dteEndTime)
+                        Console.WriteLine("GetTimeSlot(LastMonth)=" & Me.Ret & "，BeginTime=" & .GetFmtDateTime(dteBeginTime) & ",EndTime=" & .GetFmtDateTime(dteEndTime))
+                        Me.Ret = .GetTimeSlot(PigFunc.EnmTimeSlot.LastWeek, dteBeginTime, dteEndTime)
+                        Console.WriteLine("GetTimeSlot(LastWeek)=" & Me.Ret & "，BeginTime=" & .GetFmtDateTime(dteBeginTime) & ",EndTime=" & .GetFmtDateTime(dteEndTime))
+                        Me.Ret = .GetTimeSlot(PigFunc.EnmTimeSlot.LastYear, dteBeginTime, dteEndTime)
+                        Console.WriteLine("GetTimeSlot(LastYear)=" & Me.Ret & "，BeginTime=" & .GetFmtDateTime(dteBeginTime) & ",EndTime=" & .GetFmtDateTime(dteEndTime))
                     End With
                 Case ConsoleKey.B
                     Console.CursorVisible = True
