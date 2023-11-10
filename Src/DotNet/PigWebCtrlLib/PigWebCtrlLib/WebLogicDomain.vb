@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.35
+'* Version: 1.36
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add CheckDomain 
 '*1.2  5/3/2022   Modify New
@@ -40,6 +40,7 @@
 '*1.32 1/8/2023  Modify RefConf
 '*1.33 5/9/2023  Modify EnmDomainRunStatus,mIsRunBusy,HardStopDomain,StopDomain,RefRunStatus
 '*1.35 7/9/2023  Modify mIsRunBusy,RefRunStatus
+'*1.36 9/11/2023 Add StatisticsAccessLog
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -51,7 +52,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.35.6"
+    Private Const CLS_VERSION As String = "1.36.18"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -62,6 +63,7 @@ Public Class WebLogicDomain
     Private mUpdateCheck As New UpdateCheck
 
     Public ReadOnly Property WebLogicDeploys As WebLogicDeploys
+
 
 
     Public ReadOnly Property LastUpdateTime() As DateTime
@@ -1557,5 +1559,128 @@ Public Class WebLogicDomain
             Return ""
         End Try
     End Function
+
+    ''' <summary>
+    ''' Statistical access logs|统计访问日志
+    ''' </summary>
+    ''' <param name="TimeSlot">Time slot|时间段</param>
+    ''' <param name="StatisticsResXml">Return statistical XML results|返回统计XML结果</param>
+    ''' <param name="ErrLogFilePath">Log file path for recording error information during processing|用于记录处理过程的错误信息的日志文件路径</param>
+    ''' <returns></returns>
+    Public Function StatisticsAccessLog(TimeSlot As PigFunc.EnmTimeSlot, ByRef StatisticsResXml As String, Optional ErrLogFilePath As String = "") As String
+        Dim LOG As New PigStepLog("StatisticsAccessLog")
+        Try
+            Dim dteBegin As Date
+            Dim dteEnd As Date
+            Dim bolIsLogErr As Boolean = False
+            If ErrLogFilePath <> "" Then bolIsLogErr = True
+            LOG.StepName = "GetTimeSlot"
+            LOG.Ret = Me.mPigFunc.GetTimeSlot(TimeSlot, dteBegin, dteEnd)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "New PigFolder"
+            Dim oPigFolder As New PigFolder(Me.LogDirPath)
+            If oPigFolder.LastErr <> "" Then Throw New Exception(oPigFolder.LastErr)
+            Dim strScanFileList As String = ""
+            LOG.StepName = "RefPigFiles"
+            LOG.Ret = oPigFolder.RefPigFiles()
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            For Each oPigFile As PigFile In oPigFolder.PigFiles
+                If UCase(Left(oPigFile.FileTitle, 10)) = UCase("access.log") Then
+                    LOG.AddStepNameInf(oPigFile.FileTitle)
+                    Dim strLine As String = oPigFile.GetTailText(1)
+                    If bolIsLogErr = True Then
+                        If oPigFile.LastErr <> "" Then
+                            LOG.AddStepNameInf(oPigFile.FileTitle)
+                            LOG.Ret = oPigFile.LastErr
+                            Me.mPigFunc.OptLogInf(LOG.StepLogInf, ErrLogFilePath)
+                        End If
+                    End If
+                    If strLine = "" Then
+                        If bolIsLogErr = True Then
+                            LOG.AddStepNameInf(oPigFile.FileTitle)
+                            LOG.Ret = "The last action is empty string."
+                            Me.mPigFunc.OptLogInf(LOG.StepLogInf, ErrLogFilePath)
+                        End If
+                    Else
+                        Dim oWebLogicAccessLogLine As New WebLogicAccessLogLine(strLine)
+                        If oWebLogicAccessLogLine.LastErr <> "" Then
+                            LOG.AddStepNameInf("New WebLogicAccessLogLine")
+                            LOG.AddStepNameInf(strLine)
+                            LOG.Ret = oWebLogicAccessLogLine.LastErr
+                        Else
+                            With oWebLogicAccessLogLine
+                                Select Case .AccessTime
+                                    Case dteBegin To dteEnd
+                                        strScanFileList &= "<" & oPigFile.FileTitle & ">"
+                                End Select
+                            End With
+                        End If
+                    End If
+                End If
+            Next
+            Dim oWebLogicAccessLogDayCnts As New WebLogicAccessLogDayCnts
+            'For i = 1 To 7
+            '    oWebLogicAccessLogDayCnts.Add(i, WebLogicAccessLogDayCnt.EnmDayType.DayOfWeek)
+            'Next
+            Dim pxMain As New PigXml(True)
+            pxMain.AddEleLeftSign("Root")
+            pxMain.AddEle("DayType", WebLogicAccessLogDayCnt.EnmDayType.DayOfWeek.ToString)
+            Do While True
+                Dim strFilePath As String = Me.mPigFunc.GetStr(strScanFileList, "<", ">")
+                If strFilePath = "" Then Exit Do
+                LOG.StepName = strFilePath
+                strFilePath = Me.LogDirPath & Me.OsPathSep & strFilePath
+                Dim tsMain As TextStream = Me.mFS.OpenTextFile(strFilePath, PigFileSystem.IOMode.ForReading)
+                If Me.mFS.LastErr <> "" Then
+                    If bolIsLogErr = True Then
+                        LOG.Ret = Me.mFS.LastErr
+                        Me.mPigFunc.OptLogInf(LOG.StepLogInf, ErrLogFilePath)
+                    End If
+                ElseIf tsMain Is Nothing Then
+                    If bolIsLogErr = True Then
+                        LOG.Ret = "tsMain Is Nothing"
+                        Me.mPigFunc.OptLogInf(LOG.StepLogInf, ErrLogFilePath)
+                    End If
+                Else
+                    Do While Not tsMain.AtEndOfStream
+                        Dim strLine As String = tsMain.ReadLine()
+                        Dim oWebLogicAccessLogLine As New WebLogicAccessLogLine(strLine)
+                        Dim oWebLogicAccessLogDayCnt As WebLogicAccessLogDayCnt = oWebLogicAccessLogDayCnts.AddOrGet(oWebLogicAccessLogLine.DayOfWeek, WebLogicAccessLogDayCnt.EnmDayType.DayOfWeek)
+                        With oWebLogicAccessLogDayCnt
+                            LOG.Ret = .AddOneDayCnt(oWebLogicAccessLogLine)
+                            If LOG.Ret <> "OK" Then
+                                If bolIsLogErr = True Then
+                                    LOG.StepName = "AddOneDayCnt"
+                                    LOG.AddStepNameInf(strLine)
+                                    Me.mPigFunc.OptLogInf(LOG.StepLogInf, ErrLogFilePath)
+                                End If
+                            End If
+                        End With
+                    Loop
+                End If
+                tsMain.Close()
+            Loop
+            For Each oWebLogicAccessLogDayCnt As WebLogicAccessLogDayCnt In oWebLogicAccessLogDayCnts
+                With oWebLogicAccessLogDayCnt
+                    pxMain.AddEleLeftSign(.DayNo)
+                    pxMain.AddEle("OkAccessCnt", .OkAccessCnt)
+                    pxMain.AddEle("OkAccessBytes", .OkAccessBytes)
+                    pxMain.AddEle("InvalidAccessCnt", .InvalidAccessCnt)
+                    pxMain.AddEle("ErrAccessCnt", .ErrAccessCnt)
+                    pxMain.AddEle("TotalDays", .TotalDays)
+                    pxMain.AddEleRightSign(.DayNo)
+                End With
+            Next
+            pxMain.AddEleRightSign("Root")
+            StatisticsResXml = pxMain.MainXmlStr
+            pxMain = Nothing
+            Return "OK"
+        Catch ex As Exception
+            StatisticsResXml = ""
+            LOG.AddStepNameInf(Me.LogDirPath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
 End Class

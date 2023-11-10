@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 4/11/2019
 '*1.0.2  2019-11-5   增加mSaveFile
 '*1.0.3  2019-11-20  增加 CopyFileTo
@@ -21,14 +21,16 @@
 '*1.6  30/9/2022    Add GetTailText,GetTopText
 '*1.7  2/5/2023     Modify GetFastPigMD5
 '*1.8  4/5/2023     Modify GetFastPigMD5,mGetMyMD5,SegLoadFile,GetTailText, add mGetFastPigMD5
+'*1.9  10/11/2023   Add GetTextRows, modify GetTailText
 '**********************************
 Imports System.IO
+Imports Microsoft.VisualBasic.Logging
 ''' <summary>
 ''' File processing set|文件处理集
 ''' </summary>
 Public Class PigFile
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.8.20"
+    Private Const CLS_VERSION As String = "1.9.12"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
     Public GbMain As PigBytes '主数据数组
@@ -161,6 +163,30 @@ Public Class PigFile
     End Function
 
     ''' <summary>
+    ''' Get the number of text lines in the file|获取文件的文本行数
+    ''' </summary>
+    ''' <returns></returns>
+    Public Function GetTextRows() As Long
+        Try
+            Dim sfAny As FileStream = Nothing
+            Dim srAny As StreamReader = Nothing
+            sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            srAny = New StreamReader(sfAny)
+            GetTextRows = 0
+            Do While Not srAny.EndOfStream
+                srAny.ReadLine()
+                GetTextRows += 1
+            Loop
+            srAny.Close()
+            sfAny.Close()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetTextRows", ex)
+            Return -1
+        End Try
+    End Function
+
+
+    ''' <summary>
     ''' 读取文本文件的尾部|Read the tail of a text file
     ''' </summary>
     ''' <param name="Rows"></param>
@@ -170,23 +196,26 @@ Public Class PigFile
         Dim sfAny As FileStream = Nothing
         Dim srAny As StreamReader = Nothing
         Try
-            Dim alMain As New ArrayList
+            Dim lngTotalRows As Long = Me.GetTextRows
+            If lngTotalRows < 0 Then Throw New Exception("Unable to obtain the number of file lines")
+            If Rows > lngTotalRows Then Rows = lngTotalRows
+            Dim lngSkip As Long = lngTotalRows - Rows
             LOG.StepName = "New FileStream"
             sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
             LOG.StepName = "New StreamReader"
             srAny = New StreamReader(sfAny)
+            GetTailText = ""
+            Dim strCrLf As String = Me.OsCrLf
             Do While Not srAny.EndOfStream
-                If alMain.Count > Rows Then alMain.RemoveAt(0)
-                Dim strLine As String = srAny.ReadLine
-                alMain.Add(strLine)
+                If lngSkip > 0 Then
+                    srAny.ReadLine()
+                    lngSkip -= 1
+                Else
+                    GetTailText &= srAny.ReadLine & strCrLf
+                End If
             Loop
             srAny.Close()
             sfAny.Close()
-            GetTailText = ""
-            Dim strCrLf As String = Me.OsCrLf
-            For i = 0 To alMain.Count - 1
-                GetTailText &= alMain.Item(i) & strCrLf
-            Next
         Catch ex As Exception
             If srAny IsNot Nothing Then srAny.Close()
             If sfAny IsNot Nothing Then sfAny.Close()
@@ -207,10 +236,11 @@ Public Class PigFile
             Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
             LOG.StepName = "New StreamReader"
             Dim srAny = New StreamReader(sfAny)
+            Dim strCrLf As String = Me.OsCrLf
             GetTopText = ""
             Dim i As Integer = 0
             Do While Not srAny.EndOfStream
-                GetTopText &= srAny.ReadLine
+                GetTopText &= srAny.ReadLine & strCrLf
                 i += 1
                 If i >= Rows Then Exit Do
             Loop

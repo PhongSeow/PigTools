@@ -15,7 +15,7 @@
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous system wmic host hardware software CPU</PackageTags>
     <Description>Simplify process calls, command line read and write operations, host operating system commands, and other functions.</Description>
-    <Version>2.2.110</Version>
+    <Version>2.2.112</Version>
     <PackageReleaseNotes>Reference the latest class library</PackageReleaseNotes>
     <Title>Pig command library</Title>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.5.26" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.5.28" />
   </ItemGroup>
 
   <ItemGroup>
