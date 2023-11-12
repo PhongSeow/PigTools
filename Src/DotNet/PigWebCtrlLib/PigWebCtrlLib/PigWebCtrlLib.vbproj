@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigCmdLib" Version="2.2.110" />
+    <PackageReference Include="PigCmdLib" Version="2.2.112" />
   </ItemGroup>
 
   <ItemGroup>

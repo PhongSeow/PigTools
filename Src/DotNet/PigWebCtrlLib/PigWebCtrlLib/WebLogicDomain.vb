@@ -44,6 +44,7 @@
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
+Imports System.IO
 Imports System.Runtime.InteropServices.ComTypes
 
 
@@ -52,7 +53,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.36.18"
+    Private Const CLS_VERSION As String = "1.36.68"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -1560,14 +1561,128 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    Private Function mGetTopText(FilePath As String, Rows As Integer) As String
+        Try
+            mGetTopText = ""
+            Dim tsIn As TextStream
+            tsIn = Me.mFS.OpenTextFile(FilePath, PigFileSystem.IOMode.ForReading)
+            Dim strCrLf As String = Me.OsCrLf
+            Do While Not tsIn.AtEndOfStream
+                If Rows <= 0 Then Exit Do
+                Dim strLine As String = tsIn.ReadLine
+                If tsIn.LastErr <> "" Then Throw New Exception(tsIn.LastErr)
+                mGetTopText &= strLine & strCrLf
+                Rows -= 1
+            Loop
+            tsIn.Close()
+        Catch ex As Exception
+            Me.SetSubErrInf("mGetTopText", ex)
+            Return ""
+        End Try
+    End Function
+
+    Private Function mGetTopTextAsc(FilePath As String, Rows As Integer) As String
+        Try
+            mGetTopTextAsc = ""
+            Dim tsIn As TextStreamAsc
+            tsIn = Me.mFS.OpenTextFileAsc(FilePath, PigFileSystem.IOMode.ForReading)
+            Dim strCrLf As String = Me.OsCrLf
+            Do While Not tsIn.AtEndOfStream
+                If Rows <= 0 Then Exit Do
+                Dim strLine As String = tsIn.ReadLine
+                If tsIn.LastErr <> "" Then Throw New Exception(tsIn.LastErr)
+                mGetTopTextAsc &= strLine & strCrLf
+                Rows -= 1
+            Loop
+            tsIn.Close()
+        Catch ex As Exception
+            Me.SetSubErrInf("mGetTopTextAsc", ex)
+            Return ""
+        End Try
+    End Function
+
+    Private Function mGetTextRows(FilePath As String) As Long
+        Try
+            Dim sfAny As FileStream = Nothing
+            Dim srAny As StreamReader = Nothing
+            sfAny = New FileStream(FilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            srAny = New StreamReader(sfAny)
+            mGetTextRows = 0
+            Do While Not srAny.EndOfStream
+                srAny.ReadLine()
+                mGetTextRows += 1
+            Loop
+            srAny.Close()
+            sfAny.Close()
+        Catch ex As Exception
+            Me.SetSubErrInf("mGetTextRows", ex)
+            Return -1
+        End Try
+    End Function
+
+    Private Function mGetTailTextAsc(FilePath As String, Rows As Integer) As String
+        Try
+            mGetTailTextAsc = ""
+            Dim lngTotalRows As Long = Me.mGetTextRows(FilePath)
+            If lngTotalRows < 0 Then Throw New Exception("Unable to obtain the number of file lines")
+            If Rows > lngTotalRows Then Rows = lngTotalRows
+            Dim lngSkip As Long = lngTotalRows - Rows
+            Dim tsIn As TextStreamAsc
+            Dim strCrLf As String = Me.OsCrLf
+            tsIn = Me.mFS.OpenTextFileAsc(FilePath, PigFileSystem.IOMode.ForReading)
+            Do While Not tsIn.AtEndOfStream
+                If lngSkip > 0 Then
+                    tsIn.ReadLine()
+                    If tsIn.LastErr <> "" Then Throw New Exception(tsIn.LastErr)
+                    lngSkip -= 1
+                Else
+                    mGetTailTextAsc &= tsIn.ReadLine & strCrLf
+                End If
+            Loop
+            tsIn.Close()
+        Catch ex As Exception
+            Me.SetSubErrInf("mGetTailTextAsc", ex)
+            Return ""
+        End Try
+    End Function
+
+
+    Private Function mGetTailText(FilePath As String, Rows As Integer) As String
+        Try
+            mGetTailText = ""
+            Dim lngTotalRows As Long = Me.mGetTextRows(FilePath)
+            If lngTotalRows < 0 Then Throw New Exception("Unable to obtain the number of file lines")
+            If Rows > lngTotalRows Then Rows = lngTotalRows
+            Dim lngSkip As Long = lngTotalRows - Rows
+            Dim tsIn As TextStream
+            Dim strCrLf As String = Me.OsCrLf
+            tsIn = Me.mFS.OpenTextFile(FilePath, PigFileSystem.IOMode.ForReading)
+            Do While Not tsIn.AtEndOfStream
+                If lngSkip > 0 Then
+                    tsIn.ReadLine()
+                    If tsIn.LastErr <> "" Then Throw New Exception(tsIn.LastErr)
+                    lngSkip -= 1
+                Else
+                    mGetTailText &= tsIn.ReadLine & strCrLf
+                End If
+            Loop
+            tsIn.Close()
+        Catch ex As Exception
+            Me.SetSubErrInf("mGetTailText", ex)
+            Return ""
+        End Try
+    End Function
+
+
     ''' <summary>
     ''' Statistical access logs|统计访问日志
     ''' </summary>
     ''' <param name="TimeSlot">Time slot|时间段</param>
     ''' <param name="StatisticsResXml">Return statistical XML results|返回统计XML结果</param>
+    ''' <param name="IsAscii">Set to True for some older Windows systems|对于一些比较旧的Windows系统设置为True</param>
     ''' <param name="ErrLogFilePath">Log file path for recording error information during processing|用于记录处理过程的错误信息的日志文件路径</param>
     ''' <returns></returns>
-    Public Function StatisticsAccessLog(TimeSlot As PigFunc.EnmTimeSlot, ByRef StatisticsResXml As String, Optional ErrLogFilePath As String = "") As String
+    Public Function StatisticsAccessLog(TimeSlot As PigFunc.EnmTimeSlot, ByRef StatisticsResXml As String, Optional IsAscii As Boolean = False, Optional ErrLogFilePath As String = "") As String
         Dim LOG As New PigStepLog("StatisticsAccessLog")
         Try
             Dim dteBegin As Date
@@ -1585,9 +1700,16 @@ Public Class WebLogicDomain
             LOG.Ret = oPigFolder.RefPigFiles()
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             For Each oPigFile As PigFile In oPigFolder.PigFiles
-                If UCase(Left(oPigFile.FileTitle, 10)) = UCase("access.log") Then
+                Dim strFileTitle As String = Me.mPigFunc.GetFilePart(oPigFile.FilePath, PigFunc.EnmFilePart.FileTitle)
+                Dim strExtName As String = Me.mPigFunc.GetFilePart(oPigFile.FilePath, PigFunc.EnmFilePart.ExtName)
+                If Left(LCase(strFileTitle), 10) = "access.log" And InStr(LCase(strExtName), "log") > 0 Then
                     LOG.AddStepNameInf(oPigFile.FileTitle)
-                    Dim strLine As String = oPigFile.GetTailText(1)
+                    Dim strLine As String = ""
+                    If IsAscii = True Then
+                        strLine = Me.mGetTopTextAsc(oPigFile.FilePath, 1)
+                    Else
+                        strLine = Me.mGetTopText(oPigFile.FilePath, 1)
+                    End If
                     If bolIsLogErr = True Then
                         If oPigFile.LastErr <> "" Then
                             LOG.AddStepNameInf(oPigFile.FileTitle)
@@ -1618,13 +1740,56 @@ Public Class WebLogicDomain
                     End If
                 End If
             Next
+            For Each oPigFile As PigFile In oPigFolder.PigFiles
+                Dim strFileTitle As String = Me.mPigFunc.GetFilePart(oPigFile.FilePath, PigFunc.EnmFilePart.FileTitle)
+                Dim strExtName As String = Me.mPigFunc.GetFilePart(oPigFile.FilePath, PigFunc.EnmFilePart.ExtName)
+                If Left(LCase(strFileTitle), 10) = "access.log" And InStr(LCase(strExtName), "log") > 0 Then
+                    Dim strName As String = "<" & oPigFile.FileTitle & ">"
+                    If InStr(strScanFileList, strName) = 0 Then
+                        LOG.AddStepNameInf(oPigFile.FileTitle)
+                        Dim strLine As String = ""
+                        If IsAscii = True Then
+                            strLine = Me.mGetTailTextAsc(oPigFile.FilePath, 1)
+                        Else
+                            strLine = Me.mGetTailText(oPigFile.FilePath, 1)
+                        End If
+                        If bolIsLogErr = True Then
+                            If oPigFile.LastErr <> "" Then
+                                LOG.AddStepNameInf(oPigFile.FileTitle)
+                                LOG.Ret = oPigFile.LastErr
+                                Me.mPigFunc.OptLogInf(LOG.StepLogInf, ErrLogFilePath)
+                            End If
+                        End If
+                        If strLine = "" Then
+                            If bolIsLogErr = True Then
+                                LOG.AddStepNameInf(oPigFile.FileTitle)
+                                LOG.Ret = "The last action is empty string."
+                                Me.mPigFunc.OptLogInf(LOG.StepLogInf, ErrLogFilePath)
+                            End If
+                        Else
+                            Dim oWebLogicAccessLogLine As New WebLogicAccessLogLine(strLine)
+                            If oWebLogicAccessLogLine.LastErr <> "" Then
+                                LOG.AddStepNameInf("New WebLogicAccessLogLine")
+                                LOG.AddStepNameInf(strLine)
+                                LOG.Ret = oWebLogicAccessLogLine.LastErr
+                            Else
+                                With oWebLogicAccessLogLine
+                                    Select Case .AccessTime
+                                        Case dteBegin To dteEnd
+                                            strScanFileList &= "<" & oPigFile.FileTitle & ">"
+                                    End Select
+                                End With
+                            End If
+                        End If
+                    End If
+                End If
+            Next
             Dim oWebLogicAccessLogDayCnts As New WebLogicAccessLogDayCnts
-            'For i = 1 To 7
-            '    oWebLogicAccessLogDayCnts.Add(i, WebLogicAccessLogDayCnt.EnmDayType.DayOfWeek)
-            'Next
             Dim pxMain As New PigXml(True)
             pxMain.AddEleLeftSign("Root")
             pxMain.AddEle("DayType", WebLogicAccessLogDayCnt.EnmDayType.DayOfWeek.ToString)
+            pxMain.AddEle("BeginTime", Me.mPigFunc.GetFmtDateTime(dteBegin))
+            pxMain.AddEle("EndTime", Me.mPigFunc.GetFmtDateTime(dteEnd))
             Do While True
                 Dim strFilePath As String = Me.mPigFunc.GetStr(strScanFileList, "<", ">")
                 If strFilePath = "" Then Exit Do
@@ -1663,11 +1828,13 @@ Public Class WebLogicDomain
             For Each oWebLogicAccessLogDayCnt As WebLogicAccessLogDayCnt In oWebLogicAccessLogDayCnts
                 With oWebLogicAccessLogDayCnt
                     pxMain.AddEleLeftSign(.DayNo)
-                    pxMain.AddEle("OkAccessCnt", .OkAccessCnt)
-                    pxMain.AddEle("OkAccessBytes", .OkAccessBytes)
+                    pxMain.AddEle("AccessCnt", .AccessCnt)
                     pxMain.AddEle("InvalidAccessCnt", .InvalidAccessCnt)
                     pxMain.AddEle("ErrAccessCnt", .ErrAccessCnt)
                     pxMain.AddEle("TotalDays", .TotalDays)
+                    pxMain.AddEle("AvgAccessCntOneDay", .AvgAccessCntOneDay)
+                    pxMain.AddEle("AvgAccessOKRateOneDay", .AvgAccessOKRateOneDay)
+                    pxMain.AddEle("AvgAccessMBOneDay", .AvgAccessMBOneDay)
                     pxMain.AddEleRightSign(.DayNo)
                 End With
             Next

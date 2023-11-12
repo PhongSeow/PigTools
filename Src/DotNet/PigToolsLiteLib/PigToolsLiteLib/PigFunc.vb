@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.57
+'* Version: 1.58
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -55,6 +55,7 @@
 '*1.55   21/10/2023  Add ClipboardGetText,ClipboardSetText
 '*1.56   4/11/2023  Add OpenUrl,GetDefaultBrowser
 '*1.57   7/11/2023  Add GetTimeSlot
+'*1.58   10/11/2023  Add GetTextFileEncCode
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -63,6 +64,7 @@ Imports System.Environment
 Imports System.Threading
 Imports System.Security.Cryptography
 Imports Microsoft.VisualBasic
+Imports System.Text
 
 ''' <summary>
 ''' Function set|功能函数集
@@ -2304,6 +2306,20 @@ Public Class PigFunc
             BeginTime = Date.MinValue
             EndTime = Date.MinValue
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetTextFileEncCode(FilePath As String, ByRef EncCode As String) As String
+        Try
+            Dim ecAny As Encoding
+            Using srAny As New StreamReader(FilePath)
+                srAny.ReadLine()
+                ecAny = srAny.CurrentEncoding
+            End Using
+            EncCode = ecAny.EncodingName
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("GetTextFileEncCode", ex)
         End Try
     End Function
 
