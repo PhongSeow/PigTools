@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 2.8.6
+'* Version: 2.9.6
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -26,6 +26,7 @@
 '* 2.6  5/6/2023  Modify PigCmdAppDemo
 '* 2.7  16/9/2023  Add PigService
 '* 2.8  20/10/2023  Modify PigSysCmdDemo
+'* 2.9  16/11/2023  Add CmdZipDemo
 '************************************
 
 Imports PigCmdLib
@@ -43,12 +44,22 @@ Public Class ConsoleDemo
     Public Para As String
     Public Line As String
     Public PigConsole As New PigConsole
+    Public CmdZip As CmdZip
+    Public ZipExecPath As String
+    Public ZipFilePath As String
+    Public ZipType As CmdZip.EnmZipType
+    Public SrcDir As String
+    Public TargetDir As String
+    Public TarFilePath As String
     Public Pwd As String
     Public Ret As String
     Public PigFunc As New PigFunc
     Public MenuKey As String
+    Public MenuKey2 As String
     Public SelectKey As String
+    Public SelectKey2 As String
     Public MenuDefinition As String
+    Public MenuDefinition2 As String
     Public SelectDefinition As String
     Public OutThreadID As Integer
     Public ListenPort As Integer
@@ -329,11 +340,14 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "PigSudo#PigSudo|"
             Me.MenuDefinition &= "PigNohup#PigNohup|"
             Me.MenuDefinition &= "PigService#PigService|"
+            Me.MenuDefinition &= "CmdZip#CmdZip|"
             Me.MenuDefinition &= "TestAllMenu#TestAllMenu|"
             Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
             Select Case Me.MenuKey
                 Case "TestAllMenu"
                     Me.TestAllMenu()
+                Case "CmdZip"
+                    Me.CmdZipDemo()
                 Case "PigService"
                     Me.PigSrvcieDemo()
                 Case "PigSudo"
@@ -458,6 +472,48 @@ Public Class ConsoleDemo
         Loop
     End Sub
 
+    Public Sub CmdZipDemo()
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition = ""
+            Me.MenuDefinition &= "New#New|"
+            Me.MenuDefinition &= "AddArchive#AddArchive|"
+            Me.MenuDefinition &= "ExtractArchive#ExtractArchive|"
+            Me.PigConsole.SimpleMenu("CmdZipDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Select Case Me.MenuKey
+                Case ""
+                    Exit Do
+                Case "New"
+                    Dim intZipType As CmdZip.EnmZipType = CmdZip.EnmZipType.Tar
+                    Me.MenuDefinition2 = intZipType & "#" & intZipType.ToString & "|"
+                    intZipType = CmdZip.EnmZipType.WinRar : Me.MenuDefinition2 &= intZipType & "#" & intZipType.ToString & "|"
+                    intZipType = CmdZip.EnmZipType._7_Zip : Me.MenuDefinition2 &= intZipType & "#" & intZipType.ToString & "|"
+                    Me.PigConsole.SimpleMenu("Select ZipType", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.Null)
+                    Me.ZipType = CInt(Me.MenuKey2)
+                    Me.PigConsole.GetLine("Input ZipExecPath", Me.ZipExecPath)
+                    Me.CmdZip = New CmdZip(Me.ZipType, Me.ZipExecPath)
+                    If Me.CmdZip.LastErr <> "" Then Console.WriteLine(Me.CmdZip.LastErr)
+                Case "AddArchive"
+                    Me.PigConsole.GetLine("Enter the source directory to compress", Me.SrcDir)
+                    Me.PigConsole.GetLine("Enter compressed package path", Me.ZipFilePath)
+                    If Me.PigConsole.IsYesOrNo("Is use sudo") = True Then
+                        Me.PigConsole.GetLine("Input sudo user", Me.SuDoUser)
+                        Me.Ret = Me.CmdZip.AddArchive(Me.SrcDir, Me.ZipFilePath, Me.SuDoUser)
+                    Else
+                        Me.Ret = Me.CmdZip.AddArchive(Me.SrcDir, Me.ZipFilePath)
+                    End If
+                    Console.WriteLine(Me.Ret)
+                Case "ExtractArchive"
+                    Me.PigConsole.GetLine("Enter the target directory for decompression", Me.TargetDir)
+                    Me.PigConsole.GetLine("Enter compressed package path", Me.ZipFilePath)
+                    Me.Ret = Me.CmdZip.ExtractArchive(Me.TargetDir, Me.ZipFilePath)
+                    Console.WriteLine(Me.Ret)
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
+
     Public Sub PigSrvcieDemo()
         Do While True
             Console.Clear()
@@ -468,7 +524,7 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "Delete#Delete|"
             Me.MenuDefinition &= "StartService#StartService|"
             Me.MenuDefinition &= "StopService#StopService|"
-            Me.PigConsole.SimpleMenu("PigHostDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Me.PigConsole.SimpleMenu("PigSrvcieDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do

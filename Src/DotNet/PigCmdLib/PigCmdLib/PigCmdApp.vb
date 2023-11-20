@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.18
+'* Version: 1.19
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -23,6 +23,7 @@
 '* 1.16 23/8/2023  Modify GetSubProcs,GetParentProc
 '* 1.17 9/10/2023  Modify CallFileWaitForExit
 '* 1.18 19/10/2023  Modify CallFileWaitForExit
+'* 1.19 20/11/2023  Modify New,mCmdShell
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -32,9 +33,9 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.18.8"
-    Public LinuxShPath As String = "/bin/sh"
-    Public WindowsCmdPath As String
+    Private Const CLS_VERSION As String = "1.19.6"
+    Public Property LinuxShPath As String
+    Public Property WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
     Private moPigProcApp As PigProcApp
 
@@ -49,6 +50,8 @@ Public Class PigCmdApp
         MyBase.New(CLS_VERSION)
         If Me.IsWindows = True Then
             Me.WindowsCmdPath = mPigFunc.GetEnvVar("windir") & "\System32\cmd.exe"
+        Else
+            Me.LinuxShPath = "/bin/sh"
         End If
     End Sub
 
@@ -209,13 +212,16 @@ Public Class PigCmdApp
                 strShellPath = Me.LinuxShPath
             End If
             Dim strCmd As String
-            StruMain.Cmd = Replace(StruMain.Cmd, """", """""")
             If Me.IsWindows = True Then
-                strCmd = " /c "
+                strCmd = " /C "
+                If InStr(StruMain.Cmd, """") > 0 Then
+                    strCmd &= """" & StruMain.Cmd & """"
+                Else
+                    strCmd &= StruMain.Cmd
+                End If
             Else
-                strCmd = " -c "
+                strCmd = " -c """ & StruMain.Cmd & """"
             End If
-            strCmd &= """" & StruMain.Cmd & """"
             Dim StruCallFile As mStruCallFile
             With StruCallFile
                 .FilePath = strShellPath

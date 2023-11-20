@@ -4,9 +4,10 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: About the Processing Class of sudo Command|关于sudo命令的处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 22/5/2023
 '* 1.1  23/5/2023   Add Run,AsyncRun
+'* 1.2  20/11/2023  Modify mPara,New
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -16,9 +17,12 @@ Public Class PigSudo
     Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1.1.28"
 
-    Private ReadOnly Property mExePath As String = "/bin/sudo"
+    Private ReadOnly Property mExePath As String
 
     Public ReadOnly Property Cmd As String
+    Private ReadOnly Property mIsCmd As Boolean
+    Public ReadOnly Property CallFilePath As String
+    Public ReadOnly Property CallFilePara As String
 
     Public ReadOnly Property SudoUser As String
 
@@ -31,7 +35,19 @@ Public Class PigSudo
 
     Public Sub New(Cmd As String, SudoUser As String, Optional IsBackRun As Boolean = True)
         MyBase.New(CLS_VERSION)
+        Me.mExePath = "/bin/sudo"
         Me.Cmd = Cmd
+        Me.mIsCmd = True
+        Me.SudoUser = SudoUser
+        Me.IsBackRun = IsBackRun
+    End Sub
+
+    Public Sub New(FilePath As String, Para As String, SudoUser As String, Optional IsBackRun As Boolean = True)
+        MyBase.New(CLS_VERSION)
+        Me.mExePath = "/bin/sudo"
+        Me.CallFilePath = FilePath
+        Me.CallFilePara = Para
+        Me.mIsCmd = False
         Me.SudoUser = SudoUser
         Me.IsBackRun = IsBackRun
     End Sub
@@ -61,7 +77,11 @@ Public Class PigSudo
         Get
             mPara = "-u " & Me.SudoUser
             If Me.IsBackRun = True Then mPara &= " -b"
-            mPara &= " " & Me.Cmd
+            If Me.mIsCmd = True Then
+                mPara &= " /bin/sh -c """ & Me.Cmd & """"
+            Else
+                mPara &= " " & Me.CallFilePath & " " & Me.CallFilePara
+            End If
         End Get
     End Property
 
