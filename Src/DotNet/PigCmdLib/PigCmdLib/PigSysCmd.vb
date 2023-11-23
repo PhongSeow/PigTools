@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.19
+'* Version: 1.20
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -24,6 +24,7 @@
 '*1.17 16/8/2023  Add ReBootHost
 '*1.18 18/8/2023  Add mGetWmicSimpleXml,GetWmicSimpleXml modify ReBootHost
 '*1.19 20/10/2023 Add GetDefaultIPGateway
+'*1.20 23/11/2023 Add MoveDir,RmDirAndSubDir
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -31,7 +32,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.19.12"
+    Private Const CLS_VERSION As String = "1.20.6"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -484,5 +485,55 @@ Public Class PigSysCmd
         End Try
     End Function
 
+    Public Function RmDirAndSubDir(DirPath As String) As String
+        Dim LOG As New PigStepLog("RmDirAndSubDir")
+        Dim strCmd As String = ""
+        Try
+            If Me.mPigFunc.IsFolderExists(DirPath) = False Then Throw New Exception("Directory does not exist.")
+            If Me.IsWindows = True Then
+                strCmd = "rmdir """ & DirPath & """ /S /Q"
+            Else
+                strCmd = "rm -rf """ & DirPath
+            End If
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            If Me.mPigCmdApp.StandardError <> "" Then Throw New Exception(Me.mPigCmdApp.StandardError)
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(strCmd)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function MoveDir(SrcDir As String, TarDir As String, Optional IsOverwrite As Boolean = False) As String
+        Dim LOG As New PigStepLog("MoveDir")
+        Dim strCmd As String = ""
+        Try
+            If Me.mPigFunc.IsFolderExists(SrcDir) = False Then Throw New Exception("The source directory does not exist.")
+            If Me.mPigFunc.IsFolderExists(TarDir) = False Then Throw New Exception("Destination directory does not exist.")
+            If IsOverwrite = False Then
+                Dim strDirTitel As String = Me.mPigFunc.GetFilePart(SrcDir, PigFunc.EnmFilePart.FileTitle)
+                Dim strTarDir As String = TarDir & Me.OsPathSep & strDirTitel
+                If Me.mPigFunc.IsFolderExists(strTarDir) = True Then
+                    LOG.StepName = strTarDir
+                    Throw New Exception("The source directory does not exist.")
+                End If
+            End If
+            If Me.IsWindows = True Then
+                strCmd = "move """ & SrcDir & """ """ & TarDir & """ /S /Q /Y"
+            Else
+                strCmd = "mv -f " & SrcDir & " " & TarDir
+            End If
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            If Me.mPigCmdApp.StandardError <> "" Then Throw New Exception(Me.mPigCmdApp.StandardError)
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(strCmd)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 End Class
