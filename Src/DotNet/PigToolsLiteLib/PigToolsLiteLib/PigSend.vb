@@ -121,7 +121,7 @@ Public Class PigSend
             If Me.EncType = EnmEncType.Original Then
                 TarBase64 = Convert.ToBase64String(SendBytes)
             Else
-                Dim abTar(0) As Byte
+                Dim abTar(-1) As Byte
                 Dim strRet As String = Me.mSendData(SendBytes, abTar)
                 If strRet <> "OK" Then Throw New Exception(strRet)
                 TarBase64 = Convert.ToBase64String(abTar)
@@ -139,7 +139,7 @@ Public Class PigSend
             If Me.EncType = EnmEncType.Original Then
                 TarBase64 = oPigText.Base64
             Else
-                Dim abTar(0) As Byte
+                Dim abTar(-1) As Byte
                 Dim strRet As String = Me.mSendData(oPigText.TextBytes, abTar)
                 If strRet <> "OK" Then Throw New Exception(strRet)
                 TarBase64 = Convert.ToBase64String(abTar)
@@ -178,7 +178,7 @@ Public Class PigSend
                     LOG.Ret = Me.mSeowEnc.Encrypt(SendBytes, TarBytes)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
                 Case EnmEncType.SeowEncAndPigAes
-                    Dim abOut(0) As Byte
+                    Dim abOut(-1) As Byte
                     LOG.StepName = "mSeowEnc.Encrypt"
                     LOG.Ret = Me.mSeowEnc.Encrypt(SendBytes, abOut)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -186,7 +186,7 @@ Public Class PigSend
                     LOG.Ret = Me.mPigAes.Encrypt(abOut, TarBytes)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
                 Case EnmEncType.SeowEncAndPigRsa
-                    Dim abOut(0) As Byte
+                    Dim abOut(-1) As Byte
                     LOG.StepName = "mSeowEnc.Encrypt"
                     LOG.Ret = Me.mSeowEnc.Encrypt(SendBytes, abOut)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -211,7 +211,7 @@ Public Class PigSend
                     LOG.Ret = Me.mSeowEnc.Decrypt(ReceiveBytes, TarBytes)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
                 Case EnmEncType.SeowEncAndPigAes
-                    Dim abOut(0) As Byte
+                    Dim abOut(-1) As Byte
                     LOG.StepName = "mSeowEnc.Decrypt"
                     LOG.Ret = Me.mSeowEnc.Decrypt(ReceiveBytes, abOut)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -219,7 +219,7 @@ Public Class PigSend
                     LOG.Ret = Me.mPigAes.Decrypt(abOut, TarBytes)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
                 Case EnmEncType.SeowEncAndPigRsa
-                    Dim abOut(0) As Byte
+                    Dim abOut(-1) As Byte
                     LOG.StepName = "mSeowEnc.Decrypt"
                     LOG.Ret = Me.mSeowEnc.Decrypt(ReceiveBytes, abOut)
                     If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -254,7 +254,7 @@ Public Class PigSend
             If Me.EncType = EnmEncType.Original Then
                 TarBase64 = Convert.ToBase64String(ReceiveBytes)
             Else
-                Dim abTar(0) As Byte
+                Dim abTar(-1) As Byte
                 Dim strRet As String = Me.mReceiveData(ReceiveBytes, abTar)
                 If strRet <> "OK" Then Throw New Exception(strRet)
                 TarBase64 = Convert.ToBase64String(abTar)
@@ -274,7 +274,7 @@ Public Class PigSend
                 TarStr = oPigText.Text
                 oPigText = Nothing
             Else
-                Dim abTar(0) As Byte
+                Dim abTar(-1) As Byte
                 Dim strRet As String = Me.mReceiveData(oPigBytes.Main, abTar)
                 If strRet <> "OK" Then Throw New Exception(strRet)
                 Dim oPigText As New PigText(abTar, TextType)
@@ -295,7 +295,7 @@ Public Class PigSend
                 TarStr = oPigText.Text
                 oPigText = Nothing
             Else
-                Dim abTar(0) As Byte
+                Dim abTar(-1) As Byte
                 Dim strRet As String = Me.mReceiveData(ReceiveBytes, abTar)
                 If strRet <> "OK" Then Throw New Exception(strRet)
                 Dim oPigText As New PigText(abTar, TextType)

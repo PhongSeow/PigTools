@@ -233,7 +233,7 @@ Public Class PigVBCode
         Try
             LOG.StepName = "New PigText"
             Dim ptIn As New PigText(InpStr, TextType)
-            Dim abOut(0) As Byte
+            Dim abOut(-1) As Byte
             LOG.StepName = "mMkBytes2Func"
             LOG.Ret = Me.mMkBytes2Func(ptIn.TextBytes, FuncName, EnmMkBytes2FuncRetType.RetString, FuncCode, TextType)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)

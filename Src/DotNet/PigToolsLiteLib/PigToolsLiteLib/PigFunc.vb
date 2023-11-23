@@ -1665,7 +1665,7 @@ Public Class PigFunc
             LOG.Ret = Me.GetTextPigMD5("~PigShareMem." & SMName & ">PigShareMem,", PigMD5.enmTextType.UTF8, SMName)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             LOG.StepName = "New ShareMem(Head)"
-            Dim abHead(0) As Byte
+            Dim abHead(-1) As Byte
             Dim smHead As New ShareMem
             With smHead
                 LOG.StepName = "Init(Head)"
@@ -1675,7 +1675,7 @@ Public Class PigFunc
                 LOG.Ret = .Read(abHead)
                 If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             End With
-            Dim intDataLen As Integer, abMD5(0) As Byte
+            Dim intDataLen As Integer, abMD5(-1) As Byte
             Dim pbHead As New PigBytes(abHead)
             With pbHead
                 LOG.StepName = "pbHead.GetValue"

@@ -65,7 +65,7 @@ Public Class PigBytes
         Try
             ReDim mabPigMD5(0)
             Dim oCompressor As New PigCompressor
-            Dim abAny(0) As Byte
+            Dim abAny(-1) As Byte
             abAny = oCompressor.Depress(Me.mabMain)
             If oCompressor.LastErr <> "" Then Throw New Exception(oCompressor.LastErr)
             Me.mabMain = abAny
@@ -152,7 +152,7 @@ Public Class PigBytes
     Public Overloads Function Compress() As String
         Try
             Dim oCompressor As New PigCompressor
-            Dim abAny(0) As Byte
+            Dim abAny(-1) As Byte
             abAny = oCompressor.Compress(Me.mabMain)
             If oCompressor.LastErr <> "" Then Throw New Exception(oCompressor.LastErr)
             Me.mabMain = abAny
@@ -185,7 +185,7 @@ Public Class PigBytes
         Dim strStepName As String = ""
         Try
             Dim oStru2Bytes As New Stru2Bytes, strRet As String
-            Dim abStru(0) As Byte
+            Dim abStru(-1) As Byte
             strStepName = "Stru2Bytes"
             strRet = oStru2Bytes.Stru2Bytes(SrcStru, abStru)
             If strRet <> "OK" Then Throw New Exception(strRet)
@@ -224,7 +224,7 @@ Public Class PigBytes
                 Throw New Exception("Structure not init")
             End If
             strStepName = "Bytes2Stru"
-            Dim abAny(0) As Byte
+            Dim abAny(-1) As Byte
             strStepName = "GetBytesValue"
             abAny = Me.GetBytesValue(intStruLen)
             If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
@@ -493,7 +493,7 @@ Public Class PigBytes
             Dim abSrc As Byte() = Me.mabMain
             Dim i As Integer, intLen As Integer = CInt(abSrc.Length) / ExtCnt
             Dim oGEBytes As New PigBytes(Me.mabMain)
-            Dim abAny(0) As Byte
+            Dim abAny(-1) As Byte
             oGEBytes.RestPos()
             Me.PosToAddNew()
             For i = 0 To ExtCnt - 1

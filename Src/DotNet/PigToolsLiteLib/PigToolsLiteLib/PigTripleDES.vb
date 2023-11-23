@@ -141,7 +141,7 @@ Public Class PigTripleDES
         Dim strStepName As String = ""
         Dim strRet As String
         Try
-            Dim abEncBytes(0) As Byte
+            Dim abEncBytes(-1) As Byte
             strStepName = "mEncrypt"
             strRet = Me.mEncrypt(SrcBytes, abEncBytes)
             If strRet <> "OK" Then Throw New Exception(strRet)
@@ -162,7 +162,7 @@ Public Class PigTripleDES
         Try
             Dim oPigText As PigText
             oPigText = New PigText(EncBase64Str, TextType, PigText.enmNewFmt.FromBase64)
-            Dim abUnEncBytes(0) As Byte
+            Dim abUnEncBytes(-1) As Byte
             strStepName = "mDecrypt"
             strRet = Me.mDecrypt(oPigText.TextBytes, abUnEncBytes)
             If strRet <> "OK" Then Throw New Exception(strRet)
@@ -238,7 +238,7 @@ Public Class PigTripleDES
     Public Function MkEncKey(ByRef Base64EncKey As String, Optional InitKeyStr As String = "", Optional InitKeyTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
         Dim LOG As New PigStepLog("MkKey")
         Try
-            Dim abKey(0) As Byte
+            Dim abKey(-1) As Byte
             LOG.StepName = "New PigText"
             Dim ptInitKey As New PigText(InitKeyStr, InitKeyTextType)
             If ptInitKey.LastErr <> "" Then Throw New Exception(ptInitKey.LastErr)
@@ -300,7 +300,7 @@ Public Class PigTripleDES
 
     'Sub Main()
     '    Dim strSrc As String = "nyfort的BLOG"
-    '    Dim abIV(0) As Byte
+    '    Dim abIV(-1) As Byte
     '    '加密
     '    '注意KEY和IV只能用英文和数字,des是8个字符
     '    Dim strEnc As String = EncryptDes(strSrc, "Qz\p{s+萧u(R0e$^j/=*c[\", abIV)

@@ -4,73 +4,33 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 目录处理|Directory processing
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 4/6/2023
 '* 1.1  11/5/2023   Add IsRootFolder
 '* 1.2  11/6/2023   Add CreationTime,UpdateTime
 '* 1.3  13/6/2023   Add RefSubPigFolders,RefPigFiles,FindSubFolders, modify mGetSubDirList
+'* 1.5  22/11/2023  Add FilesSize,mGetFastPigMD5,GetFastPigMD5,mGetSubPigFolders
 '**********************************
 Imports System.IO
 
 Public Class PigFolder
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.16"
+    Private Const CLS_VERSION As String = "1.5.28"
 
     Public ReadOnly Property FolderPath As String
     Private Property mFolderInfo As DirectoryInfo
-
-    'Public Event FindFolder(FolderPath As String, TotalFindFolders As Long)
-    'Public Event ScanFolderErr(ErrInf As String)
-
-    'Public Event FindFile(FilePath As String, TotalFindFiles As Long)
-    'Public Event ScanFileErr(ErrInf As String)
+    Public Enum EnmGetFastPigMD5Type
+        FileSize_Files = 0
+        FileSize_Files_UpdateTime = 1
+        FileFastPigMD5 = 2
+        CurrDirInfo = 3
+    End Enum
 
     Public Sub New(FolderPath As String)
         MyBase.New(CLS_VERSION)
         Me.FolderPath = FolderPath
     End Sub
 
-    '''' <summary>
-    '''' 扫描目录|Scan directory
-    '''' </summary>
-    '''' <param name="IsSubFolders">是否包括子目录|Is include subdirectories</param>
-    '''' <returns></returns>
-    'Public Function ScanFolder(IsSubFolders As Boolean) As String
-    '    Dim LOG As New PigStepLog("ScanFolder")
-    '    Dim strFolderPath As String = ""
-    '    Dim lngTotalFindFolders As Long = 0
-    '    Try
-    '        LOG.StepName = "mInitFolderInf"
-    '        LOG.Ret = Me.mInitFolderInf
-    '        If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-    '        If IsSubFolders = False Then
-    '            LOG.StepName = "For Each"
-    '            For Each oDirectoryInfo As DirectoryInfo In Me.mFolderInfo.GetDirectories
-    '                strFolderPath = oDirectoryInfo.FullName
-    '                lngTotalFindFolders += 1
-    '                RaiseEvent FindFolder(oDirectoryInfo.FullName, lngTotalFindFolders)
-    '            Next
-    '        Else
-    '            Dim astrDir(0) As String, strRet As String = ""
-    '            LOG.StepName = "mGetSubDirList"
-    '            LOG.Ret = Me.mGetSubDirList(Me.mFolderInfo, astrDir, strRet)
-    '            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-    '            If strRet <> "" Then Throw New Exception(strRet)
-    '            For i = 0 To astrDir.Length - 1
-    '                strFolderPath = astrDir(i)
-    '                lngTotalFindFolders += 1
-    '                RaiseEvent FindFolder(strFolderPath, lngTotalFindFolders)
-    '            Next
-    '        End If
-    '        Return "OK"
-    '    Catch ex As Exception
-    '        LOG.AddStepNameInf(strFolderPath)
-    '        LOG.AddStepNameInf(lngTotalFindFolders)
-    '        Dim strErr As String = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
-    '        RaiseEvent ScanFolderErr(strErr)
-    '        Return strErr
-    '    End Try
-    'End Function
 
     Private Function mInitFolderInf() As String
         Try
@@ -87,9 +47,9 @@ Public Class PigFolder
 
     Private Function mGetSubPigFolders(ByRef InDirectoryInfo As DirectoryInfo, ByRef InPigFolders As PigFolders, ByRef Ret As String) As String
         Try
-            Dim lngCount As Long
+            Dim lngCount As Long = 0
 #If NET40_OR_GREATER Or NETCOREAPP Then
-            lngCount = InDirectoryInfo.GetDirectories.LongCount
+                        lngCount = InDirectoryInfo.GetDirectories.LongCount
 #Else
             lngCount = InDirectoryInfo.GetDirectories.Length
 #End If
@@ -100,7 +60,9 @@ Public Class PigFolder
                     Dim strRet As String = ""
                     InPigFolders.AddOrGet(InDirectoryInfo.FullName)
                     strRet = Me.mGetSubPigFolders(oInDirectoryInfo, InPigFolders, Ret)
-                    If strRet <> "OK" Then Ret &= oInDirectoryInfo.FullName & ":Err=" & strRet & strOsCrLf
+                    If strRet <> "OK" Then
+                        Ret &= oInDirectoryInfo.FullName & ":Err=" & strRet & strOsCrLf
+                    End If
                 Next
             Else
                 InPigFolders.AddOrGet(InDirectoryInfo.FullName)
@@ -127,48 +89,6 @@ Public Class PigFolder
         End Get
     End Property
 
-    'Public ReadOnly Property SubFolders(IsSubFolders As Boolean) As PigFolder()
-    '    Get
-    '        Try
-    '            If IsSubFolders = True Then
-    '                Dim strRet As String = "", saDir(-1) As String
-    '                Me.mGetSubDirList(Me.mFolderInfo, saDir, strRet)
-    '                Dim aFolder() As PigFolder
-    '                ReDim aFolder(-1)
-    '                For i = 0 To saDir.LongLength - 1
-    '                    Dim oDir As New DirectoryInfo(saDir(i))
-    '                    ReDim Preserve aFolder(aFolder.LongLength)
-    '                    Dim oFolder As New PigFolder(oDir.FullName)
-    '                    aFolder(aFolder.LongLength - 1) = oFolder
-    '                Next
-    '                Return aFolder
-    '            Else
-    '                Return Me.mSubFolders
-    '            End If
-    '        Catch ex As Exception
-    '            Me.SetSubErrInf("SubFolders", ex)
-    '            Return Nothing
-    '        End Try
-    '    End Get
-    'End Property
-
-    'Private ReadOnly Property mSubFolders() As PigFolder()
-    '    Get
-    '        Try
-    '            Dim aFolder() As PigFolder
-    '            ReDim aFolder(-1)
-    '            For Each oDirectoryInfo In Me.mFolderInfo.GetDirectories
-    '                ReDim Preserve aFolder(aFolder.LongLength)
-    '                Dim oFolder As New PigFolder(oDirectoryInfo.FullName)
-    '                aFolder(aFolder.LongLength - 1) = oFolder
-    '            Next
-    '            Return aFolder
-    '        Catch ex As Exception
-    '            Me.SetSubErrInf("mSubFolders", ex)
-    '            Return Nothing
-    '        End Try
-    '    End Get
-    'End Property
 
     Public ReadOnly Property CreationTime() As Date
         Get
@@ -206,35 +126,38 @@ Public Class PigFolder
         End Get
     End Property
 
-    'Public ReadOnly Property Size() As Long
-    '    Get
-    '        Try
-    '            If mFolderInfo Is Nothing Then Me.mInitFolderInf()
-    '            Size = 0
-    '            For Each oFile In Me.mFolderInfo.GetFiles
-    '                Size += oFile.Length
-    '            Next
-    '            Dim strRet As String = "", saDir(-1) As String
-    '            Me.mGetSubDirList(Me.mFolderInfo, saDir, strRet)
-    '            For i = 0 To saDir.LongLength - 1
-    '                Dim oDir As New DirectoryInfo(saDir(i))
-    '                For Each oFile In oDir.GetFiles
-    '                    Size += oFile.Length
-    '                Next
-    '            Next
-    '            Return Size
-    '        Catch ex As Exception
-    '            Me.SetSubErrInf("Size", ex)
-    '            Return -1
-    '        End Try
-    '    End Get
-    'End Property
+    ''' <summary>
+    ''' The file space size of the current directory, in MB|当前目录的文件空间大小
+    ''' </summary>
+    ''' <returns></returns>
+    Public ReadOnly Property FilesSize() As Long
+        Get
+            Try
+                FilesSize = 0
+                For Each oPigFile As PigFile In Me.PigFiles
+                    FilesSize += oPigFile.Size
+                Next
+            Catch ex As Exception
+                Me.SetSubErrInf("FilesSize", ex)
+                Return -1
+            End Try
+        End Get
+    End Property
+
 
     Private mPigFiles As PigFiles
     Public ReadOnly Property PigFiles As PigFiles
         Get
-            If mPigFiles Is Nothing Then Me.mPigFiles = New PigFiles
-            Return mPigFiles
+            Try
+                If mPigFiles Is Nothing Then
+                    Dim strRet As String = Me.RefPigFiles()
+                    If strRet <> "OK" Then Throw New Exception(strRet)
+                End If
+                Return mPigFiles
+            Catch ex As Exception
+                Me.SetSubErrInf("PigFiles", ex)
+                Return Nothing
+            End Try
         End Get
     End Property
 
@@ -337,6 +260,181 @@ Public Class PigFolder
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(Log.SubName, Log.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetFastPigMD5(ByRef FastPigMD5 As PigMD5, GetFastPigMD5Type As EnmGetFastPigMD5Type, ScanSize As Integer) As String
+        Return Me.mGetFastPigMD5(FastPigMD5, GetFastPigMD5Type, ScanSize)
+    End Function
+
+    Public Function GetFastPigMD5(ByRef FastPigMD5 As String, GetFastPigMD5Type As EnmGetFastPigMD5Type, ScanSize As Integer) As String
+        Try
+            Dim strRet As String = ""
+            Dim oPigMD5 As PigMD5 = Nothing
+            strRet = Me.mGetFastPigMD5(oPigMD5, GetFastPigMD5Type, ScanSize)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            FastPigMD5 = oPigMD5.PigMD5
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            FastPigMD5 = ""
+            Return Me.GetSubErrInf("GetFastPigMD5", ex)
+        End Try
+    End Function
+
+    Public Function GetFastPigMD5(ByRef FastPigMD5 As String, GetFastPigMD5Type As EnmGetFastPigMD5Type) As String
+        Try
+            Dim strRet As String = ""
+            Dim oPigMD5 As PigMD5 = Nothing
+            strRet = Me.mGetFastPigMD5(oPigMD5, GetFastPigMD5Type)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            FastPigMD5 = oPigMD5.PigMD5
+            oPigMD5 = Nothing
+            Return "OK"
+        Catch ex As Exception
+            FastPigMD5 = ""
+            Return Me.GetSubErrInf("GetFastPigMD5", ex)
+        End Try
+    End Function
+
+    Public Function GetFastPigMD5(ByRef FastPigMD5 As PigMD5, GetFastPigMD5Type As EnmGetFastPigMD5Type) As String
+        Return Me.mGetFastPigMD5(FastPigMD5, GetFastPigMD5Type)
+    End Function
+
+    Private Function mGetFastPigMD5(ByRef FastPigMD5 As PigMD5, GetFastPigMD5Type As EnmGetFastPigMD5Type, Optional ScanSize As Integer = 20480) As String
+        Dim LOG As New PigStepLog("mGetFastPigMD5")
+        Try
+            LOG.StepName = "RefPigFiles"
+            LOG.Ret = Me.RefPigFiles
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "RefSubPigFolders"
+            LOG.Ret = Me.RefSubPigFolders()
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Dim pbMain As New PigBytes
+            Select Case GetFastPigMD5Type
+                Case EnmGetFastPigMD5Type.FileSize_Files
+                    LOG.Ret = pbMain.SetValue(Me.PigFiles.Count)
+                    If LOG.Ret <> "OK" Then
+                        LOG.AddStepNameInf("PigFiles.Count")
+                        Throw New Exception(LOG.Ret)
+                    End If
+                    LOG.StepName = "SetValue"
+                    LOG.Ret = pbMain.SetValue(Me.FilesSize)
+                    If LOG.Ret <> "OK" Then
+                        LOG.AddStepNameInf("FilesSize")
+                        Throw New Exception(LOG.Ret)
+                    End If
+                Case Else
+                    Select Case GetFastPigMD5Type
+                        Case EnmGetFastPigMD5Type.FileSize_Files_UpdateTime
+                            LOG.Ret = pbMain.SetValue(Me.PigFiles.Count)
+                            If LOG.Ret <> "OK" Then
+                                LOG.AddStepNameInf("PigFiles.Count")
+                                Throw New Exception(LOG.Ret)
+                            End If
+                            LOG.StepName = "SetValue"
+                            LOG.Ret = pbMain.SetValue(Me.FilesSize)
+                            If LOG.Ret <> "OK" Then
+                                LOG.AddStepNameInf("FilesSize")
+                                Throw New Exception(LOG.Ret)
+                            End If
+                        Case EnmGetFastPigMD5Type.CurrDirInfo
+                            LOG.Ret = pbMain.SetValue(Me.UpdateTime)
+                            If LOG.Ret <> "OK" Then
+                                LOG.AddStepNameInf("UpdateTime")
+                                Throw New Exception(LOG.Ret)
+                            End If
+                    End Select
+                    Dim oList As New List(Of String)
+                    For Each oPigFolder As PigFolder In Me.SubPigFolders
+                        oList.Add(oPigFolder.FolderPath)
+                    Next
+                    oList.Sort()
+                    For i = 0 To oList.Count - 1
+                        With Me.SubPigFolders.Item(oList.Item(i))
+                            Dim ptFolder As New PigText(.FolderName, PigText.enmTextType.UTF8)
+                            LOG.Ret = pbMain.SetValue(ptFolder.TextBytes)
+                            If LOG.Ret <> "OK" Then
+                                LOG.AddStepNameInf(.FolderPath)
+                                LOG.AddStepNameInf(.FolderName)
+                                Throw New Exception(LOG.Ret)
+                            End If
+                            LOG.Ret = pbMain.SetValue(.UpdateTime)
+                            If LOG.Ret <> "OK" Then
+                                LOG.AddStepNameInf(.FolderPath)
+                                LOG.AddStepNameInf(.UpdateTime)
+                                Throw New Exception(LOG.Ret)
+                            End If
+                            ptFolder = Nothing
+                        End With
+                    Next
+                    '---------
+                    oList.Clear()
+                    For Each oPigFile As PigFile In Me.PigFiles
+                        oList.Add(oPigFile.FilePath)
+                    Next
+                    oList.Sort()
+                    For i = 0 To oList.Count - 1
+                        With Me.mPigFiles.Item(oList.Item(i))
+                            Select Case GetFastPigMD5Type
+                                Case EnmGetFastPigMD5Type.CurrDirInfo
+                                    Dim ptFile As New PigText(.FileTitle, PigText.enmTextType.UTF8)
+                                    LOG.Ret = pbMain.SetValue(ptFile.TextBytes)
+                                    If LOG.Ret <> "OK" Then
+                                        LOG.AddStepNameInf(.FilePath)
+                                        LOG.AddStepNameInf(.FileTitle)
+                                        Throw New Exception(LOG.Ret)
+                                    End If
+                                    LOG.Ret = pbMain.SetValue(.Size)
+                                    If LOG.Ret <> "OK" Then
+                                        LOG.AddStepNameInf(.FilePath)
+                                        LOG.AddStepNameInf(.Size)
+                                        Throw New Exception(LOG.Ret)
+                                    End If
+                                    LOG.Ret = pbMain.SetValue(.UpdateTime)
+                                    If LOG.Ret <> "OK" Then
+                                        LOG.AddStepNameInf(.FilePath)
+                                        LOG.AddStepNameInf(.UpdateTime)
+                                        Throw New Exception(LOG.Ret)
+                                    End If
+                                    ptFile = Nothing
+                                Case EnmGetFastPigMD5Type.FileSize_Files_UpdateTime
+                                    LOG.Ret = pbMain.SetValue(.UpdateTime)
+                                    If LOG.Ret <> "OK" Then
+                                        LOG.AddStepNameInf(.FilePath)
+                                        LOG.AddStepNameInf(.UpdateTime)
+                                        Throw New Exception(LOG.Ret)
+                                    End If
+                                Case EnmGetFastPigMD5Type.FileFastPigMD5
+                                    Dim oPigMD5 As PigMD5 = Nothing
+                                    LOG.Ret = .GetFastPigMD5(oPigMD5, ScanSize)
+                                    If LOG.Ret <> "OK" Then
+                                        LOG.AddStepNameInf(.FilePath)
+                                        LOG.AddStepNameInf("GetFastPigMD5")
+                                        Throw New Exception(LOG.Ret)
+                                    End If
+                                    If oPigMD5 IsNot Nothing Then
+                                        LOG.Ret = pbMain.SetValue(oPigMD5.PigMD5Bytes)
+                                        If LOG.Ret <> "OK" Then
+                                            LOG.AddStepNameInf(.FilePath)
+                                            Throw New Exception(LOG.Ret)
+                                        End If
+                                    End If
+                            End Select
+                        End With
+                    Next
+            End Select
+            LOG.StepName = "New PigMD5"
+            FastPigMD5 = New PigMD5(pbMain.Main)
+            If FastPigMD5.LastErr <> "" Then
+                LOG.Ret = FastPigMD5.LastErr
+                Throw New Exception(LOG.Ret)
+            End If
+            pbMain = Nothing
+            Return "OK"
+        Catch ex As Exception
+            FastPigMD5 = Nothing
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 

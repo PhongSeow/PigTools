@@ -42,7 +42,7 @@ Public Class PigFile
         MyBase.New(CLS_VERSION)
         mstrFilePath = FilePath
         Me.GbMain = New PigBytes
-        ReDim Me.GbMain.Main(0)
+        ReDim Me.GbMain.Main(-1)
     End Sub
 
     ''' <summary>保留文件的时间，以天为单位。</summary>
@@ -130,7 +130,7 @@ Public Class PigFile
             LOG.StepName = "New BinaryReader"
             brAny = New BinaryReader(sfAny)
             LOG.StepName = "New PigBytes"
-            Dim abSegFile(0) As Byte, intRetSize As Integer = 0, intSegNo As Integer = 0, lngPos As Long = 0
+            Dim abSegFile(-1) As Byte, intRetSize As Integer = 0, intSegNo As Integer = 0, lngPos As Long = 0
             Dim lngFileSize As Long = Me.Size, intGetBytes As Integer = SegmentSize, bolIsEnd As Boolean = False
             Do While True
                 If (lngPos + SegmentSize) > lngFileSize Then
@@ -430,7 +430,7 @@ Public Class PigFile
                 brAny = New BinaryReader(sfAny)
                 LOG.StepName = "New PigBytes"
                 Dim pbMD5 As New PigBytes
-                Dim abSegFile(0) As Byte, intRetSize As Integer = 0, intSegNo As Integer = 0, lngPos As Long = 0
+                Dim abSegFile(-1) As Byte, intRetSize As Integer = 0, intSegNo As Integer = 0, lngPos As Long = 0
                 Dim lngFileSize As Long = Me.Size, intGetBytes As Integer = SEGMENTSIZE, bolIsEnd As Boolean = False
                 Do While True
                     If (lngPos + SEGMENTSIZE) > lngFileSize Then
@@ -495,7 +495,7 @@ Public Class PigFile
         End Try
     End Sub
 
-    ''' <summary>文件的目录路径</summary>
+    ''' <summary>The directory path of the file|文件的目录路径</summary>
     Public ReadOnly Property DirPath() As String
         Get
             Try
@@ -507,7 +507,7 @@ Public Class PigFile
         End Get
     End Property
 
-    ''' <summary>文件名，不</summary>
+    ''' <summary>File name|文件名</summary>
     Public ReadOnly Property FileTitle() As String
         Get
             Try
@@ -519,7 +519,7 @@ Public Class PigFile
         End Get
     End Property
 
-    ''' <summary>文件的扩展名</summary>
+    ''' <summary>File extension|文件的扩展名</summary>
     Public ReadOnly Property ExtName() As String
         Get
             Try
@@ -531,7 +531,7 @@ Public Class PigFile
         End Get
     End Property
 
-    ''' <summary>文件大小</summary>
+    ''' <summary>File size|文件大小</summary>
     Public ReadOnly Property Size() As Long
         Get
             Try
@@ -543,7 +543,7 @@ Public Class PigFile
         End Get
     End Property
 
-    ''' <summary>文件的创建时间</summary>
+    ''' <summary>File creation time|文件的创建时间</summary>
     Public ReadOnly Property CreationTime() As DateTime
         Get
             Try
@@ -555,7 +555,7 @@ Public Class PigFile
         End Get
     End Property
 
-    ''' <summary>文件的更新时间</summary>
+    ''' <summary>File update time|文件的更新时间</summary>
     Public ReadOnly Property UpdateTime() As DateTime
         Get
             Try
@@ -567,7 +567,7 @@ Public Class PigFile
         End Get
     End Property
 
-    ''' <summary>文件是否存在</summary>
+    ''' <summary>Does the file exist|文件是否存在</summary>
     Public Overloads ReadOnly Property IsExists As Boolean
         Get
             Try
@@ -579,8 +579,8 @@ Public Class PigFile
         End Get
     End Property
 
-    ''' <summary>文件是否存在</summary>
-    ''' <param name="FilePath">指定文件路径</param>
+    ''' <summary>Does the file exist|文件是否存在</summary>
+    ''' <param name="FilePath">specify the path to a file|指定文件路径</param>
     Public Overloads ReadOnly Property IsExists(FilePath As String) As Boolean
         Get
             Try
@@ -621,7 +621,7 @@ Public Class PigFile
         Dim brAny As BinaryReader = Nothing
         Try
             FastPigMD5 = Nothing
-            Dim abData(0) As Byte, intAdd As Integer = 0
+            Dim abData(-1) As Byte, intAdd As Integer = 0
             LOG.StepName = "Check file"
             If Me.IsExists(Me.FilePath) = False Then Throw New Exception("File not found")
             If Me.Size = 0 Then

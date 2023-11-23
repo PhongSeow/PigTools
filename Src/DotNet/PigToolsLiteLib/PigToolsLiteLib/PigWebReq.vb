@@ -194,7 +194,7 @@ Public Class PigWebReq
             Dim oStream As Stream = mhwrMain.GetResponse().GetResponseStream
             LOG.StepName = "New FileStream"
             Dim fsMain As New FileStream(FilePath, FileMode.OpenOrCreate)
-            Dim abData(0) As Byte
+            Dim abData(-1) As Byte
             Dim intCount As Integer, intPos As Integer = 0, intOnceSize As Integer = 1024000
             Do While True
                 ReDim abData(intOnceSize - 1)

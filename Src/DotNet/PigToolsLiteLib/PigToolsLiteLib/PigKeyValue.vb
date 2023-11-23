@@ -121,7 +121,7 @@ Public Class PigKeyValue
     Public Function GetKeyValue(KeyName As String, ByRef Base64Value As String, Optional CacheTimeSec As Integer = 60, Optional ByRef HitCache As HitCacheEnum = HitCacheEnum.Null) As String
         Dim LOG As New PigStepLog("GetKeyValue")
         Try
-            Dim abValue(0) As Byte
+            Dim abValue(-1) As Byte
             LOG.StepName = "mGetKeyValue"
             LOG.Ret = Me.mGetKeyValue(KeyName, abValue, CacheTimeSec, HitCache)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -137,7 +137,7 @@ Public Class PigKeyValue
     Public Function GetKeyValue(KeyName As String, ByRef TextValue As String, Optional TextType As PigText.enmTextType = PigText.enmTextType.UTF8, Optional CacheTimeSec As Integer = 60, Optional ByRef HitCache As HitCacheEnum = HitCacheEnum.Null) As String
         Dim LOG As New PigStepLog("GetKeyValue")
         Try
-            Dim abValue(0) As Byte
+            Dim abValue(-1) As Byte
             LOG.StepName = "mGetKeyValue"
             LOG.Ret = Me.mGetKeyValue(KeyName, abValue, CacheTimeSec, HitCache)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -171,7 +171,7 @@ Public Class PigKeyValue
                 End If
             End If
             Dim strKeyName As String
-            Dim abHead(0) As Byte, pbHead As PigBytes = Nothing, ValuePigMD5(0) As Byte, lngValueLen As Integer = 0, strValuePigMD5 As String = ""
+            Dim abHead(-1) As Byte, pbHead As PigBytes = Nothing, ValuePigMD5(-1) As Byte, lngValueLen As Integer = 0, strValuePigMD5 As String = ""
             If bolIsNeedGetFromShareMem = True Then
                 strKeyName = Me.mGetKeyNamePigMD5(KeyName)
                 LOG.StepName = "GetShareMem(Head)"
@@ -268,7 +268,7 @@ Public Class PigKeyValue
                 HitCache = HitCacheEnum.File
             End If
             If Me.IsCompress = True Then
-                Dim abValue(0) As Byte
+                Dim abValue(-1) As Byte
                 LOG.StepName = "SeowEnc.Decrypt"
                 LOG.Ret = Me.mSeowEnc.Decrypt(ValueBytes, abValue)
                 If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -342,7 +342,7 @@ Public Class PigKeyValue
             If strKeyName = "" Then Throw New Exception("Unable to get")
             '---------
             If Me.IsCompress = True Then
-                Dim abData(0) As Byte
+                Dim abData(-1) As Byte
                 LOG.StepName = "SeowEnc.Encrypt"
                 LOG.Ret = Me.mSeowEnc.Encrypt(DataBytes, abData)
                 If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -491,7 +491,7 @@ Public Class PigKeyValue
             End If
             '---------
             If Me.IsWindows = True Then
-                Dim abHead(0) As Byte
+                Dim abHead(-1) As Byte
                 LOG.StepName = "SaveShareMem(Head)"
                 LOG.Ret = Me.mPigFunc.SaveShareMem(strKeyNamePigMD5, abHead)
                 If LOG.Ret <> "OK" Then strError &= LOG.StepLogInf

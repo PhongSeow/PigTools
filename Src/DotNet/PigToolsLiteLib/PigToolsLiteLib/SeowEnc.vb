@@ -102,7 +102,7 @@ Public Class SeowEnc
             LOG.StepName = "New PigBytes(Base64InitKey)"
             Dim pbInitKey As New PigBytes(Base64InitKey)
             If pbInitKey.LastErr <> "" Then Throw New Exception(pbInitKey.LastErr)
-            Dim abEncKey(0) As Byte
+            Dim abEncKey(-1) As Byte
             LOG.StepName = "mMkEncKey"
             LOG.Ret = Me.mMkEncKey(EncKeyLen, pbInitKey.Main, abEncKey)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -319,7 +319,7 @@ Public Class SeowEnc
         Dim strStepName As String = ""
         Try
             Dim strRet As String
-            Dim abEncBytes(0) As Byte
+            Dim abEncBytes(-1) As Byte
             strStepName = "New PigText"
             Dim ptSrc As New PigText(SrcStr, TextType)
             If ptSrc.LastErr <> "" Then Throw New Exception(ptSrc.LastErr)
@@ -340,7 +340,7 @@ Public Class SeowEnc
         Dim strStepName As String = ""
         Try
             Dim strRet As String
-            Dim abEncBytes(0) As Byte
+            Dim abEncBytes(-1) As Byte
             strStepName = "mEncrypt"
             strRet = Me.mEncrypt(SrcBytes, abEncBytes, CompressRate)
             If strRet <> "OK" Then Throw New Exception(strRet)
@@ -359,7 +359,7 @@ Public Class SeowEnc
         Try
             Dim oPigText As PigText
             oPigText = New PigText(EncBase64Str, TextType, PigText.enmNewFmt.FromBase64)
-            Dim abUnEncBytes(0) As Byte
+            Dim abUnEncBytes(-1) As Byte
             strStepName = "mDecrypt"
             strRet = Me.mDecrypt(oPigText.TextBytes, abUnEncBytes)
             If strRet <> "OK" Then Throw New Exception(strRet)

@@ -56,7 +56,7 @@ Public Class PigAes
         Try
             Dim oPigText As PigText
             oPigText = New PigText(EncBase64Str, TextType, PigText.enmNewFmt.FromBase64)
-            Dim abUnEncBytes(0) As Byte
+            Dim abUnEncBytes(-1) As Byte
             strStepName = "mDecrypt"
             strRet = Me.mDecrypt(oPigText.TextBytes, abUnEncBytes)
             If strRet <> "OK" Then Throw New Exception(strRet)
@@ -160,7 +160,7 @@ Public Class PigAes
         Dim LOG As New PigStepLog("Encrypt")
         Try
             Dim ptSrc As New PigText(SrcString, SrcTextType)
-            Dim abEnc(0) As Byte
+            Dim abEnc(-1) As Byte
             LOG.StepName = "mEncrypt"
             LOG.Ret = Me.mEncrypt(ptSrc.TextBytes, abEnc)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -283,7 +283,7 @@ Public Class PigAes
             LOG.StepName = "Base64InitKey to bytes"
             Dim oPigBytes As New PigBytes(Base64InitKey)
             If oPigBytes.LastErr <> "" Then Throw New Exception(oPigBytes.LastErr)
-            Dim abEncKey(0) As Byte
+            Dim abEncKey(-1) As Byte
             LOG.StepName = "mMkEncKey"
             LOG.Ret = Me.mMkEncKey(oPigBytes.Main, 256, abEncKey)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -296,7 +296,7 @@ Public Class PigAes
 
     Public Function MkEncKey(ByRef Base64EncKey As String) As String
         Try
-            Dim abEncKey(0) As Byte
+            Dim abEncKey(-1) As Byte
             Dim strRet As String = Me.mMkEncKey(Nothing, 256, abEncKey)
             If strRet <> "OK" Then Throw New Exception(strRet)
             Base64EncKey = Convert.ToBase64String(mabEncKey)

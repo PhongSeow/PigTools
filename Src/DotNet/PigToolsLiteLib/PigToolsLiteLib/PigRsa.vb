@@ -62,7 +62,7 @@ Public Class PigRsa
         Try
             Dim oGEText As PigText
             oGEText = New PigText(EncBase64Str, TextType, PigText.enmNewFmt.FromBase64)
-            Dim abUnEncBytes(0) As Byte
+            Dim abUnEncBytes(-1) As Byte
             strStepName = "mEncrypt"
             strRet = Me.mDecrypt(oGEText.TextBytes, abUnEncBytes)
             If strRet <> "OK" Then Throw New Exception(strRet)
@@ -87,7 +87,7 @@ Public Class PigRsa
         Dim strRet As String
         Try
             Dim oGEText As PigText
-            Dim abUnEncBytes(0) As Byte
+            Dim abUnEncBytes(-1) As Byte
             strStepName = "mEncrypt"
             strRet = Me.mDecrypt(EncBytes, abUnEncBytes)
             If strRet <> "OK" Then Throw New Exception(strRet)

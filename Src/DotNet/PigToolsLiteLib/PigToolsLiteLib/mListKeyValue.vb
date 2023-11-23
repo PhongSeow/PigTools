@@ -18,7 +18,7 @@ Friend Class mListKeyValue
     End Sub
 
     Public ReadOnly Property KeyName As String
-    Private mKeyValue(0) As Byte
+    Private mKeyValue(-1) As Byte
     Public Property KeyValue As Byte()
         Get
             Return mKeyValue
