@@ -237,10 +237,32 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "GetWmicSimpleXml#GetWmicSimpleXml|"
             Me.MenuDefinition &= "ReBootHost#ReBootHost|"
             Me.MenuDefinition &= "GetDefaultIPGateway#GetDefaultIPGateway|"
+            Me.MenuDefinition &= "GetDuSize#GetDuSize|"
+            Me.MenuDefinition &= "MoveDir#MoveDir|"
+            Me.MenuDefinition &= "RmDirAndSubDir#RmDirAndSubDir|"
             Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "RmDirAndSubDir"
+                    Me.PigConsole.GetLine("Enter the target directory for RmDirAndSubDir", Me.TargetDir)
+                    Console.WriteLine("RmDirAndSubDir")
+                    Me.Ret = Me.PigSysCmd.RmDirAndSubDir(Me.TargetDir)
+                    Console.WriteLine(Me.Ret)
+                Case "MoveDir"
+                    Me.PigConsole.GetLine("Enter the source directory for MoveDir", Me.SrcDir)
+                    Me.PigConsole.GetLine("Enter the target directory for MoveDir", Me.TargetDir)
+                    Dim bolIsOverwrite As Boolean = Me.PigConsole.IsYesOrNo("Is Overwrite")
+                    Console.WriteLine("MoveDir")
+                    Me.Ret = Me.PigSysCmd.MoveDir(Me.SrcDir, Me.TargetDir, bolIsOverwrite)
+                    Console.WriteLine(Me.Ret)
+                Case "GetDuSize"
+                    Me.PigConsole.GetLine("Enter the target directory for get du size", Me.TargetDir)
+                    Dim lngDuSize As Long
+                    Console.WriteLine("GetDuSize")
+                    Me.Ret = Me.PigSysCmd.GetDuSize(Me.TargetDir, lngDuSize)
+                    Console.WriteLine(Me.Ret)
+                    Console.WriteLine("DuSize=" & lngDuSize)
                 Case "GetDefaultIPGateway"
                     Console.WriteLine("GetDefaultIPGateway")
                     Me.Ret = Me.PigSysCmd.GetDefaultIPGateway(Me.DefaultIPGateway)
@@ -506,7 +528,12 @@ Public Class ConsoleDemo
                 Case "ExtractArchive"
                     Me.PigConsole.GetLine("Enter the target directory for decompression", Me.TargetDir)
                     Me.PigConsole.GetLine("Enter compressed package path", Me.ZipFilePath)
-                    Me.Ret = Me.CmdZip.ExtractArchive(Me.TargetDir, Me.ZipFilePath)
+                    If Me.PigConsole.IsYesOrNo("Is use sudo") = True Then
+                        Me.PigConsole.GetLine("Input sudo user", Me.SuDoUser)
+                        Me.Ret = Me.CmdZip.ExtractArchive(Me.TargetDir, Me.ZipFilePath, Me.SuDoUser)
+                    Else
+                        Me.Ret = Me.CmdZip.ExtractArchive(Me.TargetDir, Me.ZipFilePath)
+                    End If
                     Console.WriteLine(Me.Ret)
             End Select
             Me.PigConsole.DisplayPause()

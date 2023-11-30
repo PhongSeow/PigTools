@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.20
+'* Version: 1.21
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -25,6 +25,7 @@
 '*1.18 18/8/2023  Add mGetWmicSimpleXml,GetWmicSimpleXml modify ReBootHost
 '*1.19 20/10/2023 Add GetDefaultIPGateway
 '*1.20 23/11/2023 Add MoveDir,RmDirAndSubDir
+'*1.21 30/11/2023 Add GetDuSize, modify MoveDir
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -32,7 +33,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.20.6"
+    Private Const CLS_VERSION As String = "1.21.12"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -506,34 +507,149 @@ Public Class PigSysCmd
         End Try
     End Function
 
-    Public Function MoveDir(SrcDir As String, TarDir As String, Optional IsOverwrite As Boolean = False) As String
+    ''' <summary>
+    ''' Migrate the source directory to the target directory|把源目录迁移到目标目录下
+    ''' </summary>
+    ''' <param name="SrcDir"></param>
+    ''' <param name="TargetDir"></param>
+    ''' <param name="IsOverwrite"></param>
+    ''' <returns></returns>
+    Public Function MoveDir(SrcDir As String, TargetDir As String, Optional IsOverwrite As Boolean = False) As String
         Dim LOG As New PigStepLog("MoveDir")
         Dim strCmd As String = ""
         Try
-            If Me.mPigFunc.IsFolderExists(SrcDir) = False Then Throw New Exception("The source directory does not exist.")
-            If Me.mPigFunc.IsFolderExists(TarDir) = False Then Throw New Exception("Destination directory does not exist.")
-            If IsOverwrite = False Then
-                Dim strDirTitel As String = Me.mPigFunc.GetFilePart(SrcDir, PigFunc.EnmFilePart.FileTitle)
-                Dim strTarDir As String = TarDir & Me.OsPathSep & strDirTitel
-                If Me.mPigFunc.IsFolderExists(strTarDir) = True Then
-                    LOG.StepName = strTarDir
-                    Throw New Exception("The source directory does not exist.")
+            Select Case Right(SrcDir, 1)
+                Case "/", "\"
+                    SrcDir = Left(SrcDir, Len(SrcDir) - 1)
+            End Select
+            Select Case Right(TargetDir, 1)
+                Case "/", "\"
+                    TargetDir = Left(TargetDir, Len(TargetDir) - 1)
+            End Select
+            If SrcDir = TargetDir Then
+                LOG.AddStepNameInf(SrcDir)
+                LOG.AddStepNameInf(TargetDir)
+                Throw New Exception("The source directory and target directory cannot be the same.")
+            End If
+            If Me.mPigFunc.IsFolderExists(SrcDir) = False Then
+                LOG.AddStepNameInf(SrcDir)
+                Throw New Exception("The source directory does not exist.")
+            End If
+            If Me.mPigFunc.IsFolderExists(TargetDir) = False Then
+                LOG.StepName = "CreateFolder"
+                LOG.AddStepNameInf("The target directory does not exist, try creating it.")
+                LOG.AddStepNameInf(TargetDir)
+                LOG.Ret = Me.mPigFunc.CreateFolder(TargetDir)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End If
+
+            Dim strDirName As String = Me.mPigFunc.GetFilePart(SrcDir, PigFunc.EnmFilePart.FileTitle)
+            Dim strTargetDir As String = TargetDir & Me.OsPathSep & strDirName
+            If Me.mPigFunc.IsFolderExists(strTargetDir) = True Then
+                If IsOverwrite = True Then
+                    LOG.StepName = "The target directory already exists, please delete it first."
+                    LOG.Ret = Me.RmDirAndSubDir(strTargetDir)
+                    If LOG.Ret <> "OK" Then
+                        LOG.AddStepNameInf(strTargetDir)
+                        Throw New Exception(LOG.Ret)
+                    End If
+                    Me.mPigFunc.Delay(2000)
+                Else
+                    LOG.StepName = "Check target directory"
+                    LOG.AddStepNameInf(strTargetDir)
+                    Throw New Exception("The target directory already exists.")
                 End If
             End If
+            Dim lngSrcDirDuSize As Long = 0, strSrcDirFastPigMD5 As String = ""
             If Me.IsWindows = True Then
-                strCmd = "move """ & SrcDir & """ """ & TarDir & """ /S /Q /Y"
+                LOG.StepName = "GetFastPigMD5.SrcDir"
+                Dim oPigFolder As New PigFolder(SrcDir)
+                LOG.Ret = oPigFolder.GetFastPigMD5(strSrcDirFastPigMD5, PigFolder.EnmGetFastPigMD5Type.CurrDirInfo)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(SrcDir)
+                    Throw New Exception(LOG.Ret)
+                End If
+                strCmd = "move /Y """ & SrcDir & """ """ & TargetDir & """"
             Else
-                strCmd = "mv -f " & SrcDir & " " & TarDir
+                LOG.StepName = "GetDuSize.SrcDir"
+                LOG.Ret = Me.GetDuSize(SrcDir, lngSrcDirDuSize)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(SrcDir)
+                    Throw New Exception(LOG.Ret)
+                End If
+                strCmd = "mv -f " & SrcDir & " " & TargetDir
             End If
             LOG.StepName = "CmdShell"
             LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
-            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-            If Me.mPigCmdApp.StandardError <> "" Then Throw New Exception(Me.mPigCmdApp.StandardError)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            ElseIf Me.mPigCmdApp.StandardError <> "" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(Me.mPigCmdApp.StandardError)
+            End If
+            If Me.IsWindows = True Then
+                Dim strTargetDirFastPigMD5 As String = ""
+                LOG.StepName = "GetFastPigMD5.TargetDir"
+                Dim oPigFolder As New PigFolder(strTargetDir)
+                LOG.Ret = oPigFolder.GetFastPigMD5(strTargetDirFastPigMD5, PigFolder.EnmGetFastPigMD5Type.CurrDirInfo)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(strTargetDir)
+                    Throw New Exception(LOG.Ret)
+                End If
+                If strSrcDirFastPigMD5 <> strTargetDirFastPigMD5 Then
+                    LOG.StepName = "Check the FastPigMD5 of the source and target directories."
+                    LOG.AddStepNameInf(SrcDir & ":" & strSrcDirFastPigMD5)
+                    LOG.AddStepNameInf(strTargetDir & ":" & strTargetDirFastPigMD5)
+                    Throw New Exception("Inconsistent")
+                End If
+            Else
+                Dim lngTargetDirDuSize As Long
+                LOG.StepName = "GetDuSize.TargetDir"
+                LOG.Ret = Me.GetDuSize(strTargetDir, lngTargetDirDuSize)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(strTargetDir)
+                    Throw New Exception(LOG.Ret)
+                End If
+                If lngSrcDirDuSize <> lngTargetDirDuSize Then
+                    LOG.StepName = "Check the size of the source and target directories."
+                    LOG.AddStepNameInf(SrcDir & ":" & lngSrcDirDuSize)
+                    LOG.AddStepNameInf(strTargetDir & ":" & lngTargetDirDuSize)
+                    Throw New Exception("Inconsistent")
+                End If
+            End If
             Return "OK"
         Catch ex As Exception
-            LOG.AddStepNameInf(strCmd)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+    Public Function GetDuSize(DirPath As String, ByRef DuSize As Long) As String
+        Dim LOG As New PigStepLog("GetDuSize")
+        Dim strCmd As String = ""
+        Try
+            If Me.IsWindows = True Then Throw New Exception("Can only support Linux platforms.")
+            If Me.mPigFunc.IsFolderExists(DirPath) = False Then
+                LOG.AddStepNameInf(DirPath)
+                Throw New Exception("The directory does not exist.")
+            End If
+            strCmd = "du " & DirPath & "|tail -1|awk '{print $1}'"
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+            If LOG.Ret <> "OK" Then
+                Throw New Exception(LOG.Ret)
+            ElseIf Me.mPigCmdApp.StandardError <> "" Then
+                Throw New Exception(Me.mPigCmdApp.StandardError)
+            End If
+            LOG.StepName = "GECLng"
+            DuSize = Me.mPigFunc.GECLng(Me.mPigCmdApp.StandardOutput)
+            Return "OK"
+        Catch ex As Exception
+            DuSize = -1
+            If strCmd <> "" Then LOG.AddStepNameInf(strCmd)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
 End Class
