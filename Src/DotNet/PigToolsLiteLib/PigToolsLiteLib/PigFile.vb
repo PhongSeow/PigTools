@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://en.seowphong.com
-'* Version: 1.9
+'* Version: 1.10
 '* Create Time: 4/11/2019
 '*1.0.2  2019-11-5   增加mSaveFile
 '*1.0.3  2019-11-20  增加 CopyFileTo
@@ -22,6 +22,7 @@
 '*1.7  2/5/2023     Modify GetFastPigMD5
 '*1.8  4/5/2023     Modify GetFastPigMD5,mGetMyMD5,SegLoadFile,GetTailText, add mGetFastPigMD5
 '*1.9  10/11/2023   Add GetTextRows, modify GetTailText
+'*1.10 4/12/2023   Add GetFullText
 '**********************************
 Imports System.IO
 Imports Microsoft.VisualBasic.Logging
@@ -30,7 +31,7 @@ Imports Microsoft.VisualBasic.Logging
 ''' </summary>
 Public Class PigFile
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.9.12"
+    Private Const CLS_VERSION As String = "1.10.2"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
     Public GbMain As PigBytes '主数据数组
@@ -665,6 +666,25 @@ Public Class PigFile
             If sfAny IsNot Nothing Then sfAny.Close()
             FastPigMD5 = Nothing
             LOG.AddStepNameInf(Me.FilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Public Function GetFullText(ByRef FileText As PigText, TextType As PigText.enmTextType) As String
+        Dim LOG As New PigStepLog("GetFullText")
+        Try
+            LOG.StepName = "Check GbMain.Main.Length"
+            If Me.GbMain.Main.Length <> Me.Size Then
+                LOG.StepName = "LoadFile"
+                LOG.Ret = Me.LoadFile
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End If
+            LOG.StepName = "New PigText"
+            FileText = New PigText(Me.GbMain.Main, TextType)
+            If FileText.LastErr <> "" Then Throw New Exception(FileText.LastErr)
+            Return "OK"
+        Catch ex As Exception
+            FileText = Nothing
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function

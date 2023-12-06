@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.19
+'* Version: 1.20
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -24,6 +24,7 @@
 '*1.17 19/10/2022  Add GetCanUseCultureXml
 '*1.18 17/11/2022  Add SelectControl
 '*1.19 23/10/2023  Modify SimpleMenu
+'*1.20 5/12/2023   Add EnmWhatTypeOfMenuDefinition,GetMenuDefinition,SelectMenuOfEnumeration,AddMenuDefinition
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -32,11 +33,16 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.19.6"
+    Private Const CLS_VERSION As String = "1.20.18"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
     Property mIsUseMLang As Boolean = False
+
+    Public Enum EnmWhatTypeOfMenuDefinition
+        PigText_EnmTextType = 0
+        PigFileSystem_IOMode = 1
+    End Enum
 
     Public Property IsUseMLang As Boolean
         Get
@@ -800,5 +806,50 @@ Public Class PigConsole
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+    Public Function SelectMenuOfEnumeration(WhatTypeOfMenuDefinition As EnmWhatTypeOfMenuDefinition) As String
+        Try
+            SelectMenuOfEnumeration = ""
+            Dim strRet As String = Me.SimpleMenu("Select " & WhatTypeOfMenuDefinition.ToString, Me.GetMenuDefinition(WhatTypeOfMenuDefinition), SelectMenuOfEnumeration, PigConsole.EnmSimpleMenuExitType.Null)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMenuDefinition", ex)
+            Return ""
+        End Try
+    End Function
+
+
+    Public Function GetMenuDefinition(WhatTypeOfMenuDefinition As EnmWhatTypeOfMenuDefinition) As String
+        Try
+            Dim strMenuDefinition As String = ""
+            Select Case WhatTypeOfMenuDefinition
+                Case EnmWhatTypeOfMenuDefinition.PigFileSystem_IOMode
+                    For Each strName As String In [Enum].GetNames(GetType(PigFileSystem.IOMode))
+                        Dim enmAny As PigFileSystem.IOMode = [Enum].Parse(GetType(PigFileSystem.IOMode), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigText_EnmTextType
+                    For Each strName As String In [Enum].GetNames(GetType(PigText.enmTextType))
+                        Dim enmAny As PigText.enmTextType = [Enum].Parse(GetType(PigText.enmTextType), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case Else
+                    Throw New Exception("Invalid WhatTypeOfMenuDefinition")
+            End Select
+            Return strMenuDefinition
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMenuDefinition", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Sub AddMenuDefinition(ByRef MainMenuDefinition As String, MenuItemKey As String, MenuItemName As String)
+        MainMenuDefinition &= MenuItemKey & "#" & MenuItemName & "|"
+    End Sub
+
+    Public Sub AddMenuDefinition(ByRef MainMenuDefinition As String, MenuItemKeyAndName As String)
+        MainMenuDefinition &= MenuItemKeyAndName & "#" & MenuItemKeyAndName & "|"
+    End Sub
+
 
 End Class

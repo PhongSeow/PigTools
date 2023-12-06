@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.31.6
+'* Version: 1.32.2
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -36,6 +36,7 @@
 '* 1.29   15/6/2023  Modify PigFSDemo
 '* 1.30   28/9/2023  Modify MkStr2Func
 '* 1.31   17/10/2023  Modify MkStr2Func
+'* 1.32   4/12/2023  Modify PigFileDemo
 '************************************
 Imports PigToolsLiteLib
 Imports System.Xml
@@ -131,8 +132,12 @@ Public Class ConsoleDemo
     Public FuncName As String
     Public ToFuncStr As String
     Public FuncStr As String
+    Public TextStream As TextStream
+    Public AnyText As String
+
 
     Public Sub Main()
+
         Dim o As New PigXml(False)
         Do While True
             Console.Clear()
@@ -159,11 +164,14 @@ Public Class ConsoleDemo
             Console.WriteLine("Press R to PigMLang")
             Console.WriteLine("Press S to PigSend")
             Console.WriteLine("Press T to PigFileSystem")
+            Console.WriteLine("Press U to TextStream")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
                     Exit Do
+                Case ConsoleKey.U
+                    Me.TextStreamDemo()
                 Case ConsoleKey.T
                     Me.PigFSDemo()
                 Case ConsoleKey.O
@@ -239,8 +247,13 @@ Public Class ConsoleDemo
                             Me.Ret = Me.PigFile.SegLoadFile(intSegSize)
                             Console.WriteLine(Me.Ret)
                         End If
-                        Console.Write("GetTailText(10)")
-                        Console.Write(Me.PigFile.GetTailText(10))
+                        Console.WriteLine("GetTextRows=" & Me.PigFile.GetTextRows)
+                        Dim intRows As Integer = 10
+                        Me.PigConsole.GetLine("Enter the number of rows to display", intRows)
+                        Console.WriteLine("GetTailText(" & intRows & ")")
+                        Console.WriteLine(Me.PigFile.GetTailText(intRows))
+                        Console.WriteLine("GetTopText(" & intRows & ")")
+                        Console.WriteLine(Me.PigFile.GetTopText(intRows))
                     Else
                         Me.PigFileDemo(Me.FilePath)
                     End If
@@ -1370,6 +1383,7 @@ Public Class ConsoleDemo
             Console.WriteLine("Press L To IsFileDiff")
             Console.WriteLine("Press M To IsNewVersion")
             Console.WriteLine("Press O To OpenUrl")
+            Console.WriteLine("Press P To GetTextFileEncCode")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
@@ -1576,6 +1590,27 @@ Public Class ConsoleDemo
             oPigFile.LoadFile()
             Dim o As New PigText(oPigFile.GbMain.Main, PigText.enmTextType.Ascii)
             Console.WriteLine(o.Text)
+        End If
+        If Me.PigConsole.IsYesOrNo("Is test GetFullText") = True Then
+            Me.MenuDefinition2 = ""
+            Dim intTextType As PigText.enmTextType
+            intTextType = PigText.enmTextType.Ascii
+            Me.MenuDefinition2 &= intTextType & "#" & intTextType.ToString & "|"
+            intTextType = PigText.enmTextType.Unicode
+            Me.MenuDefinition2 &= intTextType & "#" & intTextType.ToString & "|"
+            intTextType = PigText.enmTextType.UTF8
+            Me.MenuDefinition2 &= intTextType & "#" & intTextType.ToString & "|"
+            intTextType = PigText.enmTextType.GB2312
+            Me.MenuDefinition2 &= intTextType & "#" & intTextType.ToString & "|"
+            Me.PigConsole.SimpleMenu("Select TextType", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.Null)
+            intTextType = CInt(Me.MenuKey2)
+            Dim ptAny As PigText = Nothing
+            Console.WriteLine("GetFullText")
+            Me.Ret = oPigFile.GetFullText(ptAny, intTextType)
+            Console.WriteLine(Me.Ret)
+            If Me.Ret = "OK" Then
+                Console.WriteLine(ptAny.Text)
+            End If
         End If
     End Sub
 
@@ -1796,6 +1831,98 @@ Public Class ConsoleDemo
         Loop
     End Sub
 
+
+    Private Function GetMenuDefinition_TextType() As String
+        Try
+            Dim strMenuDefinition As String = ""
+            '            Dim intTextType As PigText.enmTextType
+            For Each name As String In [Enum].GetNames(GetType(PigText.enmTextType))
+                Dim value As PigText.enmTextType = [Enum].Parse(GetType(PigText.enmTextType), name)
+                Console.WriteLine("{0} = {1}", name, CInt(value))
+            Next
+
+            'intTextType = PigText.enmTextType.Ascii : strMenuDefinition &= intTextType & "#" & intTextType.ToString & "|"
+            'intTextType = PigText.enmTextType.Unicode : strMenuDefinition &= intTextType & "#" & intTextType.ToString & "|"
+            'intTextType = PigText.enmTextType.UTF8 : strMenuDefinition &= intTextType & "#" & intTextType.ToString & "|"
+            'intTextType = PigText.enmTextType.GB2312 : strMenuDefinition &= intTextType & "#" & intTextType.ToString & "|"
+            Return strMenuDefinition
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+
+    Public Sub TextStreamDemo()
+
+        Console.WriteLine("*******************")
+        Console.WriteLine("TextStream Demo")
+        Console.WriteLine("*******************")
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition = ""
+            With Me.PigConsole
+                .AddMenuDefinition(Me.MenuDefinition, "OpenTextFile", "Open Text File")
+                .AddMenuDefinition(Me.MenuDefinition, "ReadLine")
+                .AddMenuDefinition(Me.MenuDefinition, "ReadAll")
+                .AddMenuDefinition(Me.MenuDefinition, "WriteBlankLines")
+                .AddMenuDefinition(Me.MenuDefinition, "Write")
+                .AddMenuDefinition(Me.MenuDefinition, "WriteLine")
+                .AddMenuDefinition(Me.MenuDefinition, "Close")
+            End With
+            Me.PigConsole.SimpleMenu("TextStream Demo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Dim strData As String = ""
+            Select Case Me.MenuKey
+                Case ""
+                    Exit Do
+                Case "Write", "WriteLine"
+                    If Me.TextStream Is Nothing Then
+                        Console.WriteLine("TextStream Is Nothing")
+                    Else
+                        Me.PigConsole.GetLine("Input Text", Me.AnyText)
+                        Select Case Me.MenuKey
+                            Case "Write"
+                                Me.TextStream.Write(Me.AnyText)
+                            Case "WriteLine"
+                                Me.TextStream.WriteLine(Me.AnyText)
+                        End Select
+                        If Me.TextStream.LastErr <> "" Then Console.WriteLine(Me.TextStream.LastErr)
+                    End If
+                Case "WriteBlankLines"
+                    If Me.TextStream Is Nothing Then
+                        Console.WriteLine("TextStream Is Nothing")
+                    Else
+                        Me.TextStream.WriteBlankLines(1)
+                        If Me.TextStream.LastErr <> "" Then Console.WriteLine(Me.TextStream.LastErr)
+                    End If
+                Case "Close"
+                    If Me.TextStream Is Nothing Then
+                        Console.WriteLine("TextStream Is Nothing")
+                    Else
+                        Me.TextStream.Close()
+                        If Me.TextStream.LastErr <> "" Then Console.WriteLine(Me.TextStream.LastErr)
+                    End If
+                Case "ReadAll"
+                    If Me.TextStream Is Nothing Then
+                        Console.WriteLine("TextStream Is Nothing")
+                    Else
+                        Console.WriteLine(Me.TextStream.ReadAll)
+                    End If
+                Case "ReadLine"
+                    If Me.TextStream Is Nothing Then
+                        Console.WriteLine("TextStream Is Nothing")
+                    Else
+                        Console.WriteLine(Me.TextStream.ReadLine)
+                    End If
+                Case "OpenTextFile"
+                    Me.PigConsole.GetLine("Enter text file path", Me.SrcFile)
+                    Dim intIOMode As PigFileSystem.IOMode = Me.PigFunc.GECLng(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigFileSystem_IOMode))
+                    Dim intTextType As PigText.enmTextType = Me.PigFunc.GECLng(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigText_EnmTextType))
+                    Me.TextStream = Me.PigFS.OpenTextFile(Me.SrcFile, intIOMode, intTextType, True)
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
     Public Sub PigFSDemo()
 
         Console.WriteLine("*******************")
@@ -1839,13 +1966,24 @@ Public Class ConsoleDemo
                         Console.WriteLine("FindSubFolders")
                         Me.Ret = Me.PigFolder.FindSubFolders(bolIsDeep, oPigFolders)
                         Console.WriteLine(Me.Ret)
+                        Console.WriteLine("AllFilesSize=" & oPigFolders.AllFilesSize)
+                        Console.WriteLine("AllFiles=" & oPigFolders.AllFiles)
+                        Dim strPigMD5 As String = ""
+                        oPigFolders.GetAllFastPigMD5(strPigMD5, PigFolder.EnmGetFastPigMD5Type.FileSize_Files)
+                        Console.WriteLine("GetAllFastPigMD5(FileSize_Files)=" & strPigMD5)
+                        oPigFolders.GetAllFastPigMD5(strPigMD5, PigFolder.EnmGetFastPigMD5Type.FileSize_Files_UpdateTime)
+                        Console.WriteLine("GetAllFastPigMD5(FileSize_Files_UpdateTime)=" & strPigMD5)
+                        oPigFolders.GetAllFastPigMD5(strPigMD5, PigFolder.EnmGetFastPigMD5Type.FileFastPigMD5)
+                        Console.WriteLine("GetAllFastPigMD5(FileFastPigMD5)=" & strPigMD5)
                         If oPigFolders IsNot Nothing Then
-                            For Each oPigFolder In oPigFolders
-                                With oPigFolder
-                                    Console.WriteLine("----------------------")
-                                    Console.WriteLine("FolderPath=" & .FolderPath)
-                                End With
-                            Next
+                            If Me.PigConsole.IsYesOrNo("Is show PigFolders") = True Then
+                                For Each oPigFolder In oPigFolders
+                                    With oPigFolder
+                                        Console.WriteLine("----------------------")
+                                        Console.WriteLine("FolderPath=" & .FolderPath)
+                                    End With
+                                Next
+                            End If
                         End If
                     End If
                 Case "PigFolder_RefPigFiles"
@@ -1892,6 +2030,17 @@ Public Class ConsoleDemo
                         Console.WriteLine("CreationTime=" & .CreationTime)
                         Console.WriteLine("UpdateTime=" & .UpdateTime)
                         Console.WriteLine("IsRootFolder=" & .IsRootFolder)
+                        Console.WriteLine("FilesSize=" & .FilesSize)
+                        Console.WriteLine("PigFiles.Count=" & .PigFiles.Count)
+                        Dim strPigMD5 As String = ""
+                        .GetFastPigMD5(strPigMD5, PigFolder.EnmGetFastPigMD5Type.FileSize_Files)
+                        Console.WriteLine("GetFastPigMD5(FileSize_Files)=" & strPigMD5)
+                        .GetFastPigMD5(strPigMD5, PigFolder.EnmGetFastPigMD5Type.FileSize_Files_UpdateTime)
+                        Console.WriteLine("GetFastPigMD5(FileSize_Files_UpdateTime)=" & strPigMD5)
+                        .GetFastPigMD5(strPigMD5, PigFolder.EnmGetFastPigMD5Type.FileFastPigMD5)
+                        Console.WriteLine("GetFastPigMD5(FileFastPigMD5)=" & strPigMD5)
+                        .GetFastPigMD5(strPigMD5, PigFolder.EnmGetFastPigMD5Type.CurrDirInfo)
+                        Console.WriteLine("GetFastPigMD5(CurrDirInfo)=" & strPigMD5)
                     End With
                 Case "GetPigFile"
                     Me.PigConsole.GetLine("Input file path", Me.FilePath)
@@ -1911,6 +2060,7 @@ Public Class ConsoleDemo
             Me.PigConsole.DisplayPause()
         Loop
     End Sub
+
 
 
 End Class

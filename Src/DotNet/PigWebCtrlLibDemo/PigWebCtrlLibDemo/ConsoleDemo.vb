@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 2.1.1
+'* Version: 1.9
 '* Create Time: 15/2/2022
 '* 1.1    26/5/2022   Add Main
 '* 1.2    30/5/2022   Add WebLogicDemo
@@ -13,7 +13,8 @@
 '* 1.5    1/6/2022   Modify WebLogicDemo
 '* 1.6    15/6/2022   Modify WebLogicDemo
 '* 1.7    1/8/2022   Modify WebLogicDemo 
-'* 2.1    28/2/2023   Modify WebLogicDemo 
+'* 1.8    28/2/2023   Modify WebLogicDemo 
+'* 1.9    9/11/2023   Modify WebLogicDemo 
 '************************************
 
 Imports PigCmdLib
@@ -42,6 +43,11 @@ Public Class ConsoleDemo
     Public AdminPort As Integer = 10888
     Public AdminUserName As String = "weblogic"
     Public AdminUserPassword As String = "PigWebCtrl8888"
+    Public TimeSlot As PigFunc.EnmTimeSlot
+    Public MenuKey2 As String
+    Public MenuDefinition2 As String
+    Public IsAscii As Boolean = False
+    Public TextType As PigText.enmTextType
 
     Public Sub New()
         If Me.PigFunc.IsOsWindows = True Then
@@ -73,11 +79,35 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "WebLogicDomainSetT3Deny#WebLogicDomain.SetT3Deny|"
             Me.MenuDefinition &= "WebLogicDomainSetAdminPort#WebLogicDomain.SetAdminPort|"
             Me.MenuDefinition &= "WebLogicDomain.GetDomainEnvInf#WebLogicDomain.GetDomainEnvInf|"
+            Me.MenuDefinition &= "WebLogicDomain.StatisticsAccessLog#WebLogicDomain.StatisticsAccessLog|"
             Me.PigConsole.SimpleMenu("WebLogicDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
                 Case ""
+                Case "WebLogicDomain.StatisticsAccessLog"
+                    Console.WriteLine("*******************")
+                    Console.WriteLine("WebLogicDomain.StatisticsAccessLog")
+                    Console.WriteLine("*******************")
+                    If Me.WebLogicDomain Is Nothing Then
+                        Console.WriteLine("WebLogicDomain Is Nothing")
+                    Else
+                        Dim strName As String = ""
+                        Me.MenuDefinition2 = ""
+                        Me.TimeSlot = PigFunc.EnmTimeSlot.CurrentYear : Me.MenuDefinition2 &= Me.TimeSlot & "#" & Me.TimeSlot.ToString & "|"
+                        Me.TimeSlot = PigFunc.EnmTimeSlot.CurrentMonth : Me.MenuDefinition2 &= Me.TimeSlot & "#" & Me.TimeSlot.ToString & "|"
+                        Me.TimeSlot = PigFunc.EnmTimeSlot.CurrentWeek : Me.MenuDefinition2 &= Me.TimeSlot & "#" & Me.TimeSlot.ToString & "|"
+                        Me.TimeSlot = PigFunc.EnmTimeSlot.LastYear : Me.MenuDefinition2 &= Me.TimeSlot & "#" & Me.TimeSlot.ToString & "|"
+                        Me.TimeSlot = PigFunc.EnmTimeSlot.LastMonth : Me.MenuDefinition2 &= Me.TimeSlot & "#" & Me.TimeSlot.ToString & "|"
+                        Me.TimeSlot = PigFunc.EnmTimeSlot.LastWeek : Me.MenuDefinition2 &= Me.TimeSlot & "#" & Me.TimeSlot.ToString & "|"
+                        Me.PigConsole.SimpleMenu("Select TimeSlot", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.Null)
+                        Me.TimeSlot = CInt(Me.MenuKey2)
+                        Dim strResXml As String = ""
+                        Me.TextType = CInt(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigText_EnmTextType))
+                        Me.Ret = Me.WebLogicDomain.StatisticsAccessLog(Me.TimeSlot, strResXml, Me.TextType, "c:\temp\aaaa.log")
+                        Console.WriteLine(Me.Ret)
+                        Console.WriteLine(strResXml)
+                    End If
                 Case "WebLogicDomain.GetDomainEnvInf"
                     Console.WriteLine("*******************")
                     Console.WriteLine("WebLogicDomain.GetDomainEnvInf")

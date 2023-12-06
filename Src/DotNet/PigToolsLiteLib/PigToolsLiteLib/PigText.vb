@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Handle text conversion, MD5, Base64, etc.|处理文本转换，MD5，Base64等。
 '* Home Url: https://en.seowphong.com
-'* Version: 1.0.16
+'* Version: 1.1
 '* Create Time: 1/9/2019
 '1.0.2  2019-9-2    增加 mNew(IsFromBase64)
 '1.0.5  2019-10-16  增加 mstrText
@@ -18,19 +18,21 @@
 '1.0.13 2020-1-4    加入GEMD5
 '1.0.15 2020-2-6    修改enmTextType
 '1.0.16 2020-2-12   修改 mNew
+'1.1    4/12/2023   Moify enmTextType,Text
 '**********************************
 ''' <summary>
 ''' Text processing class|文本处理类
 ''' </summary>
 Public Class PigText
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.16"
+    Private Const CLS_VERSION As String = "1.1.2"
 
     Public Enum enmTextType '文本类型
         UnknowOrBin = 0
         Unicode = 1
         UTF8 = 2
         Ascii = 3
+        GB2312 = 5
     End Enum
 
     ''' <summary>通过初始化数据的格式</summary>
@@ -181,6 +183,9 @@ Public Class PigText
                         mstrText = System.Text.Encoding.Unicode.GetString(mabSrcText)
                     Case enmTextType.UTF8
                         mstrText = System.Text.Encoding.UTF8.GetString(mabSrcText)
+                    Case enmTextType.GB2312
+                        Dim encGB2312 As System.Text.Encoding = System.Text.Encoding.GetEncoding("GB2312")
+                        mstrText = encGB2312.GetString(mabSrcText)
                 End Select
             End If
             Text = mstrText

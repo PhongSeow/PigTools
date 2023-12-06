@@ -4,27 +4,55 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Amount to Scripting.TextStream of VB6
 '* Home Url: https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 30/12/2020
 '* 1.0.2    15/1/2021   Err.Raise change to Throw New Exception
 '* 1.0.3    23/1/2021   pTextStream rename to TextStream
 '* 1.0.4    23/1/2021   Modify Init
 '* 1.0.5    25/7/2021   Modify Init
 '* 1.1      24/6/2023   Modify IOMode
+'* 1.2      4/12/2023   Add TextType
 '**********************************
 Imports System.IO
+Imports System.Text
 Public Class TextStream
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1.2.8"
 
     Private mEnmIOMode As PigFileSystem.IOMode
+
+    Public ReadOnly Property TextType As PigText.enmTextType
 
     Private srMain As StreamReader
     Private swMain As StreamWriter
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
+        Me.TextType = PigText.enmTextType.UTF8
     End Sub
+
+    Public Sub New(TextType As PigText.enmTextType)
+        MyBase.New(CLS_VERSION)
+        Me.TextType = TextType
+    End Sub
+
+    Private ReadOnly Property mEncTextType As Encoding
+        Get
+            Select Case Me.TextType
+                Case PigText.enmTextType.Ascii
+                    Return Encoding.ASCII
+                Case PigText.enmTextType.GB2312
+                    Return Encoding.GetEncoding("GB2312")
+                Case PigText.enmTextType.Unicode
+                    Return Encoding.Unicode
+                Case PigText.enmTextType.UTF8
+                    Return Encoding.UTF8
+                Case Else
+                    Return Encoding.UTF8
+            End Select
+        End Get
+    End Property
+
 
     Friend Sub Init(FilePath As String, IOMode As PigFileSystem.IOMode, Optional Create As Boolean = False)
         Const SUB_NAME As String = "Init"
@@ -35,15 +63,15 @@ Public Class TextStream
                 Case PigFileSystem.IOMode.ForReading
                     If Create = True Then
                         If IO.File.Exists(FilePath) = False Then
-                            swMain = New StreamWriter(FilePath)
+                            swMain = New StreamWriter(FilePath, False, Me.mEncTextType)
                             swMain.Close()
                         End If
                     End If
-                    srMain = New StreamReader(FilePath)
+                    srMain = New StreamReader(FilePath, Me.mEncTextType)
                 Case PigFileSystem.IOMode.ForWriting
-                    swMain = New StreamWriter(FilePath, False)
+                    swMain = New StreamWriter(FilePath, False, Me.mEncTextType)
                 Case PigFileSystem.IOMode.ForAppending
-                    swMain = New StreamWriter(FilePath, True)
+                    swMain = New StreamWriter(FilePath, True, Me.mEncTextType)
                 Case Else
                     Throw New Exception("Invalid IOMode " & IOMode.ToString)
             End Select

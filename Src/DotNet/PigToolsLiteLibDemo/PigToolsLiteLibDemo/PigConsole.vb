@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.18
+'* Version: 1.20
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -23,6 +23,8 @@
 '*1.16 18/10/2022  Modify SimpleMenu,IsYesOrNo
 '*1.17 19/10/2022  Add GetCanUseCultureXml
 '*1.18 17/11/2022  Add SelectControl
+'*1.19 23/10/2023  Modify SimpleMenu
+'*1.20 5/12/2023   Add EnmWhatTypeOfMenuDefinition,GetMenuDefinition,SelectMenuOfEnumeration,AddMenuDefinition
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -31,11 +33,16 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.18.2"
+    Private Const CLS_VERSION As String = "1.20.18"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
     Property mIsUseMLang As Boolean = False
+
+    Public Enum EnmWhatTypeOfMenuDefinition
+        PigText_EnmTextType = 0
+        PigFileSystem_IOMode = 1
+    End Enum
 
     Public Property IsUseMLang As Boolean
         Get
@@ -489,7 +496,7 @@ Public Class PigConsole
     ''' <param name="MenuTitle">菜单标题|Menu title</param>
     ''' <param name="MenuDefinition">菜单定义，格式：键值1#名称1|键值2#名称2|...|Menu definition, format:Key1#Name1|Key2#Name2|...</param>
     ''' <param name="OutMenuKey">选择的键值|Selected key value</param>
-    ''' <param name="MenuExitType">退出方式|Exit mode</param>
+    ''' <param name="EnmSimpleMenuExitType">退出方式|Exit mode</param>
     ''' <returns></returns>
     Public Function SimpleMenu(MenuTitle As String, MenuDefinition As String, ByRef OutMenuKey As String, Optional MenuExitType As EnmSimpleMenuExitType = EnmSimpleMenuExitType.QtoExit) As String
         Dim LOG As New PigStepLog("SimpleMenu")
@@ -514,12 +521,17 @@ Public Class PigConsole
                 If Len(abMenuName(intItems)) > intMaxLen Then intMaxLen = Len(abMenuName(intItems))
                 abLetter(intItems) = Chr(64 + intItems)
                 If MenuExitType <> EnmSimpleMenuExitType.Null And abLetter(intItems) >= "Q" Then
-                    abLetter(intItems) += Chr(64 + intItems + 1)
+                    abLetter(intItems) = Chr(64 + intItems + 1)
+                    '                    abLetter(intItems) += Chr(64 + intItems + 1)
                 End If
             Loop
-            If intItems <= 0 Then
-                Throw New Exception("No menu item defined")
-            End If
+            If intItems = 0 Then Throw New Exception("No menu item defined")
+            Select Case MenuExitType
+                Case EnmSimpleMenuExitType.QtoExit, EnmSimpleMenuExitType.QtoUp
+                    If intItems > 25 Then Throw New Exception("Supports defining up to 25 menu items")
+                Case EnmSimpleMenuExitType.Null
+                    If intItems > 26 Then Throw New Exception("Supports defining up to 26 menu items")
+            End Select
             intMaxLen += 8
             LOG.StepName = "Print Menu"
             Dim strStarLine As String = mPigFunc.GetRepeatStr(intMaxLen, "*")
@@ -537,8 +549,16 @@ Public Class PigConsole
             End Select
             For i = 1 To intItems
                 Dim strLetter As String = Chr(64 + i)
-                If strLetter = "Q" Then strLetter = Chr(65 + i)
-                Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+                Select Case i
+                    Case < 17
+                        Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+                    Case >= 17
+                        Select Case MenuExitType
+                            Case EnmSimpleMenuExitType.QtoExit, EnmSimpleMenuExitType.QtoUp
+                                strLetter = Chr(65 + i)
+                        End Select
+                        Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+                End Select
             Next
             Console.WriteLine(strStarLine)
             LOG.StepName = "Select Menu"
@@ -551,7 +571,17 @@ Public Class PigConsole
                         Else
                             Dim intKey As Integer = CInt(oConsoleKey) - 64
                             If MenuExitType <> EnmSimpleMenuExitType.Null And intKey > ConsoleKey.Q Then intKey -= 1
-                            OutMenuKey = abMenuKey(intKey)
+                            Select Case intKey
+                                Case < 17
+                                    OutMenuKey = abMenuKey(intKey)
+                                Case >= 17
+                                    Select Case MenuExitType
+                                        Case EnmSimpleMenuExitType.QtoExit, EnmSimpleMenuExitType.QtoUp
+                                            OutMenuKey = abMenuKey(intKey - 1)
+                                        Case EnmSimpleMenuExitType.Null
+                                            OutMenuKey = abMenuKey(intKey)
+                                    End Select
+                            End Select
                         End If
                         Exit Do
                 End Select
@@ -559,6 +589,8 @@ Public Class PigConsole
             Return "OK"
         Catch ex As Exception
             OutMenuKey = ""
+            Console.WriteLine(ex.Message.ToString)
+            Me.DisplayPause()
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -774,5 +806,50 @@ Public Class PigConsole
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+    Public Function SelectMenuOfEnumeration(WhatTypeOfMenuDefinition As EnmWhatTypeOfMenuDefinition) As String
+        Try
+            SelectMenuOfEnumeration = ""
+            Dim strRet As String = Me.SimpleMenu("Select " & WhatTypeOfMenuDefinition.ToString, Me.GetMenuDefinition(WhatTypeOfMenuDefinition), SelectMenuOfEnumeration, PigConsole.EnmSimpleMenuExitType.Null)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMenuDefinition", ex)
+            Return ""
+        End Try
+    End Function
+
+
+    Public Function GetMenuDefinition(WhatTypeOfMenuDefinition As EnmWhatTypeOfMenuDefinition) As String
+        Try
+            Dim strMenuDefinition As String = ""
+            Select Case WhatTypeOfMenuDefinition
+                Case EnmWhatTypeOfMenuDefinition.PigFileSystem_IOMode
+                    For Each strName As String In [Enum].GetNames(GetType(PigFileSystem.IOMode))
+                        Dim enmAny As PigFileSystem.IOMode = [Enum].Parse(GetType(PigFileSystem.IOMode), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigText_EnmTextType
+                    For Each strName As String In [Enum].GetNames(GetType(PigText.enmTextType))
+                        Dim enmAny As PigText.enmTextType = [Enum].Parse(GetType(PigText.enmTextType), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case Else
+                    Throw New Exception("Invalid WhatTypeOfMenuDefinition")
+            End Select
+            Return strMenuDefinition
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMenuDefinition", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Sub AddMenuDefinition(ByRef MainMenuDefinition As String, MenuItemKey As String, MenuItemName As String)
+        MainMenuDefinition &= MenuItemKey & "#" & MenuItemName & "|"
+    End Sub
+
+    Public Sub AddMenuDefinition(ByRef MainMenuDefinition As String, MenuItemKeyAndName As String)
+        MainMenuDefinition &= MenuItemKeyAndName & "#" & MenuItemKeyAndName & "|"
+    End Sub
+
 
 End Class
