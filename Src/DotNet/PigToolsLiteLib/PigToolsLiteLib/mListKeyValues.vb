@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: mListKeyValue 的集合类|Collection class of mListKeyValue
 '* Home Url: https://en.seowphong.com
-'* Version: 1.0
+'* Version: 1.1
 '* Create Time: 24/9/2022
+'*1.1  12/12/2023 Modify mAdd
 '************************************
 Friend Class mListKeyValues
     Inherits PigBaseMini
     Implements IEnumerable(Of mListKeyValue)
-    Private Const CLS_VERSION As String = "1.0.2"
+    Private Const CLS_VERSION As String = "1.1.2"
     Private ReadOnly moList As New List(Of mListKeyValue)
 
     Public Sub New()
@@ -82,7 +83,8 @@ Friend Class mListKeyValues
         Try
             If Me.IsItemExists(NewItem.KeyName) = True Then
                 LOG.StepName = "Check IsItemExists"
-                Throw New Exception(NewItem.KeyName & " already exists.")
+                LOG.AddStepNameInf(NewItem.KeyName)
+                Throw New Exception("It already exists.")
             End If
             LOG.StepName = "List.Add"
             moList.Add(NewItem)

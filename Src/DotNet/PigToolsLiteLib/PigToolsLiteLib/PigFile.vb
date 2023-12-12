@@ -25,7 +25,7 @@
 '*1.10 4/12/2023   Add GetFullText
 '**********************************
 Imports System.IO
-Imports Microsoft.VisualBasic.Logging
+'Imports Microsoft.VisualBasic.Logging
 ''' <summary>
 ''' File processing set|文件处理集
 ''' </summary>

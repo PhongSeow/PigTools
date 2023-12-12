@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Configuration Processing Class|配置处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.15
+'* Version: 1.16
 '* Create Time: 18/12/2021
 '* 1.1    20/12/2020   Add mNew,MkEncKey,mLoadConfig,GetEncStr
 '* 1.2    21/12/2020   Modify mLoadConfig,EnmSaveType,mNew, add LoadConfig,LoadConfigFile,SaveConfigFile,SaveConfig,PigConfigSessions,AddNewConfigSession
@@ -21,14 +21,15 @@
 '* 1.13   10/5/2022    Modify mLoadConfig,IsLoadConfClearFrist
 '* 1.14   24/8/2022    Modify New
 '* 1.15   15/8/2022    Modify New,mNew, add EnmEncType
+'* 1.16   12/12/2022   Modify mSaveConfig
 '**********************************
-Imports Microsoft.VisualBasic
+'Imports Microsoft.VisualBasic
 ''' <summary>
 ''' Configuration Processing Class|配置处理类
 ''' </summary>
 Public Class PigConfigApp
 	Inherits PigBaseMini
-	Private Const CLS_VERSION As String = "1.15.6"
+	Private Const CLS_VERSION As String = "1.16.8"
 	Public Enum EnmEncType
 		RSA_AES = 0
 		RSA_3DES = 1
@@ -273,16 +274,19 @@ Public Class PigConfigApp
 			LOG.StepName = "Check SaveType"
 			Select Case SaveType
 				Case EnmSaveType.Registry
+					LOG.AddStepNameInf(SaveType.ToString)
 					If Me.IsWindows = False Then
-						Throw New Exception(SaveType.ToString & ", which can only be used on Windows platforms")
+						Throw New Exception("It which can only be used on Windows platforms")
 					Else
-						Throw New Exception(SaveType.ToString & " support coming soon")
+						Throw New Exception("It support coming soon")
 					End If
 				Case EnmSaveType.EncData
-					Throw New Exception(SaveType.ToString & " support coming soon")
+					LOG.AddStepNameInf(SaveType.ToString)
+					Throw New Exception("It support coming soon")
 				Case EnmSaveType.Xml, EnmSaveType.Ini
 				Case Else
-					Throw New Exception(SaveType.ToString & " is invalid")
+					LOG.AddStepNameInf(SaveType.ToString)
+					Throw New Exception("It is invalid")
 			End Select
 			If Me.PigConfigSessions Is Nothing Then
 				LOG.StepName = "New PigConfigSessions"
@@ -510,16 +514,19 @@ Public Class PigConfigApp
 			LOG.StepName = "Check SaveType"
 			Select Case SaveType
 				Case EnmSaveType.Registry
+					LOG.AddStepNameInf(SaveType.ToString)
 					If Me.IsWindows = False Then
-						Throw New Exception(SaveType.ToString & ", which can only be used on Windows platforms")
+						Throw New Exception("It which can only be used on Windows platforms")
 					Else
-						Throw New Exception(SaveType.ToString & " support coming soon")
+						Throw New Exception("It support coming soon")
 					End If
 				Case EnmSaveType.EncData
-					Throw New Exception(SaveType.ToString & " support coming soon")
+					LOG.AddStepNameInf(SaveType.ToString)
+					Throw New Exception("It support coming soon")
 				Case EnmSaveType.Xml, EnmSaveType.Ini
 				Case Else
-					Throw New Exception(SaveType.ToString & " is invalid")
+					LOG.AddStepNameInf(SaveType.ToString)
+					Throw New Exception("It is invalid")
 			End Select
 			Dim strConfData As String = ""
 			Select Case SaveType

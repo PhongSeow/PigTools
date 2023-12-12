@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Byte array processing class|字节数组处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 2019-10-22
 '*1.0.2  2019-10-24  
 '*1.0.3  2019-10-25  优化 mSetValue 和 mGetValue 等，去掉一些没有属性
@@ -27,6 +27,7 @@
 '*1.0.22  2/2/2021 remove Formatters.Binary.BinaryFormatter 
 '*1.0.23  6/5/2021 Add New(InitBase64Str)
 '*1.1  8/11/2022 Modify New
+'*1.2  12/12/2022 Modify ExtByMD5
 '************************************
 
 Imports System.Runtime.Serialization
@@ -35,7 +36,7 @@ Imports System.Runtime.Serialization
 ''' </summary>
 Public Class PigBytes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1.2.28"
 
     Private mabMain As Byte()
     ''' <summary>是否转换出错则为零，如果是则调用接口不会出错</summary>
@@ -79,7 +80,7 @@ Public Class PigBytes
     ''' <summary>比较数组是否一样</summary>
     Public Overloads Function IsMatchBytes(ByRef MatchBytes As Byte()) As Boolean
         Try
-            If Me.mabMain.Length <> MatchBytes.Length Then Throw New Exception("Me.mabMain.Length <> MatchBytes.Length")
+            If Me.mabMain.Length <> MatchBytes.Length Then Throw New Exception("Length mismatch")
             Dim i As Integer, bolIsMatch As Boolean = True
             For i = 0 To MatchBytes.Length - 1
                 If Me.mabMain(i) <> MatchBytes(i) Then
@@ -93,6 +94,7 @@ Public Class PigBytes
                 Return False
             End If
         Catch ex As Exception
+            Me.SetSubErrInf("IsMatchBytes", ex)
             Return False
         End Try
     End Function
@@ -100,7 +102,7 @@ Public Class PigBytes
     ''' <summary>比较数组是否一样</summary>
     Public Overloads Function IsMatchBytes(BeginPos As Integer, ByRef MatchBytes As Byte()) As String
         Try
-            If (Me.mabMain.Length - BeginPos + 1) <> MatchBytes.Length Then Throw New Exception("(Me.mabMain.Length - BeginPos + 1) <> MatchBytes.Length")
+            If (Me.mabMain.Length - BeginPos + 1) <> MatchBytes.Length Then Throw New Exception("Length mismatch with BeginPos")
             Dim i As Integer, bolIsMatch As Boolean = True
             For i = 0 To MatchBytes.Length - 1
                 If Me.mabMain(i + BeginPos) <> MatchBytes(i) Then
@@ -114,6 +116,7 @@ Public Class PigBytes
                 Return False
             End If
         Catch ex As Exception
+            Me.SetSubErrInf("IsMatchBytes", ex)
             Return False
         End Try
     End Function
@@ -182,26 +185,26 @@ Public Class PigBytes
     ''' <param name="SrcStru">源结构变量</param>
     ''' <remarks></remarks>
     Public Overloads Function SetStru(SrcStru As Object) As String
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("SetStru")
         Try
-            Dim oStru2Bytes As New Stru2Bytes, strRet As String
+            Dim oStru2Bytes As New Stru2Bytes
             Dim abStru(-1) As Byte
-            strStepName = "Stru2Bytes"
-            strRet = oStru2Bytes.Stru2Bytes(SrcStru, abStru)
-            If strRet <> "OK" Then Throw New Exception(strRet)
+            LOG.StepName = "Stru2Bytes"
+            LOG.Ret = oStru2Bytes.Stru2Bytes(SrcStru, abStru)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Dim intStruLen As Integer = abStru.Length
             ReDim Me.mabMain(0)
             Me.RestPos()
-            strStepName = "SetValue(intStruLen)"
-            strRet = Me.SetValue(CInt(intStruLen))
-            If strRet <> "OK" Then Throw New Exception(strRet)
-            strStepName = "SetValue(abStru)"
-            strRet = Me.SetValue(abStru)
-            If strRet <> "OK" Then Throw New Exception(strRet)
+            LOG.StepName = "SetValue.intStruLen"
+            LOG.Ret = Me.SetValue(CInt(intStruLen))
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            LOG.StepName = "SetValue.abStru"
+            LOG.Ret = Me.SetValue(abStru)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             oStru2Bytes = Nothing
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("SetStru", ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -234,7 +237,7 @@ Public Class PigBytes
             oStru2Bytes = Nothing
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("GetStru", ex)
+            Return Me.GetSubErrInf("GetStru", strStepName, ex)
         End Try
     End Function
 
@@ -486,10 +489,10 @@ Public Class PigBytes
     ''' <summary>用MD5扩充数组</summary>
     ''' <param name="ExtCnt">扩展个数，每个有16个字节</param>
     Public Function ExtByMD5(ExtCnt As Integer) As String
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("ExtByMD5")
         Try
             Dim strRet As String = "", oMD5 As PigMD5
-            strStepName = "abSrc=Me.mabMain"
+            LOG.StepName = "abSrc_Me.mabMain"
             Dim abSrc As Byte() = Me.mabMain
             Dim i As Integer, intLen As Integer = CInt(abSrc.Length) / ExtCnt
             Dim oGEBytes As New PigBytes(Me.mabMain)
@@ -497,17 +500,19 @@ Public Class PigBytes
             oGEBytes.RestPos()
             Me.PosToAddNew()
             For i = 0 To ExtCnt - 1
-                strStepName = "GetBytesValue(" & i.ToString & ")"
+                LOG.StepName = "GetBytesValue"
+                LOG.AddStepNameInf(i)
                 abAny = oGEBytes.GetBytesValue(intLen)
                 If oGEBytes.LastErr <> "" Then Throw New Exception(oGEBytes.LastErr)
                 oMD5 = New PigMD5(abAny)
-                strStepName = "SetValue(" & i.ToString & ")"
+                LOG.StepName = "SetValue"
+                LOG.AddStepNameInf(i)
                 strRet = Me.SetValue(oMD5.MD5Bytes)
                 If strRet <> "OK" Then Throw New Exception(strRet)
             Next
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("ExtByMD5", ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 

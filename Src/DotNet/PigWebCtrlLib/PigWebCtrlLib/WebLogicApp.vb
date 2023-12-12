@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.11
+'* Version: 1.12
 '* Create Time: 31/1/2022
 '*1.1  5/2/2022   Add GetJavaVersion 
 '*1.2  6/3/2022   Add WlstPath 
@@ -17,6 +17,7 @@
 '*1.9  7/9/2022  Add RunOpatch
 '*1.10 28/9/2022 Modify StartOrStopTimeout
 '*1.11 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
+'*1.12 7/12/2023 Add RunOpatch
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -26,7 +27,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class WebLogicApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.11.2"
+    Private Const CLS_VERSION As String = "1.12.10"
     Public ReadOnly Property HomeDirPath As String
     Public ReadOnly Property WorkTmpDirPath As String
     Public ReadOnly Property CallWlstTimeout As Integer = 300
@@ -135,7 +136,7 @@ Public Class WebLogicApp
     ''' <param name="ResInf">Return Results|返回结果</param>
     ''' <returns></returns>
     Public Function RunOpatch(Cmd As String, ByRef ResInf As String) As String
-        Dim LOG As New PigStepLog("")
+        Dim LOG As New PigStepLog("RunOpatch")
         Try
             Dim strCmd As String = Me.HomeDirPath & Me.OsPathSep & "OPatch" & Me.OsPathSep & "opatch " & Cmd
             LOG.StepName = "CmdShell"
@@ -145,6 +146,34 @@ Public Class WebLogicApp
                 Throw New Exception(LOG.Ret)
             End If
             ResInf = Me.mPigCmdApp.StandardOutput & Me.OsCrLf & Me.mPigCmdApp.StandardError
+            Return "OK"
+        Catch ex As Exception
+            ResInf = ""
+            Return Me.GetSubErrInf("", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Run patch script|运行补丁脚本
+    ''' </summary>
+    ''' <param name="SudoUser">sudo user|sudo 用户</param>
+    ''' <param name="Cmd">script|脚本</param>
+    ''' <param name="ResInf">Return Results|返回结果</param>
+    ''' <returns></returns>
+    Public Function RunOpatch(SudoUser As String, Cmd As String, ByRef ResInf As String) As String
+        Dim LOG As New PigStepLog("RunOpatch")
+        Try
+            If Me.IsWindows = True Then Throw New Exception("Can only be executed on the Linux platform")
+            Dim strCmd As String = Me.HomeDirPath & Me.OsPathSep & "OPatch" & Me.OsPathSep & "opatch " & Cmd
+            LOG.StepName = "PigSudo.Run"
+            Dim oPigSudo As New PigSudo(strCmd, SudoUser)
+            LOG.Ret = oPigSudo.Run()
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            End If
+            ResInf = oPigSudo.StandardOutput & Me.OsCrLf & oPigSudo.StandardError
+            oPigSudo = Nothing
             Return "OK"
         Catch ex As Exception
             ResInf = ""

@@ -830,7 +830,7 @@ Public Class PigXml
             Return "OK"
         Catch ex As Exception
             oXmlNode = Nothing
-            Return Me.GetSubErrInf("GetXmlDocText", ex)
+            Return Me.GetSubErrInf("mSetXmlDocValue", ex)
         End Try
     End Function
 
