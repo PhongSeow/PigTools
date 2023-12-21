@@ -10,6 +10,7 @@
 '* 1.2 15/6/2023   Add DeleteFile,CopyFile,IsFileExists,MoveFile
 '* 1.3 24/6/2023   Add IOMode,OpenTextFile
 '* 1.5 5/12/2023   Add OpenTextFile
+'* 1.6 19/12/2023  Modify OpenTextFile, add mOpenTextFile
 '**********************************
 Imports System.IO
 
@@ -131,30 +132,41 @@ Public Class PigFileSystem
     End Function
 
     Public Function OpenTextFile(FilePath As String, IOMode As IOMode, Optional Create As Boolean = False) As TextStream
-        Const SUB_NAME As String = "OpenTextFile"
-        Dim strStepName As String = ""
-        Try
-            OpenTextFile = New TextStream
-            strStepName = "Init"
-            Me.PrintDebugLog(SUB_NAME, strStepName, FilePath)
-            OpenTextFile.Init(FilePath, IOMode, Create)
-            If OpenTextFile.LastErr <> "" Then Throw New Exception(OpenTextFile.LastErr)
-            Me.ClearErr()
-        Catch ex As Exception
-            Me.SetSubErrInf(SUB_NAME, strStepName, ex)
-            Return Nothing
-        End Try
+        Return Me.mOpenTextFile(FilePath, IOMode, PigText.enmTextType.UnknowOrBin, Create)
+        'Const SUB_NAME As String = "OpenTextFile"
+        'Dim strStepName As String = ""
+        'Try
+        '    OpenTextFile = New TextStream(PigText.enmTextType.UTF8)
+        '    strStepName = "Init"
+        '    Me.PrintDebugLog(SUB_NAME, strStepName, FilePath)
+        '    OpenTextFile.Init(FilePath, IOMode, Create)
+        '    If OpenTextFile.LastErr <> "" Then Throw New Exception(OpenTextFile.LastErr)
+        '    Me.ClearErr()
+        'Catch ex As Exception
+        '    Me.SetSubErrInf(SUB_NAME, strStepName, ex)
+        '    Return Nothing
+        'End Try
     End Function
 
     Public Function OpenTextFile(FilePath As String, IOMode As IOMode, TextType As PigText.enmTextType, Optional Create As Boolean = False) As TextStream
-        Const SUB_NAME As String = "OpenTextFile"
+        Return Me.mOpenTextFile(FilePath, IOMode, TextType, Create)
+    End Function
+
+
+    Private Function mOpenTextFile(FilePath As String, IOMode As IOMode, TextType As PigText.enmTextType, Optional Create As Boolean = False) As TextStream
+        Const SUB_NAME As String = "mOpenTextFile"
         Dim strStepName As String = ""
         Try
-            OpenTextFile = New TextStream(TextType)
+            Select Case TextType
+                Case PigText.enmTextType.UnknowOrBin
+                    mOpenTextFile = New TextStream()
+                Case Else
+                    mOpenTextFile = New TextStream(TextType)
+            End Select
             strStepName = "Init"
             Me.PrintDebugLog(SUB_NAME, strStepName, FilePath)
-            OpenTextFile.Init(FilePath, IOMode, Create)
-            If OpenTextFile.LastErr <> "" Then Throw New Exception(OpenTextFile.LastErr)
+            mOpenTextFile.Init(FilePath, IOMode, Create)
+            If mOpenTextFile.LastErr <> "" Then Throw New Exception(mOpenTextFile.LastErr)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf(SUB_NAME, strStepName, ex)

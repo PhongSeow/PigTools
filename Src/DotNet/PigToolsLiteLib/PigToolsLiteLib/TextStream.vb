@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Amount to Scripting.TextStream of VB6
 '* Home Url: https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 30/12/2020
 '* 1.0.2    15/1/2021   Err.Raise change to Throw New Exception
 '* 1.0.3    23/1/2021   pTextStream rename to TextStream
@@ -12,23 +12,24 @@
 '* 1.0.5    25/7/2021   Modify Init
 '* 1.1      24/6/2023   Modify IOMode
 '* 1.2      4/12/2023   Add TextType
+'* 1.3      20/12/2023  Modify New,Init
 '**********************************
 Imports System.IO
 Imports System.Text
 Public Class TextStream
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.8"
+    Private Const CLS_VERSION As String = "1.3.6"
 
     Private mEnmIOMode As PigFileSystem.IOMode
 
-    Public ReadOnly Property TextType As PigText.enmTextType
+    Public ReadOnly Property TextType As PigText.enmTextType = PigText.enmTextType.UTF8
 
     Private srMain As StreamReader
     Private swMain As StreamWriter
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
-        Me.TextType = PigText.enmTextType.UTF8
+        Me.TextType = PigText.enmTextType.UnknowOrBin
     End Sub
 
     Public Sub New(TextType As PigText.enmTextType)
@@ -63,15 +64,35 @@ Public Class TextStream
                 Case PigFileSystem.IOMode.ForReading
                     If Create = True Then
                         If IO.File.Exists(FilePath) = False Then
-                            swMain = New StreamWriter(FilePath, False, Me.mEncTextType)
+                            Select Case Me.TextType
+                                Case PigText.enmTextType.UnknowOrBin
+                                    swMain = New StreamWriter(FilePath, False)
+                                Case Else
+                                    swMain = New StreamWriter(FilePath, False, Me.mEncTextType)
+                            End Select
                             swMain.Close()
                         End If
                     End If
-                    srMain = New StreamReader(FilePath, Me.mEncTextType)
+                    Select Case Me.TextType
+                        Case PigText.enmTextType.UnknowOrBin
+                            swMain = New StreamWriter(FilePath)
+                        Case Else
+                            srMain = New StreamReader(FilePath, Me.mEncTextType)
+                    End Select
                 Case PigFileSystem.IOMode.ForWriting
-                    swMain = New StreamWriter(FilePath, False, Me.mEncTextType)
+                    Select Case Me.TextType
+                        Case PigText.enmTextType.UnknowOrBin
+                            swMain = New StreamWriter(FilePath, False)
+                        Case Else
+                            swMain = New StreamWriter(FilePath, False, Me.mEncTextType)
+                    End Select
                 Case PigFileSystem.IOMode.ForAppending
-                    swMain = New StreamWriter(FilePath, True, Me.mEncTextType)
+                    Select Case Me.TextType
+                        Case PigText.enmTextType.UnknowOrBin
+                            swMain = New StreamWriter(FilePath, True)
+                        Case Else
+                            swMain = New StreamWriter(FilePath, True, Me.mEncTextType)
+                    End Select
                 Case Else
                     Throw New Exception("Invalid IOMode " & IOMode.ToString)
             End Select

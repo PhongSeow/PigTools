@@ -4,44 +4,45 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.37
+'* Version: 1.38
 '* Create Time: 31/1/2022
-'*1.1  5/2/2022   Add CheckDomain 
-'*1.2  5/3/2022   Modify New
-'*1.3  23/5/2022  Add CreateDomain 
-'*1.4  26/5/2022  Add EnmDomainDeployStatus,EnmDomainRunStatus,EnmDomainCtrlStatus
-'*1.5  27/5/2022  Add CreateDomain 
-'*1.6  31/5/2022  Modify CreateDomain
-'*1.7  1/6/2022  Add StartDomain,StopDomain, modify LogDirPath
-'*1.8  2/6/2022  Modify StopDomain,StartDomain
-'*1.9  4/6/2022  Rename CreateDomainRes to CallWlstRes, CallWlstPyPath to CallWlstPyPath, modify CreateDomain,RefRunStatus, add mCallWlstPyOpenTextFile,mWlstPublicCheck,RefAll
-'*1.10 5/6/2022  Add CallWlstSucc,CallWlstFail, modify mPigCmdApp_AsyncRet_CmdShell_FullString,StartDomain
-'*1.11 12/6/2022  Rename RefAll to RefAll, modify mWlstCallMain
-'*1.12 13/6/2022  Add JavaPID
-'*1.13 14/6/2022  Add JavaMemoryUse,JavaStartTime
-'*1.14 14/6/2022  Modify AdminPort
-'*1.15 15/6/2022  Add ConnectionFilterImpl, modify RefConf,RefRunStatus
-'*1.15 7/7/2022   Add AdminServerLogPath,DomainLogPath,AdminServerLogPath,AccessLogPath
-'*1.16 16/7/2022  Modify mWlstCallMain,CreateDomain,EnmWlstCallCmd, add UpdateCheck
-'*1.17 17/7/2022  Modify AdminPort,IsAdminPortEnable
-'*1.18 21/7/2022  Modify AdminPort,IsAdminPortEnable
-'*1.19  26/7/2022 Modify Imports
-'*1.20  29/7/2022 Modify Imports
-'*1.21  1/8/2022  Add HardStopDomain
-'*1.22  2/8/2022  Modify mWlstCallMain,CreateDomain
-'*1.23  13/8/2022 Modify mWlstCallMain,CreateDomain, and add AsyncCreateDomain,SetT3Deny
-'*1.25  28/9/2022 Add ConsoleLogTime,AccessLogTime,GetConsoleLogHasRunMode
-'*1.26  24/11/2022 Add SetAdminPort
-'*1.27  6/2/2023 Add setDomainEnvPath,WL_HOME,SUN_JAVA_HOME,DEFAULT_SUN_JAVA_HOME,WLS_MEM_ARGS_64BIT,WLS_MEM_ARGS_32BIT
-'*1.28  7/2/2023 Add GetDomainEnvInf,mGetFileKeyValue
-'*1.29  28/2/2023 Add WebLogicDeploys
-'*1.30  11/5/2023 Resolve initialization date issue.
-'*1.31 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
-'*1.32 1/8/2023  Modify RefConf
-'*1.33 5/9/2023  Modify EnmDomainRunStatus,mIsRunBusy,HardStopDomain,StopDomain,RefRunStatus
-'*1.35 7/9/2023  Modify mIsRunBusy,RefRunStatus
-'*1.36 9/11/2023 Add StatisticsAccessLog
-'*1.37 6/12/2023 Add StatisticsAccessLog, Modify mGetTopText,mGetTailText
+'* 1.1  5/2/2022   Add CheckDomain 
+'* 1.2  5/3/2022   Modify New
+'* 1.3  23/5/2022  Add CreateDomain 
+'* 1.4  26/5/2022  Add EnmDomainDeployStatus,EnmDomainRunStatus,EnmDomainCtrlStatus
+'* 1.5  27/5/2022  Add CreateDomain 
+'* 1.6  31/5/2022  Modify CreateDomain
+'* 1.7  1/6/2022  Add StartDomain,StopDomain, modify LogDirPath
+'* 1.8  2/6/2022  Modify StopDomain,StartDomain
+'* 1.9  4/6/2022  Rename CreateDomainRes to CallWlstRes, CallWlstPyPath to CallWlstPyPath, modify CreateDomain,RefRunStatus, add mCallWlstPyOpenTextFile,mWlstPublicCheck,RefAll
+'* 1.10 5/6/2022  Add CallWlstSucc,CallWlstFail, modify mPigCmdApp_AsyncRet_CmdShell_FullString,StartDomain
+'* 1.11 12/6/2022  Rename RefAll to RefAll, modify mWlstCallMain
+'* 1.12 13/6/2022  Add JavaPID
+'* 1.13 14/6/2022  Add JavaMemoryUse,JavaStartTime
+'* 1.14 14/6/2022  Modify AdminPort
+'* 1.15 15/6/2022  Add ConnectionFilterImpl, modify RefConf,RefRunStatus
+'* 1.15 7/7/2022   Add AdminServerLogPath,DomainLogPath,AdminServerLogPath,AccessLogPath
+'* 1.16 16/7/2022  Modify mWlstCallMain,CreateDomain,EnmWlstCallCmd, add UpdateCheck
+'* 1.17 17/7/2022  Modify AdminPort,IsAdminPortEnable
+'* 1.18 21/7/2022  Modify AdminPort,IsAdminPortEnable
+'* 1.19  26/7/2022 Modify Imports
+'* 1.20  29/7/2022 Modify Imports
+'* 1.21  1/8/2022  Add HardStopDomain
+'* 1.22  2/8/2022  Modify mWlstCallMain,CreateDomain
+'* 1.23  13/8/2022 Modify mWlstCallMain,CreateDomain, and add AsyncCreateDomain,SetT3Deny
+'* 1.25  28/9/2022 Add ConsoleLogTime,AccessLogTime,GetConsoleLogHasRunMode
+'* 1.26  24/11/2022 Add SetAdminPort
+'* 1.27  6/2/2023 Add setDomainEnvPath,WL_HOME,SUN_JAVA_HOME,DEFAULT_SUN_JAVA_HOME,WLS_MEM_ARGS_64BIT,WLS_MEM_ARGS_32BIT
+'* 1.28  7/2/2023 Add GetDomainEnvInf,mGetFileKeyValue
+'* 1.29  28/2/2023 Add WebLogicDeploys
+'* 1.30  11/5/2023 Resolve initialization date issue.
+'* 1.31 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
+'* 1.32 1/8/2023  Modify RefConf
+'* 1.33 5/9/2023  Modify EnmDomainRunStatus,mIsRunBusy,HardStopDomain,StopDomain,RefRunStatus
+'* 1.35 7/9/2023  Modify mIsRunBusy,RefRunStatus
+'* 1.36 9/11/2023 Add StatisticsAccessLog
+'* 1.37 6/12/2023 Add StatisticsAccessLog, Modify mGetTopText,mGetTailText
+'* 1.38 20/12/2023 Modify mWlstCallMain
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -54,7 +55,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.37.8"
+    Private Const CLS_VERSION As String = "1.38.6"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -992,6 +993,9 @@ Public Class WebLogicDomain
                 If LOG.Ret <> "OK" Then
                     If Me.IsDebug = True Then LOG.AddStepNameInf(strCmd)
                     Throw New Exception(LOG.Ret)
+                ElseIf Me.mPigCmdApp.StandardError <> "" Then
+                    If Me.IsDebug = True Then LOG.AddStepNameInf(strCmd)
+                    Throw New Exception(Me.mPigCmdApp.StandardError)
                 End If
                 Me.RunStatus = EnmDomainRunStatus.ExecWLSTOK
             End If

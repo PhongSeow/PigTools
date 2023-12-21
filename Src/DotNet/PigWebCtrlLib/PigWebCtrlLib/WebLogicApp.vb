@@ -6,18 +6,18 @@
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.12
 '* Create Time: 31/1/2022
-'*1.1  5/2/2022   Add GetJavaVersion 
-'*1.2  6/3/2022   Add WlstPath 
-'*1.3  26/5/2022  Add SaveSecurityBoot ,modify New
-'*1.4  27/5/2022  Modify SaveSecurityBoot
-'*1.5  1/6/2022  Add IsWindows
-'*1.6  5/6/2022  Add StartOrStopTimeout
-'*1.7  26/7/2022 Modify Imports
-'*1.8  29/7/2022 Modify Imports
-'*1.9  7/9/2022  Add RunOpatch
-'*1.10 28/9/2022 Modify StartOrStopTimeout
-'*1.11 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
-'*1.12 7/12/2023 Add RunOpatch
+'* 1.1  5/2/2022   Add GetJavaVersion 
+'* 1.2  6/3/2022   Add WlstPath 
+'* 1.3  26/5/2022  Add SaveSecurityBoot ,modify New
+'* 1.4  27/5/2022  Modify SaveSecurityBoot
+'* 1.5  1/6/2022  Add IsWindows
+'* 1.6  5/6/2022  Add StartOrStopTimeout
+'* 1.7  26/7/2022 Modify Imports
+'* 1.8  29/7/2022 Modify Imports
+'* 1.9  7/9/2022  Add RunOpatch
+'* 1.10 28/9/2022 Modify StartOrStopTimeout
+'* 1.11 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
+'* 1.12 7/12/2023 Add RunOpatch
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
