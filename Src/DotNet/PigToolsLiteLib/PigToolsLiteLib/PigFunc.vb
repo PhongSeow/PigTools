@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.58
+'* Version: 1.61
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -56,6 +56,9 @@
 '*1.56   4/11/2023  Add OpenUrl,GetDefaultBrowser
 '*1.57   7/11/2023  Add GetTimeSlot
 '*1.58   10/11/2023  Add GetTextFileEncCode
+'*1.59   23/12/2023  Add AddMultiLineText
+'*1.60   29/12/2023  Add CombinePath,GetStr,GetStrAndReplace
+'*1.61   30/12/2023  Add IsAbsolutePath
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -71,7 +74,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.57.18"
+    Private Const CLS_VERSION As String = "1.61.8"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -903,6 +906,20 @@ Public Class PigFunc
                 Next
             End If
             MainText &= strTabs & NewLine & Me.OsCrLf
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("AddMultiLineText", ex)
+        End Try
+    End Function
+
+    Public Function AddMultiLineText(ByRef MainText As StringBuilder, NewLine As String, Optional LeftTabs As Integer = 0) As String
+        Try
+            If LeftTabs > 0 Then
+                For i = 1 To LeftTabs
+                    MainText.Append(vbTab)
+                Next
+            End If
+            MainText.Append(NewLine & Me.OsCrLf)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("AddMultiLineText", ex)
@@ -2309,6 +2326,12 @@ Public Class PigFunc
         End Try
     End Function
 
+    ''' <summary>
+    ''' Obtain the encoding of the text file|获取文本文件的编码
+    ''' </summary>
+    ''' <param name="FilePath">File path|文件路径</param>
+    ''' <param name="EncCode">Encoding|编码</param>
+    ''' <returns></returns>
     Public Function GetTextFileEncCode(FilePath As String, ByRef EncCode As String) As String
         Try
             Dim ecAny As Encoding
@@ -2322,5 +2345,137 @@ Public Class PigFunc
             Return Me.GetSubErrInf("GetTextFileEncCode", ex)
         End Try
     End Function
+
+    ''' <summary>
+    ''' Obtain the absolute path of the relative path of the basic path|获取基本路径的相对路径的绝对路径
+    ''' </summary>
+    ''' <param name="BasePath">Basic path|基本路径</param>
+    ''' <param name="RelativePath">Relative path relative to the basic path|相对于基本路径的相对路径</param>
+    ''' <returns></returns>
+    Public Function CombinePath(BasePath As String, RelativePath As String) As String
+        Try
+            Dim strBasePath As String = System.IO.Path.GetFullPath(BasePath)
+            Dim strCombinePath As String = System.IO.Path.Combine(strBasePath, RelativePath)
+            Return System.IO.Path.GetFullPath(strCombinePath)
+        Catch ex As Exception
+            Me.SetSubErrInf("CombinePath", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Find the specified beginning and ending content in the source string|在源字符串中查找指定开头和结尾的内容
+    ''' </summary>
+    ''' <param name="SrcStr">Source string|源字符串</param>
+    ''' <param name="BeginStr">Starting string|开头的字符串</param>
+    ''' <param name="EndStr">A null-terminated string|结尾的字符串</param>
+    ''' <param name="FindTimes">Search times|查找次数</param>
+    ''' <returns></returns>
+    Public Function GetStr(SrcStr As String, BeginStr As String, EndStr As String, FindTimes As Integer) As String
+        Try
+            Dim intBegin As Integer = 0, intEnd As Integer = 0, intCnt As Integer = 0, intLeftStrLen As Integer = Len(BeginStr), intRightStrLen As Integer = Len(EndStr)
+            Dim intLastBegin As Integer = 0, intLastEnd As Integer = 0
+            If FindTimes < 1 Then FindTimes = 1
+
+            For i As Integer = 1 To FindTimes
+                If intLeftStrLen = 0 Then
+                    intBegin = 0
+                Else
+                    intBegin = SrcStr.IndexOf(BeginStr, intLastBegin)
+                    If intBegin = -1 Then
+                        Return ""
+                    End If
+                    intLastBegin = intBegin + intLeftStrLen
+                End If
+                If intRightStrLen = 0 Then
+                    intEnd = SrcStr.Length
+                Else
+                    intEnd = SrcStr.IndexOf(EndStr, intLastEnd)
+                    If intEnd = -1 Then
+                        Return ""
+                    End If
+                    intLastEnd = intEnd + intRightStrLen
+                End If
+                intCnt += 1
+            Next
+
+            If intCnt = FindTimes Then
+                Return SrcStr.Substring(intBegin + BeginStr.Length, intEnd - intBegin - BeginStr.Length)
+            Else
+                Return ""
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("GetStr", ex)
+            Return ""
+        End Try
+    End Function
+    ''' <summary>
+    ''' Find the specified beginning and ending content in the source string and replace it with a new string|在源字符串中查找指定开头和结尾的内容并用新的字符串替换
+    ''' </summary>
+    ''' <param name="SrcStr">Source string|源字符串</param>
+    ''' <param name="BeginStr">Starting string|开头的字符串</param>
+    ''' <param name="EndStr">A null-terminated string|结尾的字符串</param>
+    ''' <param name="FindTimes">Search times|查找次数</param>
+    ''' <param name="ReplaceStr">The new string to replace|要替换的新字符串</param>
+    ''' <returns></returns>
+    Public Function GetStrAndReplace(SrcStr As String, BeginStr As String, EndStr As String, FindTimes As Integer, ReplaceStr As String) As String
+        Try
+            Dim intBegin As Integer = 0, intEnd As Integer = 0, intCnt As Integer = 0, intBeginStrLen As Integer = Len(BeginStr), intEndStrLen As Integer = Len(EndStr)
+            Dim intLastBegin As Integer = 0, intLastEnd As Integer = 0
+            If FindTimes < 1 Then FindTimes = 1
+
+            For i As Integer = 1 To FindTimes
+                If intBeginStrLen = 0 Then
+                    intBegin = 0
+                Else
+                    intBegin = SrcStr.IndexOf(BeginStr, intLastBegin)
+                    If intBegin = -1 Then
+                        Return ""
+                    End If
+                    intLastBegin = intBegin + intBeginStrLen
+                End If
+                If intEndStrLen = 0 Then
+                    intEnd = SrcStr.Length
+                Else
+                    intEnd = SrcStr.IndexOf(EndStr, intLastEnd)
+                    If intEnd = -1 Then
+                        Return ""
+                    End If
+                    intLastEnd = intEnd + intEndStrLen
+                End If
+                intCnt += 1
+            Next
+
+            If intCnt = FindTimes Then
+                Dim intLeftLen As Integer = intBegin + intBeginStrLen, intSrcStrLen As Integer = SrcStr.Length, intRightLen As Integer = intSrcStrLen - (intEnd - intBegin - intBeginStrLen) - intLeftLen
+                Return SrcStr.Substring(0, intLeftLen) & ReplaceStr & SrcStr.Substring(intSrcStrLen - intRightLen, intRightLen)
+            Else
+                Return ""
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("GetStr", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Is it an absolute path|是否绝对路径
+    ''' </summary>
+    ''' <param name="InPath">Input path|输入的路径</param>
+    ''' <returns></returns>
+    Public Function IsAbsolutePath(InPath As String) As Boolean
+        Try
+            Dim strInPath As String = System.IO.Path.GetFullPath(InPath)
+            If strInPath = InPath Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsAbsolutePath", ex)
+            Return False
+        End Try
+    End Function
+
 
 End Class
