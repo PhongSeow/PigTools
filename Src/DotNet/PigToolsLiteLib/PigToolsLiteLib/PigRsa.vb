@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: RSA Processing Class|RSA处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 17/10/2019
 '1.0.2  2019-10-18 Decrypt和Encrypt重载函数
 '1.0.3  2019-11-17 增加 密钥 bytes 数据处理
 '1.1  16/10/2021 Modify LoadPubKey,mDecrypt,mEncrypt
 '1.2  14/11/2021 Add MkEncKey,LoadEncKey, modify Decrypt
 '1.3  15/11/2021 Add SignData,mSignData,mVerifyData,VerifyData
+'1.5  17/1/2024 Add Decrypt,Encrypt
 '**********************************
 
 Imports System.Security.Cryptography
@@ -19,7 +20,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigRsa
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.28"
+    Private Const CLS_VERSION As String = "1.5.8"
 
     ''' <summary>密钥组成部分结构长度</summary>
     Private Structure struEncKeyPartLen
@@ -47,6 +48,28 @@ Public Class PigRsa
             IsLoadEncKey = mbolIsLoadEncKey
         End Get
     End Property
+
+    ''' <summary>
+    ''' 解密|Decrypt
+    ''' </summary>
+    ''' <param name="EncBase64Str">加密后的字节数组的Base64|Base64 of encrypted byte array</param>
+    ''' <param name="UnEncBytes">解密后的源字节数组|Decrypted source byte array</param>
+    ''' <param name="TextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
+    Public Function Decrypt(EncBase64Str As String, ByRef UnEncBytes As Byte(), TextType As PigText.enmTextType) As String
+        Dim strStepName As String = ""
+        Dim strRet As String
+        Try
+            Dim oPigText As New PigText(EncBase64Str, TextType, PigText.enmNewFmt.FromBase64)
+            strStepName = "mDecrypt"
+            strRet = Me.mDecrypt(oPigText.TextBytes, UnEncBytes)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            oPigText = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("Decrypt", strStepName, ex)
+        End Try
+    End Function
 
 
     ''' <summary>
@@ -127,6 +150,7 @@ Public Class PigRsa
 
     ''' <summary>
     ''' Encryption, generally public key encryption and private key decryption|加密，一般是公钥加密，私钥解密
+    ''' Keep this interface for compatibility with previous versions|保留这个接口是为了兼容以前的版本 
     ''' </summary>
     ''' <param name="SrcStr">Original string|原文字符串</param>
     ''' <param name="TextType">Text encoding type|文本编码类型</param>
@@ -138,7 +162,7 @@ Public Class PigRsa
         Try
             Dim oPigText As New PigText(SrcStr, TextType)
             Dim abEncBytes As Byte()
-            ReDim abEncBytes(0)
+            ReDim abEncBytes(-1)
             strStepName = "mEncrypt"
             strRet = Me.mEncrypt(oPigText.TextBytes, abEncBytes)
             If strRet <> "OK" Then Throw New Exception(strRet)
@@ -544,6 +568,52 @@ Public Class PigRsa
         Catch ex As Exception
             IsVerify = False
             Return Me.GetSubErrInf("mVerifyData", ex)
+        End Try
+    End Function
+
+
+    ''' <summary>
+    ''' 加密|encryption
+    ''' </summary>
+    ''' <param name="SrcString">源字符串</param>
+    ''' <param name="EncBytes">加密后的字节数组|Encrypted byte array</param>
+    ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
+    Public Function Encrypt(SrcString As String, ByRef EncBytes As Byte(), Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
+        Dim LOG As New PigStepLog("Encrypt")
+        Try
+            Dim ptSrc As New PigText(SrcString, SrcTextType)
+            LOG.StepName = "mEncrypt"
+            LOG.Ret = Me.mEncrypt(ptSrc.TextBytes, EncBytes)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            ptSrc = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 加密|encryption
+    ''' </summary>
+    ''' <param name="SrcString">源字符串</param>
+    ''' <param name="EncBase64Str">加密后的字节数组的Base64|Base64 of encrypted byte array</param>
+    ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
+    Public Function Encrypt(SrcString As String, ByRef EncBase64Str As String, Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
+        Dim LOG As New PigStepLog("Encrypt")
+        Try
+            Dim ptSrc As New PigText(SrcString, SrcTextType)
+            Dim abEnc(-1) As Byte
+            LOG.StepName = "mEncrypt"
+            LOG.Ret = Me.mEncrypt(ptSrc.TextBytes, abEnc)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            EncBase64Str = Convert.ToBase64String(abEnc)
+            ptSrc = Nothing
+            Return "OK"
+        Catch ex As Exception
+            EncBase64Str = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 

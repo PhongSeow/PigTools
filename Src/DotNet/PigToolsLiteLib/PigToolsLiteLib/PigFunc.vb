@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.61
+'* Version: 1.62
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -59,6 +59,7 @@
 '*1.59   23/12/2023  Add AddMultiLineText
 '*1.60   29/12/2023  Add CombinePath,GetStr,GetStrAndReplace
 '*1.61   30/12/2023  Add IsAbsolutePath
+'*1.62   16/1/2024  Modify GetStr
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -74,7 +75,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.61.8"
+    Private Const CLS_VERSION As String = "1.62.6"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -2373,29 +2374,28 @@ Public Class PigFunc
     ''' <returns></returns>
     Public Function GetStr(SrcStr As String, BeginStr As String, EndStr As String, FindTimes As Integer) As String
         Try
-            Dim intBegin As Integer = 0, intEnd As Integer = 0, intCnt As Integer = 0, intLeftStrLen As Integer = Len(BeginStr), intRightStrLen As Integer = Len(EndStr)
-            Dim intLastBegin As Integer = 0, intLastEnd As Integer = 0
+            Dim intBegin As Integer = 0, intEnd As Integer = 0, intCnt As Integer = 0, intBeginStrLen As Integer = Len(BeginStr), intEndStrLen As Integer = Len(EndStr)
+            Dim intLastPos As Integer = 0
             If FindTimes < 1 Then FindTimes = 1
 
             For i As Integer = 1 To FindTimes
-                If intLeftStrLen = 0 Then
+                If intBeginStrLen = 0 Then
                     intBegin = 0
                 Else
-                    intBegin = SrcStr.IndexOf(BeginStr, intLastBegin)
+                    intBegin = SrcStr.IndexOf(BeginStr, intLastPos)
                     If intBegin = -1 Then
                         Return ""
                     End If
-                    intLastBegin = intBegin + intLeftStrLen
                 End If
-                If intRightStrLen = 0 Then
+                If intEndStrLen = 0 Then
                     intEnd = SrcStr.Length
                 Else
-                    intEnd = SrcStr.IndexOf(EndStr, intLastEnd)
+                    intEnd = SrcStr.IndexOf(EndStr, intBegin + intBeginStrLen)
                     If intEnd = -1 Then
                         Return ""
                     End If
-                    intLastEnd = intEnd + intRightStrLen
                 End If
+                intLastPos = intEnd + intEndStrLen
                 intCnt += 1
             Next
 
@@ -2409,6 +2409,57 @@ Public Class PigFunc
             Return ""
         End Try
     End Function
+    'Public Function GetStr(SrcStr As String, BeginStr As String, EndStr As String, FindTimes As Integer) As String
+    '    Try
+    '        Dim intBegin As Integer = 0, intEnd As Integer = 0, intCnt As Integer = 0, intBeginStrLen As Integer = Len(BeginStr), intEndStrLen As Integer = Len(EndStr)
+    '        Dim intLastBegin As Integer = 0, intLastEnd As Integer = intLastBegin + intBeginStrLen, bolIsBeginEndSsame As Boolean
+    '        If BeginStr = EndStr Then
+    '            bolIsBeginEndSsame = True
+    '            '                   intLastEnd = intLastBegin + intBeginStrLen + 1
+    '            '                   intLastEnd = intLastBegin + intBeginStrLen
+    '        Else
+    '            bolIsBeginEndSsame = False
+    '        End If
+    '        If FindTimes < 1 Then FindTimes = 1
+
+    '        For i As Integer = 1 To FindTimes
+    '            If intBeginStrLen = 0 Then
+    '                intBegin = 0
+    '            Else
+    '                intBegin = SrcStr.IndexOf(BeginStr, intLastBegin)
+    '                If intBegin = -1 Then
+    '                    Return ""
+    '                End If
+    '                intLastBegin = intBegin + intBeginStrLen
+    '                If bolIsBeginEndSsame = True Then
+    '                    intLastBegin = SrcStr.IndexOf(BeginStr, intLastBegin) + intBeginStrLen
+    '                End If
+    '            End If
+    '            If intEndStrLen = 0 Then
+    '                intEnd = SrcStr.Length
+    '            Else
+    '                intEnd = SrcStr.IndexOf(EndStr, intLastEnd)
+    '                If intEnd = -1 Then
+    '                    Return ""
+    '                End If
+    '                intLastEnd = intEnd + intEndStrLen
+    '                If bolIsBeginEndSsame = True Then
+    '                    intLastEnd = SrcStr.IndexOf(EndStr, intLastEnd) + intEndStrLen
+    '                End If
+    '            End If
+    '            intCnt += 1
+    '        Next
+
+    '        If intCnt = FindTimes Then
+    '            Return SrcStr.Substring(intBegin + BeginStr.Length, intEnd - intBegin - BeginStr.Length)
+    '        Else
+    '            Return ""
+    '        End If
+    '    Catch ex As Exception
+    '        Me.SetSubErrInf("GetStr", ex)
+    '        Return ""
+    '    End Try
+    'End Function
     ''' <summary>
     ''' Find the specified beginning and ending content in the source string and replace it with a new string|在源字符串中查找指定开头和结尾的内容并用新的字符串替换
     ''' </summary>

@@ -4,11 +4,12 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing TripleDES encryption algorithm
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 20/8/2022
 '1.1  23/8/2002 Modify New, add IsLoadEncKey,LoadEncKey
 '1.2  24/8/2002 Add MkKey
 '1.3  25/8/2002 Modify MkEncKey,mMkEncKey, add MkEncKey
+'1.5  15/1/2004 Add Encrypt
 '************************************
 Imports System.Security.Cryptography
 Imports System.Text
@@ -18,7 +19,7 @@ Imports System.IO
 ''' </summary>
 Public Class PigTripleDES
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.8"
+    Private Const CLS_VERSION As String = "1.5.2"
     Private mabEncKey As Byte()
 
     Public Sub New()
@@ -155,6 +156,29 @@ Public Class PigTripleDES
     Public Function Decrypt(EncBytes As Byte(), ByRef UnEncBytes As Byte()) As String
         Return Me.mDecrypt(EncBytes, UnEncBytes)
     End Function
+
+    ''' <summary>
+    ''' 解密|Decrypt
+    ''' </summary>
+    ''' <param name="EncBase64Str">加密后的字节数组的Base64|Base64 of encrypted byte array</param>
+    ''' <param name="UnEncBytes">解密后的源字节数组|Decrypted source byte array</param>
+    ''' <param name="TextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
+    Public Function Decrypt(EncBase64Str As String, ByRef UnEncBytes As Byte(), TextType As PigText.enmTextType) As String
+        Dim strStepName As String = ""
+        Dim strRet As String
+        Try
+            Dim oPigText As New PigText(EncBase64Str, TextType, PigText.enmNewFmt.FromBase64)
+            strStepName = "mDecrypt"
+            strRet = Me.mDecrypt(oPigText.TextBytes, UnEncBytes)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            oPigText = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("Decrypt", strStepName, ex)
+        End Try
+    End Function
+
 
     Public Function Decrypt(EncBase64Str As String, ByRef UnEncStr As String, TextType As PigText.enmTextType) As String
         Dim strStepName As String = ""
@@ -298,51 +322,50 @@ Public Class PigTripleDES
         End Try
     End Function
 
-    'Sub Main()
-    '    Dim strSrc As String = "nyfort的BLOG"
-    '    Dim abIV(-1) As Byte
-    '    '加密
-    '    '注意KEY和IV只能用英文和数字,des是8个字符
-    '    Dim strEnc As String = EncryptDes(strSrc, "Qz\p{s+萧u(R0e$^j/=*c[\", abIV)
-    '    Console.WriteLine("源文=" & strSrc)
-    '    Console.WriteLine("密文=" & strEnc)
-    '    '解密
-    '    Dim strUnEnc As String = ""
-    '    strUnEnc = DecryptDes(strEnc, "Qz\p{s+萧u(R0e$^j/=*c[\", abIV)
-    '    Console.WriteLine("解密文=" & strUnEnc)
-    '    Console.WriteLine("OK")
-    'End Sub
+    ''' <summary>
+    ''' 加密|encryption
+    ''' </summary>
+    ''' <param name="SrcString">源字符串</param>
+    ''' <param name="EncBase64Str">加密后的字节数组的Base64|Base64 of encrypted byte array</param>
+    ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
+    Public Function Encrypt(SrcString As String, ByRef EncBase64Str As String, Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
+        Dim LOG As New PigStepLog("Encrypt")
+        Try
+            Dim ptSrc As New PigText(SrcString, SrcTextType)
+            Dim abEnc(-1) As Byte
+            LOG.StepName = "mEncrypt"
+            LOG.Ret = Me.mEncrypt(ptSrc.TextBytes, abEnc)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            EncBase64Str = Convert.ToBase64String(abEnc)
+            ptSrc = Nothing
+            Return "OK"
+        Catch ex As Exception
+            EncBase64Str = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
-    'Public Function DecryptDes(ByVal SourceStr As String, ByVal myKey As String, InIV As Byte()) As String    '使用标准DES对称解密
-    '    'Dim des As New System.Security.Cryptography.DESCryptoServiceProvider 'DES算法
-    '    Dim DES As New System.Security.Cryptography.TripleDESCryptoServiceProvider 'TripleDES算法
-    '    DES.Key = System.Text.Encoding.UTF8.GetBytes(myKey) 'myKey DES用8个字符，TripleDES要24个字符
-    '    'DES.IV = System.Text.Encoding.UTF8.GetBytes(myIV) 'myIV DES用8个字符，TripleDES要24个字符
-    '    DES.IV = InIV
-    '    Dim buffer As Byte() = Convert.FromBase64String(SourceStr)
-    '    Dim ms As New System.IO.MemoryStream(buffer)
-    '    Dim cs As New System.Security.Cryptography.CryptoStream(ms, DES.CreateDecryptor(), System.Security.Cryptography.CryptoStreamMode.Read)
-    '    Dim sr As New System.IO.StreamReader(cs)
-    '    DecryptDes = sr.ReadToEnd()
-    'End Function
+    ''' <summary>
+    ''' 加密|encryption
+    ''' </summary>
+    ''' <param name="SrcString">源字符串</param>
+    ''' <param name="EncBytes">加密后的字节数组|Encrypted byte array</param>
+    ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
+    ''' <returns></returns>
+    Public Function Encrypt(SrcString As String, ByRef EncBytes As Byte(), Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
+        Dim LOG As New PigStepLog("Encrypt")
+        Try
+            Dim ptSrc As New PigText(SrcString, SrcTextType)
+            LOG.StepName = "mEncrypt"
+            LOG.Ret = Me.mEncrypt(ptSrc.TextBytes, EncBytes)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            ptSrc = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
-    'Public Function EncryptDes(ByVal SourceStr As String, ByVal myKey As String, ByRef OutIV As Byte()) As String '使用的DES对称加密
-    '    'Dim des As New System.Security.Cryptography.DESCryptoServiceProvider 'DES算法
-    '    Dim DES As New System.Security.Cryptography.TripleDESCryptoServiceProvider 'TripleDES算法
-    '    Dim inputByteArray As Byte()
-    '    inputByteArray = System.Text.Encoding.Default.GetBytes(SourceStr)
-    '    DES.Key = System.Text.Encoding.UTF8.GetBytes(myKey) 'myKey DES用8个字符，TripleDES要24个字符
-    '    DES.GenerateIV()
-    '    OutIV = DES.IV
-    '    'des.IV = System.Text.Encoding.UTF8.GetBytes(myIV) 'myIV DES用8个字符，TripleDES要24个字符
-    '    Dim ms As New System.IO.MemoryStream
-    '    Dim cs As New System.Security.Cryptography.CryptoStream(ms, DES.CreateEncryptor(), System.Security.Cryptography.CryptoStreamMode.Write)
-    '    Dim sw As New System.IO.StreamWriter(cs)
-    '    sw.Write(SourceStr)
-    '    sw.Flush()
-    '    cs.FlushFinalBlock()
-    '    ms.Flush()
-    '    EncryptDes = Convert.ToBase64String(ms.GetBuffer(), 0, ms.Length)
-    'End Function
 
 End Class

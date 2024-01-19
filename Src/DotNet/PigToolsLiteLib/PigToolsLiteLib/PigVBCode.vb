@@ -4,20 +4,21 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: And generate VB code|且于生成VB的代码
 '* Home Url: https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 16/6/2021
 '* 1.1  1/7/2022    Modify MkCollectionClass
 '* 1.2  6/7/2022    Modify MkCollectionClass
 '* 1.3  2/11/2022   Add mMkBytes2Func,MkBytes2Func
 '* 1.5  8/11/2022   Modify MkStr2Func,MkBytes2Func
-'* 1.6  17/10/2023   Modify mMkBytes2Func
+'* 1.6  17/10/2023  Modify mMkBytes2Func
+'* 1.7  15/1/2023   Modify MkCollectionClass
 '**********************************
 ''' <summary>
 ''' VB code generation processing class|VB代码生成处理类
 ''' </summary>
 Public Class PigVBCode
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.2"
+    Private Const CLS_VERSION As String = "1.7.2"
 
     Private Enum EnmMkBytes2FuncRetType
         RetString = 0
@@ -153,7 +154,7 @@ Public Class PigVBCode
             OutVBCode &= vbTab & vbTab & "End Try" & vbCrLf
             OutVBCode &= vbTab & "End Function" & vbCrLf
 
-            OutVBCode &= vbTab & "Private Sub Remove(" & MemberClassKeyName & ")" & vbCrLf
+            OutVBCode &= vbTab & "Public Sub Remove(" & MemberClassKeyName & " As String)" & vbCrLf
             OutVBCode &= vbTab & vbTab & "Dim strStepName As String = """"" & vbCrLf
             OutVBCode &= vbTab & vbTab & "Try" & vbCrLf
             OutVBCode &= vbTab & vbTab & vbTab & "strStepName = ""For Each""" & vbCrLf
