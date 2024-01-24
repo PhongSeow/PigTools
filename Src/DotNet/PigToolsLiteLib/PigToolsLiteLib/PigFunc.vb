@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.62
+'* Version: 1.63
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -60,6 +60,7 @@
 '*1.60   29/12/2023  Add CombinePath,GetStr,GetStrAndReplace
 '*1.61   30/12/2023  Add IsAbsolutePath
 '*1.62   16/1/2024  Modify GetStr
+'*1.63   22/1/2024  Modify GetStrAndReplace,IsRegexMatch
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -75,7 +76,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.62.6"
+    Private Const CLS_VERSION As String = "1.63.8"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -743,7 +744,16 @@ Public Class PigFunc
     End Function
 
     Public Function IsRegexMatch(SrcStr As String, RegularExp As String) As Boolean
-        Return System.Text.RegularExpressions.Regex.IsMatch(SrcStr, RegularExp)
+        Try
+            If SrcStr = "" Then
+                Return False
+            Else
+                Return System.Text.RegularExpressions.Regex.IsMatch(SrcStr, RegularExp)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsRegexMatch", ex)
+            Return False
+        End Try
     End Function
 
     Public Function GECBool(vData As String) As Boolean
@@ -2472,34 +2482,32 @@ Public Class PigFunc
     Public Function GetStrAndReplace(SrcStr As String, BeginStr As String, EndStr As String, FindTimes As Integer, ReplaceStr As String) As String
         Try
             Dim intBegin As Integer = 0, intEnd As Integer = 0, intCnt As Integer = 0, intBeginStrLen As Integer = Len(BeginStr), intEndStrLen As Integer = Len(EndStr)
-            Dim intLastBegin As Integer = 0, intLastEnd As Integer = 0
+            Dim intLastPos As Integer = 0
             If FindTimes < 1 Then FindTimes = 1
 
             For i As Integer = 1 To FindTimes
                 If intBeginStrLen = 0 Then
                     intBegin = 0
                 Else
-                    intBegin = SrcStr.IndexOf(BeginStr, intLastBegin)
+                    intBegin = SrcStr.IndexOf(BeginStr, intLastPos)
                     If intBegin = -1 Then
                         Return ""
                     End If
-                    intLastBegin = intBegin + intBeginStrLen
                 End If
                 If intEndStrLen = 0 Then
                     intEnd = SrcStr.Length
                 Else
-                    intEnd = SrcStr.IndexOf(EndStr, intLastEnd)
+                    intEnd = SrcStr.IndexOf(EndStr, intBegin + intBeginStrLen)
                     If intEnd = -1 Then
                         Return ""
                     End If
-                    intLastEnd = intEnd + intEndStrLen
                 End If
+                intLastPos = intEnd + intEndStrLen
                 intCnt += 1
             Next
 
             If intCnt = FindTimes Then
-                Dim intLeftLen As Integer = intBegin + intBeginStrLen, intSrcStrLen As Integer = SrcStr.Length, intRightLen As Integer = intSrcStrLen - (intEnd - intBegin - intBeginStrLen) - intLeftLen
-                Return SrcStr.Substring(0, intLeftLen) & ReplaceStr & SrcStr.Substring(intSrcStrLen - intRightLen, intRightLen)
+                Return BeginStr & ReplaceStr & EndStr
             Else
                 Return ""
             End If

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Amount to Scripting.TextStream of VB6
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 30/12/2020
 '* 1.0.2    15/1/2021   Err.Raise change to Throw New Exception
 '* 1.0.3    23/1/2021   pTextStream rename to TextStream
@@ -13,12 +13,13 @@
 '* 1.1      24/6/2023   Modify IOMode
 '* 1.2      4/12/2023   Add TextType
 '* 1.3      20/12/2023  Modify New,Init
+'* 1.5      23/1/2024  Modify Init
 '**********************************
 Imports System.IO
 Imports System.Text
 Public Class TextStream
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.6"
+    Private Const CLS_VERSION As String = "1.5.2"
 
     Private mEnmIOMode As PigFileSystem.IOMode
 
@@ -75,7 +76,7 @@ Public Class TextStream
                     End If
                     Select Case Me.TextType
                         Case PigText.enmTextType.UnknowOrBin
-                            swMain = New StreamWriter(FilePath)
+                            srMain = New StreamReader(FilePath)
                         Case Else
                             srMain = New StreamReader(FilePath, Me.mEncTextType)
                     End Select
