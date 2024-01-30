@@ -19,7 +19,7 @@
 ''' </summary>
 Public Class PigConfig
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.7.1"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "2"
 
     Public Enum EnmContentType
         ''' <summary>

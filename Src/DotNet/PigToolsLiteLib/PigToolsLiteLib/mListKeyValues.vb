@@ -11,7 +11,7 @@
 Friend Class mListKeyValues
     Inherits PigBaseMini
     Implements IEnumerable(Of mListKeyValue)
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "2"
     Private ReadOnly moList As New List(Of mListKeyValue)
 
     Public Sub New()

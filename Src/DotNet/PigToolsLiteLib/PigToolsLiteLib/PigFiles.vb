@@ -10,7 +10,7 @@
 Public Class PigFiles
 	Inherits PigBaseMini
 	Implements IEnumerable(Of PigFile)
-	Private Const CLS_VERSION As String = "1.0.0"
+	Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "2"
 	Private ReadOnly moList As New List(Of PigFile)
 	Public Sub New()
 		MyBase.New(CLS_VERSION)

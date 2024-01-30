@@ -1,22 +1,23 @@
 ﻿'**********************************
 '* Name: SeowEnc
 '* Author: Seow Phong
-'* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 这是一个简单的压缩和移位加密算法，可以减少密文的长度，以及每次加密结果的密文都不相同，不要单独使用本加密算法，因为很容易破解，建议与其他加密算法一起使用，如AES、RSA和3DES等。|This is a simple compression and shift encryption algorithm, which can reduce the length of the ciphertext, and the ciphertext of each encryption result is different. Do not use this encryption algorithm alone, because it is easy to crack. It is recommended to use it together with other encryption algorithms, such as AES, RSA and 3DES.
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 11/9/2022
 '* 1.1  12/9/2022   Modify EmnComprssType,Encrypt
 '* 1.2  24/9/2022   Add IsRandAdd
 '* 1.3  8/11/2022   Modify mDecrypt,mEncrypt
 '* 1.5  13/10/2023   Modify New
+'* 1.6  19/1/2024   Add LoadEncKeySub,DecryptSub
 '************************************
 ''' <summary>
 ''' Seow encryption processing class|萧氏加密处理类
 ''' </summary>
 Public Class SeowEnc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.2"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "28"
 
     Private mabEncKey As Byte()
     Public Sub New(ComprssType As EmnComprssType)
@@ -315,6 +316,42 @@ Public Class SeowEnc
         End Try
     End Function
 
+    Public Sub DecryptSub(EncBytes As Byte(), ByRef UnEncBytes As Byte())
+        Const SUB_NAME As String = "DecryptSub"
+        Const KEY_NOT_IMPORTED As String = "Key not imported"
+        Dim intPos As Integer = 0
+        Try
+            If Me.mIsLoadEncKey = False Then Throw New Exception(KEY_NOT_IMPORTED)
+            Dim intDataLen As Integer = EncBytes.Length - 2
+            Dim intComprssType As EmnComprssType = EncBytes(intDataLen)
+            Dim bytAdd As Byte = EncBytes(intDataLen + 1)
+            Dim bytEncKeyLen As Byte = CByte(Me.mabEncKey.Length - 1)
+            For intPos = 0 To intDataLen - 1
+                Dim intItem As Integer = EncBytes(intPos), bytMod As Byte = intPos Mod bytEncKeyLen
+                intItem -= Me.mabEncKey(bytMod)
+                If intItem < 0 Then intItem += 256
+                intItem -= bytAdd
+                If intItem < 0 Then intItem += 256
+                EncBytes(intPos) = intItem
+            Next
+            ReDim Preserve EncBytes(intDataLen - 1)
+            Select Case intComprssType
+                Case EmnComprssType.NoComprss
+                    UnEncBytes = EncBytes
+                Case EmnComprssType.PigCompressor
+                    Dim pcEnc As New PigCompressor
+                    UnEncBytes = pcEnc.Depress(EncBytes)
+                    If pcEnc.LastErr <> "" Then Throw New Exception(pcEnc.LastErr)
+                    pcEnc = Nothing
+            End Select
+            Me.ClearErr()
+        Catch ex As Exception
+            UnEncBytes = Nothing
+            Me.SetSubErrInf(SUB_NAME, ex)
+        End Try
+    End Sub
+
+
     Public Function Encrypt(SrcStr As String, TextType As PigText.enmTextType, ByRef Base64EncStr As String, Optional ByRef CompressRate As Decimal = 1) As String
         Dim strStepName As String = ""
         Try
@@ -371,5 +408,23 @@ Public Class SeowEnc
             Return Me.GetSubErrInf("Decrypt", strStepName, ex)
         End Try
     End Function
+
+    Public Sub LoadEncKeySub(EncKey As Byte())
+        Const SUB_NAME As String = "LoadEncKeySub"
+        Const INVALID_ENCKEY As String = "Invalid EncKey"
+        Try
+            Select Case EncKey.Length
+                Case 1 To 256
+                    mabEncKey = EncKey
+                    Me.mIsLoadEncKey = True
+                Case Else
+                    Throw New Exception(INVALID_ENCKEY)
+            End Select
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.mIsLoadEncKey = False
+            Me.SetSubErrInf(SUB_NAME, ex)
+        End Try
+    End Sub
 
 End Class

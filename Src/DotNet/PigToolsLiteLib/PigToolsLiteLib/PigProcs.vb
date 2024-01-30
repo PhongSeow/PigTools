@@ -14,7 +14,7 @@
 Public Class PigProcs
     Inherits PigBaseMini
     Implements IEnumerable(Of PigProc)
-    Private Const CLS_VERSION As String = "1.0.1"
+    Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "8"
     Private ReadOnly moList As New List(Of PigProc)
 
     Public Sub New()

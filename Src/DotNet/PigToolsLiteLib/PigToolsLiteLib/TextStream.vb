@@ -19,7 +19,7 @@ Imports System.IO
 Imports System.Text
 Public Class TextStream
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.2"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "8"
 
     Private mEnmIOMode As PigFileSystem.IOMode
 

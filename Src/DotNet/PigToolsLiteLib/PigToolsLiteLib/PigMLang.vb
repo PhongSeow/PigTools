@@ -35,7 +35,7 @@ Imports System.IO
 ''' </summary>
 Public Class PigMLang
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.8.2"
+    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "2"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mFS As New PigFileSystem

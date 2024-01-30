@@ -25,7 +25,7 @@
 ''' </summary>
 Public Class PigText
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "8"
 
     Public Enum enmTextType '文本类型
         UnknowOrBin = 0

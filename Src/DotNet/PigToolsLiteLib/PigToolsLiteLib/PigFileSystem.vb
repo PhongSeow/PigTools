@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 用于目录及文件操作|Used for directory and file operations
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 10/6/2023
 '* 1.1 11/6/2023   Add GetPigFile,GetPigFolder
 '* 1.2 15/6/2023   Add DeleteFile,CopyFile,IsFileExists,MoveFile
@@ -16,7 +16,7 @@ Imports System.IO
 
 Public Class PigFileSystem
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.8"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "10"
 
     Public Enum IOMode
         ForAppending = 8
@@ -133,19 +133,6 @@ Public Class PigFileSystem
 
     Public Function OpenTextFile(FilePath As String, IOMode As IOMode, Optional Create As Boolean = False) As TextStream
         Return Me.mOpenTextFile(FilePath, IOMode, PigText.enmTextType.UnknowOrBin, Create)
-        'Const SUB_NAME As String = "OpenTextFile"
-        'Dim strStepName As String = ""
-        'Try
-        '    OpenTextFile = New TextStream(PigText.enmTextType.UTF8)
-        '    strStepName = "Init"
-        '    Me.PrintDebugLog(SUB_NAME, strStepName, FilePath)
-        '    OpenTextFile.Init(FilePath, IOMode, Create)
-        '    If OpenTextFile.LastErr <> "" Then Throw New Exception(OpenTextFile.LastErr)
-        '    Me.ClearErr()
-        'Catch ex As Exception
-        '    Me.SetSubErrInf(SUB_NAME, strStepName, ex)
-        '    Return Nothing
-        'End Try
     End Function
 
     Public Function OpenTextFile(FilePath As String, IOMode As IOMode, TextType As PigText.enmTextType, Optional Create As Boolean = False) As TextStream

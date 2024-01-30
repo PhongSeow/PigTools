@@ -17,7 +17,7 @@ Imports Microsoft.Win32
 ''' </summary>
 Public Class PigReg
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.3"
+    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "8"
     ''' <summary>注册表的根区</summary>
     Public Enum EmnRegRoot
         ''' <summary>HKEY_CLASSES_ROOT</summary>

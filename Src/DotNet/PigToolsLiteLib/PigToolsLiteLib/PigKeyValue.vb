@@ -16,7 +16,7 @@
 ''' </summary>
 Public Class PigKeyValue
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.28"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "32"
     Public Enum HitCacheEnum
         Null = 0
         List = 1

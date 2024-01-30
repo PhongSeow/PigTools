@@ -45,7 +45,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.21.8"
+    Private Const CLS_VERSION As String = "1" & "." & "21" & "." & "8"
     Private Property mMainXml As String = ""
     Private msbMain As New StringBuilder("")    '主体的XML
 

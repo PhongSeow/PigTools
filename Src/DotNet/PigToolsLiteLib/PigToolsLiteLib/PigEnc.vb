@@ -13,7 +13,7 @@
 
 Friend Class PigEnc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.2"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "8"
 
     ''' <summary>
     ''' 密钥使用方式|How to use the key

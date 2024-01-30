@@ -18,7 +18,7 @@
 ''' </summary>
 Public Class PigVBCode
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.7.2"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "8"
 
     Private Enum EnmMkBytes2FuncRetType
         RetString = 0

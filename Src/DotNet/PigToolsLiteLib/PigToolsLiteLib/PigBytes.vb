@@ -36,7 +36,7 @@ Imports System.Runtime.Serialization
 ''' </summary>
 Public Class PigBytes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.28"
+    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "8"
 
     Private mabMain As Byte()
     ''' <summary>是否转换出错则为零，如果是则调用接口不会出错</summary>

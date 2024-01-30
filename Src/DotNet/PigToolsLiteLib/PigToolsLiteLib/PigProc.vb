@@ -16,7 +16,7 @@
 ''' </summary>
 Public Class PigProc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.2"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "2"
 
     Private moProcess As Process
 

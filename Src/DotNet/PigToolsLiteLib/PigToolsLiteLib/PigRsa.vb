@@ -20,7 +20,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigRsa
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.8"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "8"
 
     ''' <summary>密钥组成部分结构长度</summary>
     Private Structure struEncKeyPartLen

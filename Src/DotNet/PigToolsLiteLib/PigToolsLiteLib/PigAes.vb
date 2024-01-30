@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigAes
 '* Author: Seow Phong
-'* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: AES Processing Class|AES处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 2019-10-27
 '1.0.2  2019-10-29
 '1.0.3  2019-10-31  稳定版本，去掉 EncriptStr 和 DecriptStr
@@ -14,6 +14,7 @@
 '1.2  11/9/2021   Modify mMkEncKey
 '1.3  17/2/2023   Modify LoadEncKey,mEncrypt,mDecrypt
 '1.5  28/4/2023   Add Decrypt,Encrypt
+'1.6  29/1/2024   Add LoadEncKeySub,DecryptSub
 '************************************
 Imports System.Security.Cryptography
 Imports System.Text
@@ -22,11 +23,14 @@ Imports System.Text
 ''' </summary>
 Public Class PigAes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.18"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "38"
     Private mabEncKey As Byte()
 
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
-    Private maesMain As Aes = Aes.Create("AES")
+    Private Const C_A As String = "A"
+    Private Const C_E As String = "E"
+    Private Const C_S As String = "S"
+    Private maesMain As Aes = Aes.Create(C_A & C_E & C_S)
 #End If
 
     Public Sub New()
@@ -424,6 +428,56 @@ Public Class PigAes
 
     Protected Overrides Sub Finalize()
         MyBase.Finalize()
+    End Sub
+
+    Public Sub LoadEncKeySub(EncKey As Byte())
+        Const SUB_NAME As String = "LoadEncKeySub"
+        Const NEED_NET4_OR_HI As String = "Need to run in .net 4.0 or higher framework"
+        Try
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+            mabEncKey = (New MD5CryptoServiceProvider).ComputeHash(EncKey)
+            With maesMain
+                .BlockSize = mabEncKey.Length * 8
+                .Key = mabEncKey
+                .IV = mabEncKey
+                .Mode = CipherMode.CBC
+                .Padding = PaddingMode.PKCS7
+            End With
+            Me.mIsLoadEncKey = True
+#Else
+            Throw New Exception(NEED_NET4_OR_HI)
+#End If
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.mIsLoadEncKey = False
+            Me.SetSubErrInf(SUB_NAME, ex)
+        End Try
+    End Sub
+
+    Public Sub DecryptSub(EncBytes As Byte(), ByRef UnEncStr As String, TextType As PigText.enmTextType)
+        Const SUB_NAME As String = "DecryptSub"
+        Const NEED_NET4_OR_HI As String = "Need to run in .net 4.0 or higher framework"
+        Const KEY_NOT_IMPORTED As String = "Key not imported"
+        Try
+            If Me.mIsLoadEncKey = False Then
+                Throw New Exception(KEY_NOT_IMPORTED)
+            End If
+            Dim oPigText As PigText
+            Dim abUnEncBytes As Byte()
+            ReDim abUnEncBytes(0)
+#If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
+            Dim ictAny As ICryptoTransform = maesMain.CreateDecryptor()
+            abUnEncBytes = ictAny.TransformFinalBlock(EncBytes, 0, EncBytes.Length)
+#Else
+            Throw New Exception(NEED_NET4_OR_HI)
+#End If
+            oPigText = New PigText(abUnEncBytes, TextType)
+            UnEncStr = oPigText.Text
+            oPigText = Nothing
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf(SUB_NAME, ex)
+        End Try
     End Sub
 
 End Class

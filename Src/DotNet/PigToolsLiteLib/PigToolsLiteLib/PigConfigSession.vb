@@ -20,7 +20,7 @@
 ''' </summary>
 Public Class PigConfigSession
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.8.1"
+    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "2"
 
     Private moPigConfigs As PigConfigs
     Public Property PigConfigs As PigConfigs

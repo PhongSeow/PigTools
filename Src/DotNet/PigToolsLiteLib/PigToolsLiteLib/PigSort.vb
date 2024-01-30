@@ -13,7 +13,7 @@
 ''' </summary>
 Public Class PigSort
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "8"
     Public Enum EnmSortWhat
         SortString = 1
         SortLong = 2

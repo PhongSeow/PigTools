@@ -19,7 +19,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigWebReq
     Inherits PigBaseMini
-    Const CLS_VERSION As String = "1.1.8"
+    Const CLS_VERSION As String = "1" & "." & "1" & "." & "8"
     Private mstrUrl As String
     Private mstrPara As String
     Private muriMain As System.Uri

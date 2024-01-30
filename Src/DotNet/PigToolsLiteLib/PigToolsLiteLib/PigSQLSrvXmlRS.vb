@@ -19,7 +19,7 @@
 ''' </summary>
 Public Class PigSQLSrvXmlRS
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.7.1"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "2"
     Public ReadOnly Property PigXml As PigXml
     Public Sub New(XmlStr As String, Optional IsChgCtrlChar As Boolean = True)
         MyBase.New(CLS_VERSION)

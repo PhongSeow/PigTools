@@ -21,7 +21,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigCompressor
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.6"
+    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "6"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)

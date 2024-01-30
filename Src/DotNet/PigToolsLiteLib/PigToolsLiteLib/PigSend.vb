@@ -15,7 +15,7 @@
 ''' </summary>
 Public Class PigSend
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.3.2"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "8"
 
     ''' <summary>
     ''' 加密方式|Encryption mode

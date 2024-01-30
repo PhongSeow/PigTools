@@ -13,7 +13,7 @@
 ''' </summary>
 Friend Class PigTimeBetween
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.1"
+    Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "8"
 
     ''' <summary>间隔类型|Interval type</summary>
     Public Enum EnmBetweenType

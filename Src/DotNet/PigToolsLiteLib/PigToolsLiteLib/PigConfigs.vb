@@ -18,7 +18,7 @@
 Public Class PigConfigs
     Inherits PigBaseMini
     Implements IEnumerable(Of PigConfig)
-    Private Const CLS_VERSION As String = "1.8.2"
+    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "6"
     Friend Property Parent As PigConfigSession
     Private ReadOnly moList As New List(Of PigConfig)
 

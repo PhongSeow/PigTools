@@ -9,7 +9,7 @@
 '**********************************
 Friend Class mListKeyValue
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.6"
+    Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "6"
     Public Sub New(KeyName As String, ValueBytes As Byte())
         MyBase.New(CLS_VERSION)
         Me.KeyName = KeyName

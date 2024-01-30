@@ -19,7 +19,7 @@
 ''' </summary>
 Public Class PigProcApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.6.2"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "8"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)

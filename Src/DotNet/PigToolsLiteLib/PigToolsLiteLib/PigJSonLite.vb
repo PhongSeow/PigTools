@@ -26,7 +26,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigJSonLite
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.6"
+    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "8"
 
     ''' <summary>The type of the JSON element</summary>
     Public Enum xpJSonEleType

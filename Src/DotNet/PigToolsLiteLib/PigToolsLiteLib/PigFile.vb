@@ -31,7 +31,7 @@ Imports System.IO
 ''' </summary>
 Public Class PigFile
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.10.2"
+    Private Const CLS_VERSION As String = "1" & "." & "10" & "." & "8"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
     Public GbMain As PigBytes '主数据数组

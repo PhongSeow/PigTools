@@ -11,7 +11,7 @@
 Public Class PigFolders
 	Inherits PigBaseMini
 	Implements IEnumerable(Of PigFolder)
-	Private Const CLS_VERSION As String = "1.1.28"
+	Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "32"
 	Private ReadOnly moList As New List(Of PigFolder)
 	Public Sub New()
 		MyBase.New(CLS_VERSION)

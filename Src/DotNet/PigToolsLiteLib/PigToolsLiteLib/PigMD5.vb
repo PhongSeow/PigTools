@@ -15,7 +15,7 @@
 ''' </summary>
 Public Class PigMD5
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.0.4"
+    Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "8"
 
     ''' <summary>源数据</summary>
     Private mabSrcData As Byte()

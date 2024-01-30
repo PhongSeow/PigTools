@@ -29,7 +29,7 @@
 ''' </summary>
 Public Class PigConfigApp
 	Inherits PigBaseMini
-	Private Const CLS_VERSION As String = "1.16.8"
+	Private Const CLS_VERSION As String = "1" & "." & "16" & "." & "8"
 	Public Enum EnmEncType
 		RSA_AES = 0
 		RSA_3DES = 1

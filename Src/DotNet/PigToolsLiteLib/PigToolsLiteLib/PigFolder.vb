@@ -15,7 +15,7 @@ Imports System.IO
 
 Public Class PigFolder
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.28"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "18"
 
     Public ReadOnly Property FolderPath As String
     Private Property mFolderInfo As DirectoryInfo

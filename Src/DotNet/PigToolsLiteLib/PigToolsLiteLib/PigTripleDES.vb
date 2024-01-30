@@ -1,25 +1,27 @@
 ﻿'**********************************
 '* Name: PigTripleDES
 '* Author: Seow Phong
-'* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing TripleDES encryption algorithm
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 20/8/2022
 '1.1  23/8/2002 Modify New, add IsLoadEncKey,LoadEncKey
 '1.2  24/8/2002 Add MkKey
 '1.3  25/8/2002 Modify MkEncKey,mMkEncKey, add MkEncKey
 '1.5  15/1/2004 Add Encrypt
+'1.6  19/1/2004 Add EncryptSub
 '************************************
 Imports System.Security.Cryptography
 Imports System.Text
 Imports System.IO
+Imports Microsoft.VisualBasic.Logging
 ''' <summary>
 ''' 3DES processing class|3DES处理类
 ''' </summary>
 Public Class PigTripleDES
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.5.2"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "16"
     Private mabEncKey As Byte()
 
     Public Sub New()
@@ -106,6 +108,28 @@ Public Class PigTripleDES
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+    Public Sub LoadEncKeySub(EncKey As Byte())
+        Const SUB_NAME As String = "LoadEncKeySub"
+        Const ENCKEY_NOTHING As String = "EncKey is Nothing"
+        Const ENCKEY_MUST_32 As String = "The length of EncKey must be 32"
+        Try
+            If EncKey Is Nothing Then Throw New Exception(ENCKEY_NOTHING)
+            If EncKey.Length <> 32 Then Throw New Exception(ENCKEY_MUST_32)
+            Dim abIV(7) As Byte
+            For i = 0 To 7
+                abIV(i) = EncKey(i + 24)
+            Next
+            ReDim Preserve EncKey(23)
+            Me.mTripleDES.Key = EncKey
+            Me.mTripleDES.IV = abIV
+            Me.IsLoadEncKey = True
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.IsLoadEncKey = False
+            Me.SetSubErrInf(SUB_NAME, ex)
+        End Try
+    End Sub
 
 
     Private Function mEncrypt(SrcBytes As Byte(), ByRef EncBytes As Byte()) As String
@@ -367,5 +391,27 @@ Public Class PigTripleDES
         End Try
     End Function
 
+    Public Sub DecrypSub(EncBytes As Byte(), ByRef UnEncStr As String, TextType As PigText.enmTextType)
+        Const SUB_NAME As String = "DecryptSub"
+        Const KEY_NOT_IMPORTED As String = "Key not imported"
+        Try
+            If Me.IsLoadEncKey = False Then
+                Throw New Exception(KEY_NOT_IMPORTED)
+            End If
+            Dim oPigText As PigText
+            Dim msMain As New MemoryStream(EncBytes)
+            Dim csMain As New CryptoStream(msMain, Me.mTripleDES.CreateDecryptor(), System.Security.Cryptography.CryptoStreamMode.Read)
+            Dim srMain As New StreamReader(csMain)
+            Dim strUnEncBase64 As String = srMain.ReadToEnd()
+            Dim oPigBytes As New PigBytes(strUnEncBase64)
+            If oPigBytes.LastErr <> "" Then Throw New Exception(oPigBytes.LastErr)
+            oPigText = New PigText(oPigBytes.Main, TextType)
+            UnEncStr = oPigText.Text
+            oPigText = Nothing
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf(SUB_NAME, ex)
+        End Try
+    End Sub
 
 End Class

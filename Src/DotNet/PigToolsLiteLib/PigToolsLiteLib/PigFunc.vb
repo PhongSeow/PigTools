@@ -76,7 +76,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.63.8"
+    Private Const CLS_VERSION As String = "1" & "." & "63" & "." & "32"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 

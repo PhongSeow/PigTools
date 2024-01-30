@@ -11,7 +11,7 @@
 '**********************************
 Public Class TextStreamAsc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.2.1"
+    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "8"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)

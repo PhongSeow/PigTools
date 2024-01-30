@@ -24,7 +24,7 @@ Imports System.Runtime.InteropServices
 ''' </summary>
 Public Class ShareMem
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1.1.2"
+    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "8"
     Private mbolIsInit As Boolean
     Private mstrSMName As String
     Private mlngSMSize As Long
