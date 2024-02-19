@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: TextStream
 '* Author: Seow Phong
-'* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Amount to Scripting.TextStream of VB6
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 30/12/2020
 '* 1.0.2    15/1/2021   Err.Raise change to Throw New Exception
 '* 1.0.3    23/1/2021   pTextStream rename to TextStream
@@ -14,12 +14,13 @@
 '* 1.2      4/12/2023   Add TextType
 '* 1.3      20/12/2023  Modify New,Init
 '* 1.5      23/1/2024  Modify Init
+'* 1.6      17/2/2024  Modify Init,mEncTextType
 '**********************************
 Imports System.IO
 Imports System.Text
 Public Class TextStream
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "6"
 
     Private mEnmIOMode As PigFileSystem.IOMode
 
@@ -44,7 +45,7 @@ Public Class TextStream
                 Case PigText.enmTextType.Ascii
                     Return Encoding.ASCII
                 Case PigText.enmTextType.GB2312
-                    Return Encoding.GetEncoding("GB2312")
+                    Return Encoding.GetEncoding("GB" & "2" & "312")
                 Case PigText.enmTextType.Unicode
                     Return Encoding.Unicode
                 Case PigText.enmTextType.UTF8
@@ -57,8 +58,7 @@ Public Class TextStream
 
 
     Friend Sub Init(FilePath As String, IOMode As PigFileSystem.IOMode, Optional Create As Boolean = False)
-        Const SUB_NAME As String = "Init"
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("Init")
         Try
             mEnmIOMode = IOMode
             Select Case mEnmIOMode
@@ -99,8 +99,8 @@ Public Class TextStream
             End Select
             Me.ClearErr()
         Catch ex As Exception
-            strStepName &= "(" & FilePath & ")"
-            Me.SetSubErrInf(SUB_NAME, strStepName, ex)
+            LOG.AddStepNameInf(FilePath)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Sub
 

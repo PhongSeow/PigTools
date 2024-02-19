@@ -1,14 +1,15 @@
 ﻿'**********************************
 '* Name: ShareMem
 '* Author: Part of the source code found on the Internet, I do not know who is the author, organized by Seow Phong
-'* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Use time processing 使用时间处理
 '* Home Url: https://en.seowphong.com
-'* Version: 1.1.2
+'* Version: 1.2
 '* Create Time: 10/8/2019
 '* 1.0.2  2019-10-12  GoBegin,Step2NowSeconds,Step2NowSeconds优化,新增 AllDiffChnMain
 '* 1.0.3  2019-10-12  增加 FreeSeconds 
 '* 1.1.2  8/12/2021  Add BeginTime,EndTime
+'* 1.2  19/2/2024  Modify FreeSeconds
 '**********************************
 ''' <summary>
 ''' Use time processing class|使用时间处理类
@@ -20,12 +21,16 @@ Public Class UseTime
 
     ''' <summary>The number of idle seconds. A return of 0 indicates that it is not idle or initialized|空闲的秒数，返回0表示未空闲或未初始化</summary>
     Public Function FreeSeconds() As Decimal
-        If mtsTimeDiff.TotalMilliseconds = 0 Then
-            FreeSeconds = 0
-        Else
-            Dim tsAny As TimeSpan = Now - mdteCurrBegin
-            FreeSeconds = (tsAny.TotalMilliseconds - mtsTimeDiff.TotalMilliseconds) / 1000
-        End If
+        Try
+            If mtsTimeDiff.TotalMilliseconds = 0 Then
+                FreeSeconds = 0
+            Else
+                Dim tsAny As TimeSpan = Now - mdteCurrBegin
+                FreeSeconds = (tsAny.TotalMilliseconds - mtsTimeDiff.TotalMilliseconds) / 1000
+            End If
+        Catch ex As Exception
+            Return -1
+        End Try
     End Function
 
 
@@ -101,7 +106,6 @@ Public Class UseTime
         Try
             decSs = tsTimeDiff.TotalSeconds
             '取出天
-
             cuyDd = Int(decSs / 86400)
             decSs = decSs - cuyDd * 86400
             '取出小时

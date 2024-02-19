@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigStepLog is for logging and error handling in the process.
 '* Home Url: https://en.seowphong.com
-'* Version: 1.7.2
+'* Version: 1.8.6
 '* Create Time: 8/12/2019
 '1.1    18/12/2021  Add TrackID,ErrInf2User, modify mNew,StepName
 '1.2    21/12/2021  Modify TrackID
@@ -12,6 +12,7 @@
 '1.5    30/8/2022  Modify New
 '1.6    8/12/2022  Modify mNew,StepName
 '1.7    1/6/2023  Modify ErrInf2User
+'1.8    17/2/2024  Modify mGEMD5,mNew,StepName
 '************************************
 ''' <summary>
 ''' Error tracking processing class|错误跟踪处理类
@@ -60,7 +61,7 @@ Public Class PigStepLog
                 Dim strID As String = System.Net.Dns.GetHostName() & "." & Me.mGetProcThreadID
                 TrackIDHead = Me.mGEMD5(strID)
             End If
-            Me.TrackID = TrackIDHead & "." & Format(Now, "yyyy-MM-dd HH:mm:ss.fff") & "."
+            Me.TrackID = TrackIDHead & "." & Format(Now, "yyyy" & "-MM-dd H" & "H:mm:s" & "s.fff") & "."
             'For i = 0 To 5
             '    Me.TrackID &= Me.mGetRandNum(0, 255)
             'Next
@@ -90,11 +91,11 @@ Public Class PigStepLog
 
     Private Function mGEMD5(SrcStr As String) As String
         Dim bytSrc2Hash As Byte() = (New System.Text.ASCIIEncoding).GetBytes(SrcStr)
-        Dim bytHashValue As Byte() = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("MD5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(bytSrc2Hash)
+        Dim bytHashValue As Byte() = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("M" & "D" & "5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(bytSrc2Hash)
         Dim i As Integer
         mGEMD5 = ""
         For i = 0 To 15 '选择32位字符的加密结果
-            mGEMD5 += Right("00" & Hex(bytHashValue(i)).ToLower, 2)
+            mGEMD5 += Right("0" & "0" & Hex(bytHashValue(i)).ToLower, 2)
         Next
     End Function
 
@@ -140,7 +141,7 @@ Public Class PigStepLog
         End Get
         Set(value As String)
             If Me.TrackID <> "" Then
-                mstrStepName = value & "[TrackID:" & Me.TrackID & "]"
+                mstrStepName = value & "[Tra" & "ckID:" & Me.TrackID & "]"
             Else
                 mstrStepName = value
             End If

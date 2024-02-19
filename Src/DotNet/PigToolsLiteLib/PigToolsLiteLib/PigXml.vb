@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://en.seowphong.com
-'* Version: 1.21
+'* Version: 1.23
 '* Create Time: 8/11/2019
 '1.0.2  2019-11-10  修改bug
 '1.0.3  2020-5-26  修改bug
@@ -36,6 +36,8 @@
 '1.19 7/5/2023  Add IsXmlNodeExists,SetXmlDocValue
 '1.20 26/5/2023  Add GetXmlDocText,XmlDocGetBool,XmlDocGetBoolEmpTrue,XmlDocGetDate,XmlDocGetDec,XmlDocGetInt,XmlDocGetLong,XmlDocGetStr
 '1.21 16/10/2023  Remove reference PigFunc
+'1.22 10/2/2024  Modify mGetXmlDoc
+'1.23 17/2/2024  Modify mXmlGetStr,AddEleValue
 '*******************************************************
 
 Imports System.Xml
@@ -43,9 +45,10 @@ Imports System.Text
 ''' <summary>
 ''' XML Processing Class|XML处理类
 ''' </summary>
+
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "21" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "22" & "." & "10"
     Private Property mMainXml As String = ""
     Private msbMain As New StringBuilder("")    '主体的XML
 
@@ -281,7 +284,7 @@ Public Class PigXml
             strBegin = "<" & XMLSign & ">"
             strEnd = "</" & XMLSign & ">"
             If IsCData = True Then
-                strBegin &= "<![CDATA["
+                strBegin &= "<!" & "[C" & "DA" & "TA["
                 strEnd = "]]>" & strEnd
             End If
             mXmlGetStr = Me.mGetStr(SrcXmlStr, strBegin, strEnd, True)
@@ -386,7 +389,7 @@ Public Class PigXml
         Try
             If Me.IsChgCtrlChar = True Then Me.mSrc2CtlStr(XMLValue)
             If IsCData = True Then
-                Me.msbMain.Append("<![CDATA[" & XMLValue & "]]>")
+                Me.msbMain.Append("<" & "![" & "CD" & "ATA[" & XMLValue & "]]>")
             Else
                 Dim strRet As String = Me.mEscapeXmlValue(XMLValue)
                 If strRet <> "OK" Then Throw New Exception(strRet)
@@ -905,7 +908,9 @@ Public Class PigXml
                 Case EmnGetXmlDoc.Attribute
                     XmlKey &= "#"
                 Case Else
-                    Throw New Exception("Invalid WhatGetXmlDoc is " & WhatGetXmlDoc.ToString)
+                    LOG.Ret = "Invalid WhatGetXmlDoc is "
+                    LOG.Ret &= WhatGetXmlDoc.ToString
+                    Throw New Exception(LOG.Ret)
             End Select
             Dim oParentNode As XmlNode = Nothing
             LOG.StepName = "Set ChildNodes(XmlDocument)"
@@ -923,7 +928,9 @@ Public Class PigXml
                     Case EmnGetXmlDoc.Attribute
                         If InStr(XmlKey, "#") = 0 Or XmlKey = "#" Then Exit Do
                     Case Else
-                        Throw New Exception("Invalid WhatGetXmlDoc is " & WhatGetXmlDoc.ToString)
+                        LOG.Ret = "Invalid WhatGetXmlDoc is "
+                        LOG.Ret &= WhatGetXmlDoc.ToString
+                        Throw New Exception(LOG.Ret)
                 End Select
                 Dim strNode As String = Me.mGetStr(XmlKey, "", ".")
                 If oParentNode IsNot Nothing Then
@@ -1014,7 +1021,9 @@ Public Class PigXml
                                     oParentNode = oXmlNodeList.Item(i)
                                 End If
                             Case Else
-                                Throw New Exception("Invalid WhatGetXmlDoc is " & WhatGetXmlDoc.ToString)
+                                LOG.Ret = "Invalid WhatGetXmlDoc is "
+                                LOG.Ret &= WhatGetXmlDoc.ToString
+                                Throw New Exception(LOG.Ret)
                         End Select
                         Exit For
                     End If
@@ -1056,7 +1065,8 @@ Public Class PigXml
                 LOG.AddStepNameInf(XmlFilePath)
                 Throw New Exception("File not found.")
             Else
-                LOG.StepName = "XmlDocument.Load(" & XmlFilePath & ")"
+                LOG.StepName = "XmlDocument.Load("
+                LOG.StepName &= XmlFilePath & ")"
                 Me.XmlDocument = New XmlDocument
                 Me.XmlDocument.Load(XmlFilePath)
             End If

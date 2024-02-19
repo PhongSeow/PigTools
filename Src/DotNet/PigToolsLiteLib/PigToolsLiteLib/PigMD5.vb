@@ -1,21 +1,22 @@
 ﻿'**********************************
 '* Name: PigMD5
 '* Author: Seow Phong
-'* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Standard MD5 treatment and personalized MD5 treatment.
 '* Home Url: https://en.seowphong.com
-'* Version: 1.0.4
+'* Version: 1.1
 '* Create Time: 1/12/2018
 '1.0.2  增加小猪MD5，即取源串来的16位MD5加上源串的前128个字节（不足取源串长度）的16位MD5
 '1.0.3  PigMD5增加数组
 '1.0.4  Add PigBaseMini
+'1.1  17/2/2024  Modify New,mMD5,mMkPigMD5
 '**********************************
 ''' <summary>
 ''' MD5 Processing Class|MD5处理类
 ''' </summary>
 Public Class PigMD5
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "2"
 
     ''' <summary>源数据</summary>
     Private mabSrcData As Byte()
@@ -38,7 +39,7 @@ Public Class PigMD5
         MyBase.New(CLS_VERSION)
         Try
             mabSrcData = SrcData
-            mabHashValue = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("MD5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(mabSrcData)
+            mabHashValue = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("M" & "D" & "5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(mabSrcData)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("New", ex)
@@ -58,7 +59,7 @@ Public Class PigMD5
                 Case Else
                     mabSrcData = System.Text.Encoding.UTF8.GetBytes(SrcStr)
             End Select
-            mabHashValue = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("MD5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(mabSrcData)
+            mabHashValue = CType(System.Security.Cryptography.CryptoConfig.CreateFromName("M" & "D" & "5"), System.Security.Cryptography.HashAlgorithm).ComputeHash(mabSrcData)
             Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf("New", ex)
@@ -86,7 +87,7 @@ Public Class PigMD5
                 Dim i As Integer
                 mstrMD5 = ""
                 For i = 0 To 15 '选择32位字符的加密结果
-                    mstrMD5 &= Right("00" & Hex(mabHashValue(i)).ToLower, 2)
+                    mstrMD5 &= Right("0" & "0" & Hex(mabHashValue(i)).ToLower, 2)
                 Next
             End If
             Return mstrMD5
@@ -129,7 +130,7 @@ Public Class PigMD5
             Next
             mstrPigMD5 = ""
             For i = 0 To 15 '选择32位字符的加密结果
-                mstrPigMD5 &= Right("00" & Hex(mabPigMD5(i)).ToLower, 2)
+                mstrPigMD5 &= Right("0" & "0" & Hex(mabPigMD5(i)).ToLower, 2)
             Next
             oPig = Nothing
             Me.ClearErr()

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: AES Processing Class|AES处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 2019-10-27
 '1.0.2  2019-10-29
 '1.0.3  2019-10-31  稳定版本，去掉 EncriptStr 和 DecriptStr
@@ -15,6 +15,7 @@
 '1.3  17/2/2023   Modify LoadEncKey,mEncrypt,mDecrypt
 '1.5  28/4/2023   Add Decrypt,Encrypt
 '1.6  29/1/2024   Add LoadEncKeySub,DecryptSub
+'1.7  10/2/2024   Modify MkEncKey,mMkEncKey,mGetXmlDoc
 '************************************
 Imports System.Security.Cryptography
 Imports System.Text
@@ -23,7 +24,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigAes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "38"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "8"
     Private mabEncKey As Byte()
 
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
@@ -294,7 +295,7 @@ Public Class PigAes
             Base64EncKey = Convert.ToBase64String(mabEncKey)
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("MkEncKey", ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -311,11 +312,14 @@ Public Class PigAes
     End Function
 
     Private Function mMkEncKey(InitKey As Byte(), EncKeyLen As Integer, ByRef EncKey As Byte()) As String
+        Dim LOG As New PigStepLog("mMkEncKey")
         Try
             Select Case EncKeyLen
                 Case 128, 192, 256
                 Case Else
-                    Throw New Exception("Key length cannot be greater than " & EncKeyLen.ToString)
+                    LOG.Ret = "Key length cannot be greater than "
+                    LOG.Ret &= EncKeyLen.ToString
+                    Throw New Exception(LOG.Ret)
             End Select
             Dim i As Integer
             ReDim EncKey(EncKeyLen - 1)
@@ -337,39 +341,10 @@ Public Class PigAes
             End If
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mMkEncKey", ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
-    '''' <remarks>生成密钥</remarks>
-    'Public Function MkEncKey(ByRef Base64EncKey As String) As String
-    '    Try
-    '        Return Me.mMkEncKey(256, Base64EncKey)
-    '    Catch ex As Exception
-    '        Return Me.GetSubErrInf("MkEncKey", ex, False)
-    '    End Try
-    'End Function
-
-    'Private Function mMkEncKey(EncKeyLen As Integer, ByRef Base64EncKey As String) As String
-    '    Try
-    '        Select Case EncKeyLen
-    '            Case 128, 192, 256
-    '            Case Else
-    '                Throw New Exception("Key length cannot be greater than " & EncKeyLen.ToString)
-    '        End Select
-    '        Dim i As Integer
-    '        ReDim mabEncKey(EncKeyLen - 1)
-    '        For i = 0 To EncKeyLen - 1
-    '            mabEncKey(i) = Me.mGetRandNum(0, 255)
-    '        Next
-    '        Dim oPigBytes As New PigBytes(mabEncKey)
-    '        Base64EncKey = oPigBytes.Base64Str
-    '        oPigBytes = Nothing
-    '        Return "OK"
-    '    Catch ex As Exception
-    '        Return Me.GetSubErrInf("MkEncKey", ex)
-    '    End Try
-    'End Function
 
     ''' <remarks>导入密钥</remarks>
     Public Overloads Function LoadEncKey(Base64EncKey As String) As String

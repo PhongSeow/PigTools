@@ -676,7 +676,7 @@ Public Class PigBytes
             mlngCurrPos += CopyLen
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mCopyFrom", ex, False)
+            Return Me.GetSubErrInf("mCopyFrom", ex)
         End Try
     End Function
 
@@ -869,7 +869,7 @@ Public Class PigBytes
             mlngCurrPos += CopyLen
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mCopyTo", ex, False)
+            Return Me.GetSubErrInf("mCopyTo", ex)
         End Try
     End Function
 

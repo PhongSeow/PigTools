@@ -1,22 +1,23 @@
 ﻿'**********************************
 '* Name: PigFileSystem
 '* Author: Seow Phong
-'* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2023-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 用于目录及文件操作|Used for directory and file operations
 '* Home Url: https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 10/6/2023
 '* 1.1 11/6/2023   Add GetPigFile,GetPigFolder
 '* 1.2 15/6/2023   Add DeleteFile,CopyFile,IsFileExists,MoveFile
 '* 1.3 24/6/2023   Add IOMode,OpenTextFile
 '* 1.5 5/12/2023   Add OpenTextFile
 '* 1.6 19/12/2023  Modify OpenTextFile, add mOpenTextFile
+'* 1.7 17/2/2024  Modify mOpenTextFile
 '**********************************
 Imports System.IO
 
 Public Class PigFileSystem
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "10"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "2"
 
     Public Enum IOMode
         ForAppending = 8
@@ -141,8 +142,7 @@ Public Class PigFileSystem
 
 
     Private Function mOpenTextFile(FilePath As String, IOMode As IOMode, TextType As PigText.enmTextType, Optional Create As Boolean = False) As TextStream
-        Const SUB_NAME As String = "mOpenTextFile"
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("mOpenTextFile")
         Try
             Select Case TextType
                 Case PigText.enmTextType.UnknowOrBin
@@ -150,13 +150,13 @@ Public Class PigFileSystem
                 Case Else
                     mOpenTextFile = New TextStream(TextType)
             End Select
-            strStepName = "Init"
-            Me.PrintDebugLog(SUB_NAME, strStepName, FilePath)
+            LOG.StepName = "Init"
+            Me.PrintDebugLog(LOG.SubName, LOG.StepName, FilePath)
             mOpenTextFile.Init(FilePath, IOMode, Create)
             If mOpenTextFile.LastErr <> "" Then Throw New Exception(mOpenTextFile.LastErr)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf(SUB_NAME, strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
         End Try
     End Function

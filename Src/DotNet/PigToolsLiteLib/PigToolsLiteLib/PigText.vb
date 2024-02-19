@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigText
 '* Author: Seow Phong
-'* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Handle text conversion, MD5, Base64, etc.|处理文本转换，MD5，Base64等。
 '* Home Url: https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 1/9/2019
 '1.0.2  2019-9-2    增加 mNew(IsFromBase64)
 '1.0.5  2019-10-16  增加 mstrText
@@ -19,13 +19,14 @@
 '1.0.15 2020-2-6    修改enmTextType
 '1.0.16 2020-2-12   修改 mNew
 '1.1    4/12/2023   Moify enmTextType,Text
+'1.2    17/2/2024   Moify SHA1,HexStr,Text
 '**********************************
 ''' <summary>
 ''' Text processing class|文本处理类
 ''' </summary>
 Public Class PigText
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "8"
 
     Public Enum enmTextType '文本类型
         UnknowOrBin = 0
@@ -60,7 +61,7 @@ Public Class PigText
                     Dim intLen As Integer = mabSrcText.Length, i As Integer
                     Dim sbAny As New System.Text.StringBuilder("")
                     For i = 0 To intLen - 1
-                        sbAny.Append(mabSrcText(i).ToString("x2"))
+                        sbAny.Append(mabSrcText(i).ToString("x" & "2"))
                     Next
                     mstrHexStr = sbAny.ToString
                     sbAny = Nothing
@@ -101,7 +102,7 @@ Public Class PigText
                 abToHash = shaAny.ComputeHash(mabSrcText)
                 SHA1 = ""
                 For Each bAny As Byte In abToHash
-                    SHA1 += bAny.ToString("x2")
+                    SHA1 += bAny.ToString("x" & "2")
                 Next
                 shaAny.Clear()
                 shaAny = Nothing
@@ -184,7 +185,7 @@ Public Class PigText
                     Case enmTextType.UTF8
                         mstrText = System.Text.Encoding.UTF8.GetString(mabSrcText)
                     Case enmTextType.GB2312
-                        Dim encGB2312 As System.Text.Encoding = System.Text.Encoding.GetEncoding("GB2312")
+                        Dim encGB2312 As System.Text.Encoding = System.Text.Encoding.GetEncoding("GB" & "23" & "12")
                         mstrText = encGB2312.GetString(mabSrcText)
                 End Select
             End If
