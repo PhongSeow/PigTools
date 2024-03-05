@@ -1,15 +1,16 @@
 ﻿'**********************************
 '* Name: PigHost
 '* Author: Seow Phong
-'* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2023-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Host class|主机类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 1/16/2023
 '* 1.1  1/18/2023  Modify GetCPUBaseInf,New
 '* 1.2  1/19/2023  Modify GetCPUBaseInf,New
 '* 1.3  1/20/2023  Modify New
 '* 1.5  18/8/2023  Add fRefCpuActInf
+'* 1.6  21/2/2024  Modify 
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -17,7 +18,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigHost
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.5.2"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "16"
 
     Friend Enum EnmGetCPUBaseWhat
         Model = 0
@@ -82,7 +83,9 @@ Public Class PigHost
                 LOG.StepName = "GetWmicSimpleXml"
                 LOG.Ret = Me.mPigSysCmd.GetWmicSimpleXml(strCmd, pxMain)
                 If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-                InPigCPU.HostCpuUseRate = pxMain.XmlDocGetDec("WmicXml.Row1.LoadPercentage") / 100
+                Dim strCont1 As String
+                strCont1 = "WmicXml.Row1.LoadPercentage"
+                InPigCPU.HostCpuUseRate = pxMain.XmlDocGetDec(strCont1) / 100
             Else
                 strCmd = "top -b -n 1|grep %Cpu|awk '{print $4}'"
                 LOG.StepName = "CmdShell"

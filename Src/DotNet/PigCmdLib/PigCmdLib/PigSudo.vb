@@ -15,7 +15,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSudo
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.1.28"
+    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "30"
 
     Private ReadOnly Property mExePath As String
 

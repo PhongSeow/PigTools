@@ -17,7 +17,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigService
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.2.26"
+    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "28"
 
     Public Sub New(ServiceName As String)
         MyBase.New(CLS_VERSION)

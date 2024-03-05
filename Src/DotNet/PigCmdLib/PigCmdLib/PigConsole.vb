@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigConsole
 '* Author: Seow Phong
-'* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.20
+'* Version: 1.21
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -25,6 +25,7 @@
 '*1.18 17/11/2022  Add SelectControl
 '*1.19 23/10/2023  Modify SimpleMenu
 '*1.20 5/12/2023   Add EnmWhatTypeOfMenuDefinition,GetMenuDefinition,SelectMenuOfEnumeration,AddMenuDefinition
+'*1.21 21/2/2024   Modify mDisplayPause,IsYesOrNo,mDisplayPause,SimpleMenu,mGetLine
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -33,7 +34,7 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.20.18"
+    Private Const CLS_VERSION As String = "1" & "." & "21" & "." & "8"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -386,7 +387,10 @@ Public Class PigConsole
 
     Private Function mDisplayPause(DisplayInf As String) As String
         Try
-            Dim strDisp As String = Me.mGetMLangText("PressToContinue", "(Press any key to continue)")
+            Dim strGlobalKey As String, strDefaultText As String
+            strGlobalKey = "PressToContinue"
+            strDefaultText = "(Press any key to continue)"
+            Dim strDisp As String = Me.mGetMLangText(strGlobalKey, strDefaultText)
             Console.Write(DisplayInf & strDisp)
             Dim oConsoleKey As ConsoleKey = Console.ReadKey(True).Key
             Return "OK"
@@ -403,7 +407,10 @@ Public Class PigConsole
     Public Function IsYesOrNo(PromptInf As String) As Boolean
         Try
             IsYesOrNo = Nothing
-            Dim strDisp As String = Me.mGetMLangText("PressYesOrNo", ":(Press Y to Yes, N to No)")
+            Dim strGlobalKey As String, strDefaultText As String
+            strGlobalKey = "PressYesOrNo"
+            strDefaultText = ":(Press Y to Yes, N to No)"
+            Dim strDisp As String = Me.mGetMLangText(strGlobalKey, strDefaultText)
             Console.Write(Me.OsCrLf & PromptInf & Me.OsCrLf & strDisp & Me.OsCrLf)
             Do While True
                 Select Case Console.ReadKey(True).Key
@@ -538,13 +545,18 @@ Public Class PigConsole
             Console.WriteLine(strStarLine)
             Console.WriteLine("* " & MenuTitle)
             Console.WriteLine(strStarLine)
+            Dim strGlobalKey As String, strDefaultText As String
             Dim strDisp As String = ""
             Select Case MenuExitType
                 Case EnmSimpleMenuExitType.QtoExit
-                    strDisp = Me.mGetMLangText("ToExit", "Exit")
+                    strGlobalKey = "ToExit"
+                    strDefaultText = "Exit"
+                    strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
                     Console.WriteLine("* Q - " & strDisp)
                 Case EnmSimpleMenuExitType.QtoUp
-                    strDisp = Me.mGetMLangText("ToUp", "Up")
+                    strGlobalKey = "ToUp"
+                    strDefaultText = "Up"
+                    strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
                     Console.WriteLine("* Q - " & strDisp)
             End Select
             For i = 1 To intItems
@@ -608,7 +620,10 @@ Public Class PigConsole
             'End If
             Dim intBeginLeft As Integer = Console.CursorLeft, intBeginTop As Integer = Console.CursorTop
             If OutLine <> "" And IsShowCurrLine = True Then
-                Dim strDisp As String = Me.mGetMLangText("PressEnterSetCurrValue", "(Press ENTER to set the current value to the following text)")
+                Dim strGlobalKey As String, strDefaultText As String
+                strGlobalKey = "PressEnterSetCurrValue"
+                strDefaultText = "(Press ENTER to set the current value to the following text)"
+                Dim strDisp As String = Me.mGetMLangText(strGlobalKey, strDefaultText)
                 Console.WriteLine(strDisp)
                 Console.WriteLine(OutLine)
             End If

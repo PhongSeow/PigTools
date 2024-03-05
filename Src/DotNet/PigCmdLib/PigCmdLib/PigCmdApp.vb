@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigCmdApp
 '* Author: Seow Phong
-'* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.20
+'* Version: 1.21
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -25,6 +25,7 @@
 '* 1.18 19/10/2023  Modify CallFileWaitForExit
 '* 1.19 20/11/2023  Modify New,mCmdShell
 '* 1.20 19/12/2023  Modify mCmdShell
+'* 1.21 21/2/2024  Modify New,mCmdShell,mWinHideShell,mCallFile,GetParentProc,GetSubProcs
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -34,7 +35,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.20.8"
+    Private Const CLS_VERSION As String = "1" & "." & "21" & "." & "12"
     Public Property LinuxShPath As String
     Public Property WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -49,10 +50,14 @@ Public Class PigCmdApp
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
+        Dim strCont1 As String, strCont2 As String
         If Me.IsWindows = True Then
-            Me.WindowsCmdPath = mPigFunc.GetEnvVar("windir") & "\System32\cmd.exe"
+            strCont1 = "windir"
+            strCont2 = "\System32\cmd.exe"
+            Me.WindowsCmdPath = mPigFunc.GetEnvVar(strCont1) & strCont2
         Else
-            Me.LinuxShPath = "/bin/sh"
+            strCont1 = "/bin/sh"
+            Me.LinuxShPath = strCont1
         End If
     End Sub
 
@@ -216,7 +221,9 @@ Public Class PigCmdApp
             If Me.IsWindows = True Then
                 strCmd = " /C "
                 If InStr(StruMain.Cmd, """") > 0 Then
-                    strCmd &= """" & StruMain.Cmd & """"
+                    strCmd &= """"
+                    strCmd &= StruMain.Cmd
+                    strCmd &= """"
                 Else
                     strCmd &= StruMain.Cmd
                 End If
@@ -224,9 +231,11 @@ Public Class PigCmdApp
                 If InStr(StruMain.Cmd, """") > 0 Then
                     StruMain.Cmd = Replace(StruMain.Cmd, """", "\""")
                 End If
-                strCmd = " -c """ & StruMain.Cmd & """"
+                strCmd = " -c """
+                strCmd &= StruMain.Cmd
+                strCmd &= """"
             End If
-                Dim StruCallFile As mStruCallFile
+            Dim StruCallFile As mStruCallFile
             With StruCallFile
                 .FilePath = strShellPath
                 .Para = strCmd
@@ -266,7 +275,9 @@ Public Class PigCmdApp
             Dim moProcessStartInfo As New ProcessStartInfo(CmdFilePath)
             With moProcessStartInfo
                 If IsRunAsAdmin = True Then
-                    .Verb = "runas"
+                    Dim strCont1 As String
+                    strCont1 = "runas"
+                    .Verb = strCont1
                 Else
                     .UseShellExecute = False
                 End If
@@ -356,7 +367,10 @@ Public Class PigCmdApp
                 Select Case Me.StandardOutputReadType
                     Case EnmStandardOutputReadType.FullString, EnmStandardOutputReadType.StringArray
                     Case Else
-                        Throw New Exception("The asynchronous processing mode StandardOutputReadType does not support " & Me.StandardOutputReadType.ToString)
+                        Dim strCont1 As String
+                        strCont1 = "The asynchronous processing mode StandardOutputReadType does not support "
+                        strCont1 &= Me.StandardOutputReadType.ToString
+                        Throw New Exception(strCont1)
                 End Select
                 oPigAsync.AsyncBegin()
             End If
@@ -472,11 +486,15 @@ Public Class PigCmdApp
                 moPigProcApp = New PigProcApp
                 If moPigProcApp.LastErr <> "" Then Throw New Exception(moPigProcApp.LastErr)
             End If
-            Dim strCmd As String
+            Dim strCmd As String = ""
             If Me.IsWindows = True Then
-                strCmd = "wmic process where ProcessId=" & PID.ToString & " get ParentProcessId"
+                strCmd &= "wmic process where ProcessId="
+                strCmd &= PID.ToString
+                strCmd &= " get ParentProcessId"
             Else
-                strCmd = "ps -ef|awk '{if($2==""" & PID.ToString & """) print $3}'"
+                strCmd &= "ps -ef|awk '{if($2=="""
+                strCmd &= PID.ToString
+                strCmd &= """) print $3}'"
             End If
             LOG.StepName = "CmdShell"
             LOG.Ret = Me.CmdShell(strCmd, EnmStandardOutputReadType.StringArray)
@@ -499,7 +517,10 @@ Public Class PigCmdApp
             LOG.StepName = "New PigProc"
             GetParentProc = New PigProc(lngParentPID)
             If GetParentProc.LastErr <> "" Then
-                LOG.AddStepNameInf("PID=" & lngParentPID.ToString)
+                Dim strCont1 As String = ""
+                strCont1 &= "PID="
+                strCont1 &= lngParentPID.ToString
+                LOG.AddStepNameInf(strCont1)
                 Throw New Exception(GetParentProc.LastErr)
             End If
         Catch ex As Exception
@@ -547,11 +568,15 @@ Public Class PigCmdApp
                 moPigProcApp = New PigProcApp
                 If moPigProcApp.LastErr <> "" Then Throw New Exception(moPigProcApp.LastErr)
             End If
-            Dim strCmd As String
+            Dim strCmd As String = ""
             If Me.IsWindows = True Then
-                strCmd = "wmic process where ParentProcessId=" & PID.ToString & " get ProcessId"
+                strCmd &= "wmic process where ParentProcessId="
+                strCmd &= PID.ToString
+                strCmd &= " get ProcessId"
             Else
-                strCmd = "ps -ef|awk '{if($3==""" & PID.ToString & """) print $2}'"
+                strCmd &= "ps -ef|awk '{if($3=="""
+                strCmd &= PID.ToString
+                strCmd &= """) print $2}'"
             End If
             LOG.StepName = "CmdShell"
             LOG.Ret = Me.CmdShell(strCmd, EnmStandardOutputReadType.StringArray)

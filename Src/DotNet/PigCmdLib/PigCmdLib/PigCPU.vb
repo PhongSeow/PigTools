@@ -1,7 +1,7 @@
 ﻿'**********************************
 '* Name: PigCPU
 '* Author: Seow Phong
-'* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2023-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: CPU information class|CPU信息类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.3
@@ -16,7 +16,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigCPU
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.3.8"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "18"
 
     Public ReadOnly Property Parent As PigHost
 

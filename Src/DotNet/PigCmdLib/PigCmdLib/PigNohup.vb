@@ -11,7 +11,7 @@
 Imports PigToolsLiteLib
 Public Class PigNohup
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.1.28"
+    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "30"
 
     Public ReadOnly Property Cmd As String
     Public ReadOnly Property OutFilePath As String = ""
