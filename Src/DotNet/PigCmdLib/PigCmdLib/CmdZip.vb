@@ -14,7 +14,7 @@ Imports PigToolsLiteLib
 
 Public Class CmdZip
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.3.38"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "38"
 
     Public Enum EnmZipType
         _7_Zip = 0

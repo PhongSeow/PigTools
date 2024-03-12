@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 2.9.6
+'* Version: 2.10.2
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -27,6 +27,7 @@
 '* 2.7  16/9/2023  Add PigService
 '* 2.8  20/10/2023  Modify PigSysCmdDemo
 '* 2.9  16/11/2023  Add CmdZipDemo
+'* 2.10  6/3/2024  Add TestPigCmdMenu
 '************************************
 
 Imports PigCmdLib
@@ -80,6 +81,8 @@ Public Class ConsoleDemo
     Public StartUser As String
     Public StartUserPwd As String
     Public StartMode As PigService.EnmStartMode
+    Public PigCmdMenu As PigCmdMenu
+    Public IsIopMenu As Boolean
 
     Public Sub PigCmdAppDemo()
         Me.PigCmdApp = New PigCmdApp
@@ -352,20 +355,93 @@ Public Class ConsoleDemo
         Loop
     End Sub
 
+    'Public Sub Main()
+    '    Do While True
+    '        Console.Clear()
+    '        Me.MenuDefinition = "PigCmdAppDemo#PigCmdApp Demo|"
+    '        Me.MenuDefinition &= "PigConsoleDemo#PigConsole Demo|"
+    '        Me.MenuDefinition &= "PigSysCmdDemo#PigSysCmd Demo|"
+    '        Me.MenuDefinition &= "PigHostDemo#PigHost Demo|"
+    '        Me.MenuDefinition &= "PigSudo#PigSudo|"
+    '        Me.MenuDefinition &= "PigNohup#PigNohup|"
+    '        Me.MenuDefinition &= "PigService#PigService|"
+    '        Me.MenuDefinition &= "CmdZip#CmdZip|"
+    '        Me.MenuDefinition &= "TestAllMenu#TestAllMenu|"
+    '        Me.MenuDefinition &= "PigCmdMenu#PigCmdMenu|"
+    '        Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
+    '        Select Case Me.MenuKey
+    '            Case "PigCmdMenu"
+    '                Me.TestPigCmdMenu()
+    '            Case "TestAllMenu"
+    '                Me.TestAllMenu()
+    '            Case "CmdZip"
+    '                Me.CmdZipDemo()
+    '            Case "PigService"
+    '                Me.PigSrvcieDemo()
+    '            Case "PigSudo"
+    '                Console.WriteLine("*******************")
+    '                Console.WriteLine("PigSudo")
+    '                Console.WriteLine("*******************")
+    '                Me.PigConsole.GetLine("Input Command", Me.Cmd)
+    '                Me.PigConsole.GetLine("Input sudo user", Me.SuDoUser)
+    '                Me.IsBackRun = Me.PigConsole.IsYesOrNo("Is back run")
+    '                Me.PigSudo = New PigSudo(Me.Cmd, Me.SuDoUser, Me.IsBackRun)
+    '                If Me.PigConsole.IsYesOrNo("Is execute asynchronously") = True Then
+    '                    Me.Ret = Me.PigSudo.AsyncRun()
+    '                    Console.WriteLine(Me.Ret)
+    '                Else
+    '                    Me.Ret = Me.PigSudo.Run()
+    '                    Console.WriteLine(Me.Ret)
+    '                    Console.WriteLine("StandardOutput=" & Me.PigSudo.StandardOutput)
+    '                    Console.WriteLine("StandardError=" & Me.PigSudo.StandardError)
+    '                End If
+    '                Me.PigConsole.DisplayPause()
+    '            Case "PigHostDemo"
+    '                Me.PigHostDemo()
+    '            Case "PigCmdAppDemo"
+    '                Me.PigCmdAppDemo()
+    '            Case "PigConsoleDemo"
+    '                Me.PigConsoleDemo()
+    '            Case "PigSysCmdDemo"
+    '                Me.PigSysCmdDemo()
+    '            Case ""
+    '                If Me.PigConsole.IsYesOrNo("Is exit no?") = True Then
+    '                    Exit Do
+    '                End If
+    '        End Select
+    '    Loop
+    'End Sub
+
     Public Sub Main()
+        Me.PigCmdMenu = New PigCmdMenu("Main menu", True)
+        With Me.PigCmdMenu
+            .AddMenuItem("PigCmdAppDemo", "PigCmdApp Demo")
+            .AddMenuItem("PigConsoleDemo", "PigConsole Demo")
+            .AddMenuItem("PigSysCmdDemo", "PigSysCmd Demo")
+            .AddMenuBarItem()
+            .AddMenuItem("PigHostDemo", "PigHost Demo")
+            .AddMenuItem("PigService", "PigService")
+            .AddMenuBarItem()
+            .AddMenuItem("PigSudo", "PigSudo")
+            .AddMenuItem("PigNohup", "PigNohup")
+            .AddMenuBarItem()
+            .AddMenuItem("CmdZip", "CmdZip")
+            .AddMenuBarItem()
+            .AddMenuItem("TestAllMenu", "TestAllMenu")
+            .AddMenuItem("PigCmdMenu", "PigCmdMenu")
+        End With
         Do While True
-            Console.Clear()
-            Me.MenuDefinition = "PigCmdAppDemo#PigCmdApp Demo|"
-            Me.MenuDefinition &= "PigConsoleDemo#PigConsole Demo|"
-            Me.MenuDefinition &= "PigSysCmdDemo#PigSysCmd Demo|"
-            Me.MenuDefinition &= "PigHostDemo#PigHost Demo|"
-            Me.MenuDefinition &= "PigSudo#PigSudo|"
-            Me.MenuDefinition &= "PigNohup#PigNohup|"
-            Me.MenuDefinition &= "PigService#PigService|"
-            Me.MenuDefinition &= "CmdZip#CmdZip|"
-            Me.MenuDefinition &= "TestAllMenu#TestAllMenu|"
-            Me.PigConsole.SimpleMenu("Main menu", Me.MenuDefinition, Me.MenuKey)
+            Me.Ret = Me.PigCmdMenu.SelectMenu(Me.MenuKey)
+            If Me.Ret <> "OK" Then
+                Console.WriteLine(Me.Ret)
+            End If
             Select Case Me.MenuKey
+                Case ""
+                    If Me.PigConsole.IsYesOrNo("Is exit no?") = True Then
+                        Exit Do
+                    End If
+                Case "PigCmdMenu"
+                    Me.TestPigCmdMenu()
                 Case "TestAllMenu"
                     Me.TestAllMenu()
                 Case "CmdZip"
@@ -398,10 +474,6 @@ Public Class ConsoleDemo
                     Me.PigConsoleDemo()
                 Case "PigSysCmdDemo"
                     Me.PigSysCmdDemo()
-                Case ""
-                    If Me.PigConsole.IsYesOrNo("Is exit no?") = True Then
-                        Exit Do
-                    End If
             End Select
         Loop
     End Sub
@@ -627,11 +699,35 @@ Public Class ConsoleDemo
         Loop
     End Sub
 
+    Public Sub TestPigCmdMenu()
+        Me.IsIopMenu = Me.PigConsole.IsYesOrNo("Is IopMenu")
+        Me.PigCmdMenu = New PigCmdMenu("TestPigCmdMenu", Me.IsIopMenu)
+        For i = 1 To 120
+            If i Mod 10 = 0 Then
+                Me.PigCmdMenu.AddMenuBarItem()
+            End If
+            Me.PigCmdMenu.AddMenuItem("Menu Key " & i, "MenuText" & i)
+        Next
+        Do While True
+            Me.Ret = Me.PigCmdMenu.SelectMenu(Me.MenuKey)
+            If Me.Ret <> "OK" Then
+                Console.WriteLine(Me.Ret)
+            End If
+            Select Case Me.MenuKey
+                Case ""
+                    Exit Do
+                Case Else
+                    Console.WriteLine("You select " & Me.MenuKey)
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
     Public Sub TestAllMenu()
         Do While True
             Console.Clear()
             Me.MenuDefinition = ""
-            For i = 1 To 25
+            For i = 1 To 23
                 Me.MenuDefinition &= "Menu" & i & "#Menu" & i & "|"
             Next
             Me.PigConsole.SimpleMenu("TestAllMenu", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
