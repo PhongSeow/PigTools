@@ -4,15 +4,16 @@
 '* License: Copyright (c) 2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 命令行菜单应用|Command line menu application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 5/3/2024
 '* 1.1  8/3/2024  Modify SelectMenu, add mFullMenuTitle,mGetMaxLineCol,mGetMaxPage
 '* 1.2  8/3/2024  Modify SelectMenu, add mRefreshMenuProperty,AddMenuItem,AddMenuBarItem,PageItems,CurrPage,RowCol,MaxLineCol
+'* 1.3  13/3/2024  Modify mGetMaxLineCol
 '**********************************
 Imports PigToolsLiteLib
 Public Class PigCmdMenu
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "18"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "8"
 
     Friend ReadOnly Property mPigFunc As New PigFunc
     Public ReadOnly Property MenuTitle As String
@@ -199,11 +200,11 @@ Public Class PigCmdMenu
 
     Private Function mGetMaxLineCol() As Integer
         Try
-            Dim intMaxLineCol As Integer = Len(Me.MenuTitle)
+            Dim intMaxLineCol As Integer = Me.mPigFunc.LenA(Me.MenuTitle)
             For Each oCmdMenu As CmdMenu In Me.mCmdMenus
                 With oCmdMenu
                     Dim intText As Integer
-                    intText = Len(.MenuText) + 4
+                    intText = Me.mPigFunc.LenA(.MenuText) + 4
                     If intText > intMaxLineCol Then
                         intMaxLineCol = intText
                     End If

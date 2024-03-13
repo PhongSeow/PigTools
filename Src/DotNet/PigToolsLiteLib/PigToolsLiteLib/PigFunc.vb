@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.63
+'* Version: 1.65
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -61,6 +61,7 @@
 '*1.61   30/12/2023  Add IsAbsolutePath
 '*1.62   16/1/2024  Modify GetStr
 '*1.63   22/1/2024  Modify GetStrAndReplace,IsRegexMatch
+'*1.63   13/3/2024  Add LenA,LeftA,RightA,MidA
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -70,13 +71,14 @@ Imports System.Threading
 Imports System.Security.Cryptography
 Imports Microsoft.VisualBasic
 Imports System.Text
+Imports System.Runtime.InteropServices.ComTypes
 
 ''' <summary>
 ''' Function set|功能函数集
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "63" & "." & "32"
+    Private Const CLS_VERSION As String = "1" & "." & "65" & "." & "8"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -2535,6 +2537,150 @@ Public Class PigFunc
             Return False
         End Try
     End Function
+
+    ''' <summary>
+    ''' 按 ASCII 习惯获取 Uniocode 字符串的长度|Obtain the length of a Uniocode string according to ASCII conventions
+    ''' </summary>
+    ''' <param name="SrcStr">源字符串|Source string</param>
+    ''' <returns></returns>
+    ''' </summary>
+    Public Function LenA(SrcStr As String) As Integer
+        Try
+            Dim abSrc As Byte() = Encoding.Unicode.GetBytes(SrcStr)
+            Dim lngLen As Integer = 0
+            For i = 0 To abSrc.Length - 1 Step 2
+                If abSrc(i + 1) = 0 Then
+                    lngLen += 1
+                Else
+                    lngLen += 2
+                End If
+            Next
+            Return lngLen
+        Catch ex As Exception
+            Me.SetSubErrInf("LenA", ex)
+            Return -1
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 按 ASCII 习惯获取 Uniocode 字符串的左边部分|Obtain the left part of the Uniocode string according to ASCII conventions
+    ''' </summary>
+    ''' <param name="SrcStr">源字符串|Source string</param>
+    ''' <param name="LeftLen">左边部分的长度|The length of the left section</param>
+    ''' <returns></returns>
+    Public Function LeftA(SrcStr As String, LeftLen As Integer) As String
+        Try
+            If SrcStr = "" Then
+                Return ""
+            ElseIf LeftLen <= 0 Then
+                Return ""
+            Else
+                Dim abSrc As Byte() = Encoding.Unicode.GetBytes(SrcStr)
+                Dim abTar(-1) As Byte
+                For i = 0 To abSrc.Length - 1 Step 2
+                    If LeftLen <= 0 Then Exit For
+                    Dim intPos As Integer = abTar.Length
+                    ReDim Preserve abTar(intPos + 1)
+                    abTar(intPos) = abSrc(i)
+                    abTar(intPos + 1) = abSrc(i + 1)
+                    If abSrc(i + 1) = 0 Then
+                        LeftLen -= 1
+                    Else
+                        LeftLen -= 2
+                    End If
+                Next
+                Return Encoding.Unicode.GetString(abTar)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("LeftA", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 按 ASCII 习惯获取 Uniocode 字符串的右边部分|Get the right part of the Uniocode string
+    ''' </summary>
+    ''' <param name="SrcStr">源字符串|Source string</param>
+    ''' <param name="RightLen">右边部分的长度|The length of the right section</param>
+    ''' <returns></returns>
+
+    Public Function RightA(SrcStr As String, RightLen As Integer) As String
+        Try
+            If SrcStr = "" Then
+                Return ""
+            ElseIf RightLen <= 0 Then
+                Return ""
+            Else
+                Dim abSrc As Byte() = Encoding.Unicode.GetBytes(SrcStr)
+                Dim abTar(-1) As Byte
+                Dim intPos As Integer = 0
+                For i = abSrc.Length - 1 To 0 Step -2
+                    If RightLen <= 0 Then Exit For
+                    intPos = abTar.Length
+                    ReDim Preserve abTar(intPos + 1)
+                    abTar(intPos) = abSrc(i - 1)
+                    abTar(intPos + 1) = abSrc(i)
+                    If abSrc(i) = 0 Then
+                        RightLen -= 1
+                    Else
+                        RightLen -= 2
+                    End If
+                Next
+                Dim abTar2(abTar.Length - 1) As Byte
+                intPos = 0
+                For i = abTar.Length - 1 To 0 Step -2
+                    abTar2(intPos) = abTar(i - 1)
+                    abTar2(intPos + 1) = abTar(i)
+                    intPos += 2
+                Next
+                Return Encoding.Unicode.GetString(abTar2)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("RightA", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 按 ASCII 习惯获取 Uniocode 字符串的中间部分|Get the middle part of the Uniocode string
+    ''' </summary>
+    ''' <param name="SrcStr">源字符串|Source string</param>
+    ''' <param name="Start">开始位置|Start position</param>
+    ''' <param name="MidLen">中间部分的长度|The length of the middle part</param>
+    ''' <returns></returns>
+    Public Function MidA(SrcStr As String, Start As Integer, Optional MidLen As Integer = 0) As String
+        Try
+            If MidLen <= 0 Then MidLen = Me.LenA(SrcStr)
+            If SrcStr = "" Then
+                Return ""
+            Else
+                Dim abSrc As Byte() = Encoding.Unicode.GetBytes(SrcStr)
+                Dim abTar(-1) As Byte
+                Dim intPos As Integer = 0
+                For i = 0 To abSrc.Length - 1 Step 2
+                    If Start <= 0 Then
+                        intPos = abTar.Length
+                        ReDim Preserve abTar(intPos + 1)
+                        abTar(intPos) = abSrc(i)
+                        abTar(intPos + 1) = abSrc(i + 1)
+                        If abSrc(i + 1) = 0 Then
+                            MidLen -= 1
+                        Else
+                            MidLen -= 2
+                        End If
+                        If MidLen <= 0 Then Exit For
+                    Else
+                        Start -= 1
+                    End If
+                Next
+                Return Encoding.Unicode.GetString(abTar)
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("MidA", ex)
+            Return ""
+        End Try
+    End Function
+
 
 
 End Class
