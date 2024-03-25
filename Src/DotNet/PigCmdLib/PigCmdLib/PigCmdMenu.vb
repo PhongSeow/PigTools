@@ -8,12 +8,12 @@
 '* Create Time: 5/3/2024
 '* 1.1  8/3/2024  Modify SelectMenu, add mFullMenuTitle,mGetMaxLineCol,mGetMaxPage
 '* 1.2  8/3/2024  Modify SelectMenu, add mRefreshMenuProperty,AddMenuItem,AddMenuBarItem,PageItems,CurrPage,RowCol,MaxLineCol
-'* 1.3  13/3/2024  Modify mGetMaxLineCol
+'* 1.3  13/3/2024  Modify mGetMaxLineCol,SelectMenu,mRefreshMenuProperty
 '**********************************
 Imports PigToolsLiteLib
 Public Class PigCmdMenu
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "18"
 
     Friend ReadOnly Property mPigFunc As New PigFunc
     Public ReadOnly Property MenuTitle As String
@@ -187,7 +187,7 @@ Public Class PigCmdMenu
             Try
                 Dim strLine As String = ""
                 strLine = "* "
-                strLine &= Me.mPigFunc.GetAlignStr(Me.MenuTitle, PigFunc.EnmAlignment.Center, Me.RowCol - 4)
+                strLine &= Me.mPigFunc.GetAlignStrA(Me.MenuTitle, PigFunc.EnmAlignment.Center, Me.RowCol - 4)
                 strLine &= " *"
                 Return strLine
             Catch ex As Exception
@@ -304,19 +304,19 @@ Public Class PigCmdMenu
                 Console.WriteLine(strBarLine)
                 strLine = "* Q - "
                 If Me.IsTopMenu = True Then
-                    strLine &= Me.mPigFunc.GetAlignStr("Exit", PigFunc.EnmAlignment.Left, Me.RowCol)
+                    strLine &= Me.mPigFunc.GetAlignStrA("Exit", PigFunc.EnmAlignment.Left, Me.RowCol)
                 Else
-                    strLine &= Me.mPigFunc.GetAlignStr("Up", PigFunc.EnmAlignment.Left, Me.RowCol)
+                    strLine &= Me.mPigFunc.GetAlignStrA("Up", PigFunc.EnmAlignment.Left, Me.RowCol)
                 End If
                 Console.WriteLine(strLine)
                 If Me.HasPreviousPage = True Then
                     strLine = "* P - "
-                    strLine &= Me.mPigFunc.GetAlignStr("Previous Page", PigFunc.EnmAlignment.Left, Me.RowCol)
+                    strLine &= Me.mPigFunc.GetAlignStrA("Previous Page", PigFunc.EnmAlignment.Left, Me.RowCol)
                     Console.WriteLine(strLine)
                 End If
                 If Me.HasNextPage = True Then
                     strLine = "* N - "
-                    strLine &= Me.mPigFunc.GetAlignStr("Next Page", PigFunc.EnmAlignment.Left, Me.RowCol)
+                    strLine &= Me.mPigFunc.GetAlignStrA("Next Page", PigFunc.EnmAlignment.Left, Me.RowCol)
                     Console.WriteLine(strLine)
                 End If
                 Console.WriteLine(strBarLine)

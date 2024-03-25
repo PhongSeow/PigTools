@@ -4,11 +4,13 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Http Web Request operation
 '* Home Url: https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.3
 '* Create Time: 5/2/2021
 '*1.0.2  25/2/2021   Add Me.ClearErr()
-'*1.0.3  9/3/2021   Modify GetText,GetTextAuth,PostText,PostTextAuth
-'*1.1  27/10/2021   Add DownloadFile, modify MainNew
+'*1.0.3  9/3/2021  Modify GetText,GetTextAuth,PostText,PostTextAuth
+'*1.1  27/10/2021  Add DownloadFile, modify MainNew
+'*1.2  20/3/2024   Add GetHeadValue,AddHeader,GetAllHeads
+'*1.3  25/3/2024   Add PostRaw
 '**********************************
 Imports System.Net
 Imports System.IO
@@ -19,7 +21,7 @@ Imports System.Text
 ''' </summary>
 Public Class PigWebReq
     Inherits PigBaseMini
-    Const CLS_VERSION As String = "1" & "." & "1" & "." & "8"
+    Const CLS_VERSION As String = "1" & "." & "3" & "." & "6"
     Private mstrUrl As String
     Private mstrPara As String
     Private muriMain As System.Uri
@@ -129,6 +131,15 @@ Public Class PigWebReq
         End Try
     End Function
 
+    Public Function AddHeader(HeadKey As String, HeadValue As String) As String
+        Try
+            mhwrMain.Headers(HeadKey) = HeadValue
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("", ex)
+        End Try
+    End Function
+
     Public Function PostTextAuth(Para As String, AccessToken As String) As String
         Dim strStepName As String = ""
         Me.UseTimeItem.GoBegin()
@@ -158,29 +169,80 @@ Public Class PigWebReq
         End Try
     End Function
 
-    Public Function PostText(Para As String) As String
-        Dim strStepName As String = ""
-        Me.UseTimeItem.GoBegin()
-        PostText = ""
+    Public Function GetHeadValue(HeadName As String) As String
         Try
-10:         mhwrMain.Method = "POST"
-            mhwrMain.ContentType = "application/x-www-form-urlencoded"
+            Return mhwrMain.GetResponse().Headers(HeadName)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetHeadValue", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function GetAllHeads() As String
+        Try
+            Return mhwrMain.GetResponse().Headers.ToString
+        Catch ex As Exception
+            Me.SetSubErrInf("GetAllHeads", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Function PostRaw(JSon As String) As String
+        Dim LOG As New PigStepLog("PostRaw")
+        Me.UseTimeItem.GoBegin()
+        Try
+            LOG.StepName = "Init"
+            mhwrMain.Method = "POST"
+            mhwrMain.ContentType = "application/json"
             Dim encoding As New UTF8Encoding()
-            Dim bys As Byte() = encoding.GetBytes(Para)
-20:         mhwrMain.ContentLength = bys.Length
-            strStepName = "mhwrMain.GetRequestStream():"
+            Dim bys As Byte() = encoding.GetBytes(JSon)
+            mhwrMain.ContentLength = bys.Length
+            LOG.StepName = "GetRequestStream():"
             Dim newStream As Stream = mhwrMain.GetRequestStream()
             newStream.Write(bys, 0, bys.Length)
-30:         newStream.Close()
-            strStepName = "mhwrMain.GetResponse().GetResponseStream():"
+            newStream.Close()
+            LOG.StepName = "New StreamReader"
             Dim sr As StreamReader = New StreamReader(mhwrMain.GetResponse().GetResponseStream)
-40:         mstrResString = sr.ReadToEnd
+            LOG.StepName = "ReadToEnd"
+            mstrResString = sr.ReadToEnd
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
         Catch ex As Exception
             Me.UseTimeItem.ToEnd()
-            Me.SetSubErrInf("PostText", strStepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+
+    ''' <summary>
+    ''' 以 x-www-form-urlencoded 格式发送POST请求|Send POST request in x-www-form-urlencoded format
+    ''' </summary>
+    ''' <param name="Para">格式：p1=v1&p2=v2...|Format:p1=v1&p2=v2...</param>
+    ''' <returns></returns>
+    Public Function PostText(Para As String) As String
+        Dim LOG As New PigStepLog("PostText")
+        Me.UseTimeItem.GoBegin()
+        Try
+            LOG.StepName = "Init"
+            mhwrMain.Method = "POST"
+            mhwrMain.ContentType = "application/x-www-form-urlencoded"
+            Dim encoding As New UTF8Encoding()
+            Dim bys As Byte() = encoding.GetBytes(Para)
+            mhwrMain.ContentLength = bys.Length
+            LOG.StepName = "GetRequestStream"
+            Dim newStream As Stream = mhwrMain.GetRequestStream()
+            newStream.Write(bys, 0, bys.Length)
+            newStream.Close()
+            LOG.StepName = "New StreamReader"
+            Dim sr As StreamReader = New StreamReader(mhwrMain.GetResponse().GetResponseStream)
+            mstrResString = sr.ReadToEnd
+            Me.UseTimeItem.ToEnd()
+            Me.ClearErr()
+            Return "OK"
+        Catch ex As Exception
+            Me.UseTimeItem.ToEnd()
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Me.LastErr
         End Try
     End Function
@@ -207,20 +269,6 @@ Public Class PigWebReq
             LOG.StepName = "Close"
             oStream.Close()
             fsMain.Close()
-            '//流对象使用完后自动关闭
-            'Using (Stream stream = hwr.GetResponse().GetResponseStream())
-            '{
-            '//文件流，流信息读到文件流中，读完关闭
-            'Using (FileStream fs = File.Create(@"C:\Users\Evan\Desktop\test\755.jpg"))
-            '{
-            '//建立字节组，并设置它的大小是多少字节
-            'Byte[] bytes = New Byte[102400];
-            'Int n = 1;
-            'While (n > 0)
-            '{
-            '//一次从流中读多少字节，并把值赋给Ｎ，当读完后，Ｎ为０,并退出循环
-            'n = Stream.Read(bytes, 0, 10240);
-            'fs.Write(bytes, 0, n);　//将指定字节的流信息写入文件流中
             Me.UseTimeItem.ToEnd()
             Return "OK"
         Catch ex As Exception

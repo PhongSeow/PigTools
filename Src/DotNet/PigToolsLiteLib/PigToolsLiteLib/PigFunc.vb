@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.65
+'* Version: 1.66
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -61,7 +61,8 @@
 '*1.61   30/12/2023  Add IsAbsolutePath
 '*1.62   16/1/2024  Modify GetStr
 '*1.63   22/1/2024  Modify GetStrAndReplace,IsRegexMatch
-'*1.63   13/3/2024  Add LenA,LeftA,RightA,MidA
+'*1.65   13/3/2024  Add LenA,LeftA,RightA,MidA,GetAlignStrA
+'*1.66   21/3/2024  Add GetDateUnixTimestamp,GetNowUnixTimestamp
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -78,7 +79,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "65" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "66" & "." & "8"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -1614,6 +1615,54 @@ Public Class PigFunc
         End Try
     End Function
 
+    ''' <summary>
+    ''' 按 ASCII 习惯获取 Unicode 对齐的字符串|Obtain Unicode aligned strings according to ASCII conventions
+    ''' </summary>
+    ''' <param name="SrcStr">源串|Source string</param>
+    ''' <param name="Alignment">对齐方式|Alignment</param>
+    ''' <param name="RowLen">行长度|Row length</param>
+    ''' <returns></returns>
+    Public Function GetAlignStrA(SrcStr As String, Alignment As EnmAlignment, RowLen As Integer) As String
+        Try
+            Dim intSrcLen As Integer = LenA(SrcStr)
+            GetAlignStrA = ""
+            Select Case Alignment
+                Case EnmAlignment.Left
+                    If intSrcLen >= RowLen Then
+                        GetAlignStrA = LeftA(SrcStr, RowLen)
+                    Else
+                        GetAlignStrA = SrcStr & Me.GetRepeatStr(RowLen - intSrcLen， " ")
+                    End If
+                Case EnmAlignment.Right
+                    If intSrcLen >= RowLen Then
+                        GetAlignStrA = RightA(SrcStr, RowLen)
+                    Else
+                        GetAlignStrA = Me.GetRepeatStr(RowLen - intSrcLen， " ") & SrcStr
+                    End If
+                Case EnmAlignment.Center
+                    Dim intBegin As Integer = (RowLen - intSrcLen) / 2
+                    Dim intMidLen As Integer = intSrcLen
+                    If intBegin < 1 Then intBegin = 1
+                    Select Case intSrcLen
+                        Case < RowLen
+                            GetAlignStrA = Me.GetRepeatStr(intBegin， " ") & SrcStr & Me.GetRepeatStr(RowLen - intBegin - intSrcLen, " ")
+                        Case = RowLen
+                            GetAlignStrA = SrcStr
+                        Case > RowLen
+                            intBegin = (intSrcLen - RowLen) / 2
+                            If intBegin < 1 Then intBegin = 1
+                            intMidLen = RowLen
+                            GetAlignStrA = MidA(SrcStr, intBegin, intMidLen)
+                    End Select
+                Case Else
+                    Throw New Exception("Invalid Alignment " & Alignment.ToString)
+            End Select
+        Catch ex As Exception
+            Me.SetSubErrInf("GetAlignStrA", ex)
+            Return ""
+        End Try
+    End Function
+
     Public Function GetRepeatStr(Number As Integer, SrcStr As String) As String
         Try
             GetRepeatStr = ""
@@ -2681,6 +2730,12 @@ Public Class PigFunc
         End Try
     End Function
 
+    Public Function GetDateUnixTimestamp(SrcTime As Date) As Long
+        Return DateDiff(DateInterval.Second, #1/1/1970#, SrcTime)
+    End Function
 
+    Public Function GetNowUnixTimestamp() As String
+        Return DateDiff(DateInterval.Second, #1/1/1970#, Now)
+    End Function
 
 End Class
