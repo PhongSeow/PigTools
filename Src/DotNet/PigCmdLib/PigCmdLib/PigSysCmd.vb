@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.21
+'* Version: 1.22
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -26,6 +26,7 @@
 '*1.19 20/10/2023 Add GetDefaultIPGateway
 '*1.20 23/11/2023 Add MoveDir,RmDirAndSubDir
 '*1.21 30/11/2023 Add GetDuSize, modify MoveDir
+'*1.22 21/4/2024  Modify GetListenPortProcID,GetProcListenPortList
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -33,7 +34,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "21" & "." & "16"
+    Private Const CLS_VERSION As String = "1" & "." & "22" & "." & "6"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -65,8 +66,7 @@ Public Class PigSysCmd
                     LOG.AddStepNameInf(strCmd)
                     Throw New Exception(LOG.Ret)
                 End If
-                ReDim OutListPort(0)
-                OutListPort(0) = 0
+                ReDim OutListPort(-1)
                 For i = 0 To .StandardOutputArray.Length - 1
                     Dim strLine As String = Trim(.StandardOutputArray(i)) & "}", strPort As String = "", strMat As String = ""
                     Do While True
@@ -91,22 +91,16 @@ Public Class PigSysCmd
                                 End If
                             Next
                             If bolIsFind = False Then
-                                If OutListPort(0) = 0 Then
-                                    OutListPort(0) = intPort
-                                Else
-                                    ReDim Preserve OutListPort(intLen)
-                                    OutListPort(intLen) = intPort
-                                End If
+                                ReDim Preserve OutListPort(intLen)
+                                OutListPort(intLen) = intPort
                             End If
                         End If
                     End If
                 Next
-                If OutListPort(0) = 0 Then Throw New Exception("Process has no listening port")
             End With
             Return "OK"
         Catch ex As Exception
-            ReDim OutListPort(0)
-            OutListPort(0) = 0
+            ReDim OutListPort(-1)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
@@ -148,13 +142,10 @@ Public Class PigSysCmd
                         Exit For
                     End If
                 Next
-                If OutPID < 0 Then
-                    Throw New Exception("Cannot get process number.")
-                End If
             End With
             Return "OK"
         Catch ex As Exception
-            OutPID = -1
+            OutPID = -2
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
