@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v3.1": {
-      "PigWebCtrlLib/2.2.58": {
+      "PigWebCtrlLib/2.2.60": {
         "dependencies": {
-          "PigCmdLib": "2.2.170"
+          "PigCmdLib": "2.2.172"
         },
         "runtime": {
           "PigWebCtrlLib.dll": {}
@@ -35,14 +35,14 @@
           }
         }
       },
-      "PigCmdLib/2.2.170": {
+      "PigCmdLib/2.2.172": {
         "dependencies": {
           "PigToolsLiteLib": "3.5.68"
         },
         "runtime": {
           "lib/netcoreapp3.1/PigCmdLib.dll": {
-            "assemblyVersion": "2.2.170.0",
-            "fileVersion": "2.2.170.0"
+            "assemblyVersion": "2.2.172.0",
+            "fileVersion": "2.2.172.0"
           }
         }
       },
@@ -102,7 +102,7 @@
     }
   },
   "libraries": {
-    "PigWebCtrlLib/2.2.58": {
+    "PigWebCtrlLib/2.2.60": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -121,17 +121,17 @@
       "path": "microsoft.win32.registry/5.0.0",
       "hashPath": "microsoft.win32.registry.5.0.0.nupkg.sha512"
     },
-    "PigCmdLib/2.2.170": {
+    "PigCmdLib/2.2.172": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-QdiqwWr4itOLwCDXCQeD2bo1Y8HSxS6ERUFfhqny+8GV9K9yxWzcG/q8EmjGzbACb5NQjXq9Zu39NNppG8dmZg==",
-      "path": "pigcmdlib/2.2.170",
-      "hashPath": "pigcmdlib.2.2.170.nupkg.sha512"
+      "sha512": "sha512-Gxb4K/Tg3g4PwrfFt5Ueob5ttQBsi4u40cUsuV+9ZTvP+ZAM9aeufGFPbTQu0ErWu8ognUR4bjdpzhDGZ7SyAw==",
+      "path": "pigcmdlib/2.2.172",
+      "hashPath": "pigcmdlib.2.2.172.nupkg.sha512"
     },
     "PigToolsLiteLib/3.5.68": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-bcJZ7I46yg0Y4OcMvUkFyagyQQGxeXNNM2487MLPfXy+0WISmCOsnZjfUxSPLNhPRQF9DLVePMOcmEEaipeBeA==",
+      "sha512": "sha512-jpiP+DzPBgLWdu0ph0EWDb2298oaECjuF+/X1EjSG3Zo8q/wH8g+m0imKljTOO/NlfXKBtfsr3KKVTu+HLX+TA==",
       "path": "pigtoolslitelib/3.5.68",
       "hashPath": "pigtoolslitelib.3.5.68.nupkg.sha512"
     },
