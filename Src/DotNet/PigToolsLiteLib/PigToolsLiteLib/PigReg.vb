@@ -4,12 +4,14 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Registry Processing Class|注册表处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 5/11/2019
 '* 1.0.2  2019-11-7   修改BUG
 '* 1.0.3  15/4/2021   Add to PigToolsWinLib
 '* 1.1  15/4/2021   Modify mOpenRegPath
 '* 1.2  20/8/2021   Use Throw New Exception
+'* 1.3  19/5/2024   Add mSaveRegValue,SaveRegValue
+'* 1.5  19/5/2024   Modify mSaveRegValue,SaveRegValue
 '************************************
 Imports Microsoft.Win32
 ''' <summary>
@@ -17,8 +19,8 @@ Imports Microsoft.Win32
 ''' </summary>
 Public Class PigReg
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "8"
-    ''' <summary>注册表的根区</summary>
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "28"
+    ''' <summary>The root of the registry|注册表的根区</summary>
     Public Enum EmnRegRoot
         ''' <summary>HKEY_CLASSES_ROOT</summary>
         CLASSES_ROOT = &H80000000
@@ -32,11 +34,11 @@ Public Class PigReg
         PERFORMANCE_DATA = &H80000004
     End Enum
 
-    ''' <summary>获取什么注册表项</summary>
+    ''' <summary>What registry key to obtain|获取什么注册表项</summary>
     Public Enum EmnGetWhatRegItem
-        ''' <summary>Windows的产品ID</summary>
+        ''' <summary>Product ID for Windows|Windows的产品ID</summary>
         WinProductId = 10
-        ''' <summary>机器GUID，ID在重装Windows系统后应该不一样了</summary>
+        ''' <summary>The machine Guid and ID should be different after reinstalling the Windows system|机器GUID，ID在重装Windows系统后应该不一样了</summary>
         MachineGUID = 20
     End Enum
 
@@ -49,7 +51,7 @@ Public Class PigReg
         End Try
     End Sub
 
-    ''' <summary>是否64位程序</summary>
+    ''' <summary>Is it a 64 bit program|是否64位程序</summary>
     Public ReadOnly Property Is64Bit As Boolean
         Get
             If System.Runtime.InteropServices.Marshal.SizeOf(IntPtr.Zero) * 8 = 64 Then
@@ -60,8 +62,8 @@ Public Class PigReg
         End Get
     End Property
 
-    ''' <summary>读取特定注册表值</summary>
-    ''' <param name="WhatReg">获取什么注册表项</param>
+    ''' <summary>Read specific registry values|读取特定注册表值</summary>
+    ''' <param name="WhatReg">What registry key to obtain|获取什么注册表项</param>
     Public Overloads Function GetSomeRegValue(WhatReg As EmnGetWhatRegItem) As String
         Dim strStepName As String = ""
         Try
@@ -89,11 +91,11 @@ Public Class PigReg
         End Try
     End Function
 
-    ''' <summary>读取注册表值</summary>
-    ''' <param name="RegRoot">根区</param>
-    ''' <param name="RegPath">键名路径</param>
-    ''' <param name="RegName">项名</param>
-    ''' <param name="DefaValue">默认值，取不到则返回这个</param>
+    ''' <summary>Read registry values|读取注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
     Public Overloads Function GetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As String) As String
         Try
             Dim strRet As String = ""
@@ -106,10 +108,10 @@ Public Class PigReg
         End Try
     End Function
 
-    ''' <summary>读取注册表值</summary>
-    ''' <param name="RegRoot">根区</param>
-    ''' <param name="RegPath">键名路径</param>
-    ''' <param name="RegName">项名</param>
+    ''' <summary>Read registry values|读取注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
     Public Overloads Function GetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As Byte()
         Try
             Dim strRet As String = ""
@@ -122,11 +124,11 @@ Public Class PigReg
         End Try
     End Function
 
-    ''' <summary>读取注册表值</summary>
-    ''' <param name="RegRoot">根区</param>
-    ''' <param name="RegPath">键名路径</param>
-    ''' <param name="RegName">项名</param>
-    ''' <param name="DefaValue">默认值，取不到则返回这个，传空则不取</param>
+    ''' <summary>Read registry values|读取注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
     Public Overloads Function GetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Object) As Object
         Try
             Dim strRet As String = ""
@@ -140,12 +142,6 @@ Public Class PigReg
     End Function
 
 
-    ''' <summary>读取注册表值（内部）</summary>
-    ''' <param name="RegRoot">根区</param>
-    ''' <param name="RegPath">键名路径</param>
-    ''' <param name="RegName">项名</param>
-    ''' <param name="DefaValue">默认值，取不到则返回这个，传空则不取</param>
-    ''' <param name="TxRes">键名路径</param>
     Private Function mGetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Object, ByRef TxRes As String) As Object
         Dim strStepName As String = ""
         Try
@@ -167,9 +163,9 @@ Public Class PigReg
         End Try
     End Function
 
-    ''' <summary>判断注册表键是否存在</summary>
-    ''' <param name="RegRoot">根区</param>
-    ''' <param name="RegPath">键名路径</param>
+    ''' <summary>Check if the registry key exists|判断注册表键是否存在</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
     Public ReadOnly Property IsRegKeyExists(RegRoot As EmnRegRoot, RegPath As String) As Boolean
         Get
             Try
@@ -188,11 +184,9 @@ Public Class PigReg
         End Get
     End Property
 
-    ''' <summary>创建注册表键</summary>
-    ''' <param name="RegRoot">根区</param>
-    ''' <param name="RegPath">键名路径</param>
-    ''' <returns>操作结果</returns>
-    ''' <remarks></remarks>
+    ''' <summary>Create registry key|创建注册表键</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
     Public Function CreateRegKey(RegRoot As EmnRegRoot, RegPath As String) As String
         Dim strStepName As String = ""
         Try
@@ -221,13 +215,6 @@ Public Class PigReg
         End Try
     End Function
 
-    ''' <summary>打开注册表键（内部）</summary>
-    ''' <param name="RegRoot">根区</param>
-    ''' <param name="RegPath">键名路径</param>
-    ''' <param name="IsReadOnly">是否只读</param>
-    ''' <param name="TxRes">操作结果</param>
-    ''' <returns>注册表键</returns>
-    ''' <remarks></remarks>
     Private Function mOpenRegPath(RegRoot As EmnRegRoot, RegPath As String, IsReadOnly As Boolean, ByRef TxRes As String) As RegistryKey
         Dim strStepName As String = ""
         Try
@@ -256,22 +243,96 @@ Public Class PigReg
         End Try
     End Function
 
-    ''' <summary>设置注册表值（内部）</summary>
-    ''' <param name="RegKey">注册表键</param>
-    ''' <param name="RegName">项名</param>
-    ''' <param name="RegValue">值</param>
-    ''' <param name="ValueType">值类型</param>
-    ''' <returns>操作结果</returns>
-    ''' <remarks></remarks>
-    Private Function mSetRegValue(RegKey As RegistryKey, RegName As String, RegValue As Object, ValueType As RegistryValueKind) As String
-        Dim strStepName As String = ""
+    Private Function mSaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, RegValue As Object) As String
+        Dim LOG As New PigStepLog("mSaveRegValue")
         Try
-            strStepName = "SetValue(" & RegName & ")"
-            RegKey.SetValue(RegName, RegValue, ValueType)
+            LOG.StepName = "mOpenRegPath"
+            Dim rkAny As RegistryKey = Me.mOpenRegPath(RegRoot, RegPath, False, LOG.Ret)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            If rkAny Is Nothing Then Throw New Exception("Failed to get registry key")
+            LOG.StepName = "SetValue"
+            rkAny.SetValue(RegName, RegValue)
+            rkAny.Close()
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("mSetRegValue", strStepName, ex)
+            LOG.AddStepNameInf("RegRoot=" & RegRoot.ToString)
+            LOG.AddStepNameInf("RegPath=" & RegPath)
+            LOG.AddStepNameInf("RegName=" & RegName)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
+    End Function
+
+    ''' <summary>Save registry values|保存注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="StrValue">String value|字符串值</param>
+    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, StrValue As String) As String
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, StrValue)
+    End Function
+
+
+    ''' <summary>Save registry values|保存注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="IntValue">Integer value|整型值</param>
+    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, IntValue As Integer) As String
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, IntValue)
+    End Function
+
+    ''' <summary>Save registry values|保存注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="LongValue">Long value|长整型值</param>
+    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, LongValue As Long) As String
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, LongValue)
+    End Function
+
+    ''' <summary>Save registry values|保存注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="BooleanValue">Boolean value|布尔值</param>
+    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, BooleanValue As Boolean) As String
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, BooleanValue)
+    End Function
+
+    ''' <summary>Save registry values|保存注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DecValue">Decimal value|小数值</param>
+    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DecValue As Decimal) As String
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, DecValue)
+    End Function
+
+    ''' <summary>Save registry values|保存注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="BytesValue">Byte array value|字节数组值</param>
+    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, BytesValue As Byte()) As String
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, BytesValue)
+    End Function
+
+    ''' <summary>Save registry values|保存注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DateValue">Date value|日期值</param>
+    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DateValue As Date) As String
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, DateValue)
+    End Function
+
+    ''' <summary>Save registry values|保存注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="MultiStringValue">Multi string value|字符串数组 </param>
+    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, MultiStringValue As String()) As String
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, MultiStringValue)
     End Function
 
 End Class

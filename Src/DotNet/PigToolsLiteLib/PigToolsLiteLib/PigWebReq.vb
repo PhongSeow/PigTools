@@ -4,256 +4,331 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Http Web Request operation
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 5/2/2021
 '*1.0.2  25/2/2021   Add Me.ClearErr()
 '*1.0.3  9/3/2021  Modify GetText,GetTextAuth,PostText,PostTextAuth
 '*1.1  27/10/2021  Add DownloadFile, modify MainNew
 '*1.2  20/3/2024   Add GetHeadValue,AddHeader,GetAllHeads
 '*1.3  25/3/2024   Add PostRaw
+'*1.5  30/5/2024   Rewrite the internal code of a class
 '**********************************
 Imports System.Net
 Imports System.IO
 Imports System.Text
+Imports Microsoft.VisualBasic.Logging
 
 ''' <summary>
 ''' WEB request processing class|WEB请求处理类
 ''' </summary>
 Public Class PigWebReq
     Inherits PigBaseMini
-    Const CLS_VERSION As String = "1" & "." & "3" & "." & "6"
-    Private mstrUrl As String
-    Private mstrPara As String
-    Private muriMain As System.Uri
-    Private mhwrMain As HttpWebRequest
-    Private msrRes As StreamReader
-    Private mstrResString As String
-    Private mstrUserAgent As String
-    Public UseTimeItem As New UseTime
+    Const CLS_VERSION As String = "1" & "." & "5" & "." & "168"
+    Private ReadOnly Property mUrl As String = ""
+    Private ReadOnly Property mPara As String = ""
+    Private Property mUri As System.Uri
+    Private Property mHttpWebRequest As HttpWebRequest
+    Private Property mHttpWebResponse As HttpWebResponse
+    Private ReadOnly Property mUserAgent As String = ""
+    Public Property UseTimeItem As New UseTime
+
 
     Public Sub New(Url As String, Para As String, UserAgent As String)
         MyBase.New(CLS_VERSION)
-        Me.MainNew(Url, Para, UserAgent)
+        Me.mUrl = Url
+        Me.mPara = Para
+        Me.mUserAgent = UserAgent
+        Me.InitHttpWebRequest()
     End Sub
 
     Public Sub New(Url As String)
         MyBase.New(CLS_VERSION)
-        Me.MainNew(Url, "", "")
+        Me.mUrl = Url
+        Me.mUserAgent = Me.MyClassName & "/" & Me.CLS_VERSION
+        Me.InitHttpWebRequest()
     End Sub
 
     Public Sub New(Url As String, UserAgent As String)
         MyBase.New(CLS_VERSION)
-        Me.MainNew(Url, "", UserAgent)
+        Me.mUrl = Url
+        Me.mUserAgent = UserAgent
+        Me.InitHttpWebRequest()
     End Sub
 
-    Public ReadOnly Property ResString As String
+    Private mResString As String
+    Public Property ResString As String
         Get
-            ResString = mstrResString
+            ResString = mResString
         End Get
+        Friend Set(value As String)
+            mResString = value
+        End Set
     End Property
 
-    Public ReadOnly Property UserAgent As String
-        Get
-            UserAgent = mstrUserAgent
-        End Get
-    End Property
 
-    Private Sub MainNew(Url As String, Para As String, UserAgent As String)
-        Dim strStepName As String = ""
+    ''' <summary>
+    ''' Initialize HttpWebRequest object|初始化HttpWebRequest对象
+    ''' </summary>
+    ''' <returns></returns>
+    Public Function InitHttpWebRequest() As String
+        Dim LOG As New PigStepLog("InitHttpWebRequest")
         Try
-            If Len(Para) = 0 Then
-                strStepName = "Set Uri" & Url & ":"
-10:             muriMain = New System.Uri(Url)
+            If Me.mPara = "" Then
+10:             Me.mUri = New System.Uri(Me.mUrl)
             Else
-                strStepName = "Set Uri" & Url & "?" & Para & ":"
-20:             muriMain = New System.Uri(Url & "?" & Para)
+20:             Me.mUri = New System.Uri(Me.mUrl & "?" & Me.mPara)
             End If
-            If Len(UserAgent) > 0 Then
-                mstrUserAgent = UserAgent
-            Else
-                mstrUserAgent = "PigWebReq"
-            End If
-            strStepName = "HttpWebRequest.Create:"
-30:         mhwrMain = System.Net.HttpWebRequest.Create(muriMain)
-            mhwrMain.UserAgent = mstrUserAgent
-            Me.ClearErr()
+            LOG.StepName = "HttpWebRequest.Create:"
+            Me.mHttpWebRequest = System.Net.HttpWebRequest.Create(mUri)
+            Me.mHttpWebRequest.UserAgent = Me.mUserAgent
+            Me.mHttpWebResponse = Nothing
+            Me.ResString = ""
+            Return "OK"
         Catch ex As Exception
-            Me.SetSubErrInf("MainNew", strStepName, ex)
+            Me.mUri = Nothing
+            Me.mHttpWebRequest = Nothing
+            LOG.AddStepNameInf("Url=" & Me.mUrl)
+            If Me.mPara <> "" Then LOG.AddStepNameInf("Para=" & Me.mPara)
+            If Me.mUserAgent <> "" Then LOG.AddStepNameInf("UserAgent=" & Me.mUserAgent)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Me.LastErr
         End Try
-    End Sub
+    End Function
 
+
+
+
+    ''' <summary>
+    ''' 以 GET 方式发送请求|Send request in GET method
+    ''' </summary>
+    ''' <returns></returns>
     Public Function GetText() As String
-        Dim strStepName As String = ""
-        Me.UseTimeItem.GoBegin()
-        GetText = ""
+        Dim LOG As New PigStepLog("GetText")
         Try
-10:         mhwrMain.Method = "GET"
-            strStepName = "New StreamReader"
-20:         msrRes = New StreamReader(mhwrMain.GetResponse().GetResponseStream)
-            strStepName = "ReadToEnd"
-30:         mstrResString = msrRes.ReadToEnd
-40:         msrRes.Close()
+            Me.UseTimeItem.GoBegin()
+            mHttpWebRequest.Method = "GET"
+            LOG.StepName = "GetResponse"
+            Me.mHttpWebResponse = mHttpWebRequest.GetResponse
+            LOG.StepName = "GetResponseStream"
+            Dim msrRes As New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+            LOG.StepName = "ReadToEnd"
+            Me.ResString = msrRes.ReadToEnd
+            msrRes.Close()
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
         Catch ex As Exception
+            Me.ResString = ""
             Me.UseTimeItem.ToEnd()
-            Me.SetSubErrInf("GetText", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Me.LastErr
         End Try
     End Function
 
     Public Function GetTextAuth(AccessToken As String) As String
-        'AccessToken：在接入端中设置
-        Dim strStepName As String = ""
-        Me.UseTimeItem.GoBegin()
-        GetTextAuth = ""
+        Dim LOG As New PigStepLog("GetTextAuth")
         Try
-            'mhwrMain.UseDefaultCredentials = False
-            With mhwrMain
+            Me.UseTimeItem.GoBegin()
+            LOG.StepName = "Set Properties"
+            With mHttpWebRequest
                 .Headers("Authorization") = "Bearer " & AccessToken
-                '                .Headers("value") = "Bearer " & AccessToken
                 .Method = "GET"
                 .PreAuthenticate = True
             End With
-            strStepName = "New StreamReader"
-20:         msrRes = New StreamReader(mhwrMain.GetResponse().GetResponseStream)
-            strStepName = "ReadToEnd"
-30:         mstrResString = msrRes.ReadToEnd
-40:         msrRes.Close()
+            LOG.StepName = "GetResponse"
+            Me.mHttpWebResponse = mHttpWebRequest.GetResponse
+            LOG.StepName = "GetResponseStream"
+            Dim msrRes As New StreamReader(mHttpWebRequest.GetResponse().GetResponseStream)
+            LOG.StepName = "ReadToEnd"
+            Me.ResString = msrRes.ReadToEnd
+            msrRes.Close()
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
         Catch ex As Exception
+            Me.ResString = ""
             Me.UseTimeItem.ToEnd()
-            Me.SetSubErrInf("GetTextAuth", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Me.LastErr
         End Try
     End Function
 
+    ''' <summary>
+    ''' Add a header|添加一个头
+    ''' </summary>
+    ''' <param name="HeadKey"></param>
+    ''' <param name="HeadValue"></param>
+    ''' <returns></returns>
     Public Function AddHeader(HeadKey As String, HeadValue As String) As String
+        Dim LOG As New PigStepLog("AddHeader")
         Try
-            mhwrMain.Headers(HeadKey) = HeadValue
+            If mHttpWebRequest Is Nothing Then
+                LOG.StepName = "InitHttpWebRequest"
+                LOG.Ret = Me.InitHttpWebRequest()
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End If
+            mHttpWebRequest.Headers(HeadKey) = HeadValue
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("", ex)
+            LOG.AddStepNameInf(HeadKey)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
     Public Function PostTextAuth(Para As String, AccessToken As String) As String
-        Dim strStepName As String = ""
-        Me.UseTimeItem.GoBegin()
-        PostTextAuth = ""
+        Dim LOG As New PigStepLog("PostTextAuth")
         Try
-10:         mhwrMain.Method = "POST"
-            mhwrMain.ContentType = "application/x-www-form-urlencoded"
-            mhwrMain.Headers("AUTHORIZATION") = "Bearer " & AccessToken
-            mhwrMain.PreAuthenticate = True
+            Me.UseTimeItem.GoBegin()
+            LOG.StepName = "Set Properties"
+            mHttpWebRequest.Method = "POST"
+            mHttpWebRequest.ContentType = "application/x-www-form-urlencoded"
+            mHttpWebRequest.Headers("AUTHORIZATION") = "Bearer " & AccessToken
+            mHttpWebRequest.PreAuthenticate = True
             Dim encoding As New UTF8Encoding()
             Dim bys As Byte() = encoding.GetBytes(Para)
-20:         mhwrMain.ContentLength = bys.Length
-            strStepName = "mhwrMain.GetRequestStream():"
-            Dim newStream As Stream = mhwrMain.GetRequestStream()
+            mHttpWebRequest.ContentLength = bys.Length
+            LOG.StepName = "GetRequestStream"
+            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
             newStream.Write(bys, 0, bys.Length)
-30:         newStream.Close()
-            strStepName = "mhwrMain.GetResponse().GetResponseStream():"
-            Dim sr As StreamReader = New StreamReader(mhwrMain.GetResponse().GetResponseStream)
-40:         mstrResString = sr.ReadToEnd
+            newStream.Close()
+            LOG.StepName = "GetResponse"
+            Me.mHttpWebResponse = mHttpWebRequest.GetResponse
+            LOG.StepName = "GetResponseStream"
+            Dim sr As StreamReader = New StreamReader(mHttpWebRequest.GetResponse().GetResponseStream)
+            LOG.StepName = "ReadToEnd"
+            Me.ResString = sr.ReadToEnd
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
         Catch ex As Exception
+            Me.ResString = ""
             Me.UseTimeItem.ToEnd()
-            Me.SetSubErrInf("PostTextAuth", strStepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Me.LastErr
         End Try
     End Function
 
+    ''' <summary>
+    ''' Get the value of the specified header|获取指定头的值
+    ''' </summary>
+    ''' <param name="HeadName"></param>
+    ''' <returns></returns>
     Public Function GetHeadValue(HeadName As String) As String
         Try
-            Return mhwrMain.GetResponse().Headers(HeadName)
+            If Me.mHttpWebResponse Is Nothing Then Throw New Exception("HTTP method not executed")
+            Return Me.mHttpWebResponse.Headers(HeadName)
         Catch ex As Exception
             Me.SetSubErrInf("GetHeadValue", ex)
             Return ""
         End Try
     End Function
 
+    ''' <summary>
+    ''' Get all headers|获取所有头
+    ''' </summary>
+    ''' <returns></returns>
     Public Function GetAllHeads() As String
         Try
-            Return mhwrMain.GetResponse().Headers.ToString
+            If Me.mHttpWebResponse Is Nothing Then Throw New Exception("HTTP method not executed")
+            Return Me.mHttpWebResponse.Headers.ToString
         Catch ex As Exception
             Me.SetSubErrInf("GetAllHeads", ex)
             Return ""
         End Try
     End Function
 
+    ''' <summary>
+    ''' Send POST request in raw JSON format|以原始JSON格式发送POST请求
+    ''' </summary>
+    ''' <param name="JSon"></param>
+    ''' <returns></returns>
     Public Function PostRaw(JSon As String) As String
         Dim LOG As New PigStepLog("PostRaw")
-        Me.UseTimeItem.GoBegin()
         Try
-            LOG.StepName = "Init"
-            mhwrMain.Method = "POST"
-            mhwrMain.ContentType = "application/json"
+            Me.UseTimeItem.GoBegin()
+            LOG.StepName = "Set Properties"
+            mHttpWebRequest.Method = "POST"
+            mHttpWebRequest.ContentType = "application/json"
             Dim encoding As New UTF8Encoding()
             Dim bys As Byte() = encoding.GetBytes(JSon)
-            mhwrMain.ContentLength = bys.Length
-            LOG.StepName = "GetRequestStream():"
-            Dim newStream As Stream = mhwrMain.GetRequestStream()
+            mHttpWebRequest.ContentLength = bys.Length
+            LOG.StepName = "GetRequestStream"
+            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
             newStream.Write(bys, 0, bys.Length)
             newStream.Close()
-            LOG.StepName = "New StreamReader"
-            Dim sr As StreamReader = New StreamReader(mhwrMain.GetResponse().GetResponseStream)
+            LOG.StepName = "GetResponse"
+            Me.mHttpWebResponse = Me.mHttpWebRequest.GetResponse
+            LOG.StepName = "GetResponseStream"
+            Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream)
             LOG.StepName = "ReadToEnd"
-            mstrResString = sr.ReadToEnd
+            Me.ResString = srMain.ReadToEnd
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
         Catch ex As Exception
+            Me.ResString = ""
             Me.UseTimeItem.ToEnd()
-            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Me.LastErr
         End Try
     End Function
 
 
     ''' <summary>
-    ''' 以 x-www-form-urlencoded 格式发送POST请求|Send POST request in x-www-form-urlencoded format
+    ''' Send request in POST method|以 POST 方式发送请求
     ''' </summary>
-    ''' <param name="Para">格式：p1=v1&p2=v2...|Format:p1=v1&p2=v2...</param>
+    ''' <param name="Para"></param>
     ''' <returns></returns>
     Public Function PostText(Para As String) As String
         Dim LOG As New PigStepLog("PostText")
-        Me.UseTimeItem.GoBegin()
         Try
-            LOG.StepName = "Init"
-            mhwrMain.Method = "POST"
-            mhwrMain.ContentType = "application/x-www-form-urlencoded"
+            Me.UseTimeItem.GoBegin()
+            LOG.StepName = "Set Properties"
+            mHttpWebRequest.Method = "POST"
+            mHttpWebRequest.ContentType = "application/x-www-form-urlencoded"
             Dim encoding As New UTF8Encoding()
             Dim bys As Byte() = encoding.GetBytes(Para)
-            mhwrMain.ContentLength = bys.Length
+            mHttpWebRequest.ContentLength = bys.Length
             LOG.StepName = "GetRequestStream"
-            Dim newStream As Stream = mhwrMain.GetRequestStream()
+            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
             newStream.Write(bys, 0, bys.Length)
             newStream.Close()
-            LOG.StepName = "New StreamReader"
-            Dim sr As StreamReader = New StreamReader(mhwrMain.GetResponse().GetResponseStream)
-            mstrResString = sr.ReadToEnd
+            LOG.StepName = "GetResponse"
+            Me.mHttpWebResponse = mHttpWebRequest.GetResponse
+            LOG.StepName = "GetResponseStream"
+            Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream())
+            LOG.StepName = "ReadToEnd"
+            Me.ResString = srMain.ReadToEnd
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
         Catch ex As Exception
+            Me.ResString = ""
             Me.UseTimeItem.ToEnd()
-            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Me.LastErr
         End Try
     End Function
 
+    ''' <summary>
+    ''' Download file|下载文件
+    ''' </summary>
+    ''' <param name="FilePath"></param>
+    ''' <param name="MaxSize"></param>
+    ''' <returns></returns>
     Public Function DownloadFile(FilePath As String, Optional MaxSize As Integer = 1073741824) As String
         Dim LOG As New PigStepLog("DownloadFile")
         Try
-            LOG.StepName = "New StreamReader"
-            mhwrMain.AddRange(0, MaxSize)
+            Me.UseTimeItem.GoBegin()
+            If Me.mHttpWebRequest Is Nothing Then
+                LOG.StepName = "InitHttpWebRequest"
+                LOG.Ret = Me.InitHttpWebRequest()
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End If
+            LOG.StepName = "AddRange"
+            mHttpWebRequest.AddRange(0, MaxSize)
             LOG.StepName = "GetResponseStream"
-            Dim oStream As Stream = mhwrMain.GetResponse().GetResponseStream
+            Dim oStream As Stream = mHttpWebRequest.GetResponse().GetResponseStream
             LOG.StepName = "New FileStream"
             Dim fsMain As New FileStream(FilePath, FileMode.OpenOrCreate)
             Dim abData(-1) As Byte
@@ -270,9 +345,13 @@ Public Class PigWebReq
             oStream.Close()
             fsMain.Close()
             Me.UseTimeItem.ToEnd()
+            Me.ClearErr()
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Me.UseTimeItem.ToEnd()
+            LOG.AddStepNameInf(FilePath)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Me.LastErr
         End Try
     End Function
 

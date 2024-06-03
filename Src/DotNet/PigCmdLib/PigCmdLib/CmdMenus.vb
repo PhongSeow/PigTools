@@ -1,8 +1,17 @@
-﻿Imports PigToolsLiteLib
+﻿'**********************************
+'* Name: CmdMenus
+'* Author: Seow Phong
+'* License: Copyright (c) 2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* Describe: CmdMenus的集合类|Collection class of CmdMenu
+'* Home Url: https://www.seowphong.com or https://en.seowphong.com
+'* Version: 1.0
+'* Create Time: 5/3/2024
+'**********************************
+Imports PigToolsLiteLib
 Friend Class CmdMenus
 	Inherits PigBaseLocal
 	Implements IEnumerable(Of CmdMenu)
-	Private Const CLS_VERSION As String = "1.0.0"
+	Private Const CLS_VERSION As String = "1.0.2"
 	Private ReadOnly moList As New List(Of CmdMenu)
 	Public Sub New()
 		MyBase.New(CLS_VERSION)
