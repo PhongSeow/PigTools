@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.32.2
+'* Version: 1.33.2
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -37,6 +37,7 @@
 '* 1.30   28/9/2023  Modify MkStr2Func
 '* 1.31   17/10/2023  Modify MkStr2Func
 '* 1.32   4/12/2023  Modify PigFileDemo
+'* 1.32   30/5/2024  Modify PigWebReqDemo
 '************************************
 Imports PigToolsLiteLib
 Imports System.Xml
@@ -50,6 +51,7 @@ Public Class ConsoleDemo
     Public SMSize As Integer = 1024
     Public MainText As String
     Public Ret As String
+    Public HeadName As String
     Public Base64Str As String
     Public Base64EncKey As String
     Public BytesEncKey As Byte()
@@ -134,7 +136,8 @@ Public Class ConsoleDemo
     Public FuncStr As String
     Public TextStream As TextStream
     Public AnyText As String
-
+    Public BasePath As String
+    Public RelativePath As String
 
     Public Sub Main()
 
@@ -165,11 +168,14 @@ Public Class ConsoleDemo
             Console.WriteLine("Press S to PigSend")
             Console.WriteLine("Press T to PigFileSystem")
             Console.WriteLine("Press U to TextStream")
+            Console.WriteLine("Press V to PigReg")
             Console.WriteLine("*******************")
             Console.CursorVisible = False
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
                     Exit Do
+                Case ConsoleKey.V
+                    Me.PigRegDemo()
                 Case ConsoleKey.U
                     Me.TextStreamDemo()
                 Case ConsoleKey.T
@@ -1320,13 +1326,19 @@ Public Class ConsoleDemo
         Do While True
             Console.Clear()
             Me.MenuDefinition2 = "NewPigWebReq#New PigWebReq|"
+            Me.MenuDefinition2 &= "InitHttpWebRequest#InitHttpWebRequest|"
             Me.MenuDefinition2 &= "DownloadFile#DownloadFile|"
             Me.MenuDefinition2 &= "GetText#GetText|"
             Me.MenuDefinition2 &= "PostText#PostText|"
+            Me.MenuDefinition2 &= "GetAllHeads#GetAllHeads|"
+            Me.MenuDefinition2 &= "GetHeadValue#GetHeadValue|"
             Me.PigConsole.SimpleMenu("PigWebReqDemo", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey2
                 Case ""
                     Exit Do
+                Case "InitHttpWebRequest"
+                    Me.Ret = Me.PigWebReq.InitHttpWebRequest
+                    Console.WriteLine("Ret={0}", Me.Ret)
                 Case "NewPigWebReq"
                     Me.PigConsole.GetLine("Input Url", Me.Url)
                     If Me.Url = "" Then
@@ -1355,9 +1367,26 @@ Public Class ConsoleDemo
                     Me.Ret = Me.PigWebReq.DownloadFile(Me.FilePath)
                     Console.WriteLine(Me.Ret)
                 Case "GetText"
-                    Me.PigWebReq.GetText()
+                    Me.Ret = Me.PigWebReq.GetText()
+                    Console.WriteLine("Ret={0}", Me.Ret)
+                    If Me.Ret = "OK" Then
+                        Console.WriteLine(Me.PigWebReq.ResString)
+                    End If
                 Case "PostText"
-                    'Me.PigWebReq.PostText()
+                    Me.Ret = Me.PigWebReq.PostText("aaa=111")
+                    Console.WriteLine("Ret={0}", Me.Ret)
+                    If Me.Ret = "OK" Then
+                        Console.WriteLine(Me.PigWebReq.ResString)
+                    End If
+                Case "GetAllHeads"
+                    Me.Ret = Me.PigWebReq.GetAllHeads
+                    Console.WriteLine("Ret={0}", Me.Ret)
+                    If Me.Ret = "" Then Console.WriteLine("LastErr={0}", Me.PigWebReq.LastErr)
+                Case "GetHeadValue"
+                    Me.PigConsole.GetLine("Input HeadName", Me.HeadName)
+                    Me.Ret = Me.PigWebReq.GetHeadValue(Me.HeadName)
+                    Console.WriteLine("Ret={0}", Me.Ret)
+                    If Me.Ret = "" Then Console.WriteLine("LastErr={0}", Me.PigWebReq.LastErr)
             End Select
             Me.PigConsole.DisplayPause()
         Loop
@@ -1384,10 +1413,17 @@ Public Class ConsoleDemo
             Console.WriteLine("Press M To IsNewVersion")
             Console.WriteLine("Press O To OpenUrl")
             Console.WriteLine("Press P To GetTextFileEncCode")
+            Console.WriteLine("Press R To CombinePath")
             Console.WriteLine("*******************")
             Select Case Console.ReadKey(True).Key
                 Case ConsoleKey.Q
                     Exit Do
+                Case ConsoleKey.R
+                    Me.PigConsole.GetLine("BasePath=", Me.BasePath)
+                    Me.PigConsole.GetLine("RelativePath=", Me.RelativePath)
+                    Console.WriteLine("CombinePath")
+                    Console.WriteLine(Me.PigFunc.CombinePath(Me.BasePath, Me.RelativePath))
+                    If Me.PigFunc.LastErr <> "" Then Console.WriteLine(Me.PigFunc.LastErr)
                 Case ConsoleKey.A
                     With Me.PigFunc
                         Console.WriteLine("GENow=" & .GENow)
@@ -1918,6 +1954,43 @@ Public Class ConsoleDemo
                     Dim intIOMode As PigFileSystem.IOMode = Me.PigFunc.GECLng(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigFileSystem_IOMode))
                     Dim intTextType As PigText.enmTextType = Me.PigFunc.GECLng(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigText_EnmTextType))
                     Me.TextStream = Me.PigFS.OpenTextFile(Me.SrcFile, intIOMode, intTextType, True)
+            End Select
+            Me.PigConsole.DisplayPause()
+        Loop
+    End Sub
+
+    Public Sub PigRegDemo()
+
+        Console.WriteLine("*******************")
+        Console.WriteLine("PigReg Demo")
+        Console.WriteLine("*******************")
+        Do While True
+            Console.Clear()
+            Me.MenuDefinition = ""
+            With Me.PigConsole
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.BooleanValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.BytesValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.DWordValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.ExpandStringValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.MultiStringValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.QWordValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.StringValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.UnknownValue")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegValue")
+                .AddMenuDefinition(Me.MenuDefinition, "DeleteRegValue")
+                .AddMenuDefinition(Me.MenuDefinition, "DeleteRegKey")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegKeyNames")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueNames")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueTypes")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueData")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueDataSize")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueDataSize")
+            End With
+            Me.PigConsole.SimpleMenu("PigReg Demo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
+            Dim strData As String = ""
+            Select Case Me.MenuKey
+                Case ""
+                    Exit Do
             End Select
             Me.PigConsole.DisplayPause()
         Loop
