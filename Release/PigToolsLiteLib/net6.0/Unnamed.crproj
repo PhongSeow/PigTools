@@ -1,0 +1,5 @@
+<project outputDir="D:\GitHub\Dev\PigTools\Src\DotNet\PigToolsLiteLib\PigToolsLiteLib\bin\Release\net6.0\Confused" baseDir="D:\GitHub\Dev\PigTools\Src\DotNet\PigToolsLiteLib\PigToolsLiteLib\bin\Release\net6.0" xmlns="http://confuser.codeplex.com">
+  <module path="PigToolsLiteLib.dll">
+    <rule pattern="true" preset="maximum" inherit="false" />
+  </module>
+</project>

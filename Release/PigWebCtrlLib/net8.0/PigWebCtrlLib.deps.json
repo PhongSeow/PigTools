@@ -6,54 +6,54 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "PigWebCtrlLib/2.2.62": {
+      "PigWebCtrlLib/2.2.66": {
         "dependencies": {
-          "PigCmdLib": "2.2.176"
+          "PigCmdLib": "2.2.178"
         },
         "runtime": {
           "PigWebCtrlLib.dll": {}
         }
       },
-      "PigCmdLib/2.2.176": {
+      "PigCmdLib/2.2.178": {
         "dependencies": {
-          "PigToolsLiteLib": "3.5.70"
+          "PigToolsLiteLib": "3.5.72"
         },
         "runtime": {
           "lib/net8.0/PigCmdLib.dll": {
-            "assemblyVersion": "2.2.176.0",
-            "fileVersion": "2.2.176.0"
+            "assemblyVersion": "2.2.178.0",
+            "fileVersion": "2.2.178.0"
           }
         }
       },
-      "PigToolsLiteLib/3.5.70": {
+      "PigToolsLiteLib/3.5.72": {
         "runtime": {
           "lib/net8.0/PigToolsLiteLib.dll": {
-            "assemblyVersion": "3.5.70.0",
-            "fileVersion": "3.5.70.0"
+            "assemblyVersion": "3.5.72.0",
+            "fileVersion": "3.5.72.0"
           }
         }
       }
     }
   },
   "libraries": {
-    "PigWebCtrlLib/2.2.62": {
+    "PigWebCtrlLib/2.2.66": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "PigCmdLib/2.2.176": {
+    "PigCmdLib/2.2.178": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-RroY25r3Bwhht0JuurokpSBHK5No/s3iJqo13VQkht0vjOPdeq498oZEkVPN9v2CH5xZvYwe0awAaGfLwRHvlA==",
-      "path": "pigcmdlib/2.2.176",
-      "hashPath": "pigcmdlib.2.2.176.nupkg.sha512"
+      "sha512": "sha512-XvViPpPKdvSasxtB6edhHcz+tJUN/kcnnsVc9D/LFOryWIKyA52c2eGxLsvblM4MmMOf1MMm/FXS0vJChP1E0Q==",
+      "path": "pigcmdlib/2.2.178",
+      "hashPath": "pigcmdlib.2.2.178.nupkg.sha512"
     },
-    "PigToolsLiteLib/3.5.70": {
+    "PigToolsLiteLib/3.5.72": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-4t30zsBtdoGGyrIYQML285KZ6kHQqJuGzlAAvKploukApdeBTMXRsFTfE/31NvfgCuvfkPAPhblfRhbJvkp9ig==",
-      "path": "pigtoolslitelib/3.5.70",
-      "hashPath": "pigtoolslitelib.3.5.70.nupkg.sha512"
+      "sha512": "sha512-zBVY2E9FOiNC8s6NLLlvAe6Xnv4mPnVPrNrUgfu4h/5DSgxHl23+09UatRbt4tB8+XUMK+WsGnFd1eTfZTHWkg==",
+      "path": "pigtoolslitelib/3.5.72",
+      "hashPath": "pigtoolslitelib.3.5.72.nupkg.sha512"
     }
   }
 }

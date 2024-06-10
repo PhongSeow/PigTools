@@ -62,7 +62,8 @@
 '*1.62   16/1/2024  Modify GetStr
 '*1.63   22/1/2024  Modify GetStrAndReplace,IsRegexMatch
 '*1.65   13/3/2024  Add LenA,LeftA,RightA,MidA,GetAlignStrA
-'*1.66   21/3/2024  Add GetDateUnixTimestamp,GetNowUnixTimestamp
+'*1.66   21/3/2024  Add GetDateUnixTimestamp,GetNowUnixTimestamp, modify GetWindowsProductId,mGetMachineGUID
+'*1.67   10/6/2024  Modify GetWindowsProductId,mGetMachineGUID
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -79,18 +80,18 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "66" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "67" & "." & "10"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
     Public Enum EnmTimeSlot
         CurrentWeek = 0
         CurrentMonth = 1
-        'CurrentQuarter = 2
+        CurrentQuarter = 2
         CurrentYear = 3
         LastWeek = 10
         LastMonth = 11
-        'LastQuarter = 12
+        LastQuarter = 12
         LastYear = 13
     End Enum
 
@@ -1437,7 +1438,7 @@ Public Class PigFunc
                 LOG.StepName = "New PigReg"
                 Dim oPigReg As New PigReg
                 LOG.StepName = "GetRegValue"
-                GetWindowsProductId = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductId", "")
+                GetWindowsProductId = oPigReg.GetRegStrValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductId", "")
                 If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
             Else
                 Throw New Exception("Only run on Windows")
@@ -1456,7 +1457,7 @@ Public Class PigFunc
                 LOG.StepName = "New PigReg"
                 Dim oPigReg As New PigReg
                 LOG.StepName = "GetRegValue"
-                OutGUID = oPigReg.GetRegValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Cryptography", "MachineGuid", "")
+                OutGUID = oPigReg.GetRegStrValue(PigReg.EmnRegRoot.LOCAL_MACHINE, "SOFTWARE\Microsoft\Cryptography", "MachineGuid", "")
                 If oPigReg.LastErr <> "" Then Throw New Exception(oPigReg.LastErr)
                 oPigReg = Nothing
             Else
@@ -2317,7 +2318,7 @@ Public Class PigFunc
             Dim oPigReg As New PigReg, strRegValue As String
             With oPigReg
                 LOG.StepName = ""
-                strRegValue = .GetRegValue(PigReg.EmnRegRoot.CLASSES_ROOT, strRegPath, "", "")
+                strRegValue = .GetRegStrValue(PigReg.EmnRegRoot.CLASSES_ROOT, strRegPath, "", "")
                 If .LastErr <> "" Then Throw New Exception(.LastErr)
                 If strRegValue = "" Then Throw New Exception("Unable to obtain registry value")
             End With

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.21
+'* Version: 1.22
 '* Create Time: 15/1/2022
 '*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '*1.2 3/2/2022     Add GetLine
@@ -26,6 +26,7 @@
 '*1.19 23/10/2023  Modify SimpleMenu
 '*1.20 5/12/2023   Add EnmWhatTypeOfMenuDefinition,GetMenuDefinition,SelectMenuOfEnumeration,AddMenuDefinition
 '*1.21 21/2/2024   Modify mDisplayPause,IsYesOrNo,mDisplayPause,SimpleMenu,mGetLine
+'*1.22 9/6/2024   Modify EnmWhatTypeOfMenuDefinition,GetMenuDefinition
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -34,7 +35,7 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "21" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "22" & "." & "28"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -43,6 +44,12 @@ Public Class PigConsole
     Public Enum EnmWhatTypeOfMenuDefinition
         PigText_EnmTextType = 0
         PigFileSystem_IOMode = 1
+        PigReg_RegRoot = 2
+        PigFunc_TimeSlot = 3
+        PigFunc_Alignment = 4
+        PigFunc_FilePart = 5
+        PigFunc_FathPart = 6
+        PigFunc_GetRandString = 7
     End Enum
 
     Public Property IsUseMLang As Boolean
@@ -846,6 +853,36 @@ Public Class PigConsole
                 Case EnmWhatTypeOfMenuDefinition.PigText_EnmTextType
                     For Each strName As String In [Enum].GetNames(GetType(PigText.enmTextType))
                         Dim enmAny As PigText.enmTextType = [Enum].Parse(GetType(PigText.enmTextType), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigText_EnmTextType
+                    For Each strName As String In [Enum].GetNames(GetType(PigReg.EmnRegRoot))
+                        Dim enmAny As PigReg.EmnRegRoot = [Enum].Parse(GetType(PigReg.EmnRegRoot), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_TimeSlot
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmTimeSlot))
+                        Dim enmAny As PigFunc.EnmTimeSlot = [Enum].Parse(GetType(PigFunc.EnmTimeSlot), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_Alignment
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmAlignment))
+                        Dim enmAny As PigFunc.EnmAlignment = [Enum].Parse(GetType(PigFunc.EnmAlignment), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_FilePart
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmFilePart))
+                        Dim enmAny As PigFunc.EnmFilePart = [Enum].Parse(GetType(PigFunc.EnmFilePart), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_FathPart
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmFathPart))
+                        Dim enmAny As PigFunc.EnmFathPart = [Enum].Parse(GetType(PigFunc.EnmFathPart), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_GetRandString
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmGetRandString))
+                        Dim enmAny As PigFunc.EnmGetRandString = [Enum].Parse(GetType(PigFunc.EnmGetRandString), strName)
                         strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
                     Next
                 Case Else

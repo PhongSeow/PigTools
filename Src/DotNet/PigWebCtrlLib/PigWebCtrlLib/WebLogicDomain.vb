@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.38
+'* Version: 1.39
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -43,6 +43,7 @@
 '* 1.36 9/11/2023 Add StatisticsAccessLog
 '* 1.37 6/12/2023 Add StatisticsAccessLog, Modify mGetTopText,mGetTailText
 '* 1.38 20/12/2023 Modify mWlstCallMain
+'* 1.39 5/6/2024 Modify StatisticsAccessLog
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -55,7 +56,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.38.6"
+    Private Const CLS_VERSION As String = "1." & "39" & "." & "2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -1854,6 +1855,50 @@ Public Class WebLogicDomain
         End Try
     End Function
 
+    Public Function GetAccessLogTextType(ByRef OutTextType As PigText.enmTextType) As String
+        Dim LOG As New PigStepLog("GetAccessLogTextType")
+        Try
+            Dim strFilePath As String = Me.LogDirPath & Me.OsPathSep & "access.log"
+            Dim bolIsOK As Boolean = False
+            LOG.StepName = "New PigFile"
+            Dim oPigFile As New PigFile(strFilePath)
+            If oPigFile.LastErr <> "" Then Throw New Exception(oPigFile.LastErr)
+            Dim strLine As String = ""
+            Dim oWebLogicAccessLogLine As WebLogicAccessLogLine
+            OutTextType = PigText.enmTextType.Ascii
+            LOG.StepName = "mGetTopText." & OutTextType.ToString
+            strLine = Me.mGetTopText(oPigFile.FilePath, 1, OutTextType)
+            oWebLogicAccessLogLine = New WebLogicAccessLogLine(strLine)
+            If oWebLogicAccessLogLine.IsAccessTimeErr = True Then
+                OutTextType = PigText.enmTextType.UTF8
+                LOG.StepName = "mGetTopText." & OutTextType.ToString
+                strLine = Me.mGetTopText(oPigFile.FilePath, 1, OutTextType)
+                oWebLogicAccessLogLine = New WebLogicAccessLogLine(strLine)
+                If oWebLogicAccessLogLine.IsAccessTimeErr = True Then
+                    OutTextType = PigText.enmTextType.GB2312
+                    LOG.StepName = "mGetTopText." & OutTextType.ToString
+                    strLine = Me.mGetTopText(oPigFile.FilePath, 1, OutTextType)
+                    oWebLogicAccessLogLine = New WebLogicAccessLogLine(strLine)
+                    If oWebLogicAccessLogLine.IsAccessTimeErr = True Then
+                        OutTextType = PigText.enmTextType.Unicode
+                        LOG.StepName = "mGetTopText." & OutTextType.ToString
+                        strLine = Me.mGetTopText(oPigFile.FilePath, 1, OutTextType)
+                        oWebLogicAccessLogLine = New WebLogicAccessLogLine(strLine)
+                        If oWebLogicAccessLogLine.IsAccessTimeErr = True Then
+                            LOG.StepName = "Get TextType"
+                            Throw New Exception("Unable to obtain TextType")
+                        End If
+                    End If
+                End If
+            End If
+            Return "OK"
+        Catch ex As Exception
+            OutTextType = PigText.enmTextType.UnknowOrBin
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+
     ''' <summary>
     ''' Statistical access logs|统计访问日志
     ''' </summary>
@@ -1864,6 +1909,7 @@ Public Class WebLogicDomain
     ''' <returns></returns>
     Public Function StatisticsAccessLog(TimeSlot As PigFunc.EnmTimeSlot, ByRef StatisticsResXml As String, TextType As PigText.enmTextType, Optional ErrLogFilePath As String = "") As String
         Dim LOG As New PigStepLog("StatisticsAccessLog")
+        Dim lngLineNo As Long = 0
         Try
             Dim dteBegin As Date
             Dim dteEnd As Date
@@ -1979,8 +2025,10 @@ Public Class WebLogicDomain
                         Me.mPigFunc.OptLogInf(LOG.StepLogInf, ErrLogFilePath)
                     End If
                 Else
+                    lngLineNo = 0
                     Do While Not tsMain.AtEndOfStream
                         Dim strLine As String = tsMain.ReadLine()
+                        lngLineNo += 1
                         Dim oWebLogicAccessLogLine As New WebLogicAccessLogLine(strLine)
                         Dim oWebLogicAccessLogDayCnt As WebLogicAccessLogDayCnt = oWebLogicAccessLogDayCnts.AddOrGet(oWebLogicAccessLogLine.DayOfWeek, WebLogicAccessLogDayCnt.EnmDayType.DayOfWeek)
                         With oWebLogicAccessLogDayCnt
@@ -2017,6 +2065,7 @@ Public Class WebLogicDomain
         Catch ex As Exception
             StatisticsResXml = ""
             LOG.AddStepNameInf(Me.LogDirPath)
+            LOG.AddStepNameInf("LineNo=" & lngLineNo)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function

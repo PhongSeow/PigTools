@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Registry Processing Class|注册表处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.6
 '* Create Time: 5/11/2019
 '* 1.0.2  2019-11-7   修改BUG
 '* 1.0.3  15/4/2021   Add to PigToolsWinLib
@@ -12,6 +12,7 @@
 '* 1.2  20/8/2021   Use Throw New Exception
 '* 1.3  19/5/2024   Add mSaveRegValue,SaveRegValue
 '* 1.5  19/5/2024   Modify mSaveRegValue,SaveRegValue
+'* 1.6  9/6/2024   Modify mSaveRegValue,SaveRegValue, add DeleteRegKey,GetRegValue...
 '************************************
 Imports Microsoft.Win32
 ''' <summary>
@@ -19,7 +20,7 @@ Imports Microsoft.Win32
 ''' </summary>
 Public Class PigReg
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "28"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "68"
     ''' <summary>The root of the registry|注册表的根区</summary>
     Public Enum EmnRegRoot
         ''' <summary>HKEY_CLASSES_ROOT</summary>
@@ -41,6 +42,8 @@ Public Class PigReg
         ''' <summary>The machine Guid and ID should be different after reinstalling the Windows system|机器GUID，ID在重装Windows系统后应该不一样了</summary>
         MachineGUID = 20
     End Enum
+
+    Private ReadOnly Property mPigFunc As New PigFunc
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
@@ -91,56 +94,272 @@ Public Class PigReg
         End Try
     End Function
 
-    ''' <summary>Read registry values|读取注册表值</summary>
+
+
+    ''' <summary>Read registry values(string)|读取注册表值(字符串)</summary>
     ''' <param name="RegRoot">Registry Root|根区</param>
     ''' <param name="RegPath">Registry key name path|键名路径</param>
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
-    Public Overloads Function GetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As String) As String
+    Public Function GetRegStrValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As String) As String
         Try
             Dim strRet As String = ""
-            GetRegValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
+            GetRegStrValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
             If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetRegValue", ex)
+            Me.SetSubErrInf("GetRegStrValue", ex)
             Return ""
         End Try
     End Function
 
-    ''' <summary>Read registry values|读取注册表值</summary>
+    ''' <summary>Read registry values(string)|读取注册表值(字符串)</summary>
     ''' <param name="RegRoot">Registry Root|根区</param>
     ''' <param name="RegPath">Registry key name path|键名路径</param>
     ''' <param name="RegName">Registry Name|项名</param>
-    Public Overloads Function GetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As Byte()
+    Public Function GetRegStrValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As String
         Try
             Dim strRet As String = ""
-            GetRegValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
+            GetRegStrValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
             If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetRegValue", ex)
-            Return Nothing
+            Me.SetSubErrInf("GetRegStrValue", ex)
+            Return ""
         End Try
     End Function
 
-    ''' <summary>Read registry values|读取注册表值</summary>
+    ''' <summary>Read registry values(string array)|读取注册表值(字符串数组)</summary>
     ''' <param name="RegRoot">Registry Root|根区</param>
     ''' <param name="RegPath">Registry key name path|键名路径</param>
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
-    Public Overloads Function GetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Object) As Object
+    Public Function GetRegMultiStrValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As String()) As String()
         Try
             Dim strRet As String = ""
-            GetRegValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
+            GetRegMultiStrValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
             If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
-            Me.SetSubErrInf("GetRegValue", ex)
+            Me.SetSubErrInf("GetRegMultiStrValue", ex)
             Return Nothing
         End Try
     End Function
 
+    ''' <summary>Read registry values(string array)|读取注册表值(字符串数组)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    Public Function GetRegMultiStrValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As String()
+        Try
+            Dim strRet As String = ""
+            GetRegMultiStrValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegMultiStrValue", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(byte array)|读取注册表值(字节数组)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
+    Public Function GetRegBytesValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Byte()) As Byte()
+        Try
+            Dim strRet As String = ""
+            GetRegBytesValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegBytesValue", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(byte array)|读取注册表值(字节数组)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    Public Function GetRegBytesValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As Byte()
+        Try
+            Dim strRet As String = ""
+            GetRegBytesValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegBytesValue", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(decimal)|读取注册表值(浮点型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
+    Public Function GetRegDecValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Decimal) As Decimal
+        Try
+            Dim strRet As String = ""
+            GetRegDecValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegDecValue", ex)
+            Return 0
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(decimal)|读取注册表值(浮点型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    Public Function GetRegDecValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As Decimal
+        Try
+            Dim strRet As String = ""
+            GetRegDecValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegDecValue", ex)
+            Return 0
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(integer)|读取注册表值(整型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
+    Public Function GetRegLongValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Long) As Long
+        Try
+            Dim strRet As String = ""
+            GetRegLongValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegLongValue", ex)
+            Return 0
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(integer)|读取注册表值(整型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    Public Function GetRegLongValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As Long
+        Try
+            Dim strRet As String = ""
+            GetRegLongValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegLongValue", ex)
+            Return 0
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(long integer)|读取注册表值(长整型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
+    Public Function GetRegIntValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Integer) As Integer
+        Try
+            Dim strRet As String = ""
+            GetRegIntValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegIntValue", ex)
+            Return 0
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(long integer)|读取注册表值(长整型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    Public Function GetRegIntValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As Integer
+        Try
+            Dim strRet As String = ""
+            GetRegIntValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegIntValue", ex)
+            Return 0
+        End Try
+    End Function
+
+
+    ''' <summary>Read registry values(boolean)|读取注册表值(布尔型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
+    Public Function GetRegBooleanValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Boolean) As Boolean
+        Try
+            Dim strRet As String = ""
+            GetRegBooleanValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegBooleanValue", ex)
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(boolean)|读取注册表值(布尔型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    Public Function GetRegBooleanValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As Boolean
+        Try
+            Dim strRet As String = ""
+            GetRegBooleanValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegBooleanValue", ex)
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(date)|读取注册表值(日期型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    ''' <param name="DefaValue">Default value, if not found, return this value|默认值，取不到则返回这个</param>
+    Public Function GetRegDateValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Date) As Date
+        Try
+            Dim strRet As String = ""
+            GetRegDateValue = Me.mGetRegValue(RegRoot, RegPath, RegName, DefaValue, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegDateValue", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>Read registry values(date)|读取注册表值(日期型)</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    Public Function GetRegDateValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As Date
+        Try
+            Dim strRet As String = ""
+            GetRegDateValue = Me.mGetRegValue(RegRoot, RegPath, RegName, Nothing, strRet)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Me.ClearErr()
+        Catch ex As Exception
+            Me.SetSubErrInf("GetRegDateValue", ex)
+            Return Nothing
+        End Try
+    End Function
 
     Private Function mGetRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DefaValue As Object, ByRef TxRes As String) As Object
         Dim strStepName As String = ""
@@ -188,7 +407,7 @@ Public Class PigReg
     ''' <param name="RegRoot">Registry Root|根区</param>
     ''' <param name="RegPath">Registry key name path|键名路径</param>
     Public Function CreateRegKey(RegRoot As EmnRegRoot, RegPath As String) As String
-        Dim strStepName As String = ""
+        Dim LOG As New PigStepLog("CreateRegKey")
         Try
             Dim rkAny As RegistryKey
             Select Case RegRoot
@@ -206,12 +425,14 @@ Public Class PigReg
                     rkAny = Nothing
                     Throw New Exception("Invalid RegRoot")
             End Select
-            strStepName = "CreateSubKey(" & RegPath & ")"
+            LOG.StepName = "CreateSubKey"
             rkAny.CreateSubKey(RegPath)
             rkAny.Close()
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("CreateRegKey", strStepName, ex)
+            LOG.AddStepNameInf(RegRoot.ToString)
+            LOG.AddStepNameInf(RegPath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -235,7 +456,7 @@ Public Class PigReg
                     Throw New Exception("Invalid RegRoot")
             End Select
             strStepName = "OpenSubKey(" & RegPath & ")"
-            mOpenRegPath = rkRoot.OpenSubKey(RegPath, IsReadOnly)
+            mOpenRegPath = rkRoot.OpenSubKey(RegPath, Not IsReadOnly)
             TxRes = "OK"
         Catch ex As Exception
             TxRes = Me.GetSubErrInf("mOpenRegPath", strStepName, ex)
@@ -243,7 +464,7 @@ Public Class PigReg
         End Try
     End Function
 
-    Private Function mSaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, RegValue As Object) As String
+    Private Function mSaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, RegValue As Object, RegValueKind As RegistryValueKind) As String
         Dim LOG As New PigStepLog("mSaveRegValue")
         Try
             LOG.StepName = "mOpenRegPath"
@@ -251,7 +472,8 @@ Public Class PigReg
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             If rkAny Is Nothing Then Throw New Exception("Failed to get registry key")
             LOG.StepName = "SetValue"
-            rkAny.SetValue(RegName, RegValue)
+            '如何判断 RegValue 的数据类型
+            rkAny.SetValue(RegName, RegValue, RegValueKind)
             rkAny.Close()
             Return "OK"
         Catch ex As Exception
@@ -268,7 +490,7 @@ Public Class PigReg
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="StrValue">String value|字符串值</param>
     Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, StrValue As String) As String
-        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, StrValue)
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, StrValue, RegistryValueKind.String)
     End Function
 
 
@@ -278,7 +500,7 @@ Public Class PigReg
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="IntValue">Integer value|整型值</param>
     Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, IntValue As Integer) As String
-        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, IntValue)
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, IntValue, RegistryValueKind.DWord)
     End Function
 
     ''' <summary>Save registry values|保存注册表值</summary>
@@ -287,7 +509,7 @@ Public Class PigReg
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="LongValue">Long value|长整型值</param>
     Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, LongValue As Long) As String
-        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, LongValue)
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, LongValue, RegistryValueKind.QWord)
     End Function
 
     ''' <summary>Save registry values|保存注册表值</summary>
@@ -296,7 +518,7 @@ Public Class PigReg
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="BooleanValue">Boolean value|布尔值</param>
     Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, BooleanValue As Boolean) As String
-        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, BooleanValue)
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, CInt(BooleanValue), RegistryValueKind.DWord)
     End Function
 
     ''' <summary>Save registry values|保存注册表值</summary>
@@ -305,7 +527,7 @@ Public Class PigReg
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="DecValue">Decimal value|小数值</param>
     Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DecValue As Decimal) As String
-        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, DecValue)
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, CStr(DecValue), RegistryValueKind.String)
     End Function
 
     ''' <summary>Save registry values|保存注册表值</summary>
@@ -314,7 +536,7 @@ Public Class PigReg
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="BytesValue">Byte array value|字节数组值</param>
     Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, BytesValue As Byte()) As String
-        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, BytesValue)
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, BytesValue, RegistryValueKind.Binary)
     End Function
 
     ''' <summary>Save registry values|保存注册表值</summary>
@@ -322,8 +544,9 @@ Public Class PigReg
     ''' <param name="RegPath">Registry key name path|键名路径</param>
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="DateValue">Date value|日期值</param>
-    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DateValue As Date) As String
-        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, DateValue)
+    ''' <param name="TimeFmt">Date format|日期格式</param>
+    Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, DateValue As Date, Optional TimeFmt As String = "yyyy-MM-dd HH:mm:ss.fff") As String
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, Me.mPigFunc.GetFmtDateTime(DateValue, TimeFmt), RegistryValueKind.String)
     End Function
 
     ''' <summary>Save registry values|保存注册表值</summary>
@@ -332,7 +555,84 @@ Public Class PigReg
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="MultiStringValue">Multi string value|字符串数组 </param>
     Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, MultiStringValue As String()) As String
-        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, MultiStringValue)
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, MultiStringValue, RegistryValueKind.MultiString )
     End Function
+
+    ''' <summary>Delete registry key|删除注册表键</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    Public Function DeleteRegKey(RegRoot As EmnRegRoot, RegPath As String) As String
+        Dim LOG As New PigStepLog("DeleteRegKey")
+        Try
+            Dim rkAny As RegistryKey
+            Select Case RegRoot
+                Case EmnRegRoot.CLASSES_ROOT
+                    rkAny = Registry.ClassesRoot
+                Case EmnRegRoot.CURRENT_USER
+                    rkAny = Registry.CurrentUser
+                Case EmnRegRoot.LOCAL_MACHINE
+                    rkAny = Registry.LocalMachine
+                Case EmnRegRoot.PERFORMANCE_DATA
+                    rkAny = Registry.PerformanceData
+                Case EmnRegRoot.USERS
+                    rkAny = Registry.Users
+                Case Else
+                    rkAny = Nothing
+                    Throw New Exception("Invalid RegRoot")
+            End Select
+            LOG.StepName = "DeleteSubKeyTree"
+            rkAny.DeleteSubKey(RegPath)
+            rkAny.Close()
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(RegRoot.ToString)
+            LOG.AddStepNameInf(RegPath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+
+    End Function
+
+    ''' <summary>Get the value of the registry|获取注册表值</summary>
+    ''' <param name="RegRoot">Registry Root|根区</param>
+    ''' <param name="RegPath">Registry key name path|键名路径</param>
+    ''' <param name="RegName">Registry Name|项名</param>
+    Public Function DeleteRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As String
+        Dim LOG As New PigStepLog("DeleteRegValue")
+        Try
+            Dim rkAny As RegistryKey
+            Select Case RegRoot
+                Case EmnRegRoot.CLASSES_ROOT
+                    rkAny = Registry.ClassesRoot
+                Case EmnRegRoot.CURRENT_USER
+                    rkAny = Registry.CurrentUser
+                Case EmnRegRoot.LOCAL_MACHINE
+                    rkAny = Registry.LocalMachine
+                Case EmnRegRoot.PERFORMANCE_DATA
+                    rkAny = Registry.PerformanceData
+                Case EmnRegRoot.USERS
+                    rkAny = Registry.Users
+                Case Else
+                    rkAny = Nothing
+                    Throw New Exception("Invalid RegRoot")
+            End Select
+            LOG.StepName = "OpenSubKey"
+            Dim rkSub As RegistryKey = rkAny.OpenSubKey(RegPath, True)
+            If rkSub Is Nothing Then
+                rkAny.Close()
+                Return "OK"
+            End If
+            LOG.StepName = "DeleteValue"
+            rkSub.DeleteValue(RegName)
+            rkSub.Close()
+            rkAny.Close()
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(RegRoot.ToString)
+            LOG.AddStepNameInf(RegPath)
+            LOG.AddStepNameInf(RegName)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
 End Class

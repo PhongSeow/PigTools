@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.33.2
+'* Version: 1.35.2
 '* Create Time: 16/10/2021
 '* 1.1    21/12/2021   Add PigConfig
 '* 1.2    22/12/2021   Modify PigConfig
@@ -37,7 +37,8 @@
 '* 1.30   28/9/2023  Modify MkStr2Func
 '* 1.31   17/10/2023  Modify MkStr2Func
 '* 1.32   4/12/2023  Modify PigFileDemo
-'* 1.32   30/5/2024  Modify PigWebReqDemo
+'* 1.33   30/5/2024  Modify PigWebReqDemo
+'* 1.33   9/6/2024  Modify PigRegDemo
 '************************************
 Imports PigToolsLiteLib
 Imports System.Xml
@@ -138,6 +139,15 @@ Public Class ConsoleDemo
     Public AnyText As String
     Public BasePath As String
     Public RelativePath As String
+    Public PigReg As New PigReg
+    Public RegRoot As PigReg.EmnRegRoot = PigReg.EmnRegRoot.LOCAL_MACHINE
+    Public RegPath As String = "SOFTWARE\Test"
+    Public RegName As String
+    Public RegDefaValue As String
+    Public RegValue As String
+    Public RegValue2 As String()
+    Public RegValue3 As Byte()
+    Public IsRegDefaValue As Boolean
 
     Public Sub Main()
 
@@ -1960,7 +1970,6 @@ Public Class ConsoleDemo
     End Sub
 
     Public Sub PigRegDemo()
-
         Console.WriteLine("*******************")
         Console.WriteLine("PigReg Demo")
         Console.WriteLine("*******************")
@@ -1968,29 +1977,269 @@ Public Class ConsoleDemo
             Console.Clear()
             Me.MenuDefinition = ""
             With Me.PigConsole
-                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.BooleanValue")
-                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.BytesValue")
-                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.DWordValue")
-                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.ExpandStringValue")
-                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.MultiStringValue")
-                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.QWordValue")
-                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.StringValue")
-                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.UnknownValue")
-                .AddMenuDefinition(Me.MenuDefinition, "GetRegValue")
-                .AddMenuDefinition(Me.MenuDefinition, "DeleteRegValue")
+                .AddMenuDefinition(Me.MenuDefinition, "CreateRegKey")
+                .AddMenuDefinition(Me.MenuDefinition, "IsRegKeyExists")
                 .AddMenuDefinition(Me.MenuDefinition, "DeleteRegKey")
-                .AddMenuDefinition(Me.MenuDefinition, "GetRegKeyNames")
-                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueNames")
-                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueTypes")
-                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueData")
-                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueDataSize")
-                .AddMenuDefinition(Me.MenuDefinition, "GetRegValueDataSize")
+                .AddMenuDefinition(Me.MenuDefinition, "DeleteRegValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.StrValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.BooleanValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.IntValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.LongValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.DecValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.BytesValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.MultiStringValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SaveRegValue.DateValue")
+                .AddMenuDefinition(Me.MenuDefinition, "SetIsRegDefaValue")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegStrValue")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegBooleanValue")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegIntValue")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegLongValue")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegDecValue")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegBytesValue")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegMultiStringValue")
+                .AddMenuDefinition(Me.MenuDefinition, "GetRegDateValue")
             End With
             Me.PigConsole.SimpleMenu("PigReg Demo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Dim strData As String = ""
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "CreateRegKey"
+                    Me.RegRoot = Me.PigFunc.GECLng(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigReg_RegRoot))
+                    With Me.PigReg
+                        Me.PigConsole.GetLine("Input RegPath", Me.RegPath)
+                        Me.Ret = .CreateRegKey(Me.RegRoot, RegPath)
+                        Console.WriteLine("CreateRegKey={0}", Me.Ret)
+                    End With
+                Case "IsRegKeyExists"
+                    Me.RegRoot = Me.PigFunc.GECLng(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigReg_RegRoot))
+                    With Me.PigReg
+                        Me.PigConsole.GetLine("Input RegPath", Me.RegPath)
+                        Console.WriteLine("IsRegKeyExists={0}", .IsRegKeyExists(Me.RegRoot, Me.RegPath))
+                    End With
+                Case "DeleteRegKey"
+                    Me.RegRoot = Me.PigFunc.GECLng(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigReg_RegRoot))
+                    With Me.PigReg
+                        Me.PigConsole.GetLine("Input RegPath", Me.RegPath)
+                        Me.Ret = .DeleteRegKey(Me.RegRoot, RegPath)
+                        Console.WriteLine("DeleteRegKey={0}", Me.Ret)
+                    End With
+                Case "DeleteRegValue"
+                    Me.RegRoot = Me.PigFunc.GECLng(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigReg_RegRoot))
+                    With Me.PigReg
+                        Me.PigConsole.GetLine("Input RegPath", Me.RegPath)
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        Me.Ret = .DeleteRegValue(Me.RegRoot, RegPath, Me.RegName)
+                        Console.WriteLine("DeleteRegKey={0}", Me.Ret)
+                    End With
+                Case "SaveRegValue.StrValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.StrValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        Me.PigConsole.GetLine("Input StrValue", Me.RegValue)
+                        Me.Ret = .SaveRegValue(Me.RegRoot, Me.RegPath, Me.RegName, Me.RegValue)
+                        Console.WriteLine("CreateRegKey={0}", Me.Ret)
+                    End With
+                Case "SaveRegValue.BooleanValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.BooleanValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        Me.PigConsole.GetLine("Input BooleanValue", Me.RegValue)
+                        Me.Ret = .SaveRegValue(Me.RegRoot, Me.RegPath, Me.RegName, CBool(Me.RegValue))
+                        Console.WriteLine("CreateRegKey={0}", Me.Ret)
+                    End With
+                Case "SaveRegValue.IntValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.IntValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        Me.PigConsole.GetLine("Input IntValue", Me.RegValue)
+                        Me.Ret = .SaveRegValue(Me.RegRoot, Me.RegPath, Me.RegName, CInt(Me.RegValue))
+                        Console.WriteLine("CreateRegKey={0}", Me.Ret)
+                    End With
+                Case "SaveRegValue.LongValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.LongValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        Me.PigConsole.GetLine("Input LongValue", Me.RegValue)
+                        Me.Ret = .SaveRegValue(Me.RegRoot, Me.RegPath, Me.RegName, CLng(Me.RegValue))
+                        Console.WriteLine("CreateRegKey={0}", Me.Ret)
+                    End With
+                Case "SaveRegValue.DecValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.DecValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        Me.PigConsole.GetLine("Input DecValue", Me.RegValue)
+                        Me.Ret = .SaveRegValue(Me.RegRoot, Me.RegPath, Me.RegName, CDec(Me.RegValue))
+                        Console.WriteLine("CreateRegKey={0}", Me.Ret)
+                    End With
+                Case "SaveRegValue.BytesValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.BytesValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        Me.PigConsole.GetLine("Input BytesValue", Me.RegValue)
+                        Dim ptAny As New PigText(Me.RegValue, PigText.enmTextType.UTF8)
+                        Me.Ret = .SaveRegValue(Me.RegRoot, Me.RegPath, Me.RegName, ptAny.TextBytes)
+                        Console.WriteLine("CreateRegKey={0}", Me.Ret)
+                    End With
+                Case "SaveRegValue.MultiStringValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.MultiStringValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        Me.RegValue = "aaa,bbb,ccc"
+                        Me.PigConsole.GetLine("Input MultiStringValue", Me.RegValue)
+                        Dim abMS As String() = Me.RegValue.Split(",")
+                        Me.Ret = .SaveRegValue(Me.RegRoot, Me.RegPath, Me.RegName, abMS)
+                        Console.WriteLine("CreateRegKey={0}", Me.Ret)
+                    End With
+                Case "SaveRegValue.DateValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.DateValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        Me.RegValue = Now
+                        Me.PigConsole.GetLine("Input DateValue", Me.RegValue)
+                        Me.Ret = .SaveRegValue(Me.RegRoot, Me.RegPath, Me.RegName, CDate(Me.RegValue))
+                        Console.WriteLine("CreateRegKey={0}", Me.Ret)
+                    End With
+                Case "SetIsRegDefaValue"
+                    Me.IsRegDefaValue = Me.PigConsole.IsYesOrNo("IsRegDefaValue")
+                Case "GetRegStrValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.StrValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        If Me.IsRegDefaValue = True Then
+                            Me.PigConsole.GetLine("Input DateValue", Me.RegDefaValue)
+                            Me.RegValue = .GetRegStrValue(Me.RegRoot, Me.RegPath, Me.RegName, Me.RegDefaValue)
+                        Else
+                            Me.RegValue = .GetRegStrValue(Me.RegRoot, Me.RegPath, Me.RegName)
+                        End If
+                        If .LastErr = "" Then
+                            Console.WriteLine("GetRegStrValue={0}", Me.RegValue)
+                        Else
+                            Console.WriteLine(.LastErr)
+                        End If
+                    End With
+                Case "GetRegBooleanValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.BooleanValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        If Me.IsRegDefaValue = True Then
+                            Me.PigConsole.GetLine("Input DateValue", Me.RegDefaValue)
+                            Me.RegValue = .GetRegBooleanValue(Me.RegRoot, Me.RegPath, Me.RegName, CBool(Me.RegDefaValue))
+                        Else
+                            Me.RegValue = .GetRegBooleanValue(Me.RegRoot, Me.RegPath, Me.RegName)
+                        End If
+                        If .LastErr = "" Then
+                            Console.WriteLine("GetRegBooleanValue={0}", Me.RegValue)
+                        Else
+                            Console.WriteLine(.LastErr)
+                        End If
+                    End With
+                Case "GetRegIntValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.IntValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        If Me.IsRegDefaValue = True Then
+                            Me.PigConsole.GetLine("Input DateValue", Me.RegDefaValue)
+                            Me.RegValue = .GetRegIntValue(Me.RegRoot, Me.RegPath, Me.RegName, CInt(Me.RegDefaValue))
+                        Else
+                            Me.RegValue = .GetRegIntValue(Me.RegRoot, Me.RegPath, Me.RegName)
+                        End If
+                        If .LastErr = "" Then
+                            Console.WriteLine("GetRegIntValue={0}", Me.RegValue)
+                        Else
+                            Console.WriteLine(.LastErr)
+                        End If
+                    End With
+                Case "GetRegLongValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.LongValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        If Me.IsRegDefaValue = True Then
+                            Me.PigConsole.GetLine("Input DateValue", Me.RegDefaValue)
+                            Me.RegValue = .GetRegLongValue(Me.RegRoot, Me.RegPath, Me.RegName, CLng(Me.RegDefaValue))
+                        Else
+                            Me.RegValue = .GetRegLongValue(Me.RegRoot, Me.RegPath, Me.RegName)
+                        End If
+                        If .LastErr = "" Then
+                            Console.WriteLine("GetRegLongValue={0}", Me.RegValue)
+                        Else
+                            Console.WriteLine(.LastErr)
+                        End If
+                    End With
+                Case "GetRegDecValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.DecValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        If Me.IsRegDefaValue = True Then
+                            Me.PigConsole.GetLine("Input DateValue", Me.RegDefaValue)
+                            Me.RegValue = .GetRegDecValue(Me.RegRoot, Me.RegPath, Me.RegName, CDec(Me.RegDefaValue))
+                        Else
+                            Me.RegValue = .GetRegDecValue(Me.RegRoot, Me.RegPath, Me.RegName)
+                        End If
+                        If .LastErr = "" Then
+                            Console.WriteLine("GetRegDecValue={0}", Me.RegValue)
+                        Else
+                            Console.WriteLine(.LastErr)
+                        End If
+                    End With
+                Case "GetRegBytesValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.BytesValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        If Me.IsRegDefaValue = True Then
+                            Me.PigConsole.GetLine("Input DateValue", Me.RegDefaValue)
+                            Dim ptAny As New PigText(Me.RegDefaValue, PigText.enmTextType.UTF8)
+                            Me.RegValue3 = .GetRegBytesValue(Me.RegRoot, Me.RegPath, Me.RegName, ptAny.TextBytes)
+                        Else
+                            Me.RegValue3 = .GetRegBytesValue(Me.RegRoot, Me.RegPath, Me.RegName)
+                        End If
+                        If .LastErr = "" Then
+                            Console.WriteLine("GetRegBytesValue=")
+                            For i = 0 To Me.RegValue3.Length - 1
+                                Console.WriteLine("[{0}]={1}", i, Me.RegValue3(i))
+                            Next
+                            Console.WriteLine("")
+                        Else
+                            Console.WriteLine(.LastErr)
+                        End If
+                    End With
+                Case "GetRegMultiStringValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.MultiStringValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        If Me.IsRegDefaValue = True Then
+                            Me.PigConsole.GetLine("Input DateValue", Me.RegDefaValue)
+                            Dim abMS As String() = Me.RegDefaValue.Split(",")
+                            Me.RegValue2 = .GetRegMultiStrValue(Me.RegRoot, Me.RegPath, Me.RegName, abMS)
+                        Else
+                            Me.RegValue2 = .GetRegMultiStrValue(Me.RegRoot, Me.RegPath, Me.RegName)
+                        End If
+                        If .LastErr = "" Then
+                            Console.WriteLine("GetRegMultiStringValue=")
+                            For i = 0 To Me.RegValue2.Length - 1
+                                Console.WriteLine("[{0}]={1}", i, Me.RegValue2(i))
+                            Next
+                            Console.WriteLine("")
+                        Else
+                            Console.WriteLine(.LastErr)
+                        End If
+                    End With
+                Case "GetRegDateValue"
+                    With Me.PigReg
+                        Me.RegName = "SaveRegValue.DateValue"
+                        Me.PigConsole.GetLine("Input RegName", Me.RegName)
+                        If Me.IsRegDefaValue = True Then
+                            Me.PigConsole.GetLine("Input DateValue", Me.RegDefaValue)
+                            Me.RegValue = .GetRegDateValue(Me.RegRoot, Me.RegPath, Me.RegName, CDate(Me.RegDefaValue))
+                        Else
+                            Me.RegValue = .GetRegDateValue(Me.RegRoot, Me.RegPath, Me.RegName)
+                        End If
+                        If .LastErr = "" Then
+                            Console.WriteLine("GetRegDateValue={0}", Me.RegValue)
+                        Else
+                            Console.WriteLine(.LastErr)
+                        End If
+                    End With
             End Select
             Me.PigConsole.DisplayPause()
         Loop
