@@ -365,7 +365,7 @@ Public Class WebLogicApp
                     OutPigXml.AddEle("RunRes", strLine)
                 End If
             Next
-            OutPigXml.AddEleValue("LeapTime", Me.mPigFunc.GetFmtDateTime(Now))
+            OutPigXml.AddEle("LeapTime", Me.mPigFunc.GetFmtDateTime(Now))
             OutPigXml.AddEleRightSign("Root")
             Return "OK"
         Catch ex As Exception
