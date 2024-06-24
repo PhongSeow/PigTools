@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.39
+'* Version: 1.50
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -44,6 +44,7 @@
 '* 1.37 6/12/2023 Add StatisticsAccessLog, Modify mGetTopText,mGetTailText
 '* 1.38 20/12/2023 Modify mWlstCallMain
 '* 1.39 5/6/2024 Modify StatisticsAccessLog
+'* 1.50 12/6/2024 Modify mGetTopTextAsc,mGetTopText,StatisticsAccessLog
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -56,7 +57,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1." & "39" & "." & "2"
+    Private Const CLS_VERSION As String = "1." & "50" & "." & "2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -1572,6 +1573,7 @@ Public Class WebLogicDomain
             mGetTopText = ""
             Dim tsIn As TextStream
             tsIn = Me.mFS.OpenTextFile(FilePath, PigFileSystem.IOMode.ForReading, TextType)
+            If Me.mFS.LastErr <> "" Then Throw New Exception(Me.mFS.LastErr)
             Dim strCrLf As String = Me.OsCrLf
             Do While Not tsIn.AtEndOfStream
                 If Rows <= 0 Then Exit Do
@@ -1592,6 +1594,7 @@ Public Class WebLogicDomain
             mGetTopTextAsc = ""
             Dim tsIn As TextStreamAsc
             tsIn = Me.mFS.OpenTextFileAsc(FilePath, PigFileSystem.IOMode.ForReading)
+            If Me.mFS.LastErr <> "" Then Throw New Exception(Me.mFS.LastErr)
             Dim strCrLf As String = Me.OsCrLf
             Do While Not tsIn.AtEndOfStream
                 If Rows <= 0 Then Exit Do
@@ -1970,7 +1973,7 @@ Public Class WebLogicDomain
                     If InStr(strScanFileList, strName) = 0 Then
                         LOG.AddStepNameInf(oPigFile.FileTitle)
                         Dim strLine As String = ""
-                        strLine = Me.mGetTailText(oPigFile.FilePath, 1)
+                        strLine = Me.mGetTailText(oPigFile.FilePath, 1, TextType)
                         If bolIsLogErr = True Then
                             If oPigFile.LastErr <> "" Then
                                 LOG.AddStepNameInf(oPigFile.FileTitle)
@@ -2013,7 +2016,7 @@ Public Class WebLogicDomain
                 If strFilePath = "" Then Exit Do
                 LOG.StepName = strFilePath
                 strFilePath = Me.LogDirPath & Me.OsPathSep & strFilePath
-                Dim tsMain As TextStream = Me.mFS.OpenTextFile(strFilePath, PigFileSystem.IOMode.ForReading)
+                Dim tsMain As TextStream = Me.mFS.OpenTextFile(strFilePath, PigFileSystem.IOMode.ForReading, TextType)
                 If Me.mFS.LastErr <> "" Then
                     If bolIsLogErr = True Then
                         LOG.Ret = Me.mFS.LastErr

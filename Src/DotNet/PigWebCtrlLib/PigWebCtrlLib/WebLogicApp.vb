@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.12
+'* Version: 1.15
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add GetJavaVersion 
 '* 1.2  6/3/2022   Add WlstPath 
@@ -18,6 +18,8 @@
 '* 1.10 28/9/2022 Modify StartOrStopTimeout
 '* 1.11 24/6/2023 Change the reference to PigObjFsLib to PigToolsLiteLib
 '* 1.12 7/12/2023 Add RunOpatch
+'* 1.13 7/6/2024 Add JdkHomeDir,mSetJdkHomeDir, modify GetJavaVersion
+'* 1.15 24/6/2024 Modify GetJavaVersion,add GetJMapHeapXml
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -27,7 +29,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class WebLogicApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.12.10"
+    Private Const CLS_VERSION As String = "1.15.8"
     Public ReadOnly Property HomeDirPath As String
     Public ReadOnly Property WorkTmpDirPath As String
     Public ReadOnly Property CallWlstTimeout As Integer = 300
@@ -41,6 +43,36 @@ Public Class WebLogicApp
 
     Private mGetJavaVersionThreadID As Integer
 
+    Private mJdkHomeDir As String = ""
+    Public Property JdkHomeDir As String
+        Get
+            Return mJdkHomeDir
+        End Get
+        Friend Set(value As String)
+            Try
+                If value = "" Then
+                    Dim strPath As String = Me.mPigFunc.GetEnvVar("PATH")
+                    Dim strItemSep As String
+                    If Me.IsWindows = True Then
+                        strItemSep = ";"
+                    Else
+                        strItemSep = ":"
+                    End If
+                    strPath = strItemSep & strPath & strItemSep
+                    Dim strLeft As String = Me.OsPathSep & "jdk", strRight As String = Me.OsPathSep & "bin" & strItemSep
+                    value = Me.mPigFunc.GetStr(strPath, strLeft, strRight, 1)
+                    If value <> "" Then
+                        value = Me.mPigFunc.GetStr(strPath, strItemSep, strRight, 1)
+                        value &= Me.OsPathSep & "bin"
+                    End If
+                End If
+                mJdkHomeDir = value
+            Catch ex As Exception
+                Me.SetSubErrInf("JdkHomeDir.Set", ex)
+            End Try
+        End Set
+    End Property
+
     Public Sub New(HomeDirPath As String, WorkTmpDirPath As String)
         MyBase.New(CLS_VERSION)
         Try
@@ -49,21 +81,68 @@ Public Class WebLogicApp
             Me.HomeDirPath = HomeDirPath
             Me.WorkTmpDirPath = WorkTmpDirPath
             Me.CallWlstTimeout = CallWlstTimeout
+            Me.JdkHomeDir = ""
         Catch ex As Exception
             Me.SetSubErrInf("New", ex)
         End Try
     End Sub
+
+
+    Public Sub New(HomeDirPath As String, WorkTmpDirPath As String, JdkHomeDir As String)
+        MyBase.New(CLS_VERSION)
+        Try
+            Me.WebLogicDomains = New WebLogicDomains
+            Me.WebLogicDomains.fParent = Me
+            Me.HomeDirPath = HomeDirPath
+            Me.WorkTmpDirPath = WorkTmpDirPath
+            Me.CallWlstTimeout = CallWlstTimeout
+            Me.JdkHomeDir = JdkHomeDir
+        Catch ex As Exception
+            Me.SetSubErrInf("New", ex)
+        End Try
+    End Sub
+
+    Private Function mGetExeHead(CmdName As String) As String
+        Try
+            mGetExeHead = ""
+            If Me.JdkHomeDir <> "" Then
+                mGetExeHead = Me.JdkHomeDir & Me.OsPathSep & CmdName
+                If Me.IsWindows = True Then
+                    mGetExeHead = """" & mGetExeHead & ".exe"""
+                End If
+            Else
+                mGetExeHead = CmdName
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("mGetExeHead", ex)
+            Return ""
+        End Try
+    End Function
 
     ''' <summary>
     ''' Get java version information|获取java版本信息
     ''' </summary>
     ''' <returns></returns>
     Public Function GetJavaVersion() As String
+        Dim LOG As New PigStepLog("GetJavaVersion")
         Try
-            Dim strRet As String = Me.mPigCmdApp.AsyncCmdShell("java -version", Me.mGetJavaVersionThreadID)
-            Return strRet
+            Dim strCmd As String = ""
+            LOG.StepName = "mGetExeHead"
+            strCmd = Me.mGetExeHead("java")
+            If strCmd = "" Then
+                Throw New Exception("Unable to obtain command head.")
+            End If
+            strCmd &= " -version"
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            End If
+            Me.JavaVersion = Me.mPigCmdApp.StandardError
+            Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf("GetJavaVersion", ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -109,11 +188,6 @@ Public Class WebLogicApp
     End Property
 
 
-    Private Sub mPigCmdApp_AsyncRet_CmdShell_FullString(AsyncRet As PigAsync, StandardOutput As String, StandardError As String) Handles mPigCmdApp.AsyncRet_CmdShell_FullString
-        If AsyncRet.AsyncThreadID = Me.mGetJavaVersionThreadID Then
-            Me.JavaVersion = StandardError
-        End If
-    End Sub
 
     Public Overloads ReadOnly Property IsWindows() As String
         Get
@@ -180,5 +254,124 @@ Public Class WebLogicApp
             Return Me.GetSubErrInf("", ex)
         End Try
     End Function
+
+    ''' <summary>
+    ''' Obtain the XML output result of jmap head|获取 jmap -heap 的xml输出结果
+    ''' </summary>
+    ''' <param name="JavaPID">Java process number|Java进程号</param>
+    ''' <param name="OutPigXml">Output PigXml object|输出的PigXml对象</param>
+    ''' <returns></returns>
+    Public Function GetJMapHeapXml(JavaPID As Integer, ByRef OutPigXml As PigXml) As String
+        Dim LOG As New PigStepLog("GetJMapHeapXml")
+        Try
+            Dim strCmd As String = ""
+            LOG.StepName = "mGetExeHead"
+            strCmd = Me.mGetExeHead("jmap")
+            If strCmd = "" Then
+                Throw New Exception("Unable to obtain command head.")
+            End If
+            strCmd &= " -heap " & JavaPID
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            ElseIf Me.mPigCmdApp.StandardError <> "" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(Me.mPigCmdApp.StandardError)
+            End If
+            LOG.StepName = "New PigXml"
+            OutPigXml = New PigXml(True)
+            Dim bolIsOK As Boolean = False, bolHeapConfiguration As Boolean = False, bolIsYoungGeneration As Boolean = False, bolOldGeneration As Boolean = False
+            OutPigXml.AddEleLeftSign("Root")
+            For i = 0 To Me.mPigCmdApp.StandardOutputArray.Length - 1
+                Dim strLine As String = Me.mPigCmdApp.StandardOutputArray(i)
+                If bolIsOK = True Then
+                    Dim strLeftKey As String = ""
+                    Dim strXmlKey As String = "", strXmlValue As String = ""
+                    If bolHeapConfiguration = False Then
+                        strLeftKey = "JVM version is "
+                        If Left(strLine, Len(strLeftKey)) = strLeftKey Then
+                            strLine &= Me.OsCrLf
+                            Dim strJvmVer As String = Me.mPigFunc.GetStr(strLine, strLeftKey, Me.OsCrLf)
+                            OutPigXml.AddEle("JVM_Version", strJvmVer)
+                        End If
+                        If strLine = "Heap Configuration:" Then
+                            OutPigXml.AddEleLeftSign("HeapConfiguration")
+                            bolHeapConfiguration = True
+                        End If
+                    ElseIf bolIsYoungGeneration = False And bolHeapConfiguration = True Then
+                        If strLine = "PS Young Generation" Then
+                            OutPigXml.AddEleRightSign("HeapConfiguration")
+                            OutPigXml.AddEleLeftSign("PSYoungGeneration")
+                            bolIsYoungGeneration = True
+                        Else
+                            strLeftKey = " = "
+                            strLine &= Me.OsCrLf
+                            If InStr(strLine, strLeftKey) > 0 Then
+                                strXmlKey = Trim(Me.mPigFunc.GetStr(strLine, "", strLeftKey, 1))
+                                strXmlValue = Trim(Me.mPigFunc.GetStr(strLine, strLeftKey, Me.OsCrLf))
+                                If InStr(strXmlValue, "(") > 0 Then strXmlValue = Me.mPigFunc.GetStr(strXmlValue, "", " (")
+                                OutPigXml.AddEle(strXmlKey, strXmlValue, 1)
+                            End If
+                        End If
+                    ElseIf bolIsYoungGeneration = True And bolOldGeneration = False Then
+                        If strLine = "Eden Space:" Then
+                            OutPigXml.AddEleLeftSign("EdenSpace")
+                        ElseIf strLine = "From Space:" Then
+                            OutPigXml.AddEleRightSign("EdenSpace")
+                            OutPigXml.AddEleLeftSign("FromSpace")
+                        ElseIf strLine = "To Space:" Then
+                            OutPigXml.AddEleRightSign("FromSpace")
+                            OutPigXml.AddEleLeftSign("ToSpace")
+                        ElseIf strLine = "PS Old Generation" Then
+                            OutPigXml.AddEleRightSign("ToSpace")
+                            OutPigXml.AddEleRightSign("PSYoungGeneration")
+                            OutPigXml.AddEleLeftSign("PSOldGeneration")
+                            bolOldGeneration = True
+                        Else
+                            strLeftKey = " = "
+                            strLine &= Me.OsCrLf
+                            If InStr(strLine, strLeftKey) > 0 Then
+                                strXmlKey = Trim(Me.mPigFunc.GetStr(strLine, "", strLeftKey, 1))
+                                strXmlValue = Trim(Me.mPigFunc.GetStr(strLine, strLeftKey, Me.OsCrLf))
+                                If InStr(strXmlValue, "(") > 0 Then strXmlValue = Me.mPigFunc.GetStr(strXmlValue, "", " (")
+                                OutPigXml.AddEle(strXmlKey, strXmlValue, 1)
+                            ElseIf InStr(strLine, "% used") > 0 Then
+                                strXmlKey = "UsedRate"
+                                strXmlValue = Trim(Me.mPigFunc.GetStr(strLine, "", "% used"))
+                                OutPigXml.AddEle(strXmlKey, strXmlValue, 1)
+                            End If
+                        End If
+                    ElseIf bolOldGeneration = True Then
+                        strLeftKey = " = "
+                        strLine &= Me.OsCrLf
+                        If InStr(strLine, strLeftKey) > 0 Then
+                            strXmlKey = Trim(Me.mPigFunc.GetStr(strLine, "", strLeftKey, 1))
+                            strXmlValue = Trim(Me.mPigFunc.GetStr(strLine, strLeftKey, Me.OsCrLf))
+                            If InStr(strXmlValue, "(") > 0 Then strXmlValue = Me.mPigFunc.GetStr(strXmlValue, "", " (")
+                            OutPigXml.AddEle(strXmlKey, strXmlValue, 1)
+                        ElseIf InStr(strLine, "% used") > 0 Then
+                            strXmlKey = "UsedRate"
+                            strXmlValue = Trim(Me.mPigFunc.GetStr(strLine, "", "% used"))
+                            OutPigXml.AddEle(strXmlKey, strXmlValue, 1)
+                            OutPigXml.AddEleRightSign("PSOldGeneration")
+                        End If
+                    End If
+                ElseIf strLine = "Debugger attached successfully." Then
+                    bolIsOK = True
+                    OutPigXml.AddEle("RunRes", "OK")
+                ElseIf Left(strLine, 6) = "Error " Then
+                    OutPigXml.AddEle("RunRes", strLine)
+                End If
+            Next
+            OutPigXml.AddEleValue("LeapTime", Me.mPigFunc.GetFmtDateTime(Now))
+            OutPigXml.AddEleRightSign("Root")
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
 End Class
