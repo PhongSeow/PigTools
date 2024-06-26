@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.15
+'* Version: 1.16
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add GetJavaVersion 
 '* 1.2  6/3/2022   Add WlstPath 
@@ -20,6 +20,7 @@
 '* 1.12 7/12/2023 Add RunOpatch
 '* 1.13 7/6/2024 Add JdkHomeDir,mSetJdkHomeDir, modify GetJavaVersion
 '* 1.15 24/6/2024 Modify GetJavaVersion,add GetJMapHeapXml
+'* 1.16 26/6/2024 Modify GetJMapHeapXml
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -29,7 +30,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class WebLogicApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.15.8"
+    Private Const CLS_VERSION As String = "1." & "16" & "." & "6"
     Public ReadOnly Property HomeDirPath As String
     Public ReadOnly Property WorkTmpDirPath As String
     Public ReadOnly Property CallWlstTimeout As Integer = 300
@@ -365,6 +366,10 @@ Public Class WebLogicApp
                     OutPigXml.AddEle("RunRes", strLine)
                 End If
             Next
+            LOG.StepName = "Get MemoryUse"
+            Dim oPigProc As New PigProc(JavaPID)
+            OutPigXml.AddEle("ProcMem", oPigProc.MemoryUse)
+            oPigProc.Close()
             OutPigXml.AddEle("LeapTime", Me.mPigFunc.GetFmtDateTime(Now))
             OutPigXml.AddEleRightSign("Root")
             Return "OK"
