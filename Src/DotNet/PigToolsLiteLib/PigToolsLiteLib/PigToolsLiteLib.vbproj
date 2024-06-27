@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsLiteLib</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;net7.0;net8.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.5.72</Version>
+    <Version>3.5.78</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Optimize PigWebReq to solve bugs in .net Core.</Description>
@@ -16,7 +16,7 @@
     <RepositoryUrl>https://github.com/PhongSeow/PigTools/tree/main/Src/DotNet/PigToolsLiteLib</RepositoryUrl>
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop byte compressor log error file md5 text xml sharemem usetime http web request windows linux json aes rsa 3des uuid cache keyvalue debug multilingual encryption decrypt sql send process configure sort registry host folder scan files,filesystem</PackageTags>
-    <PackageReleaseNotes>Add new functions of PigReg and Optimize PigWebReq.</PackageReleaseNotes>
+    <PackageReleaseNotes>Add new functions of PigProc.</PackageReleaseNotes>
     <Title>PigTools lite library</Title>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <ImportedNamespaces>System=True,System.Collections=True,System.Collections.Generic=True,System.Data=True,System.Diagnostics=True,PigToolsLiteLib=True</ImportedNamespaces>

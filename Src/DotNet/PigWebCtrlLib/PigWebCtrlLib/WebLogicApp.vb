@@ -368,7 +368,9 @@ Public Class WebLogicApp
             Next
             LOG.StepName = "Get MemoryUse"
             Dim oPigProc As New PigProc(JavaPID)
-            OutPigXml.AddEle("ProcMem", oPigProc.MemoryUse)
+            OutPigXml.AddEle("ProcessMemory", oPigProc.MemoryUse)
+            OutPigXml.AddEle("TotalProcessorTime", oPigProc.TotalProcessorTime.ToString)
+            OutPigXml.AddEle("ThreadsCount", oPigProc.ThreadsCount)
             oPigProc.Close()
             OutPigXml.AddEle("LeapTime", Me.mPigFunc.GetFmtDateTime(Now))
             OutPigXml.AddEleRightSign("Root")

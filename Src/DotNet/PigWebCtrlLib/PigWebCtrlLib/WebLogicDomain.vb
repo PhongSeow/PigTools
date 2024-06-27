@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.50
+'* Version: 1.51
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -45,6 +45,7 @@
 '* 1.38 20/12/2023 Modify mWlstCallMain
 '* 1.39 5/6/2024 Modify StatisticsAccessLog
 '* 1.50 12/6/2024 Modify mGetTopTextAsc,mGetTopText,StatisticsAccessLog
+'* 1.51 26/6/2024 Modify GetDomainEnvInf
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -57,7 +58,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1." & "50" & "." & "2"
+    Private Const CLS_VERSION As String = "1." & "51" & "." & "2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -1541,7 +1542,10 @@ Public Class WebLogicDomain
                 .SUN_JAVA_HOME = Me.mGetFileKeyValue(strData, "SUN_JAVA_HOME")
                 .DEFAULT_SUN_JAVA_HOME = Me.mGetFileKeyValue(strData, "DEFAULT_SUN_JAVA_HOME")
                 .WLS_MEM_ARGS_64BIT = Me.mGetFileKeyValue(strData, "WLS_MEM_ARGS_64BIT")
-                .WLS_MEM_ARGS_32BIT = Me.mGetFileKeyValue(strData, "WLS_MEM_ARGS_32BIT")
+                .WLS_MEM_ARGS_32BIT = Me.mGetFileKeyValue(strData, "MEM_ARGS")
+                If .WLS_MEM_ARGS_32BIT = "" Then
+                    .WLS_MEM_ARGS_32BIT = Me.mGetFileKeyValue(strData, "WLS_MEM_ARGS_32BIT")
+                End If
             End With
             Return "OK"
         Catch ex As Exception

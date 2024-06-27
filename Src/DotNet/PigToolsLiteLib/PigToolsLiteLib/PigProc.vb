@@ -4,19 +4,20 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Process class|进程类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 20/3/2022
 '* 1.1    2/4/2022   Modify new
 '* 1.2    1/8/2022   Add Close
 '* 1.3    1/8/2022   Add Kill
 '* 1.5    5/9/2022   Modify StartTime
+'* 1.6    27/6/2024   Add ThreadsCount,ProcFileName,ProcUserName,ProcWorkingDirectory
 '**********************************
 ''' <summary>
 ''' Process class|进程类
 ''' </summary>
 Public Class PigProc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "6"
 
     Private moProcess As Process
 
@@ -29,6 +30,49 @@ Public Class PigProc
         End Try
     End Sub
 
+    Public ReadOnly Property ThreadsCount As Integer
+        Get
+            Try
+                Return moProcess.Threads.Count
+            Catch ex As Exception
+                Me.SetSubErrInf("ThreadsCount.Get", ex)
+                Return -1
+            End Try
+        End Get
+    End Property
+
+    Public ReadOnly Property ProcFileName As String
+        Get
+            Try
+                Return moProcess.StartInfo.FileName
+            Catch ex As Exception
+                Me.SetSubErrInf("ProcFileName.Get", ex)
+                Return -1
+            End Try
+        End Get
+    End Property
+
+    Public ReadOnly Property ProcUserName As String
+        Get
+            Try
+                Return moProcess.StartInfo.UserName
+            Catch ex As Exception
+                Me.SetSubErrInf("ProcUserName.Get", ex)
+                Return -1
+            End Try
+        End Get
+    End Property
+
+    Public ReadOnly Property ProcWorkingDirectory As String
+        Get
+            Try
+                Return moProcess.StartInfo.WorkingDirectory
+            Catch ex As Exception
+                Me.SetSubErrInf("ProcWorkingDirectory.Get", ex)
+                Return -1
+            End Try
+        End Get
+    End Property
 
     Public ReadOnly Property ProcessID As Integer
         Get
