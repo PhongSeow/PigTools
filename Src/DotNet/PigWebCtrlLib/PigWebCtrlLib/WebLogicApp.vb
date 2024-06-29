@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.16
+'* Version: 1.17
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add GetJavaVersion 
 '* 1.2  6/3/2022   Add WlstPath 
@@ -21,6 +21,7 @@
 '* 1.13 7/6/2024 Add JdkHomeDir,mSetJdkHomeDir, modify GetJavaVersion
 '* 1.15 24/6/2024 Modify GetJavaVersion,add GetJMapHeapXml
 '* 1.16 26/6/2024 Modify GetJMapHeapXml
+'* 1.17 27/6/2024 Modify GetJMapHeapXml, add GetJStatGcUtilXml
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -30,7 +31,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class WebLogicApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1." & "16" & "." & "6"
+    Private Const CLS_VERSION As String = "1." & "17" & "." & "6"
     Public ReadOnly Property HomeDirPath As String
     Public ReadOnly Property WorkTmpDirPath As String
     Public ReadOnly Property CallWlstTimeout As Integer = 300
@@ -256,13 +257,71 @@ Public Class WebLogicApp
         End Try
     End Function
 
+
+
     ''' <summary>
-    ''' Obtain the XML output result of jmap head|获取 jmap -heap 的xml输出结果
+    ''' Obtain the XML output result of jstat -gcutil|获取 jstat -gcutil 的xml输出结果
     ''' </summary>
     ''' <param name="JavaPID">Java process number|Java进程号</param>
     ''' <param name="OutPigXml">Output PigXml object|输出的PigXml对象</param>
+    ''' <param name="RootKeyName">The name of the root node|根结点的名称</param>
     ''' <returns></returns>
-    Public Function GetJMapHeapXml(JavaPID As Integer, ByRef OutPigXml As PigXml) As String
+    Public Function GetJStatGcUtilXml(JavaPID As Integer, ByRef OutPigXml As PigXml, Optional RootKeyName As String = "Root") As String
+        Dim LOG As New PigStepLog("GetJStatGcUtilXml")
+        Try
+            Dim strCmd As String = ""
+            LOG.StepName = "mGetExeHead"
+            strCmd = Me.mGetExeHead("jstat")
+            If strCmd = "" Then
+                Throw New Exception("Unable to obtain command head.")
+            End If
+            strCmd &= " -gcutil " & JavaPID
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            ElseIf Me.mPigCmdApp.StandardError <> "" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(Me.mPigCmdApp.StandardError)
+            End If
+            Dim strTitle As String = Trim(Me.mPigCmdApp.StandardOutputArray(0))
+            Dim strValue As String = Trim(Me.mPigCmdApp.StandardOutputArray(1))
+            Do While InStr(strTitle, "  ") > 0
+                strTitle = Replace(strTitle, "  ", " ")
+            Loop
+            strTitle = "<" & Replace(strTitle, " ", "><") & ">"
+            Do While InStr(strValue, "  ") > 0
+                strValue = Replace(strValue, "  ", " ")
+            Loop
+            strValue = "<" & Replace(strValue, " ", "><") & ">"
+            LOG.StepName = "New PigXml"
+            OutPigXml = New PigXml(True)
+            OutPigXml.AddEleLeftSign(RootKeyName)
+            Do While True
+                Dim strKey As String = Me.mPigFunc.GetStr(strTitle, "<", ">")
+                If strKey = "" Then Exit Do
+                Dim strKeyValue As String = Me.mPigFunc.GetStr(strValue, "<", ">")
+                OutPigXml.AddEle(strKey, strKeyValue)
+            Loop
+            OutPigXml.AddEle("GcUtilTime", Me.mPigFunc.GetFmtDateTime(Now))
+            OutPigXml.AddEle("JavaPID", JavaPID)
+            OutPigXml.AddEleRightSign(RootKeyName)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+
+    ''' <summary>
+    ''' Obtain the XML output result of jmap -heap|获取 jmap -heap 的xml输出结果
+    ''' </summary>
+    ''' <param name="JavaPID">Java process number|Java进程号</param>
+    ''' <param name="OutPigXml">Output PigXml object|输出的PigXml对象</param>
+    ''' <param name="RootKeyName">The name of the root node|根结点的名称</param>
+    ''' <returns></returns>
+    Public Function GetJMapHeapXml(JavaPID As Integer, ByRef OutPigXml As PigXml, Optional RootKeyName As String = "Root") As String
         Dim LOG As New PigStepLog("GetJMapHeapXml")
         Try
             Dim strCmd As String = ""
@@ -284,7 +343,7 @@ Public Class WebLogicApp
             LOG.StepName = "New PigXml"
             OutPigXml = New PigXml(True)
             Dim bolIsOK As Boolean = False, bolHeapConfiguration As Boolean = False, bolIsYoungGeneration As Boolean = False, bolOldGeneration As Boolean = False
-            OutPigXml.AddEleLeftSign("Root")
+            OutPigXml.AddEleLeftSign(RootKeyName)
             For i = 0 To Me.mPigCmdApp.StandardOutputArray.Length - 1
                 Dim strLine As String = Me.mPigCmdApp.StandardOutputArray(i)
                 If bolIsOK = True Then
@@ -373,7 +432,8 @@ Public Class WebLogicApp
             OutPigXml.AddEle("ThreadsCount", oPigProc.ThreadsCount)
             oPigProc.Close()
             OutPigXml.AddEle("LeapTime", Me.mPigFunc.GetFmtDateTime(Now))
-            OutPigXml.AddEleRightSign("Root")
+            OutPigXml.AddEle("JavaPID", JavaPID)
+            OutPigXml.AddEleRightSign(RootKeyName)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
