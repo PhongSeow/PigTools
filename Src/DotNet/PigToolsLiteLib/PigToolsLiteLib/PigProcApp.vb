@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Process Processing Class|进程处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 20/3/2022
 '* 1.1    26/3/2022  Modify GetPigProc(PID), Add GetPigProcs
 '* 1.2    1/8/2022   Add KillProc,KillProcs
@@ -12,6 +12,7 @@
 '* 1.4    16/8/2022  Add IsOtherExeExists
 '* 1.5    17/8/2022  Add KillOtherExe
 '* 1.6    15/5/2023  Modify IsOtherExeExists
+'* 1.7    24/6/2024  Add IsProcExists
 '**********************************
 
 ''' <summary>
@@ -19,7 +20,7 @@
 ''' </summary>
 Public Class PigProcApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "2"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
@@ -32,6 +33,35 @@ Public Class PigProcApp
         Catch ex As Exception
             Me.SetSubErrInf("GetPigProc", ex)
             Return Nothing
+        End Try
+    End Function
+
+    Public Function IsProcExists(ProcName As String, ByRef IsExists As Boolean) As String
+        Try
+            If Process.GetProcessesByName(ProcName).Length > 0 Then
+                IsExists = True
+            Else
+                IsExists = False
+            End If
+            Return "OK"
+        Catch ex As Exception
+            IsExists = False
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    Public Function IsProcExists(PID As Integer, ByRef IsExists As Boolean) As String
+        Try
+            Dim oProcess As Process = Process.GetProcessById(PID)
+            If oProcess Is Nothing Then
+                IsExists = False
+            Else
+                IsExists = True
+            End If
+            Return "OK"
+        Catch ex As Exception
+            IsExists = False
+            Return ex.Message.ToString
         End Try
     End Function
 

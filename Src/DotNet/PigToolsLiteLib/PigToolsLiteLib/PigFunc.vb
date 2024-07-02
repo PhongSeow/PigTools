@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.66
+'* Version: 1.67
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -64,6 +64,7 @@
 '*1.65   13/3/2024  Add LenA,LeftA,RightA,MidA,GetAlignStrA
 '*1.66   21/3/2024  Add GetDateUnixTimestamp,GetNowUnixTimestamp, modify GetWindowsProductId,mGetMachineGUID
 '*1.67   10/6/2024  Modify GetWindowsProductId,mGetMachineGUID
+'*1.68   2/7/2024  Add DistinctString
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -2737,6 +2738,22 @@ Public Class PigFunc
 
     Public Function GetNowUnixTimestamp() As String
         Return DateDiff(DateInterval.Second, #1/1/1970#, Now)
+    End Function
+
+    Public Function DistinctString(InStrings As String(), ByRef OutStrings As String()) As String
+        Try
+            Dim oList As New List(Of String)
+            For Each strItem As String In InStrings
+                If oList.Contains(strItem) = False Then
+                    oList.Add(strItem)
+                End If
+            Next
+            OutStrings = oList.ToArray
+            Return "OK"
+        Catch ex As Exception
+            ReDim OutStrings(-1)
+            Return Me.GetSubErrInf("DistinctStr", ex)
+        End Try
     End Function
 
 End Class
