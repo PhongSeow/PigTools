@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.22
+'* Version: 1.23
 '* Create Time: 2/6/2022
 '*1.1  3/6/2022  Add GetListenPortProcID
 '*1.2  7/6/2022  Add GetOSCaption
@@ -27,6 +27,7 @@
 '*1.20 23/11/2023 Add MoveDir,RmDirAndSubDir
 '*1.21 30/11/2023 Add GetDuSize, modify MoveDir
 '*1.22 21/4/2024  Modify GetListenPortProcID,GetProcListenPortList
+'*1.23 11/7/2024  Add GetListenProcXml,GetProcInfXml,GetProcListXml
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -34,7 +35,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "22" & "." & "6"
+    Private Const CLS_VERSION As String = "1" & "." & "23" & "." & "30"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -642,5 +643,400 @@ Public Class PigSysCmd
         End Try
     End Function
 
+    ''' <summary>
+    ''' Get the list of listening processes|获取侦听的进程列表
+    ''' </summary>
+    ''' <param name="OutPigXml">Output XML|输出的XML</param>
+    ''' <param name="IsMergeIp">Whether to merge IP addresses|是否合并IP地址</param>
+    ''' <returns></returns>
+    Public Function GetListenProcXml(ByRef OutPigXml As PigXml, IsMergeIp As Boolean, Optional PriorityIpHead As String = "", Optional IsCrLf As Boolean = True) As String
+        Dim LOG As New PigStepLog("GetListenProcXml")
+        Try
+            Dim oPigCmdApp As New PigCmdApp, strCmd As String
+            With oPigCmdApp
+                If Me.IsWindows = True Then
+                    strCmd = "netstat -ano|findstr TCP|findstr LISTENING"
+                Else
+                    strCmd = "netstat -apn|awk '{if($6==""LISTEN"" && $1==""tcp"") print ""<""$4""><""$7"">""}'"
+                End If
+                LOG.StepName = "CmdShell"
+                LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(strCmd)
+                    Throw New Exception(LOG.Ret)
+                End If
+                Dim strLocalIp As String = ""
+                If IsMergeIp = True Then
+                    strLocalIp = Me.mPigFunc.GetHostIp(PriorityIpHead)
+                End If
+                Dim asTmp(-1) As String
+                Dim strListenIp As String = "", intListenPort As Integer, intPID As Integer, strLine As String = "", intNo As Integer = 0
+                For i = 0 To .StandardOutputArray.Length - 1
+                    Dim strTmp As String, strLineOut As String = ""
+                    If Me.IsWindows = True Then
+                        LOG.StepName = "mClearDoubleSpace"
+                        'LOG.Ret = Me.mPigFunc.ClearDoubleSpace(.StandardOutputArray(i), strLine)
+                        If LOG.Ret <> "OK" Then
+                            Throw New Exception(LOG.Ret)
+                        ElseIf strLine = "" Then
+                            Throw New Exception("Return an empty string")
+                        End If
+                        If InStr(strLine, "[::]") = 0 Then
+                            strLine = "<" & Replace(strLine, " ", "><") & ">"
+                            strTmp = Me.mPigFunc.GetStr(strLine, "<", ">", True)
+                            strListenIp = Me.mPigFunc.GetStr(strLine, "<", ">", True)
+                            strTmp = Me.mPigFunc.GetStr(strListenIp, ":", "", True)
+                            intListenPort = Me.mPigFunc.GECLng(strTmp)
+                            If IsMergeIp = True Then
+                                strListenIp = strLocalIp
+                            End If
+                            strTmp = Me.mPigFunc.GetStr(strLine, "<", ">", True)
+                            strTmp = Me.mPigFunc.GetStr(strLine, "<", ">", True)
+                            strTmp = Me.mPigFunc.GetStr(strLine, "<", ">", True)
+                            intPID = Me.mPigFunc.GECLng(strTmp) : If intPID <= 0 Then intPID = -1
+                            strLineOut = "<" & strListenIp & "><" & intListenPort.ToString & "><" & intPID.ToString & ">"
+                        End If
+                    Else
+                        strListenIp = Me.mPigFunc.GetStr(strLine, "<", ">", True)
+                        strTmp = Me.mPigFunc.GetStr(strListenIp, ":", "", True)
+                        intListenPort = Me.mPigFunc.GECLng(strTmp)
+                        If IsMergeIp = True Then
+                            strListenIp = strLocalIp
+                        End If
+                        strTmp = Me.mPigFunc.GetStr(strLine, "<", ">", True)
+                        strTmp = Me.mPigFunc.GetStr(strTmp, "/", "", True)
+                        intPID = Me.mPigFunc.GECLng(strTmp) : If intPID <= 0 Then intPID = -1
+                    End If
+                    If strLineOut <> "" Then
+                        ReDim Preserve asTmp(intNo)
+                        asTmp(intNo) = strLineOut
+                        intNo += 1
+                    End If
+                Next
+                Dim asOut(-1) As String
+                LOG.StepName = "DistinctString"
+                LOG.Ret = Me.mPigFunc.DistinctString(asTmp, asOut)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+                OutPigXml = New PigXml(IsCrLf)
+                Dim intLeftTab As Integer = 0
+                If IsCrLf = True Then intLeftTab = 1
+                With OutPigXml
+                    .AddEleLeftSign("Root")
+                    For i = 0 To asOut.Length - 1
+                        strLine = asOut(i)
+                        strListenIp = Me.mPigFunc.GetStr(strLine, "<", ">")
+                        intListenPort = Me.mPigFunc.GECLng(Me.mPigFunc.GetStr(strLine, "<", ">"))
+                        intPID = Me.mPigFunc.GECLng(Me.mPigFunc.GetStr(strLine, "<", ">"))
+                        .AddEleLeftSign("Item")
+                        .AddEle("LocalIp", strListenIp, intLeftTab)
+                        .AddEle("LocalPort", intListenPort.ToString, intLeftTab)
+                        .AddEle("PID", intPID.ToString, intLeftTab)
+                        .AddEleRightSign("Item")
+                    Next
+                    .AddEle("TotalItems", asOut.Length)
+                    .AddEleRightSign("Root")
+                End With
+            End With
+            Return "OK"
+        Catch ex As Exception
+            If OutPigXml Is Nothing Then OutPigXml = New PigXml(IsCrLf)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    Private Structure mStruProcList
+        Public LineIn As String
+        Public LineOut As String
+        Public Tmp As String
+        Public AsTmp As String()
+        Public Items As Integer
+        Public LeftTab As Integer
+        Public BeginPos As Integer
+        '-----------
+        Public PID As Integer
+        Public ProcName As String
+        Public TTYOrSession As String
+        '-----------
+        Public Sub Reset()
+            LineIn = ""
+            LineOut = ""
+            Tmp = ""
+            ReDim AsTmp(-1)
+            Items = 0
+            LeftTab = 0
+            BeginPos = 0
+        End Sub
+        Public Sub ResetLine()
+            PID = -1
+            ProcName = ""
+            TTYOrSession = ""
+        End Sub
+    End Structure
+
+    Private Structure mStruProcInf
+        Public LineIn As String
+        Public LineOut As String
+        Public Tmp As String
+        Public AsTmp As String()
+        Public Items As Integer
+        Public LeftTab As Integer
+        '-----------
+        Public PID As Integer
+        Public ProcName As String
+        Public TTYOrSession As String
+        Public UserName As String
+        Public FilePath As String
+        Public ProcCmd As String
+        Public MemoryUse As Decimal
+        Public TotalProcessorTime As String
+        '-----------
+        Public Sub Reset()
+            LineIn = ""
+            LineOut = ""
+            Tmp = ""
+            ReDim AsTmp(-1)
+            Items = 0
+            LeftTab = 0
+        End Sub
+        Public Sub ResetLine()
+            PID = -1
+            ProcName = ""
+            TTYOrSession = ""
+            UserName = ""
+            FilePath = ""
+            ProcCmd = ""
+            MemoryUse = 0
+            TotalProcessorTime = ""
+        End Sub
+    End Structure
+
+    ''' <summary>
+    ''' Get process list|获取进程列表
+    ''' </summary>
+    ''' <param name="OutPigXml">Output XML|输出的XML</param>
+    ''' <param name="ByProcName">By process name|按进程名</param>
+    ''' <param name="IsCrLf"></param>
+    ''' <returns></returns>
+    Public Function GetProcListXml(ByRef OutPigXml As PigXml, Optional ByProcName As String = "", Optional IsCrLf As Boolean = True) As String
+        Dim LOG As New PigStepLog("GetProcListXml")
+        Dim strCmd As String = ""
+        Try
+            Dim oPigCmdApp As New PigCmdApp
+            Dim msProcList As New mStruProcList
+            msProcList.Reset()
+            With oPigCmdApp
+                If Me.IsWindows = True Then
+                    strCmd = "tasklist /FO CSV "
+                    If ByProcName <> "" Then
+                        strCmd &= " /FI ""IMAGENAME eq " & ByProcName & """"
+                    End If
+                    msProcList.BeginPos = 1
+                Else
+                    strCmd = "ps -e|awk '{"
+                    If ByProcName <> "" Then
+                        strCmd &= "if($4==""" & ByProcName & """)"
+                    Else
+                        msProcList.BeginPos = 1
+                    End If
+                    strCmd &= " print ""<"""
+                    For i = 1 To 4
+                        Select Case i
+                            Case 1, 2, 4
+                                strCmd &= "$" & i.ToString & """><"""
+                        End Select
+                    Next
+                    strCmd &= "}'"
+                End If
+                LOG.StepName = "CmdShell"
+                LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+                If LOG.Ret <> "OK" Then
+                    Throw New Exception(LOG.Ret)
+                ElseIf .StandardError <> "" Then
+                    LOG.Ret = .StandardError
+                    Throw New Exception(LOG.Ret)
+                End If
+                OutPigXml = New PigXml(IsCrLf)
+                If IsCrLf = True Then
+                    msProcList.LeftTab = 1
+                End If
+                OutPigXml.AddEleLeftSign("Root")
+                OutPigXml.AddEle("ByProcName", ByProcName)
+                For i = msProcList.BeginPos To .StandardOutputArray.Length - 1
+                    With msProcList
+                        .ResetLine()
+                        .Items += 1
+                        .Tmp = ""","
+                        .LineIn = oPigCmdApp.StandardOutputArray(i)
+                        If Right(.LineIn, 2) <> .Tmp Then
+                            .LineIn &= .Tmp
+                        End If
+                        If Me.IsWindows = True Then
+                            .ProcName = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            .Tmp = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            If .Tmp = "" Then
+                                .PID = -1
+                            Else
+                                .PID = Me.mPigFunc.GEInt(.Tmp)
+                            End If
+                            .TTYOrSession = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            .Tmp = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            .TTYOrSession &= "#" & .Tmp
+                        Else
+                            .Tmp = Me.mPigFunc.GetStr(.LineIn, "<", ">")
+                            If .Tmp = "" Then
+                                .PID = -1
+                            Else
+                                .PID = Me.mPigFunc.GEInt(.Tmp)
+                            End If
+                            .TTYOrSession = Me.mPigFunc.GetStr(.LineIn, "<", ">")
+                            .ProcName = Me.mPigFunc.GetStr(.LineIn, "<", ">")
+                        End If
+                        OutPigXml.AddEleLeftSign("Item")
+                        OutPigXml.AddEle("ProcName", .ProcName, .LeftTab)
+                        OutPigXml.AddEle("PID", .PID.ToString, .LeftTab)
+                        OutPigXml.AddEle("TTYOrSession", .TTYOrSession, .LeftTab)
+                        OutPigXml.AddEleRightSign("Item")
+                    End With
+                Next
+                OutPigXml.AddEle("TotalItems", msProcList.Items)
+                OutPigXml.AddEleRightSign("Root")
+            End With
+            Return "OK"
+        Catch ex As Exception
+            If OutPigXml Is Nothing Then OutPigXml = New PigXml(IsCrLf)
+            LOG.AddStepNameInf(strCmd)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get detailed process information|获取进程详细信息
+    ''' </summary>
+    ''' <param name="OutPigXml">Output XML|输出的XML</param>
+    ''' <param name="ByPID">By process number|按进程号</param>
+    ''' <param name="IsCrLf"></param>
+    ''' <returns></returns>
+    Public Function GetProcInfXml(ByRef OutPigXml As PigXml, ByPID As Integer, Optional IsCrLf As Boolean = True) As String
+        Dim aiByPID(0) As Integer
+        aiByPID(0) = ByPID
+        Return Me.mGetProcInfXml(OutPigXml, aiByPID, IsCrLf)
+    End Function
+    Private Function mGetProcInfXml(ByRef OutPigXml As PigXml, ByPIDs As Integer(), Optional IsCrLf As Boolean = True) As String
+        Dim LOG As New PigStepLog("mGetProcInfXml")
+        Dim strCmd As String = ""
+        Try
+            Dim oPigCmdApp As New PigCmdApp
+            With oPigCmdApp
+                If Me.IsWindows = True Then
+                    strCmd = "tasklist /FO CSV "
+                    If ByPID >= 0 Then
+                        strCmd &= " /FI ""PID eq " & ByPID.ToString & """"
+                    ElseIf ByProcName <> "" Then
+                        strCmd &= " /FI ""IMAGENAME eq " & ByProcName & """"
+                    End If
+                    If ByProcUserName <> "" Then
+                        strCmd &= " /FI ""USERNAME eq " & ByProcUserName & """"
+                    End If
+                Else
+                    If ByPID >= 0 Then
+                        strCmd = "ps -e|awk '{if($2==" & ByPID.ToString & ") print $0}'"
+                    ElseIf ByProcName <> "" Then
+                        strCmd = "ps -e|grep " & ByProcName & "|grep -v grep"
+                    Else
+                        strCmd = "ps -e"
+                    End If
+                    If ByProcUserName <> "" Then
+                        strCmd &= "|grep " & ByProcUserName & "|grep -v grep"
+                    End If
+                    strCmd &= "|awk '{print ""\"""""
+                    For i = 1 To 8
+                        strCmd &= "$" & i.ToString & """\"",\"""""
+                    Next
+                    strCmd &= """\""""}'"
+                End If
+                Console.WriteLine(strCmd)
+                LOG.StepName = "CmdShell"
+                LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(strCmd)
+                    Throw New Exception(LOG.Ret)
+                End If
+                Dim msProcInf As New mStruProcInf
+                msProcInf.Reset()
+                OutPigXml = New PigXml(IsCrLf)
+                If IsCrLf = True Then
+                    msProcInf.LeftTab = 1
+                End If
+                OutPigXml.AddEleLeftSign("Root")
+                OutPigXml.AddEle("ByPID", ByPID)
+                OutPigXml.AddEle("ByProcName", ByProcName)
+                OutPigXml.AddEle("ByProcUserName", ByProcUserName)
+                Dim intBegin As Integer = 0
+                If Me.IsWindows = True Then
+                    intBegin = 1
+                End If
+                For i = intBegin To .StandardOutputArray.Length - 1
+                    With msProcInf
+                        .ResetLine()
+                        .Items += 1
+                        .LineIn = oPigCmdApp.StandardOutputArray(i) & """"
+                        If Me.IsWindows = True Then
+                            '.ProcNameOrCmd = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.Tmp = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            'If .Tmp = "" Then
+                            '    .PID = -1
+                            'Else
+                            '    .PID = Me.mPigFunc.GEInt(.Tmp)
+                            'End If
+                            '.TTYOrSession = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.Tmp = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.TTYOrSession &= "#" & .Tmp
+                            '.MemUsed = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.Tmp = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.UserName = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.CpuTime = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.WinTitle = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                        Else
+                            '.UserName = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.Tmp = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            'If .Tmp = "" Then
+                            '    .PID = -1
+                            'Else
+                            '    .PID = Me.mPigFunc.GEInt(.Tmp)
+                            'End If
+                            '.Tmp = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            'If .Tmp = "" Then
+                            '    .ParentID = -1
+                            'Else
+                            '    .ParentID = Me.mPigFunc.GEInt(.Tmp)
+                            'End If
+                            '.Tmp = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.StartTime = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.TTYOrSession = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.CpuTime = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                            '.ProcNameOrCmd = Me.mPigFunc.GetStr(.LineIn, """", """,")
+                        End If
+                        OutPigXml.AddEleLeftSign("Item")
+                        'OutPigXml.AddEle("ProcNameOrCmd", .ProcNameOrCmd, .LeftTab)
+                        'OutPigXml.AddEle("PID", .PID.ToString, .LeftTab)
+                        'OutPigXml.AddEle("ParentID", .ParentID.ToString, .LeftTab)
+                        'OutPigXml.AddEle("TTYOrSession", .TTYOrSession, .LeftTab)
+                        'OutPigXml.AddEle("MemUsed", .MemUsed, .LeftTab)
+                        'OutPigXml.AddEle("UserName", .UserName, .LeftTab)
+                        'OutPigXml.AddEle("CpuTime", .CpuTime, .LeftTab)
+                        'OutPigXml.AddEle("StartTime", .StartTime, .LeftTab)
+                        'OutPigXml.AddEle("WinTitle", .WinTitle, .LeftTab)
+                        OutPigXml.AddEleRightSign("Item")
+                    End With
+                Next
+                OutPigXml.AddEle("TotalItems", msProcInf.Items)
+                OutPigXml.AddEleRightSign("Root")
+            End With
+            Return "OK"
+        Catch ex As Exception
+            If OutPigXml Is Nothing Then OutPigXml = New PigXml(IsCrLf)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 End Class

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.67
+'* Version: 1.69
 '* Create Time: 2/2/2021
 '*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '*1.0.3  20/7/2021   Add GECBool,GECLng
@@ -65,6 +65,7 @@
 '*1.66   21/3/2024  Add GetDateUnixTimestamp,GetNowUnixTimestamp, modify GetWindowsProductId,mGetMachineGUID
 '*1.67   10/6/2024  Modify GetWindowsProductId,mGetMachineGUID
 '*1.68   2/7/2024  Add DistinctString
+'*1.69   2/7/2024  Add StrSpaceMulti2Double,GECInt
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -81,7 +82,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "67" & "." & "10"
+    Private Const CLS_VERSION As String = "1" & "." & "69" & "." & "6"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -797,6 +798,15 @@ Public Class PigFunc
             Return CLng(vData)
         Catch ex As Exception
             Me.SetSubErrInf("GECLng", ex)
+            Return 0
+        End Try
+    End Function
+
+    Public Function GECInt(vData As String) As Integer
+        Try
+            Return CInt(vData)
+        Catch ex As Exception
+            Me.SetSubErrInf("GECInt", ex)
             Return 0
         End Try
     End Function
@@ -2753,6 +2763,33 @@ Public Class PigFunc
         Catch ex As Exception
             ReDim OutStrings(-1)
             Return Me.GetSubErrInf("DistinctStr", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Replace multiple spaces in a string with two spaces|把字符串中多个空格替换为两个空格
+    ''' </summary>
+    ''' <param name="SrcStr">Source string|源字符串</param>
+    ''' <param name="OutStr">Converted string|转换后的字符串</param>
+    ''' <param name="IsTrimConvert">Do you want to convert double spaces to '<>'|是否把双空格转换成"<>"</param>
+    ''' <returns></returns>
+    ''' </summary>
+    Public Function StrSpaceMulti2Double(SrcStr As String, ByRef OutStr As String, Optional IsTrimConvert As Boolean = True) As String
+        Try
+            Const SPACE_2 As String = "  "
+            Const SPACE_3 As String = "   "
+            OutStr = SrcStr
+            Do While InStr(OutStr, SPACE_3) > 0
+                OutStr = Replace(OutStr, SPACE_3, SPACE_2)
+            Loop
+            If IsTrimConvert = True Then
+                OutStr = Trim(OutStr)
+                OutStr = "<" & Replace(OutStr, SPACE_2, "><") & ">"
+            End If
+            Return "OK"
+        Catch ex As Exception
+            OutStr = ""
+            Return Me.GetSubErrInf("StrSpaceMulti2Double", ex)
         End Try
     End Function
 

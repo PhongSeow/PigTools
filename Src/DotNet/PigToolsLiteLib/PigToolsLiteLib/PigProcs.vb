@@ -4,9 +4,10 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Process Collection Class|进程集合类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.1
+'* Version: 1.2
 '* Create Time: 20/3/2022
 '* 1.1    26/3/2022   Modify New
+'* 1.2    12/7/2024   Modify New
 '************************************
 ''' <summary>
 ''' Process Collection Class|进程集合类
@@ -14,7 +15,7 @@
 Public Class PigProcs
     Inherits PigBaseMini
     Implements IEnumerable(Of PigProc)
-    Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "6"
     Private ReadOnly moList As New List(Of PigProc)
 
     Public Sub New()
@@ -95,8 +96,9 @@ Public Class PigProcs
 
 
     Public Function Add(ProcessID As String) As PigProc
-        Dim LOG As New PigStepLog("Remove.ProcessID")
+        Dim LOG As New PigStepLog("Add")
         Try
+            Dim bolIsExists As Boolean = False
             LOG.StepName = "New PigProc"
             Add = New PigProc(ProcessID)
             If Add.LastErr <> "" Then

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Process Processing Class|进程处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 20/3/2022
 '* 1.1    26/3/2022  Modify GetPigProc(PID), Add GetPigProcs
 '* 1.2    1/8/2022   Add KillProc,KillProcs
@@ -13,25 +13,34 @@
 '* 1.5    17/8/2022  Add KillOtherExe
 '* 1.6    15/5/2023  Modify IsOtherExeExists
 '* 1.7    24/6/2024  Add IsProcExists
+'* 1.8    12/7/2024  Add GetPigProc
 '**********************************
+
+Imports System.Security.Cryptography
 
 ''' <summary>
 ''' Process Processing Class|进程处理类
 ''' </summary>
 Public Class PigProcApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "12"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
     End Sub
 
-    Public Function GetPigProc(PID As Long) As PigProc
+    Public Function GetPigProc(PID As Integer) As PigProc
+        Dim LOG As New PigStepLog("GetPigProc")
         Try
-            GetPigProc = New PigProc(PID)
-            If GetPigProc.LastErr <> "" Then Throw New Exception(GetPigProc.LastErr)
+            Dim bolIsExists As Boolean = False
+            Me.IsProcExists(PID, bolIsExists)
+            If bolIsExists = True Then
+                GetPigProc = New PigProc(PID)
+            Else
+                Return Nothing
+            End If
         Catch ex As Exception
-            Me.SetSubErrInf("GetPigProc", ex)
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
         End Try
     End Function
@@ -72,12 +81,16 @@ Public Class PigProcApp
             Dim abProcess As Process() = Process.GetProcessesByName(ProcName)
             LOG.StepName = "New PigProcs"
             GetPigProcs = New PigProcs
+            Dim bolIsExists As Boolean = False
             For Each oProcess As Process In abProcess
-                LOG.StepName = "Add"
-                GetPigProcs.Add(oProcess.Id)
-                If GetPigProcs.LastErr <> "" Then
-                    LOG.AddStepNameInf(oProcess.Id)
-                    Throw New Exception(GetPigProcs.LastErr)
+                Me.IsProcExists(oProcess.Id, bolIsExists)
+                If bolIsExists = True Then
+                    LOG.StepName = "Add"
+                    GetPigProcs.Add(oProcess.Id)
+                    If GetPigProcs.LastErr <> "" Then
+                        LOG.Ret = GetPigProcs.LastErr
+                        Throw New Exception(LOG.Ret)
+                    End If
                 End If
             Next
         Catch ex As Exception
