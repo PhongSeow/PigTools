@@ -666,7 +666,6 @@ Public Class PigSysCmd
                 End If
                 LOG.StepName = "CmdShell"
                 LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
-                Console.WriteLine(strCmd)
                 If LOG.Ret <> "OK" Then
                     LOG.AddStepNameInf(strCmd)
                     Throw New Exception(LOG.Ret)
@@ -691,7 +690,6 @@ Public Class PigSysCmd
                             Throw New Exception("Return an empty string")
                         End If
                         .LineInStrSpaceMulti2One(True)
-                        Console.WriteLine(.LineIn)
                         If Me.IsWindows = True Then
                             If InStr(.LineIn, "[::]") = 0 Then
                                 .AddItems()

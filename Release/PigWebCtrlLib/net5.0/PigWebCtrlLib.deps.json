@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "PigWebCtrlLib/2.2.82": {
+      "PigWebCtrlLib/2.2.82.8": {
         "dependencies": {
-          "PigCmdLib": "2.2.188"
+          "PigCmdLib": "2.2.188.8"
         },
         "runtime": {
           "PigWebCtrlLib.dll": {}
@@ -21,14 +21,14 @@
           "System.Security.Principal.Windows": "5.0.0"
         }
       },
-      "PigCmdLib/2.2.188": {
+      "PigCmdLib/2.2.188.8": {
         "dependencies": {
           "PigToolsLiteLib": "3.5.82"
         },
         "runtime": {
           "lib/net5.0/PigCmdLib.dll": {
-            "assemblyVersion": "2.2.188.0",
-            "fileVersion": "2.2.188.0"
+            "assemblyVersion": "2.2.188.8",
+            "fileVersion": "2.2.188.8"
           }
         }
       },
@@ -53,7 +53,7 @@
     }
   },
   "libraries": {
-    "PigWebCtrlLib/2.2.82": {
+    "PigWebCtrlLib/2.2.82.8": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -72,12 +72,12 @@
       "path": "microsoft.win32.registry/5.0.0",
       "hashPath": "microsoft.win32.registry.5.0.0.nupkg.sha512"
     },
-    "PigCmdLib/2.2.188": {
+    "PigCmdLib/2.2.188.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-xCggbnTSlTZ66VsmOwt+25grR8ULu1BCdZwlcOcrCdI2JtVuxO2PlVMN4oPaqHEy9INh55pVfVOJCH4ieT8WNQ==",
-      "path": "pigcmdlib/2.2.188",
-      "hashPath": "pigcmdlib.2.2.188.nupkg.sha512"
+      "sha512": "sha512-Vlsk/nKGgiV0JFyPZm18Brgj0WbnvRVLWe6Zw158xlAWyTwfbqQn5hX2m4idYb9ekx0bXdZrYWeckIXo1MdRsQ==",
+      "path": "pigcmdlib/2.2.188.8",
+      "hashPath": "pigcmdlib.2.2.188.8.nupkg.sha512"
     },
     "PigToolsLiteLib/3.5.82": {
       "type": "package",
