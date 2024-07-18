@@ -63,6 +63,12 @@ Public Class PigSysCmd
                 If Me.IsWindows = True Then
                     strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr " & PID.ToString
                 Else
+                    strCmd = "netstat -apn|awk '{if($6==""LISTEN"" && $1==""tcp"") print $4"" ""$7}'"
+                End If
+
+                If Me.IsWindows = True Then
+                    strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr " & PID.ToString
+                Else
                     strCmd = "netstat -apn|grep tcp|grep LISTEN|grep " & PID.ToString
                 End If
                 LOG.StepName = "CmdShell"
@@ -123,9 +129,9 @@ Public Class PigSysCmd
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
             With oPigCmdApp
                 If Me.IsWindows = True Then
-                    strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr :" & ListenPort.ToString
+                    strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr " & ListenPort.ToString
                 Else
-                    strCmd = "netstat -apn|grep tcp|grep LISTEN|grep :" & ListenPort.ToString
+                    strCmd = "netstat -apn|awk '{if($6==""LISTEN"" && $1==""tcp"") print $4"" ""$7}'|grep "":" & ListenPort.ToString & """"
                 End If
                 LOG.StepName = "CmdShell"
                 LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
@@ -134,9 +140,8 @@ Public Class PigSysCmd
                     Throw New Exception(LOG.Ret)
                 End If
                 OutPID = -1
-                Dim strMat As String = ":" & ListenPort.ToString & " "
                 For i = 0 To .StandardOutputArray.Length - 1
-                    Dim strLine As String = Trim(.StandardOutputArray(i)) & "}", strPID As String = ""
+                    Dim strLine As String = Me.mPigFunc.StrSpaceMulti2Double
                     If Me.IsWindows = True Then
                         If InStr(strLine, strMat) > 0 Then strPID = Trim(mPigFunc.GetStr(strLine, "LISTENING ", "}"))
                     Else
