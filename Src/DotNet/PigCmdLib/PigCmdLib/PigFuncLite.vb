@@ -4,14 +4,14 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Lightweight PigFunc, code from PigFunc|轻量的PigFunc，代码来自PigFunc
 '* Home Url: https://en.seowphong.com
-'* Version: 1.69
+'* Version: 1.70
 '**********************************
 
 Imports PigToolsLiteLib
 
 Friend Class PigFuncLite
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "69" & "." & "6"
+    Private Const CLS_VERSION As String = "1" & "." & "70" & "." & "2"
 
     Sub New()
         MyBase.New(CLS_VERSION)
@@ -61,6 +61,22 @@ Friend Class PigFuncLite
         Catch ex As Exception
             OutStr = ""
             Return Me.GetSubErrInf("StrSpaceMulti2One", ex)
+        End Try
+    End Function
+
+    Public Function DistinctString(InStrings As String(), ByRef OutStrings As String()) As String
+        Try
+            Dim oList As New List(Of String)
+            For Each strItem As String In InStrings
+                If oList.Contains(strItem) = False Then
+                    oList.Add(strItem)
+                End If
+            Next
+            OutStrings = oList.ToArray
+            Return "OK"
+        Catch ex As Exception
+            ReDim OutStrings(-1)
+            Return Me.GetSubErrInf("DistinctStr", ex)
         End Try
     End Function
 

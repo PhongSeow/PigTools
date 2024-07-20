@@ -29,6 +29,7 @@
 '*1.22 21/4/2024  Modify GetListenPortProcID,GetProcListenPortList
 '*1.23 11/7/2024  Add GetTcpListenProcList,GetProcInfXml,GetProcListXml
 '*1.25 15/7/2024  Add GetProcUserName, modify GetTcpListenProcList
+'*1.26 18/7/2024  Modify GetListenPortProcID,GetProcListenPortList,mStruProcList
 '**********************************
 Imports System.Security.Cryptography
 Imports PigCmdLib.PigSysCmd
@@ -38,7 +39,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "25" & "." & "28"
+    Private Const CLS_VERSION As String = "1" & "." & "26" & "." & "6"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -59,56 +60,68 @@ Public Class PigSysCmd
         Dim LOG As New PigStepLog("GetProcListenPortList")
         Try
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
-            With oPigCmdApp
-                If Me.IsWindows = True Then
-                    strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr " & PID.ToString
-                Else
-                    strCmd = "netstat -apn|awk '{if($6==""LISTEN"" && $1==""tcp"") print $4"" ""$7}'"
-                End If
-
-                If Me.IsWindows = True Then
-                    strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr " & PID.ToString
-                Else
-                    strCmd = "netstat -apn|grep tcp|grep LISTEN|grep " & PID.ToString
-                End If
-                LOG.StepName = "CmdShell"
-                LOG.Ret = .CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
-                If LOG.Ret <> "OK" Then
-                    LOG.AddStepNameInf(strCmd)
-                    Throw New Exception(LOG.Ret)
-                End If
-                ReDim OutListPort(-1)
-                For i = 0 To .StandardOutputArray.Length - 1
-                    Dim strLine As String = Trim(.StandardOutputArray(i)) & "}", strPort As String = "", strMat As String = ""
-                    Do While True
-                        If InStr(strLine, "  ") = 0 Then Exit Do
-                        strLine = Replace(strLine, "  ", " ")
-                    Loop
-                    If Me.IsWindows = True Then
-                        strMat = "LISTENING " & PID.ToString & "}"
-                    Else
-                        strMat = "LISTEN " & PID.ToString & "/"
-                    End If
-                    If InStr(strLine, strMat) > 0 Then strPort = Trim(mPigFunc.GetStr(strLine, ":", " "))
-                    If IsNumeric(strPort) Then
-                        Dim intPort As Integer = CInt(strPort)
-                        If intPort > 0 Then
-                            Dim bolIsFind As Boolean = False, intLen As Integer = 0
-                            intLen = OutListPort.Length
-                            For j = 0 To intLen - 1
-                                If OutListPort(j) = intPort Then
-                                    bolIsFind = True
-                                    Exit For
-                                End If
-                            Next
-                            If bolIsFind = False Then
-                                ReDim Preserve OutListPort(intLen)
-                                OutListPort(intLen) = intPort
-                            End If
-                        End If
-                    End If
-                Next
+            If Me.IsWindows = True Then
+                strCmd = "netstat -ano|findstr TCP|findstr LISTENING|findstr " & PID.ToString
+            Else
+                strCmd = "netstat -apn|awk '{if($6==""LISTEN"" && $1==""tcp"") print $4"" ""$7}'|grep " & PID.ToString & """/"""
+            End If
+            LOG.StepName = "CmdShell"
+            LOG.Ret = oPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            End If
+            ReDim OutListPort(-1)
+            Dim stTmp As New StruTmp, intPID As Integer, intListenPort As Integer
+            With stTmp
+                .Reset()
+                .BeginStr = "<"
+                .EndStr = ">"
             End With
+            For i = 0 To oPigCmdApp.StandardOutputArray.Length - 1
+                With stTmp
+                    .ResetLine()
+                    .LineIn = oPigCmdApp.StandardOutputArray(i)
+                    .LineInStrSpaceMulti2One(True)
+                    intPID = -1
+                    intListenPort = -1
+                    If Me.IsWindows = True Then
+                        .CutLineIn2StrTmp()
+                        .CutLineIn2StrTmp()
+                        .StrTmp2 = .GetStr(.StrTmp, "[", "]")
+                        If .StrTmp2 = "" Then
+                            .StrTmp2 = .GetStr(.StrTmp, ":", "")
+                            intListenPort = .IntTmp2
+                            .CutLineIn2StrTmp()
+                            .CutLineIn2StrTmp()
+                            .CutLineIn2StrTmp()
+                            If IsNumeric(.StrTmp) = True Then intPID = .IntTmp
+                        End If
+                    Else
+                        .CutLineIn2StrTmp()
+                        .StrTmp2 = .GetStr(.StrTmp, ":", "")
+                        intListenPort = .IntTmp2
+                        .CutLineIn2StrTmp()
+                        .StrTmp2 = .GetStr(.StrTmp, "", "/")
+                        If IsNumeric(.StrTmp2) = True Then intPID = .IntTmp2
+                    End If
+                    If intPID = PID And intListenPort > 0 Then
+                        .AddItems()
+                        ReDim Preserve .AsTmp(.Items - 1)
+                        .AsTmp(.Items - 1) = intListenPort
+                    End If
+                End With
+            Next
+            LOG.StepName = "AsTmpDistinctString"
+            LOG.Ret = stTmp.AsTmpDistinctString(stTmp.AsTmp2)
+            If LOG.Ret <> "OK" Then
+                Throw New Exception(LOG.Ret)
+            End If
+            LOG.StepName = "AsTmp2 To OutListPort"
+            ReDim OutListPort(stTmp.AsTmp2.Length - 1)
+            For i = 0 To stTmp.AsTmp2.Length - 1
+                OutListPort(i) = CInt(stTmp.AsTmp2(i))
+            Next
             Return "OK"
         Catch ex As Exception
             ReDim OutListPort(-1)
@@ -140,17 +153,40 @@ Public Class PigSysCmd
                     Throw New Exception(LOG.Ret)
                 End If
                 OutPID = -1
+                Dim stTmp As New StruTmp, intListenPort As Integer
+                With stTmp
+                    .Reset()
+                    .BeginStr = "<"
+                    .EndStr = ">"
+                End With
                 For i = 0 To .StandardOutputArray.Length - 1
-                    Dim strLine As String = Me.mPigFunc.StrSpaceMulti2Double
-                    If Me.IsWindows = True Then
-                        If InStr(strLine, strMat) > 0 Then strPID = Trim(mPigFunc.GetStr(strLine, "LISTENING ", "}"))
-                    Else
-                        If InStr(strLine, strMat) > 0 Then strPID = Trim(mPigFunc.GetStr(strLine, "LISTEN ", "/"))
-                    End If
-                    If IsNumeric(strPID) Then
-                        OutPID = CInt(strPID)
-                        Exit For
-                    End If
+                    With stTmp
+                        .ResetLine()
+                        .LineIn = oPigCmdApp.StandardOutputArray(i)
+                        .LineInStrSpaceMulti2One(True)
+                        OutPID = -1
+                        If Me.IsWindows = True Then
+                            .CutLineIn2StrTmp()
+                            .CutLineIn2StrTmp()
+                            .StrTmp2 = .GetStr(.StrTmp, "[", "]")
+                            If .StrTmp2 = "" Then
+                                .StrTmp2 = .GetStr(.StrTmp, ":", "")
+                                intListenPort = .IntTmp2
+                                .CutLineIn2StrTmp()
+                                .CutLineIn2StrTmp()
+                                .CutLineIn2StrTmp()
+                                If IsNumeric(.StrTmp) = True Then OutPID = .IntTmp
+                            End If
+                        Else
+                            .CutLineIn2StrTmp()
+                            .StrTmp2 = .GetStr(.StrTmp, ":", "")
+                            intListenPort = .IntTmp2
+                            .CutLineIn2StrTmp()
+                            .StrTmp2 = .GetStr(.StrTmp, "", "/")
+                            If IsNumeric(.StrTmp2) = True Then OutPID = .IntTmp2
+                        End If
+                        If intListenPort = ListenPort Then Exit For
+                    End With
                 Next
             End With
             Return "OK"
@@ -690,6 +726,7 @@ Public Class PigSysCmd
                 End With
                 For i = 0 To .StandardOutputArray.Length - 1
                     With stMain
+                        .ResetLine()
                         .LineIn = oPigCmdApp.StandardOutputArray(i)
                         If .LineIn = "" Then
                             Throw New Exception("Return an empty string")
@@ -778,6 +815,12 @@ Public Class PigSysCmd
         End Sub
     End Structure
 
+    ''' <summary>
+    ''' Intermediate processing structure for strings|字符串中间处理结构
+    ''' Version: 1.1
+    ''' Create Time: 16/7/2024
+    ''' 1.1  19/7/2024  Add ResetLine, modify Reset
+    ''' </summary>
     Friend Structure StruTmp
         Public LineIn As String
         Public LineOut As String
@@ -792,12 +835,6 @@ Public Class PigSysCmd
         Public BeginStr As String
         Public EndStr As String
         Public Sub Reset()
-            LineIn = ""
-            LineOut = ""
-            StrTmp = ""
-            StrTmp2 = ""
-            ReDim AsTmp(-1)
-            ReDim AsTmp2(-1)
             Items = 0
             LeftTab = 0
             BeginPos = 0
@@ -806,6 +843,14 @@ Public Class PigSysCmd
             If PigFunc Is Nothing Then
                 PigFunc = New PigFuncLite
             End If
+            ReDim AsTmp(-1)
+            ReDim AsTmp2(-1)
+        End Sub
+        Public Sub ResetLine()
+            LineIn = ""
+            LineOut = ""
+            StrTmp = ""
+            StrTmp2 = ""
         End Sub
         Public Sub AddItems()
             Items += 1
@@ -849,6 +894,43 @@ Public Class PigSysCmd
             PigFunc.StrSpaceMulti2One(LineIn, strTmp, IsTrimConvert)
             LineIn = strTmp
         End Sub
+        Public Function GetStr(ByRef SourceStr As String, BeginStr As String, EndStr As String) As String
+            Return PigFunc.GetStr(SourceStr, BeginStr, EndStr, True)
+        End Function
+        Public Function IntTmp2() As Integer
+            If IsNumeric(StrTmp2) Then
+                Return CInt(StrTmp2)
+            Else
+                Return 0
+            End If
+        End Function
+        Public Function LngTmp2() As Long
+            If IsNumeric(StrTmp2) Then
+                Return CLng(StrTmp2)
+            Else
+                Return 0
+            End If
+        End Function
+        Public Function BoolTmp2() As Boolean
+            Return CBool(StrTmp2)
+        End Function
+        Public Function DecTmp2() As Decimal
+            If IsNumeric(StrTmp2) Then
+                Return CDec(StrTmp2)
+            Else
+                Return 0
+            End If
+        End Function
+        Public Function DateTmp2() As Date
+            If IsDate(StrTmp2) Then
+                Return CDate(StrTmp2)
+            Else
+                Return #2000/1/1#
+            End If
+        End Function
+        Public Function AsTmpDistinctString(ByRef OutStrings As String()) As String
+            Return PigFunc.DistinctString(AsTmp, OutStrings)
+        End Function
     End Structure
 
 
@@ -1226,9 +1308,10 @@ Public Class PigSysCmd
                     Dim stMain As New StruTmp
                     With stMain
                         .Reset()
-                        .LineIn = oPigCmdApp.StandardOutputArray(1)
                         .BeginStr = """"
                         .EndStr = ""","
+                        .ResetLine()
+                        .LineIn = oPigCmdApp.StandardOutputArray(1)
                         For i = 1 To 7
                             .CutLineIn2StrTmp()
                         Next
