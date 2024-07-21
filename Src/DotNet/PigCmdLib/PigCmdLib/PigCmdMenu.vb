@@ -4,18 +4,19 @@
 '* License: Copyright (c) 2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 命令行菜单应用|Command line menu application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 5/3/2024
 '* 1.1  8/3/2024  Modify SelectMenu, add mFullMenuTitle,mGetMaxLineCol,mGetMaxPage
 '* 1.2  8/3/2024  Modify SelectMenu, add mRefreshMenuProperty,AddMenuItem,AddMenuBarItem,PageItems,CurrPage,RowCol,MaxLineCol
 '* 1.3  13/3/2024  Modify mGetMaxLineCol,SelectMenu,mRefreshMenuProperty
+'* 1.5  21/7/2024  Modify PigFunc to PigFuncLite
 '**********************************
 Imports PigToolsLiteLib
 Public Class PigCmdMenu
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "18"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "18"
 
-    Friend ReadOnly Property mPigFunc As New PigFunc
+    Friend ReadOnly Property mPigFunc As New PigFuncLite
     Public ReadOnly Property MenuTitle As String
     Public ReadOnly Property IsTopMenu As Boolean
     Private ReadOnly Property mCmdMenus As New CmdMenus

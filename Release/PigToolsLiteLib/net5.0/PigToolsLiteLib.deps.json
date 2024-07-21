@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "PigToolsLiteLib/3.5.86": {
+      "PigToolsLiteLib/3.5.88": {
         "dependencies": {
           "Microsoft.Win32.Registry": "5.0.0"
         },
@@ -31,7 +31,7 @@
     }
   },
   "libraries": {
-    "PigToolsLiteLib/3.5.86": {
+    "PigToolsLiteLib/3.5.88": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

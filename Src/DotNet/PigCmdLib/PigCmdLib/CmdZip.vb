@@ -4,17 +4,18 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Command line operations for commonly used compressed packages|常用压缩包的命令行操作
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 15/11/2023
 '* 1.1  16/11/2023  Modify New,AddArchive, add ExtractArchive
 '* 1.2  17/11/2023  Add mAddArchive, modify AddArchive
 '* 1.3  20/11/2023  Add mAddArchive,mExtractArchive, modify AddArchive,ExtractArchive
+'* 1.5  21/7/2024  Modify PigFunc to PigFuncLite
 '**********************************
 Imports PigToolsLiteLib
 
 Public Class CmdZip
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "38"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "38"
 
     Public Enum EnmZipType
         _7_Zip = 0
@@ -25,7 +26,7 @@ Public Class CmdZip
     Public ReadOnly Property ZipType As EnmZipType
     Public ReadOnly Property ZipExePath As String
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
-    Private ReadOnly Property mPigFunc As New PigFunc
+    Private ReadOnly Property mPigFunc As New PigFuncLite
 
     Public Sub New(ZipType As EnmZipType, ZipExePath As String)
         MyBase.New(CLS_VERSION)

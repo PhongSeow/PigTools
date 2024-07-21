@@ -6,27 +6,28 @@
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.22
 '* Create Time: 15/1/2022
-'*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
-'*1.2 3/2/2022     Add GetLine
-'*1.3 4/2/2022     Add mGetKeyTypeForLine,ClearLine,mGetLine
-'*1.4 5/2/2022     Modify GetLine.
-'*1.5 6/2/2022     Modify mGetKeyTypeForLine,mGetKeyTypeForPwd,mGetLine
-'*1.6 19/3/2022    Modify mGetLine,GetLine,GetPwdStr, add mGetPwdStr, 
-'*1.7 16/4/2022    Add IsYesOrNo and SimpleMenu.
-'*1.8 17/4/2022    Modify SimpleMenu
-'*1.9 29/4/2022    Add DisplayPause,mDisplayPause
-'*1.10 26/7/2022   Modify Imports
-'*1.11 29/7/2022   Modify Imports,mGetLine
-'*1.12 12/8/2022   Modify IsYesOrNo
-'*1.13 16/10/2022  Add InitMLang
-'*1.15 17/10/2022  Add MLang function, modify mDisplayPause
-'*1.16 18/10/2022  Modify SimpleMenu,IsYesOrNo
-'*1.17 19/10/2022  Add GetCanUseCultureXml
-'*1.18 17/11/2022  Add SelectControl
-'*1.19 23/10/2023  Modify SimpleMenu
-'*1.20 5/12/2023   Add EnmWhatTypeOfMenuDefinition,GetMenuDefinition,SelectMenuOfEnumeration,AddMenuDefinition
-'*1.21 21/2/2024   Modify mDisplayPause,IsYesOrNo,mDisplayPause,SimpleMenu,mGetLine
-'*1.22 9/6/2024   Modify EnmWhatTypeOfMenuDefinition,GetMenuDefinition
+'* 1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
+'* 1.2 3/2/2022     Add GetLine
+'* 1.3 4/2/2022     Add mGetKeyTypeForLine,ClearLine,mGetLine
+'* 1.4 5/2/2022     Modify GetLine.
+'* 1.5 6/2/2022     Modify mGetKeyTypeForLine,mGetKeyTypeForPwd,mGetLine
+'* 1.6 19/3/2022    Modify mGetLine,GetLine,GetPwdStr, add mGetPwdStr, 
+'* 1.7 16/4/2022    Add IsYesOrNo and SimpleMenu.
+'* 1.8 17/4/2022    Modify SimpleMenu
+'* 1.9 29/4/2022    Add DisplayPause,mDisplayPause
+'* 1.10 26/7/2022   Modify Imports
+'* 1.11 29/7/2022   Modify Imports,mGetLine
+'* 1.12 12/8/2022   Modify IsYesOrNo
+'* 1.13 16/10/2022  Add InitMLang
+'* 1.15 17/10/2022  Add MLang function, modify mDisplayPause
+'* 1.16 18/10/2022  Modify SimpleMenu,IsYesOrNo
+'* 1.17 19/10/2022  Add GetCanUseCultureXml
+'* 1.18 17/11/2022  Add SelectControl
+'* 1.19 23/10/2023  Modify SimpleMenu
+'* 1.20 5/12/2023   Add EnmWhatTypeOfMenuDefinition,GetMenuDefinition,SelectMenuOfEnumeration,AddMenuDefinition
+'* 1.21 21/2/2024   Modify mDisplayPause,IsYesOrNo,mDisplayPause,SimpleMenu,mGetLine
+'* 1.22 9/6/2024   Modify EnmWhatTypeOfMenuDefinition,GetMenuDefinition
+'* 1.23  21/7/2024  Modify PigFunc to PigFuncLite
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -35,8 +36,8 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "22" & "." & "28"
-    Private ReadOnly Property mPigFunc As New PigFunc
+    Private Const CLS_VERSION As String = "1" & "." & "23" & "." & "8"
+    Private ReadOnly Property mPigFunc As New PigFuncLite
 
     Private Property mPigMLang As PigMLang
     Property mIsUseMLang As Boolean = False

@@ -789,7 +789,7 @@ Public Class PigFunc
         Try
             Return CInt(vData)
         Catch ex As Exception
-            Me.SetSubErrInf("GECLng", ex)
+            Me.SetSubErrInf("GEInt", ex)
             Return 0
         End Try
     End Function

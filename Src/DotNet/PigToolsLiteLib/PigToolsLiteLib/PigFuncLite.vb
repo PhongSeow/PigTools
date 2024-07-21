@@ -2,21 +2,31 @@
 '* Name: PigFuncLite
 '* Author: Seow Phong
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
-'* Describe: Lightweight PigFunc, code from PigFunc|轻量的PigFunc，代码来自PigFunc
+'* Describe: 经量的PigFunc，代码来自 PigFunc 的副本|A small part of PigFunc, the code comes from a copy of PigFunc
 '* Home Url: https://en.seowphong.com
 '* Version: 1.70
+'* Create Time: 2/2/2021
 '**********************************
-
 Imports System.IO
 Imports System.Text
-Imports PigToolsLiteLib
-Imports PigToolsLiteLib.PigFunc
 Imports System.Environment
 Imports System.Net
+Imports System.Threading
 
-Friend Class PigFuncLite
-    Inherits PigBaseLocal
+Public Class PigFuncLite
+    Inherits PigBaseMini
     Private Const CLS_VERSION As String = "1" & "." & "70" & "." & "2"
+
+    Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
+
+    ''' <summary>文件的部分</summary>
+    Public Enum EnmFilePart
+        Path = 1         '路径
+        FileTitle = 2    '文件名
+        ExtName = 3      '扩展名
+        DriveNo = 4      '驱动器名
+    End Enum
+
 
     ''' <summary>获取随机字符串的方式</summary>
     Public Enum EnmGetRandString
@@ -25,6 +35,14 @@ Friend Class PigFuncLite
         DisplayChar = 3     '全部可显示字符(ASCII 33-126)
         AllAsciiChar = 4    '全部ASCII码(返回结果以16进制方式显示)
     End Enum
+
+    ''' <summary>对齐方式|Alignment</summary>
+    Public Enum EnmAlignment
+        Left = 1
+        Right = 2
+        Center = 3
+    End Enum
+
 
     Sub New()
         MyBase.New(CLS_VERSION)
@@ -669,5 +687,127 @@ Friend Class PigFuncLite
     Public Function GetFmtDateTime(SrcTime As DateTime, Optional TimeFmt As String = "yyyy-MM-dd HH:mm:ss.fff") As String
         Return Format(SrcTime, TimeFmt)
     End Function
+
+    Public Function AddMultiLineText(ByRef MainText As String, NewLine As String, Optional LeftTabs As Integer = 0) As String
+        Try
+            Dim strTabs As String = ""
+            If LeftTabs > 0 Then
+                For i = 1 To LeftTabs
+                    strTabs &= vbTab
+                Next
+            End If
+            MainText &= strTabs & NewLine & Me.OsCrLf
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("AddMultiLineText", ex)
+        End Try
+    End Function
+
+    Public Function GetHostName() As String
+        Return Dns.GetHostName()
+    End Function
+
+    Public Function ASyncSaveTextToFile(FilePath As String, SaveText As String, ByRef OutThreadID As Integer) As String
+        Return Me.mASyncSaveTextToFile(FilePath, SaveText, OutThreadID)
+    End Function
+
+    Private Structure mStruSaveTextToFile
+        Public FilePath As String
+        Public SaveText As String
+        Public IsAsync As Boolean
+    End Structure
+
+    Private Function mASyncSaveTextToFile(FilePath As String, SaveText As String, ByRef OutThreadID As Integer) As String
+        Try
+            Dim struMain As mStruSaveTextToFile
+            With struMain
+                .FilePath = FilePath
+                .SaveText = SaveText
+                .IsAsync = True
+            End With
+            Dim oThread As New Thread(AddressOf mSaveTextToFile)
+            oThread.Start(struMain)
+            OutThreadID = oThread.ManagedThreadId
+            oThread = Nothing
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("mASyncSaveTextToFile", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Deviation from reference time|是否偏离参考时间
+    ''' </summary>
+    ''' <param name="ReferenceTime">Reference time|参考时间</param>
+    ''' <param name="TimeCount">Time Count|时间计数</param>
+    ''' <param name="DateInterval">Date Interval|日期间隔</param>
+    ''' <returns></returns>
+    Public Function IsDeviationTime(ReferenceTime As Date, TimeCount As Integer, Optional DateInterval As DateInterval = DateInterval.Minute) As Boolean
+        Try
+            If Math.Abs(DateDiff(DateInterval, ReferenceTime, Now)) > TimeCount Then
+                Return True
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("IsDeviationTime", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    Public Function GetUserName() As String
+        Return Environment.UserName
+    End Function
+
+    Public Function SaveTextToFile(FilePath As String, SaveText As String) As String
+        Dim struMain As mStruSaveTextToFile
+        With struMain
+            .FilePath = FilePath
+            .SaveText = SaveText
+        End With
+        Return Me.mSaveTextToFile(struMain)
+    End Function
+
+    Public Function DeleteFile(FilePath As String) As String
+        Try
+            File.Delete(FilePath)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("DeleteFile", ex)
+        End Try
+    End Function
+
+    Private Function mSaveTextToFile(StruMain As mStruSaveTextToFile) As String
+        Dim LOG As New PigStepLog("mSaveTextToFile")
+        Dim sarMain As StruASyncRet
+        Try
+            If StruMain.IsAsync = True Then
+                sarMain.BeginTime = Now
+            End If
+            LOG.StepName = "New StreamWriter"
+            Dim swMain As New StreamWriter(StruMain.FilePath, False)
+            LOG.StepName = "Write"
+            swMain.Write(StruMain.SaveText)
+            LOG.StepName = "Close"
+            swMain.Close()
+            If StruMain.IsAsync = True Then
+                sarMain.EndTime = Now
+                sarMain.ThreadID = Thread.CurrentThread.ManagedThreadId
+                sarMain.Ret = "OK"
+                RaiseEvent ASyncRet_SaveTextToFile(sarMain)
+            End If
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(StruMain.FilePath)
+            If StruMain.IsAsync = True Then
+                sarMain.EndTime = Now
+                sarMain.ThreadID = Thread.CurrentThread.ManagedThreadId
+                sarMain.Ret = Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+                RaiseEvent ASyncRet_SaveTextToFile(sarMain)
+            End If
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
 End Class

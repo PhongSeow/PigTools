@@ -4,11 +4,12 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Service processing class|服务处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 2/9/2023
 '* 1.1  3/9/2023   Add Refresh
 '* 1.2  11/9/2023  Add StartService,StopService,Delete
 '* 1.3  16/9/2023  Modify Delete,New,Refresh
+'* 1.5  21/7/2024  Modify PigFunc to PigFuncLite
 '**********************************
 'Imports Microsoft.VisualBasic.Logging
 Imports PigToolsLiteLib
@@ -17,7 +18,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigService
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "28"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "28"
 
     Public Sub New(ServiceName As String)
         MyBase.New(CLS_VERSION)
@@ -41,7 +42,7 @@ Public Class PigService
 
     Private ReadOnly Property mPigSysCmd As New PigSysCmd
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
-    Private ReadOnly Property mPigFunc As New PigFunc
+    Private ReadOnly Property mPigFunc As New PigFuncLite
     Public ReadOnly Property ServiceName As String
 
     Private mDescription As String

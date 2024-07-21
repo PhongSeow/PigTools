@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2023-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Host class|主机类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 1/16/2023
 '* 1.1  1/18/2023  Modify GetCPUBaseInf,New
 '* 1.2  1/19/2023  Modify GetCPUBaseInf,New
 '* 1.3  1/20/2023  Modify New
 '* 1.5  18/8/2023  Add fRefCpuActInf
 '* 1.6  21/2/2024  Modify 
+'* 1.7  21/7/2024  Modify PigFunc to PigFuncLite
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -18,7 +19,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigHost
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "16"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "16"
 
     Friend Enum EnmGetCPUBaseWhat
         Model = 0
@@ -35,7 +36,7 @@ Public Class PigHost
     Public ReadOnly Property UUID As String
     Public ReadOnly Property CPU As PigCPU
     Public ReadOnly Property OSCaption As String
-    Private ReadOnly Property mPigFunc As New PigFunc
+    Private ReadOnly Property mPigFunc As New PigFuncLite
     Private ReadOnly Property mPigSysCmd As New PigSysCmd
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
 

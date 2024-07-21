@@ -4,32 +4,33 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.25
+'* Version: 1.27
 '* Create Time: 2/6/2022
-'*1.1  3/6/2022  Add GetListenPortProcID
-'*1.2  7/6/2022  Add GetOSCaption
-'*1.3  17/6/2022 Add GetProcListenPortList
-'*1.4  23/7/2022 Add GetWmicSimpleXml
-'*1.5 26/7/2022  Modify Imports
-'*1.6 29/7/2022  Modify Imports
-'*1.7 17/8/2022  Add KillProc
-'*1.8 29/12/2022  Add GetBootUpTime
-'*1.9 16/1/2023  Add GetCmdRetRows
-'*1.10 17/1/2023  Modify GetCmdRetRows,GetWmicSimpleXml
-'*1.11 19/1/2023  Modify GetUUID,GetCmdRetRows
-'*1.12 20/1/2023  Modify GetUUID
-'*1.13 14/6/2023  Modify GetListenPortProcID
-'*1.15 25/6/2023  Modify GetListenPortProcID,GetWmicSimpleXml,GetOSCaption,GetBootUpTime,GetCmdRetRows,GetProcListenPortList
-'*1.16 23/7/2023  Modify GetBootUpTime
-'*1.17 16/8/2023  Add ReBootHost
-'*1.18 18/8/2023  Add mGetWmicSimpleXml,GetWmicSimpleXml modify ReBootHost
-'*1.19 20/10/2023 Add GetDefaultIPGateway
-'*1.20 23/11/2023 Add MoveDir,RmDirAndSubDir
-'*1.21 30/11/2023 Add GetDuSize, modify MoveDir
-'*1.22 21/4/2024  Modify GetListenPortProcID,GetProcListenPortList
-'*1.23 11/7/2024  Add GetTcpListenProcList,GetProcInfXml,GetProcListXml
-'*1.25 15/7/2024  Add GetProcUserName, modify GetTcpListenProcList
-'*1.26 18/7/2024  Modify GetListenPortProcID,GetProcListenPortList,mStruProcList
+'* 1.1  3/6/2022  Add GetListenPortProcID
+'* 1.2  7/6/2022  Add GetOSCaption
+'* 1.3  17/6/2022 Add GetProcListenPortList
+'* 1.4  23/7/2022 Add GetWmicSimpleXml
+'* 1.5 26/7/2022  Modify Imports
+'* 1.6 29/7/2022  Modify Imports
+'* 1.7 17/8/2022  Add KillProc
+'* 1.8 29/12/2022  Add GetBootUpTime
+'* 1.9 16/1/2023  Add GetCmdRetRows
+'* 1.10 17/1/2023  Modify GetCmdRetRows,GetWmicSimpleXml
+'* 1.11 19/1/2023  Modify GetUUID,GetCmdRetRows
+'* 1.12 20/1/2023  Modify GetUUID
+'* 1.13 14/6/2023  Modify GetListenPortProcID
+'* 1.15 25/6/2023  Modify GetListenPortProcID,GetWmicSimpleXml,GetOSCaption,GetBootUpTime,GetCmdRetRows,GetProcListenPortList
+'* 1.16 23/7/2023  Modify GetBootUpTime
+'* 1.17 16/8/2023  Add ReBootHost
+'* 1.18 18/8/2023  Add mGetWmicSimpleXml,GetWmicSimpleXml modify ReBootHost
+'* 1.19 20/10/2023 Add GetDefaultIPGateway
+'* 1.20 23/11/2023 Add MoveDir,RmDirAndSubDir
+'* 1.21 30/11/2023 Add GetDuSize, modify MoveDir
+'* 1.22 21/4/2024  Modify GetListenPortProcID,GetProcListenPortList
+'* 1.23 11/7/2024  Add GetTcpListenProcList,GetProcInfXml,GetProcListXml
+'* 1.25 15/7/2024  Add GetProcUserName, modify GetTcpListenProcList
+'* 1.26 18/7/2024  Modify GetListenPortProcID,GetProcListenPortList,mStruProcList
+'* 1.27 21/7/2024  Modify PigFunc to PigFuncLite
 '**********************************
 Imports System.Security.Cryptography
 Imports PigCmdLib.PigSysCmd
@@ -39,9 +40,9 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "26" & "." & "6"
+    Private Const CLS_VERSION As String = "1" & "." & "27" & "." & "6"
 
-    Private ReadOnly Property mPigFunc As New PigFunc
+    Private ReadOnly Property mPigFunc As New PigFuncLite
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
     Private ReadOnly Property mPigProcApp As New PigProcApp
 
