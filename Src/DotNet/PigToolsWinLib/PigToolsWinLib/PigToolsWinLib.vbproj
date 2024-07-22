@@ -4,7 +4,7 @@
     <RootNamespace>PigToolsWinLib</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.5.86</Version>
+    <Version>3.5.88</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Change to referencing PigToolsLiteLib to avoid class name conflicts.</Description>
@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.5.86" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.5.88" />
   </ItemGroup>
 
 </Project>

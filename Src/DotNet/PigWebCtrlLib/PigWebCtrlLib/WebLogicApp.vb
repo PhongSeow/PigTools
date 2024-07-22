@@ -41,7 +41,7 @@ Public Class WebLogicApp
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mFS As New PigFileSystem
-    Private mPigFunc As New PigFunc
+    Private mPigFunc As New PigFuncLite
 
     Private mGetJavaVersionThreadID As Integer
 
