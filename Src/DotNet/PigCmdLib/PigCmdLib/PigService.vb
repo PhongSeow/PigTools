@@ -42,7 +42,7 @@ Public Class PigService
 
     Private ReadOnly Property mPigSysCmd As New PigSysCmd
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
-    Private ReadOnly Property mPigFunc As New PigFuncLite
+    Private ReadOnly Property mPigFunc As New PigFunc
     Public ReadOnly Property ServiceName As String
 
     Private mDescription As String

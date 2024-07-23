@@ -16,7 +16,7 @@ Public Class PigCmdMenu
     Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "18"
 
-    Friend ReadOnly Property mPigFunc As New PigFuncLite
+    Friend ReadOnly Property mPigFunc As New PigFunc
     Public ReadOnly Property MenuTitle As String
     Public ReadOnly Property IsTopMenu As Boolean
     Private ReadOnly Property mCmdMenus As New CmdMenus

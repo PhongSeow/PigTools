@@ -26,7 +26,7 @@ Public Class CmdZip
     Public ReadOnly Property ZipType As EnmZipType
     Public ReadOnly Property ZipExePath As String
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
-    Private ReadOnly Property mPigFunc As New PigFuncLite
+    Private ReadOnly Property mPigFunc As New PigFunc
 
     Public Sub New(ZipType As EnmZipType, ZipExePath As String)
         MyBase.New(CLS_VERSION)

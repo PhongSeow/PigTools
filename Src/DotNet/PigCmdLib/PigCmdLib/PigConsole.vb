@@ -37,7 +37,7 @@ Imports System.Globalization
 Public Class PigConsole
     Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1" & "." & "23" & "." & "8"
-    Private ReadOnly Property mPigFunc As New PigFuncLite
+    Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
     Property mIsUseMLang As Boolean = False

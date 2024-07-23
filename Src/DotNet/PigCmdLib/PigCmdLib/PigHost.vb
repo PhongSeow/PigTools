@@ -36,7 +36,7 @@ Public Class PigHost
     Public ReadOnly Property UUID As String
     Public ReadOnly Property CPU As PigCPU
     Public ReadOnly Property OSCaption As String
-    Private ReadOnly Property mPigFunc As New PigFuncLite
+    Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigSysCmd As New PigSysCmd
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
 

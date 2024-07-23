@@ -17,7 +17,7 @@ Public Class PigNohup
     Public ReadOnly Property Cmd As String
     Public ReadOnly Property OutFilePath As String = ""
 
-    Private Property mPigFunc As PigFuncLite
+    Private Property mPigFunc As PigFunc
 
     Private WithEvents mPigCmdApp As New PigCmdApp
 
@@ -55,7 +55,7 @@ Public Class PigNohup
             If Me.IsDebug = True Then Me.PrintDebugLog(LOG.SubName, Me.mCmd)
             If Me.OutFilePath <> "" Then
                 LOG.StepName = "Check out file"
-                If Me.mPigFunc Is Nothing Then Me.mPigFunc = New PigFuncLite
+                If Me.mPigFunc Is Nothing Then Me.mPigFunc = New PigFunc
                 Dim strPath As String = Me.mPigFunc.GetFilePart(Me.OutFilePath, PigFunc.EnmFilePart.Path)
                 If Me.mPigFunc.IsFolderExists(strPath) = False Then
                     LOG.AddStepNameInf(Me.OutFilePath)

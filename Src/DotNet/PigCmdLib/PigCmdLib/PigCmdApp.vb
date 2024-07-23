@@ -39,7 +39,7 @@ Public Class PigCmdApp
     Private Const CLS_VERSION As String = "1" & "." & "22" & "." & "12"
     Public Property LinuxShPath As String
     Public Property WindowsCmdPath As String
-    Private WithEvents mPigFunc As New PigFuncLite
+    Private WithEvents mPigFunc As New PigFunc
     Private moPigProcApp As PigProcApp
 
 

@@ -42,7 +42,7 @@ Public Class PigSysCmd
     Inherits PigBaseLocal
     Private Const CLS_VERSION As String = "1" & "." & "27" & "." & "6"
 
-    Private ReadOnly Property mPigFunc As New PigFuncLite
+    Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
     Private ReadOnly Property mPigProcApp As New PigProcApp
 
@@ -832,7 +832,7 @@ Public Class PigSysCmd
         Public Items As Integer
         Public LeftTab As Integer
         Public BeginPos As Integer
-        Public PigFunc As PigFuncLite
+        Public PigFunc As PigFunc
         Public BeginStr As String
         Public EndStr As String
         Public Sub Reset()
@@ -842,7 +842,7 @@ Public Class PigSysCmd
             BeginStr = ""
             EndStr = ""
             If PigFunc Is Nothing Then
-                PigFunc = New PigFuncLite
+                PigFunc = New PigFunc
             End If
             ReDim AsTmp(-1)
             ReDim AsTmp2(-1)
