@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.27
+'* Version: 1.28
 '* Create Time: 2/6/2022
 '* 1.1  3/6/2022  Add GetListenPortProcID
 '* 1.2  7/6/2022  Add GetOSCaption
@@ -31,6 +31,7 @@
 '* 1.25 15/7/2024  Add GetProcUserName, modify GetTcpListenProcList
 '* 1.26 18/7/2024  Modify GetListenPortProcID,GetProcListenPortList,mStruProcList
 '* 1.27 21/7/2024  Modify PigFunc to PigFuncLite
+'* 1.28  28/7/2024  Modify PigStepLog to StruStepLog
 '**********************************
 Imports System.Security.Cryptography
 Imports PigCmdLib.PigSysCmd
@@ -40,7 +41,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "27" & "." & "6"
+    Private Const CLS_VERSION As String = "1" & "." & "28" & "." & "6"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -58,7 +59,7 @@ Public Class PigSysCmd
     ''' <param name="OutListPort">输出的侦听端口|Listening port for output</param>
     ''' <returns></returns>
     Public Function GetProcListenPortList(PID As Integer, ByRef OutListPort As Integer()) As String
-        Dim LOG As New PigStepLog("GetProcListenPortList")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetProcListenPortList"
         Try
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
             If Me.IsWindows = True Then
@@ -138,7 +139,7 @@ Public Class PigSysCmd
     ''' <param name="OutPID">获取的进程号|Obtained process number</param>
     ''' <returns></returns>
     Public Function GetListenPortProcID(ListenPort As Integer, ByRef OutPID As Integer) As String
-        Dim LOG As New PigStepLog("GetProcListenPort")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetListenPortProcID"
         Try
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
             With oPigCmdApp
@@ -199,7 +200,7 @@ Public Class PigSysCmd
 
 
     Public Function GetUUID(ByRef OutUUID As String) As String
-        Dim LOG As New PigStepLog("GetUUID")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetUUID"
         Try
             If Me.IsWindows = True Then
                 LOG.StepName = "GetWmicSimpleXml"
@@ -267,7 +268,7 @@ Public Class PigSysCmd
     End Function
 
     Private Function mGetWmicSimpleXml(WmicCmd As String, ByRef OutXml As PigXml, Optional IsCrLf As Boolean = False) As String
-        Dim LOG As New PigStepLog("mGetWmicSimpleXml")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetWmicSimpleXml"
         Try
             If Me.IsWindows = False Then Throw New Exception("Only windows is supported")
             If Left(UCase(WmicCmd), 5) <> "WMIC " Then WmicCmd = "wmic " & WmicCmd
@@ -322,7 +323,7 @@ Public Class PigSysCmd
     ''' <param name="OutOSCaption"></param>
     ''' <returns></returns>
     Public Function GetOSCaption(ByRef OutOSCaption As String) As String
-        Dim LOG As New PigStepLog("GetOSCaption")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetOSCaption"
         Try
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
             With oPigCmdApp
@@ -361,7 +362,7 @@ Public Class PigSysCmd
     End Function
 
     Private Function KillProc(PID As Integer) As String
-        Dim LOG As New PigStepLog("KillProc")
+        Dim LOG As New StruStepLog : LOG.SubName = "KillProc"
         Try
             Dim strCmd As String = ""
             If Me.IsWindows = True Then
@@ -385,7 +386,7 @@ Public Class PigSysCmd
     ''' <param name="OutBootUpTime"></param>
     ''' <returns></returns>
     Public Function GetBootUpTime(ByRef OutBootUpTime As Date) As String
-        Dim LOG As New PigStepLog("GetBootUpTime")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetBootUpTime"
         Try
             Dim strOutBootUpTime As String = ""
             If Me.IsWindows = False Then
@@ -435,7 +436,7 @@ Public Class PigSysCmd
     ''' <param name="RetRows">Returns the number of rows, 0 means all|返回行数，0表示全部</param>
     ''' <returns></returns>
     Public Function GetCmdRetRows(Cmd As String, ByRef RetContent As String, Optional RetRows As Integer = 0) As String
-        Dim LOG As New PigStepLog("GetCmdRetRows")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetCmdRetRows"
         Try
             Dim oPigCmdApp As New PigCmdApp
             With oPigCmdApp
@@ -466,7 +467,7 @@ Public Class PigSysCmd
     ''' </summary>
     ''' <returns></returns>
     Public Function ReBootHost() As String
-        Dim LOG As New PigStepLog("ReBootHost")
+        Dim LOG As New StruStepLog : LOG.SubName = "ReBootHost"
         Dim strCmd As String = ""
         Try
             Dim oPigCmdApp As New PigCmdApp
@@ -494,7 +495,7 @@ Public Class PigSysCmd
     End Function
 
     Public Function GetDefaultIPGateway(ByRef DefaultIPGateway As String) As String
-        Dim LOG As New PigStepLog("GetDefaultIPGateway")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetDefaultIPGateway"
         Try
             Dim strCmd As String
             If Me.IsWindows = True Then
@@ -525,7 +526,7 @@ Public Class PigSysCmd
     End Function
 
     Public Function RmDirAndSubDir(DirPath As String) As String
-        Dim LOG As New PigStepLog("RmDirAndSubDir")
+        Dim LOG As New StruStepLog : LOG.SubName = "RmDirAndSubDir"
         Dim strCmd As String = ""
         Try
             If Me.mPigFunc.IsFolderExists(DirPath) = False Then Throw New Exception("Directory does not exist.")
@@ -553,7 +554,7 @@ Public Class PigSysCmd
     ''' <param name="IsOverwrite"></param>
     ''' <returns></returns>
     Public Function MoveDir(SrcDir As String, TargetDir As String, Optional IsOverwrite As Boolean = False) As String
-        Dim LOG As New PigStepLog("MoveDir")
+        Dim LOG As New StruStepLog : LOG.StepName = "MoveDir"
         Dim strCmd As String = ""
         Try
             Select Case Right(SrcDir, 1)
@@ -663,7 +664,7 @@ Public Class PigSysCmd
     End Function
 
     Public Function GetDuSize(DirPath As String, ByRef DuSize As Long) As String
-        Dim LOG As New PigStepLog("GetDuSize")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetDuSize"
         Dim strCmd As String = ""
         Try
             If Me.IsWindows = True Then Throw New Exception("Can only support Linux platforms.")
@@ -696,7 +697,7 @@ Public Class PigSysCmd
     ''' <param name="IsMergeIp">Whether to merge IP addresses|是否合并IP地址</param>
     ''' <returns></returns>
     Public Function GetTcpListenProcList(ByRef OutList As StruTcpListenProcList(), IsMergeIp As Boolean, Optional PriorityIpHead As String = "", Optional IsCrLf As Boolean = True) As String
-        Dim LOG As New PigStepLog("GetTcpListenProcList")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetTcpListenProcList"
         Try
             ReDim OutList(-1)
             Dim oPigCmdApp As New PigCmdApp, strCmd As String
@@ -987,7 +988,7 @@ Public Class PigSysCmd
     ''' <param name="IsCrLf"></param>
     ''' <returns></returns>
     Public Function GetProcListXml(ByRef OutPigXml As PigXml, Optional ByProcName As String = "", Optional IsCrLf As Boolean = True) As String
-        Dim LOG As New PigStepLog("GetProcListXml")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetProcListXml"
         Dim strCmd As String = ""
         Try
             Dim oPigCmdApp As New PigCmdApp
@@ -1129,7 +1130,7 @@ Public Class PigSysCmd
     End Function
 
     Private Function mGetProcInfXml(ByRef OutPigXml As PigXml, ByPIDs As Integer(), Optional IsGetWinUserName As Boolean = False, Optional IsCrLf As Boolean = True) As String
-        Dim LOG As New PigStepLog("mGetProcInfXml")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetProcInfXml"
         Dim strCmd As String = ""
         Try
             If ByPIDs.Length <= 0 Then
@@ -1276,7 +1277,7 @@ Public Class PigSysCmd
     ''' <param name="OutProcUserName">The username of the process|进程的用户名</param>
     ''' <returns></returns>
     Public Function GetProcUserName(PID As Integer, ByRef OutProcUserName As String) As String
-        Dim LOG As New PigStepLog("GetProcUserName")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetProcUserName"
         Dim strCmd As String = ""
         Try
             Dim oPigCmdApp As New PigCmdApp

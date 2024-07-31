@@ -4,15 +4,16 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: WebLogicDomain 的集合类|Collection class of WebLogicDomain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0
+'* Version: 1.1
 '* Create Time: 28/2/2023
+'* 1.1  28/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
 Public Class WebLogicDeploys
 	Inherits PigBaseLocal
 	Implements IEnumerable(Of WebLogicDeploy)
-	Private Const CLS_VERSION As String = "1.0.2"
+	Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "2"
 	Private ReadOnly moList As New List(Of WebLogicDeploy)
 	Public Sub New()
 		MyBase.New(CLS_VERSION)
@@ -86,7 +87,7 @@ Public Class WebLogicDeploys
 		Me.mAdd(NewItem)
 	End Sub
 	Public Function AddOrGet(DeployName As String, Parent As WebLogicDomain) As WebLogicDeploy
-		Dim LOG As New PigStepLog("AddOrGet")
+		Dim LOG As New StruStepLog : LOG.SubName = "AddOrGet"
 		Try
 			If Me.IsItemExists(DeployName) = True Then
 				Return Me.Item(DeployName)
@@ -99,7 +100,7 @@ Public Class WebLogicDeploys
 		End Try
 	End Function
 	Public Function Add(DeployName As String, Parent As WebLogicDomain) As WebLogicDeploy
-		Dim LOG As New PigStepLog("Add")
+		Dim LOG As New StruStepLog : LOG.SubName = "Add"
 		Try
 			LOG.StepName = "New WebLogicDeploy"
 			Dim oWebLogicDeploy As New WebLogicDeploy(DeployName, Parent)

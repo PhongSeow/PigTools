@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Process Processing Class|进程处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 20/3/2022
 '* 1.1    26/3/2022  Modify GetPigProc(PID), Add GetPigProcs
 '* 1.2    1/8/2022   Add KillProc,KillProcs
@@ -14,6 +14,7 @@
 '* 1.6    15/5/2023  Modify IsOtherExeExists
 '* 1.7    24/6/2024  Add IsProcExists
 '* 1.8    12/7/2024  Add GetPigProc
+'* 1.9    27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 
 Imports System.Security.Cryptography
@@ -23,14 +24,14 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigProcApp
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "12"
+    Private Const CLS_VERSION As String = "1" & "." & "9" & "." & "12"
 
     Public Sub New()
         MyBase.New(CLS_VERSION)
     End Sub
 
     Public Function GetPigProc(PID As Integer) As PigProc
-        Dim LOG As New PigStepLog("GetPigProc")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetPigProc"
         Try
             Dim bolIsExists As Boolean = False
             Me.IsProcExists(PID, bolIsExists)
@@ -75,7 +76,7 @@ Public Class PigProcApp
     End Function
 
     Public Function GetPigProcs(ProcName As String) As PigProcs
-        Dim LOG As New PigStepLog("GetPigProcs")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetPigProcs"
         Try
             LOG.StepName = "GetProcessesByName"
             Dim abProcess As Process() = Process.GetProcessesByName(ProcName)
@@ -101,7 +102,7 @@ Public Class PigProcApp
     End Function
 
     Public Function KillProc(PID As Long) As String
-        Dim LOG As New PigStepLog("KillProc")
+        Dim LOG As New StruStepLog : LOG.SubName = "KillProc"
         Try
             LOG.StepName = "GetPigProc"
             Dim oPigProc As PigProc = Me.GetPigProc(PID)
@@ -117,7 +118,7 @@ Public Class PigProcApp
     End Function
 
     Public Function KillProcs(ProcName As String) As String
-        Dim LOG As New PigStepLog("KillProcs")
+        Dim LOG As New StruStepLog : LOG.SubName = "KillProcs"
         Try
             LOG.StepName = "GetPigProcs"
             Dim oPigProcs As PigProcs = Me.GetPigProcs(ProcName)
@@ -137,7 +138,7 @@ Public Class PigProcApp
     End Function
 
     Public Function IsOtherExeExists(ExeName As String) As Boolean
-        Dim LOG As New PigStepLog("IsOtherExeExists")
+        Dim LOG As New StruStepLog : LOG.SubName = "IsOtherExeExists"
         Try
             LOG.StepName = "GetPigProcs"
             Dim oPigProcs As PigProcs = Me.GetPigProcs(ExeName)
@@ -164,7 +165,7 @@ Public Class PigProcApp
     End Function
 
     Public Function KillOtherExe(ExeName As String) As String
-        Dim LOG As New PigStepLog("KillOtherExe")
+        Dim LOG As New StruStepLog : LOG.SubName = "KillOtherExe"
         Try
             LOG.StepName = "GetPigProcs"
             Dim oPigProcs As PigProcs = Me.GetPigProcs(ExeName)

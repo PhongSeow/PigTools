@@ -4,14 +4,15 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Http Web Request operation
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 5/2/2021
-'*1.0.2  25/2/2021   Add Me.ClearErr()
-'*1.0.3  9/3/2021  Modify GetText,GetTextAuth,PostText,PostTextAuth
-'*1.1  27/10/2021  Add DownloadFile, modify MainNew
-'*1.2  20/3/2024   Add GetHeadValue,AddHeader,GetAllHeads
-'*1.3  25/3/2024   Add PostRaw
-'*1.5  30/5/2024   Rewrite the internal code of a class
+'* 1.0.2  25/2/2021   Add Me.ClearErr()
+'* 1.0.3  9/3/2021  Modify GetText,GetTextAuth,PostText,PostTextAuth
+'* 1.1  27/10/2021  Add DownloadFile, modify MainNew
+'* 1.2  20/3/2024   Add GetHeadValue,AddHeader,GetAllHeads
+'* 1.3  25/3/2024   Add PostRaw
+'* 1.5  30/5/2024   Rewrite the internal code of a class
+'* 1.6  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports System.Net
 Imports System.IO
@@ -23,7 +24,7 @@ Imports Microsoft.VisualBasic.Logging
 ''' </summary>
 Public Class PigWebReq
     Inherits PigBaseMini
-    Const CLS_VERSION As String = "1" & "." & "5" & "." & "168"
+    Const CLS_VERSION As String = "1" & "." & "6" & "." & "168"
     Private ReadOnly Property mUrl As String = ""
     Private ReadOnly Property mPara As String = ""
     Private Property mUri As System.Uri
@@ -71,7 +72,7 @@ Public Class PigWebReq
     ''' </summary>
     ''' <returns></returns>
     Public Function InitHttpWebRequest() As String
-        Dim LOG As New PigStepLog("InitHttpWebRequest")
+        Dim LOG As New StruStepLog : LOG.SubName = "InitHttpWebRequest"
         Try
             If Me.mPara = "" Then
 10:             Me.mUri = New System.Uri(Me.mUrl)
@@ -103,7 +104,7 @@ Public Class PigWebReq
     ''' </summary>
     ''' <returns></returns>
     Public Function GetText() As String
-        Dim LOG As New PigStepLog("GetText")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetText"
         Try
             Me.UseTimeItem.GoBegin()
             mHttpWebRequest.Method = "GET"
@@ -126,7 +127,7 @@ Public Class PigWebReq
     End Function
 
     Public Function GetTextAuth(AccessToken As String) As String
-        Dim LOG As New PigStepLog("GetTextAuth")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetTextAuth"
         Try
             Me.UseTimeItem.GoBegin()
             LOG.StepName = "Set Properties"
@@ -160,7 +161,7 @@ Public Class PigWebReq
     ''' <param name="HeadValue"></param>
     ''' <returns></returns>
     Public Function AddHeader(HeadKey As String, HeadValue As String) As String
-        Dim LOG As New PigStepLog("AddHeader")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddHeader"
         Try
             If mHttpWebRequest Is Nothing Then
                 LOG.StepName = "InitHttpWebRequest"
@@ -176,7 +177,7 @@ Public Class PigWebReq
     End Function
 
     Public Function PostTextAuth(Para As String, AccessToken As String) As String
-        Dim LOG As New PigStepLog("PostTextAuth")
+        Dim LOG As New StruStepLog : LOG.SubName = "PostTextAuth"
         Try
             Me.UseTimeItem.GoBegin()
             LOG.StepName = "Set Properties"
@@ -243,7 +244,7 @@ Public Class PigWebReq
     ''' <param name="JSon"></param>
     ''' <returns></returns>
     Public Function PostRaw(JSon As String) As String
-        Dim LOG As New PigStepLog("PostRaw")
+        Dim LOG As New StruStepLog : LOG.SubName = "PostRaw"
         Try
             Me.UseTimeItem.GoBegin()
             LOG.StepName = "Set Properties"
@@ -280,7 +281,7 @@ Public Class PigWebReq
     ''' <param name="Para"></param>
     ''' <returns></returns>
     Public Function PostText(Para As String) As String
-        Dim LOG As New PigStepLog("PostText")
+        Dim LOG As New StruStepLog : LOG.SubName = "PostText"
         Try
             Me.UseTimeItem.GoBegin()
             LOG.StepName = "Set Properties"
@@ -317,7 +318,7 @@ Public Class PigWebReq
     ''' <param name="MaxSize"></param>
     ''' <returns></returns>
     Public Function DownloadFile(FilePath As String, Optional MaxSize As Integer = 1073741824) As String
-        Dim LOG As New PigStepLog("DownloadFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "DownloadFile"
         Try
             Me.UseTimeItem.GoBegin()
             If Me.mHttpWebRequest Is Nothing Then

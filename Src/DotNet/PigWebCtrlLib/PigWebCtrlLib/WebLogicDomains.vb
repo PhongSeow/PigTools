@@ -4,18 +4,19 @@
 '* License: Copyright (c) 2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: WebLogicDomain 的集合类|Collection class of WebLogicDomain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 12/2/2022
 '* 1.1  22/12/2022   Modify Add 
 '* 1.2  26/5/2022   Modify Add 
 '* 1.3  26/7/2022 Modify Imports
 '* 1.5  29/7/2022 Modify Imports
+'* 1.6  28/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 Imports PigToolsLiteLib
 Public Class WebLogicDomains
     Inherits PigBaseLocal
     Implements IEnumerable(Of WebLogicDomain)
-    Private Const CLS_VERSION As String = "1.5.8"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "8"
     Private ReadOnly moList As New List(Of WebLogicDomain)
 
     Friend fParent As WebLogicApp
@@ -97,7 +98,7 @@ Public Class WebLogicDomains
 
 
     Public Function Add(HomeDirPath As String) As WebLogicDomain
-        Dim LOG As New PigStepLog("Remove.ConfName.ConfValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "Add"
         Try
             LOG.StepName = "New WebLogicDomain"
             Add = New WebLogicDomain(HomeDirPath, Me.fParent)
@@ -122,7 +123,7 @@ Public Class WebLogicDomains
 
 
     Public Function Remove(HomeDirPath As String) As String
-        Dim LOG As New PigStepLog("Remove.ConfName")
+        Dim LOG As New StruStepLog : LOG.SubName = "Remove"
         Try
             LOG.StepName = "For Each"
             For Each oWebLogicDomain As WebLogicDomain In moList
@@ -139,7 +140,7 @@ Public Class WebLogicDomains
     End Function
 
     Public Function Remove(Index As Integer) As String
-        Dim LOG As New PigStepLog("Remove.Index")
+        Dim LOG As New StruStepLog : LOG.SubName = "Remove"
         Try
             LOG.StepName = "Index=" & Index.ToString
             moList.RemoveAt(Index)
@@ -150,7 +151,7 @@ Public Class WebLogicDomains
     End Function
 
     Public Function AddOrGet(HomeDirPath As String) As WebLogicDomain
-        Dim LOG As New PigStepLog("AddOrGet")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddOrGet"
         Try
             If Me.IsItemExists(HomeDirPath) = True Then
                 AddOrGet = Me.Item(HomeDirPath)

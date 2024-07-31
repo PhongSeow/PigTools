@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: And generate VB code|且于生成VB的代码
 '* Home Url: https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 16/6/2021
 '* 1.1  1/7/2022    Modify MkCollectionClass
 '* 1.2  6/7/2022    Modify MkCollectionClass
@@ -12,13 +12,14 @@
 '* 1.5  8/11/2022   Modify MkStr2Func,MkBytes2Func
 '* 1.6  17/10/2023  Modify mMkBytes2Func
 '* 1.7  15/1/2023   Modify MkCollectionClass
+'* 1.8  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 ''' <summary>
 ''' VB code generation processing class|VB代码生成处理类
 ''' </summary>
 Public Class PigVBCode
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "8"
 
     Private Enum EnmMkBytes2FuncRetType
         RetString = 0
@@ -209,7 +210,7 @@ Public Class PigVBCode
     ''' <param name="FuncCode">输出的函数代码|Output function code</param>
     ''' <returns></returns>
     Public Function MkBytes2Func(InBytes As Byte(), FuncName As String, ByRef FuncCode As String) As String
-        Dim LOG As New PigStepLog("MkBytes2Func")
+        Dim LOG As New StruStepLog : LOG.SubName = "MkBytes2Func"
         Try
             LOG.StepName = "mMkBytes2Func"
             LOG.Ret = Me.mMkBytes2Func(InBytes, FuncName, EnmMkBytes2FuncRetType.RetBytes, FuncCode)
@@ -230,7 +231,7 @@ Public Class PigVBCode
     ''' <param name="FuncCode">输出的函数代码|Output function code</param>
     ''' <returns></returns>
     Public Function MkStr2Func(InpStr As String, TextType As PigText.enmTextType, FuncName As String, ByRef FuncCode As String) As String
-        Dim LOG As New PigStepLog("MkStr2Func")
+        Dim LOG As New StruStepLog : LOG.SubName = "MkStr2Func"
         Try
             LOG.StepName = "New PigText"
             Dim ptIn As New PigText(InpStr, TextType)
@@ -246,7 +247,7 @@ Public Class PigVBCode
     End Function
 
     Private Function mMkBytes2Func(InBytes As Byte(), FuncName As String, MkBytes2FuncRetType As EnmMkBytes2FuncRetType, ByRef FuncCode As String, Optional TextType As PigText.enmTextType = PigText.enmTextType.UnknowOrBin) As String
-        Dim LOG As New PigStepLog("mMkBytes2Func")
+        Dim LOG As New StruStepLog : LOG.SubName = "mMkBytes2Func"
         Try
             Dim strRetType As String, strRetErr As String, strRetOK As String
             Select Case MkBytes2FuncRetType

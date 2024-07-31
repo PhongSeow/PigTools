@@ -4,10 +4,11 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Process Collection Class|进程集合类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 20/3/2022
 '* 1.1    26/3/2022   Modify New
 '* 1.2    12/7/2024   Modify New
+'* 1.3    27/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 ''' <summary>
 ''' Process Collection Class|进程集合类
@@ -15,7 +16,7 @@
 Public Class PigProcs
     Inherits PigBaseMini
     Implements IEnumerable(Of PigProc)
-    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "6"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "6"
     Private ReadOnly moList As New List(Of PigProc)
 
     Public Sub New()
@@ -96,7 +97,7 @@ Public Class PigProcs
 
 
     Public Function Add(ProcessID As String) As PigProc
-        Dim LOG As New PigStepLog("Add")
+        Dim LOG As New StruStepLog : LOG.SubName = "Add"
         Try
             Dim bolIsExists As Boolean = False
             LOG.StepName = "New PigProc"
@@ -120,7 +121,7 @@ Public Class PigProcs
 
 
     Public Function Remove(ProcessID As String) As String
-        Dim LOG As New PigStepLog("Remove.ProcessID")
+        Dim LOG As New StruStepLog : LOG.SubName = "Remove.ProcessID"
         Try
             LOG.StepName = "For Each"
             For Each oPigProc As PigProc In moList
@@ -137,7 +138,7 @@ Public Class PigProcs
     End Function
 
     Public Function Remove(Index As Integer) As String
-        Dim LOG As New PigStepLog("Remove.Index")
+        Dim LOG As New StruStepLog : LOG.SubName = "Remove.Index"
         Try
             LOG.StepName = "Index=" & Index.ToString
             moList.RemoveAt(Index)
@@ -148,7 +149,7 @@ Public Class PigProcs
     End Function
 
     Public Function AddOrGet(ProcessID As String) As PigProc
-        Dim LOG As New PigStepLog("AddOrGet")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddOrGet"
         Try
             If Me.IsItemExists(ProcessID) = True Then
                 AddOrGet = Me.Item(ProcessID)

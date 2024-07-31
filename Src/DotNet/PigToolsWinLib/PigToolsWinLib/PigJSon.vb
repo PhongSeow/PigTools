@@ -3,7 +3,7 @@
 '* Author: Seow Phong
 '* Describe: Simple JSON class, which can assemble and parse JSON definitions without components.
 '* Home Url: http://www.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 8/8/2019
 '* 1.0.2    10/8/2020   Code changed from VB6 to VB.NET
 '* 1.0.3    12/8/2020   Some Function debugging 
@@ -24,6 +24,7 @@
 '* 1.2      14/9/2021  Modify GetDateValue
 '* 1.3      15/12/2021 Use LOG
 '* 1.5      1/6/2023  Use PigBaseLocal, Imports PigToolsLiteLib
+'* 1.6  28/7/2024   Modify PigStepLog to StruStepLog
 '*******************************************************
 Imports System.Text
 Imports PigToolsLiteLib
@@ -33,7 +34,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigJSon
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.5.2"
+    Private Const CLS_VERSION As String = "1." & "6" & "." & "2"
 
     ''' <summary>The type of the JSON element</summary>
     Public Enum xpJSonEleType
@@ -113,7 +114,7 @@ Public Class PigJSon
     ''' <summary>Parsing with JSON string</summary>
     ''' <param name="JSonStr">JSON string</param>
     Private Function mParseJSON(JSonStr As String) As String
-        Dim LOG As New PigStepLog("mParseJSON")
+        Dim LOG As New StruStepLog : LOG.SubName = "mParseJSON"
         Try
             If Not moSc Is Nothing Then moSc = Nothing
             LOG.StepName = "CreateObject"
@@ -238,7 +239,7 @@ Public Class PigJSon
     ''' <summary>Gets the string value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetStrValue(JSonKey As String) As String
-        Dim LOG As New PigStepLog("GetStrValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetStrValue"
         Try
             GetStrValue = ""
             LOG.StepName = "mGetJSonValue"
@@ -258,7 +259,7 @@ Public Class PigJSon
     ''' <summary>Gets the boolean value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetBoolValue(JSonKey As String) As Boolean
-        Dim LOG As New PigStepLog("GetBoolValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetBoolValue"
         Try
             Dim strValue As String = ""
             LOG.StepName = "mGetJSonValue"
@@ -280,7 +281,7 @@ Public Class PigJSon
     ''' <summary>Gets the long value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetDecValue(JSonKey As String) As Decimal
-        Dim LOG As New PigStepLog("GetDecValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetDecValue"
         Try
             Dim strValue As String = ""
             LOG.StepName = "mGetJSonValue"
@@ -302,7 +303,7 @@ Public Class PigJSon
     ''' <summary>Gets the date value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Overloads Function GetDateValue(JSonKey As String) As DateTime
-        Dim LOG As New PigStepLog("GetDateValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetDateValue"
         Try
             Dim strValue As String = ""
             LOG.StepName = "mGetJSonValue"
@@ -332,7 +333,7 @@ Public Class PigJSon
     ''' <param name="JSonKey">JSON key</param>
     ''' <param name="IsLocalTime">Is it local time</param>
     Public Overloads Function GetDateValue(JSonKey As String, IsLocalTime As Boolean) As DateTime
-        Dim LOG As New PigStepLog("GetDateValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetDateValue"
         Try
             Dim strValue As String = ""
             LOG.StepName = "mGetJSonValue"
@@ -380,7 +381,7 @@ Public Class PigJSon
     ''' <summary>Gets the long value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetLngValue(JSonKey As String) As Long
-        Dim LOG As New PigStepLog("GetLngValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetLngValue"
         Try
             Dim strValue As String = ""
             LOG.StepName = "mGetJSonValue"
@@ -402,7 +403,7 @@ Public Class PigJSon
     ''' <summary>Gets the integer value of JSON</summary>
     ''' <param name="JSonKey">JSON key</param>
     Public Function GetIntValue(JSonKey As String) As Integer
-        Dim LOG As New PigStepLog("GetIntValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetIntValue"
         Try
             Dim strValue As String = ""
             LOG.StepName = "mGetJSonValue"
@@ -449,7 +450,7 @@ Public Class PigJSon
     ''' <param name="EleValue">The string value of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Private Function mAddEle(EleKey As String, EleValue As String, IsFirstEle As Boolean, IsChgCtlStr As Boolean) As String
-        Dim LOG As New PigStepLog("mAddEle")
+        Dim LOG As New StruStepLog : LOG.SubName = "mAddEle"
         Try
             LOG.StepName = "Add EleKey"
             If IsFirstEle = True Then
@@ -475,7 +476,7 @@ Public Class PigJSon
     ''' Unpack the complete JSON terminator and use it to append JSON elements.|将完整的JSon结束符解开，用于追加JSon元素。
     ''' </summary>
     Public Sub UnlockEndSymbol()
-        Dim LOG As New PigStepLog("UnlockEndSymbol")
+        Dim LOG As New StruStepLog : LOG.SubName = "UnlockEndSymbol"
         Try
             Dim strJSon As String = msbMain.ToString()
             LOG.StepName = "ParseJSON"
@@ -502,7 +503,7 @@ Public Class PigJSon
     ''' <param name="EleKey">The key of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Public Overloads Sub AddArrayEleBegin(EleKey As String, IsFirstEle As Boolean)
-        Dim LOG As New PigStepLog("AddArrayEleBegin")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddArrayEleBegin"
         Try
             mSrc2JSonStr(EleKey)
             With msbMain
@@ -524,7 +525,7 @@ Public Class PigJSon
     ''' <summary>Add a array JSON element begin</summary>
     ''' <param name="EleKey">The key of the element</param>
     Public Overloads Sub AddArrayEleBegin(EleKey As String)
-        Dim LOG As New PigStepLog("AddArrayEleBegin")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddArrayEleBegin"
         Try
             mSrc2JSonStr(EleKey)
             With msbMain
@@ -543,7 +544,7 @@ Public Class PigJSon
     ''' <param name="ArrayEleValue">The array string value of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Public Overloads Sub AddArrayEleValue(ArrayEleValue As String, IsFirstEle As Boolean)
-        Dim LOG As New PigStepLog("AddArrayEleValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddArrayEleValue"
         Try
             If IsFirstEle = False Then msbMain.Append(",")
             LOG.StepName = "Add EleValue"
@@ -560,7 +561,7 @@ Public Class PigJSon
     ''' <param name="ArrayEleValue">The array string value of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Public Overloads Sub AddOneArrayEle(EleKey As String, ArrayEleValue As String, Optional IsFirstEle As Boolean = False)
-        Dim LOG As New PigStepLog("AddOneArrayEle")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddOneArrayEle"
         Try
             LOG.StepName = "Check EleKey"
             If EleKey = "" Then Err.Raise(-1, , "Need EleKey")
@@ -583,7 +584,7 @@ Public Class PigJSon
     ''' <summary>Add a array JSON element</summary>
     ''' <param name="ArrayEleValue">The array string value of the element</param>
     Public Overloads Sub AddArrayEleValue(ArrayEleValue As String)
-        Dim LOG As New PigStepLog("AddArrayEleValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddArrayEleValue"
         Try
             msbMain.Append(",")
             LOG.StepName = "Add EleValue"
@@ -607,7 +608,7 @@ Public Class PigJSon
     End Sub
 
     Private Function mAddJSonStr(ByRef sbJSonStr As System.Text.StringBuilder, JSonEleType As xpJSonEleType, ColName As String, ColValue As String, Optional IsChgCtlStr As Boolean = False) As String
-        Dim LOG As New PigStepLog("mAddJSonStr")
+        Dim LOG As New StruStepLog : LOG.SubName = "mAddJSonStr"
         Try
 10:         Select Case JSonEleType
                 Case xpJSonEleType.FristEle, xpJSonEleType.NotFristEle, xpJSonEleType.FristArrayEle
@@ -714,7 +715,7 @@ Public Class PigJSon
 
     Public Sub New(JSonStr As String)
         MyBase.New(CLS_VERSION)
-        Dim LOG As New PigStepLog("New")
+        Dim LOG As New StruStepLog : LOG.SubName = "New"
         Try
             LOG.StepName = "mParseJSON"
             LOG.Ret = Me.mParseJSON(JSonStr)
@@ -735,7 +736,7 @@ Public Class PigJSon
     ''' <param name="ObjectEleValue">The object string value of the element</param>
     ''' <param name="IsFirstEle">Is it the first element</param>
     Public Overloads Sub AddOneObjectEle(EleKey As String, ObjectEleValue As String, Optional IsFirstEle As Boolean = False)
-        Dim LOG As New PigStepLog("AddOneObjectEle")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddOneObjectEle"
         Try
             LOG.StepName = "Check EleKey"
             If EleKey = "" Then Err.Raise(-1, , "Need EleKey")

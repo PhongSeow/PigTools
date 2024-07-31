@@ -4,18 +4,19 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Command line operations for commonly used compressed packages|常用压缩包的命令行操作
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 15/11/2023
 '* 1.1  16/11/2023  Modify New,AddArchive, add ExtractArchive
 '* 1.2  17/11/2023  Add mAddArchive, modify AddArchive
 '* 1.3  20/11/2023  Add mAddArchive,mExtractArchive, modify AddArchive,ExtractArchive
 '* 1.5  21/7/2024  Modify PigFunc to PigFuncLite
+'* 1.6  28/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports PigToolsLiteLib
 
 Public Class CmdZip
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "38"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "38"
 
     Public Enum EnmZipType
         _7_Zip = 0
@@ -35,7 +36,7 @@ Public Class CmdZip
     End Sub
 
     Private Function mAddArchive(SrcDir As String, ZipFilePath As String, SuDoUser As String) As String
-        Dim LOG As New PigStepLog("mAddArchive")
+        Dim LOG As New StruStepLog : LOG.SubName = "mAddArchive"
         Dim strCmd As String = ""
         Try
             If SuDoUser <> "" And Me.IsWindows = True Then Throw New Exception("Sudo can only run on the Linux platform.")
@@ -163,7 +164,7 @@ Public Class CmdZip
 
 
     Private Function mExtractArchive(TargetDir As String, ZipFilePath As String, SuDoUser As String) As String
-        Dim LOG As New PigStepLog("mExtractArchive")
+        Dim LOG As New StruStepLog : LOG.SubName = "mExtractArchive"
         Dim strCmd As String = ""
         Try
             If SuDoUser <> "" And Me.IsWindows = True Then Throw New Exception("Sudo can only run on the Linux platform.")

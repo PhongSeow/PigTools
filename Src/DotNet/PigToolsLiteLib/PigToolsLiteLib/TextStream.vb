@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Amount to Scripting.TextStream of VB6
 '* Home Url: https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 30/12/2020
 '* 1.0.2    15/1/2021   Err.Raise change to Throw New Exception
 '* 1.0.3    23/1/2021   pTextStream rename to TextStream
@@ -15,12 +15,13 @@
 '* 1.3      20/12/2023  Modify New,Init
 '* 1.5      23/1/2024  Modify Init
 '* 1.6      17/2/2024  Modify Init,mEncTextType
+'* 1.7      27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports System.IO
 Imports System.Text
 Public Class TextStream
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "6"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "6"
 
     Private mEnmIOMode As PigFileSystem.IOMode
 
@@ -58,7 +59,7 @@ Public Class TextStream
 
 
     Friend Sub Init(FilePath As String, IOMode As PigFileSystem.IOMode, Optional Create As Boolean = False)
-        Dim LOG As New PigStepLog("Init")
+        Dim LOG As New StruStepLog : LOG.SubName = "Init"
         Try
             mEnmIOMode = IOMode
             Select Case mEnmIOMode

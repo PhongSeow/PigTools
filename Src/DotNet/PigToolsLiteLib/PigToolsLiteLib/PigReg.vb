@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Registry Processing Class|注册表处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 5/11/2019
 '* 1.0.2  2019-11-7   修改BUG
 '* 1.0.3  15/4/2021   Add to PigToolsWinLib
@@ -13,6 +13,7 @@
 '* 1.3  19/5/2024   Add mSaveRegValue,SaveRegValue
 '* 1.5  19/5/2024   Modify mSaveRegValue,SaveRegValue
 '* 1.6  9/6/2024   Modify mSaveRegValue,SaveRegValue, add DeleteRegKey,GetRegValue...
+'* 1.7  27/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 Imports Microsoft.Win32
 ''' <summary>
@@ -20,7 +21,7 @@ Imports Microsoft.Win32
 ''' </summary>
 Public Class PigReg
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "68"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "68"
     ''' <summary>The root of the registry|注册表的根区</summary>
     Public Enum EmnRegRoot
         ''' <summary>HKEY_CLASSES_ROOT</summary>
@@ -407,7 +408,7 @@ Public Class PigReg
     ''' <param name="RegRoot">Registry Root|根区</param>
     ''' <param name="RegPath">Registry key name path|键名路径</param>
     Public Function CreateRegKey(RegRoot As EmnRegRoot, RegPath As String) As String
-        Dim LOG As New PigStepLog("CreateRegKey")
+        Dim LOG As New StruStepLog : LOG.SubName = "CreateRegKey"
         Try
             Dim rkAny As RegistryKey
             Select Case RegRoot
@@ -465,7 +466,7 @@ Public Class PigReg
     End Function
 
     Private Function mSaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, RegValue As Object, RegValueKind As RegistryValueKind) As String
-        Dim LOG As New PigStepLog("mSaveRegValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "mSaveRegValue"
         Try
             LOG.StepName = "mOpenRegPath"
             Dim rkAny As RegistryKey = Me.mOpenRegPath(RegRoot, RegPath, False, LOG.Ret)
@@ -555,14 +556,14 @@ Public Class PigReg
     ''' <param name="RegName">Registry Name|项名</param>
     ''' <param name="MultiStringValue">Multi string value|字符串数组 </param>
     Public Function SaveRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String, MultiStringValue As String()) As String
-        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, MultiStringValue, RegistryValueKind.MultiString )
+        Return Me.mSaveRegValue(RegRoot, RegPath, RegName, MultiStringValue, RegistryValueKind.MultiString)
     End Function
 
     ''' <summary>Delete registry key|删除注册表键</summary>
     ''' <param name="RegRoot">Registry Root|根区</param>
     ''' <param name="RegPath">Registry key name path|键名路径</param>
     Public Function DeleteRegKey(RegRoot As EmnRegRoot, RegPath As String) As String
-        Dim LOG As New PigStepLog("DeleteRegKey")
+        Dim LOG As New StruStepLog : LOG.SubName = "DeleteRegKey"
         Try
             Dim rkAny As RegistryKey
             Select Case RegRoot
@@ -597,7 +598,7 @@ Public Class PigReg
     ''' <param name="RegPath">Registry key name path|键名路径</param>
     ''' <param name="RegName">Registry Name|项名</param>
     Public Function DeleteRegValue(RegRoot As EmnRegRoot, RegPath As String, RegName As String) As String
-        Dim LOG As New PigStepLog("DeleteRegValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "DeleteRegValue"
         Try
             Dim rkAny As RegistryKey
             Select Case RegRoot

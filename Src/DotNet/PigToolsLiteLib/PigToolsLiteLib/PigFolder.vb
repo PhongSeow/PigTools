@@ -4,18 +4,19 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 目录处理|Directory processing
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 4/6/2023
 '* 1.1  11/5/2023   Add IsRootFolder
 '* 1.2  11/6/2023   Add CreationTime,UpdateTime
 '* 1.3  13/6/2023   Add RefSubPigFolders,RefPigFiles,FindSubFolders, modify mGetSubDirList
 '* 1.5  22/11/2023  Add FilesSize,mGetFastPigMD5,GetFastPigMD5,mGetSubPigFolders
+'* 1.6  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports System.IO
 
 Public Class PigFolder
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "18"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "18"
 
     Public ReadOnly Property FolderPath As String
     Private Property mFolderInfo As DirectoryInfo
@@ -176,7 +177,7 @@ Public Class PigFolder
     ''' <param name="OutPigFolders">输出的目录集合|Output directory collection</param>
     ''' <returns></returns>
     Public Function FindSubFolders(IsDeep As Boolean, ByRef OutPigFolders As PigFolders) As String
-        Dim LOG As New PigStepLog("FindSubFolders")
+        Dim LOG As New StruStepLog : LOG.SubName = "FindSubFolders"
         Try
             If IsDeep = True Then
                 LOG.Ret = Me.RefMe()
@@ -219,7 +220,7 @@ Public Class PigFolder
     End Function
 
     Public Function RefSubPigFolders() As String
-        Dim LOG As New PigStepLog("RefSubPigFolders")
+        Dim LOG As New StruStepLog : LOG.SubName = "RefSubPigFolders"
         Try
             LOG.Ret = Me.RefMe()
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -242,7 +243,7 @@ Public Class PigFolder
 
 
     Public Function RefPigFiles() As String
-        Dim LOG As New PigStepLog("RefPigFiles")
+        Dim LOG As New StruStepLog : LOG.SubName = "RefPigFiles"
         Try
             LOG.Ret = Me.RefMe()
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -259,7 +260,7 @@ Public Class PigFolder
             Next
             Return "OK"
         Catch ex As Exception
-            Return Me.GetSubErrInf(Log.SubName, Log.StepName, ex)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
@@ -302,7 +303,7 @@ Public Class PigFolder
     End Function
 
     Private Function mGetFastPigMD5(ByRef FastPigMD5 As PigMD5, GetFastPigMD5Type As EnmGetFastPigMD5Type, Optional ScanSize As Integer = 20480) As String
-        Dim LOG As New PigStepLog("mGetFastPigMD5")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetFastPigMD5"
         Try
             LOG.StepName = "RefPigFiles"
             LOG.Ret = Me.RefPigFiles

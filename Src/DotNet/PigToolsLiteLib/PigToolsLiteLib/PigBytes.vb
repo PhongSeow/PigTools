@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Byte array processing class|字节数组处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 2019-10-22
 '*1.0.2  2019-10-24  
 '*1.0.3  2019-10-25  优化 mSetValue 和 mGetValue 等，去掉一些没有属性
@@ -28,6 +28,7 @@
 '*1.0.23  6/5/2021 Add New(InitBase64Str)
 '*1.1  8/11/2022 Modify New
 '*1.2  12/12/2022 Modify ExtByMD5
+'*1.3  27/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 
 Imports System.Runtime.Serialization
@@ -36,7 +37,7 @@ Imports System.Runtime.Serialization
 ''' </summary>
 Public Class PigBytes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "12"
 
     Private mabMain As Byte()
     ''' <summary>是否转换出错则为零，如果是则调用接口不会出错</summary>
@@ -185,7 +186,7 @@ Public Class PigBytes
     ''' <param name="SrcStru">源结构变量</param>
     ''' <remarks></remarks>
     Public Overloads Function SetStru(SrcStru As Object) As String
-        Dim LOG As New PigStepLog("SetStru")
+        Dim LOG As New StruStepLog : LOG.SubName = "SetStru"
         Try
             Dim oStru2Bytes As New Stru2Bytes
             Dim abStru(-1) As Byte
@@ -489,7 +490,7 @@ Public Class PigBytes
     ''' <summary>用MD5扩充数组</summary>
     ''' <param name="ExtCnt">扩展个数，每个有16个字节</param>
     Public Function ExtByMD5(ExtCnt As Integer) As String
-        Dim LOG As New PigStepLog("ExtByMD5")
+        Dim LOG As New StruStepLog : LOG.SubName = "ExtByMD5"
         Try
             Dim strRet As String = "", oMD5 As PigMD5
             LOG.StepName = "abSrc_Me.mabMain"

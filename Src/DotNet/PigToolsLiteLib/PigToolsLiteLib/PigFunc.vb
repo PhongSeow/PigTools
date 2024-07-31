@@ -4,69 +4,70 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.70
+'* Version: 1.71
 '* Create Time: 2/2/2021
-'*1.0.2  1/3/2021   Add UrlEncode,UrlDecode
-'*1.0.3  20/7/2021   Add GECBool,GECLng
-'*1.0.4  26/7/2021   Modify UrlEncode
-'*1.0.5  26/7/2021   Modify UrlEncode
-'*1.0.6  24/8/2021   Modify GetIpList
-'*1.1    4/9/2021    Add Date2Lng,Lng2Date,Src2CtlStr,CtlStr2Src,AddMultiLineText
-'*1.2    2/1/2022    Modify IsFileExists
-'*1.3    12/1/2022   Add GetHostName,GetHostIp,mGetHostIp,GetEnvVar,GetUserName,GetComputerName,mGetHostIpList
-'*1.4    23/1/2022   Add IsOsWindows,MyOsCrLf,MyOsPathSep
-'*1.5    3/2/2022   Add GetFileText,SaveTextToFile, modify GetFilePart
-'*1.6    3/2/2022   Add GetFmtDateTime, modify GENow
-'*1.7    13/2/2022   Add DeleteFolder,DeleteFile
-'*1.8    23/2/2022   Add PLSqlCsv2Bcp
-'*1.9    20/3/2022   Modify GetProcThreadID
-'*1.10   2/4/2022   Add GetHumanSize
-'*1.11   9/4/2022   Add DigitalToChnName,ConvertHtmlStr,GetAlignStr,GetRepeatStr
-'*1.12   14/5/2022  Rename and modify OptLogInfMain to mOptLogInfMain,SaveTextToFile to mSaveTextToFile, add ASyncOptLogInf,ASyncSaveTextToFile
-'*1.13   15/5/2022  Add ASyncRet_SaveTextToFile, modify mASyncSaveTextToFile,ASyncSaveTextToFile
-'*1.14   16/5/2022  Modify mASyncSaveTextToFile,ASyncSaveTextToFile
-'*1.15   31/5/2022  Add GEInt, modify GECBool
-'*1.16   5/7/2022   Modify GetHostIp
-'*1.17   6/7/2022   Add GetFileVersion
-'*1.18   19/7/2022  Add GetFileUpdateTime,GetFileCreateTime,GetFileMD5
-'*1.19   4/8/2022   Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
-'*1.20   16/8/2022  Add GetMyExeName,GetMyPigProc,GetMyExePath
-'*1.21   17/8/2022  Add GetMyPigProc,GetMyExePath
-'*1.22   20/8/2022  Add Is64Bit,GetMachineGUID
-'*1.23   25/8/2022  Modify CtlStr2Src,Src2CtlStr,IsFolderExists
-'*1.25   2/9/2022   Add CheckFileDiff
-'*1.26   6/9/2022   Add IsMathDate,IsMathDecimal
-'*1.27   12/9/2022  Add GetEnmDispStr
-'*1.28   17/9/2022  Add IsStrongPassword,GetCompMinutePart
-'*1.29   17/10/2022  Add EscapeStr,UnEscapeStr
-'*1.30   18/10/2022  Modify EscapeStr,UnEscapeStr
-'*1.31   2/11/2022  Modify AddMultiLineText
-'*1.32   14/11/2022  Add GetTextBase64,ClearErr
-'*1.33   15/11/2022  Add GetTextSHA1
-'*1.35   18/1/2023  Modify GetUUID,GetMachineGUID, add mGetUUID,mGetMachineGUID
-'*1.36   19/1/2023  Modify mGetUUID,GetUUID,GetMachineGUID, add GetBootID,GetProductUuid
-'*1.37   31/3/2023  Modify GetFilePart,GetStr
-'*1.38   7/4/2023   Add GetPathPart
-'*1.39   12/4/2023  Add SQLCDate
-'*1.50   26/4/2023  Add IsFileDiff
-'*1.51   28/4/2023  Modify GetWindowsProductId
-'*1.52   21/6/2023  Add IsDeviationTime,IsTimeout
-'*1.53   23/7/2023  Add IsNewVersion
-'*1.55   21/10/2023  Add ClipboardGetText,ClipboardSetText
-'*1.56   4/11/2023  Add OpenUrl,GetDefaultBrowser
-'*1.57   7/11/2023  Add GetTimeSlot
-'*1.58   10/11/2023  Add GetTextFileEncCode
-'*1.59   23/12/2023  Add AddMultiLineText
-'*1.60   29/12/2023  Add CombinePath,GetStr,GetStrAndReplace
-'*1.61   30/12/2023  Add IsAbsolutePath
-'*1.62   16/1/2024  Modify GetStr
-'*1.63   22/1/2024  Modify GetStrAndReplace,IsRegexMatch
-'*1.65   13/3/2024  Add LenA,LeftA,RightA,MidA,GetAlignStrA
-'*1.66   21/3/2024  Add GetDateUnixTimestamp,GetNowUnixTimestamp, modify GetWindowsProductId,mGetMachineGUID
-'*1.67   10/6/2024  Modify GetWindowsProductId,mGetMachineGUID
-'*1.68   2/7/2024  Add DistinctString
-'*1.69   2/7/2024  Add StrSpaceMulti2Double,GECInt
-'*1.70   16/7/2024  Add StrSpaceMulti2One
+'* 1.0.2  1/3/2021   Add UrlEncode,UrlDecode
+'* 1.0.3  20/7/2021   Add GECBool,GECLng
+'* 1.0.4  26/7/2021   Modify UrlEncode
+'* 1.0.5  26/7/2021   Modify UrlEncode
+'* 1.0.6  24/8/2021   Modify GetIpList
+'* 1.1    4/9/2021    Add Date2Lng,Lng2Date,Src2CtlStr,CtlStr2Src,AddMultiLineText
+'* 1.2    2/1/2022    Modify IsFileExists
+'* 1.3    12/1/2022   Add GetHostName,GetHostIp,mGetHostIp,GetEnvVar,GetUserName,GetComputerName,mGetHostIpList
+'* 1.4    23/1/2022   Add IsOsWindows,MyOsCrLf,MyOsPathSep
+'* 1.5    3/2/2022   Add GetFileText,SaveTextToFile, modify GetFilePart
+'* 1.6    3/2/2022   Add GetFmtDateTime, modify GENow
+'* 1.7    13/2/2022   Add DeleteFolder,DeleteFile
+'* 1.8    23/2/2022   Add PLSqlCsv2Bcp
+'* 1.9    20/3/2022   Modify GetProcThreadID
+'* 1.10   2/4/2022   Add GetHumanSize
+'* 1.11   9/4/2022   Add DigitalToChnName,ConvertHtmlStr,GetAlignStr,GetRepeatStr
+'* 1.12   14/5/2022  Rename and modify OptLogInfMain to mOptLogInfMain,SaveTextToFile to mSaveTextToFile, add ASyncOptLogInf,ASyncSaveTextToFile
+'* 1.13   15/5/2022  Add ASyncRet_SaveTextToFile, modify mASyncSaveTextToFile,ASyncSaveTextToFile
+'* 1.14   16/5/2022  Modify mASyncSaveTextToFile,ASyncSaveTextToFile
+'* 1.15   31/5/2022  Add GEInt, modify GECBool
+'* 1.16   5/7/2022   Modify GetHostIp
+'* 1.17   6/7/2022   Add GetFileVersion
+'* 1.18   19/7/2022  Add GetFileUpdateTime,GetFileCreateTime,GetFileMD5
+'* 1.19   4/8/2022   Add GetShareMem,SaveShareMem,GetTextPigMD5,GetBytesPigMD5
+'* 1.20   16/8/2022  Add GetMyExeName,GetMyPigProc,GetMyExePath
+'* 1.21   17/8/2022  Add GetMyPigProc,GetMyExePath
+'* 1.22   20/8/2022  Add Is64Bit,GetMachineGUID
+'* 1.23   25/8/2022  Modify CtlStr2Src,Src2CtlStr,IsFolderExists
+'* 1.25   2/9/2022   Add CheckFileDiff
+'* 1.26   6/9/2022   Add IsMathDate,IsMathDecimal
+'* 1.27   12/9/2022  Add GetEnmDispStr
+'* 1.28   17/9/2022  Add IsStrongPassword,GetCompMinutePart
+'* 1.29   17/10/2022  Add EscapeStr,UnEscapeStr
+'* 1.30   18/10/2022  Modify EscapeStr,UnEscapeStr
+'* 1.31   2/11/2022  Modify AddMultiLineText
+'* 1.32   14/11/2022  Add GetTextBase64,ClearErr
+'* 1.33   15/11/2022  Add GetTextSHA1
+'* 1.35   18/1/2023  Modify GetUUID,GetMachineGUID, add mGetUUID,mGetMachineGUID
+'* 1.36   19/1/2023  Modify mGetUUID,GetUUID,GetMachineGUID, add GetBootID,GetProductUuid
+'* 1.37   31/3/2023  Modify GetFilePart,GetStr
+'* 1.38   7/4/2023   Add GetPathPart
+'* 1.39   12/4/2023  Add SQLCDate
+'* 1.50   26/4/2023  Add IsFileDiff
+'* 1.51   28/4/2023  Modify GetWindowsProductId
+'* 1.52   21/6/2023  Add IsDeviationTime,IsTimeout
+'* 1.53   23/7/2023  Add IsNewVersion
+'* 1.55   21/10/2023  Add ClipboardGetText,ClipboardSetText
+'* 1.56   4/11/2023  Add OpenUrl,GetDefaultBrowser
+'* 1.57   7/11/2023  Add GetTimeSlot
+'* 1.58   10/11/2023  Add GetTextFileEncCode
+'* 1.59   23/12/2023  Add AddMultiLineText
+'* 1.60   29/12/2023  Add CombinePath,GetStr,GetStrAndReplace
+'* 1.61   30/12/2023  Add IsAbsolutePath
+'* 1.62   16/1/2024  Modify GetStr
+'* 1.63   22/1/2024  Modify GetStrAndReplace,IsRegexMatch
+'* 1.65   13/3/2024  Add LenA,LeftA,RightA,MidA,GetAlignStrA
+'* 1.66   21/3/2024  Add GetDateUnixTimestamp,GetNowUnixTimestamp, modify GetWindowsProductId,mGetMachineGUID
+'* 1.67   10/6/2024  Modify GetWindowsProductId,mGetMachineGUID
+'* 1.68   2/7/2024  Add DistinctString
+'* 1.69   2/7/2024  Add StrSpaceMulti2Double,GECInt
+'* 1.70  16/7/2024  Add StrSpaceMulti2One
+'* 1.71  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -83,7 +84,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "70" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "71" & "." & "2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -280,7 +281,7 @@ Public Class PigFunc
     End Structure
 
     Private Function mOptLogInfMain(StruMain As mStruOptLogInfMain) As String
-        Dim LOG As New PigStepLog("mOptLogInfMain")
+        Dim LOG As New StruStepLog : LOG.SubName = "mOptLogInfMain"
         Try
             LOG.StepName = "Check StruOptLogInfMain"
             With StruMain
@@ -561,7 +562,7 @@ Public Class PigFunc
             IpList = ""
             MainIp = ""
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
-            Dim i As Integer 
+            Dim i As Integer
             For i = 0 To aipaAny.Count - 1
                 strIp = aipaAny(i).ToString
                 If InStr(strIp, "::") = 0 Then
@@ -862,7 +863,7 @@ Public Class PigFunc
     ''' <param name="IsLocalTime">Convert to local time</param>
     ''' <returns></returns>
 #If NET40_OR_GREATER Or NETCOREAPP3_1_OR_GREATER Then
-    Public  Function Lng2Date(LngValue As Long, Optional IsLocalTime As Boolean = True) As DateTime
+    Public Function Lng2Date(LngValue As Long, Optional IsLocalTime As Boolean = True) As DateTime
         Dim dteStart As New DateTime(1970, 1, 1)
         Try
             Dim intHourAdd As Integer = 0
@@ -997,7 +998,7 @@ Public Class PigFunc
     End Function
 
     Public Function MoveFile(SrcFilePath As String, DestFilePath As String, Optional IsForceOverride As Boolean = False) As String
-        Dim LOG As New PigStepLog("MoveFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "MoveFile"
         Try
             If IsForceOverride = True Then
                 If File.Exists(DestFilePath) = True Then
@@ -1059,7 +1060,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetFileVersion(FilePath As String, ByRef FileVersion As String) As String
-        Dim LOG As New PigStepLog("GetFileVersion")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetFileVersion"
         Try
             LOG.StepName = "GetVersionInfo"
             Dim oGetVersionInfo As FileVersionInfo = FileVersionInfo.GetVersionInfo(FilePath)
@@ -1074,7 +1075,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetFileMD5(FilePath As String, ByRef FileMD5 As String) As String
-        Dim LOG As New PigStepLog("GetFileMD5")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetFileMD5"
         Try
             LOG.StepName = "New PigFile"
             Dim oPigFile As New PigFile(FilePath)
@@ -1104,7 +1105,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetTextPigMD5(SrcText As String, TextType As PigMD5.enmTextType, ByRef OutPigMD5 As String) As String
-        Dim LOG As New PigStepLog("GetTextPigMD5")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetTextPigMD5"
         Try
             Dim oPigMD5 As New PigMD5(SrcText, TextType)
             OutPigMD5 = oPigMD5.PigMD5
@@ -1117,7 +1118,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetFilePigMD5(FilePath As String, ByRef OutPigMD5 As String) As String
-        Dim LOG As New PigStepLog("GetFilePigMD5")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetFilePigMD5"
         Try
             LOG.StepName = "New PigFile"
             Dim oPigFile As New PigFile(FilePath)
@@ -1135,7 +1136,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetFileCreateTime(FilePath As String, ByRef FileCreateTime As Date) As String
-        Dim LOG As New PigStepLog("GetFileCreateTime")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetFileCreateTime"
         Try
             LOG.StepName = "New FileInfo"
             Dim oFileInfo As New FileInfo(FilePath)
@@ -1151,7 +1152,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetFileUpdateTime(FilePath As String, ByRef FileUpdateTime As Date) As String
-        Dim LOG As New PigStepLog("GetFileUpdateTime")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetFileUpdateTime"
         Try
             LOG.StepName = "New FileInfo"
             Dim oFileInfo As New FileInfo(FilePath)
@@ -1167,7 +1168,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetFileText(FilePath As String, ByRef FileText As String) As String
-        Dim LOG As New PigStepLog("GetFileText")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetFileText"
         Try
             LOG.StepName = "New StreamReader"
             Dim srMain As New StreamReader(FilePath)
@@ -1223,7 +1224,7 @@ Public Class PigFunc
     End Structure
 
     Private Function mSaveTextToFile(StruMain As mStruSaveTextToFile) As String
-        Dim LOG As New PigStepLog("mSaveTextToFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "mSaveTextToFile"
         Dim sarMain As StruASyncRet
         Try
             If StruMain.IsAsync = True Then
@@ -1444,7 +1445,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetWindowsProductId(Optional ByRef Res As String = "OK") As String
-        Dim LOG As New PigStepLog("GetWindowsProductId")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetWindowsProductId"
         Try
             If Me.IsWindows = True Then
                 LOG.StepName = "New PigReg"
@@ -1463,7 +1464,7 @@ Public Class PigFunc
     End Function
 
     Private Function mGetMachineGUID(ByRef OutGUID As String) As String
-        Dim LOG As New PigStepLog("mGetMachineGUID")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetMachineGUID"
         Try
             If Me.IsWindows = True Then
                 LOG.StepName = "New PigReg"
@@ -1500,7 +1501,7 @@ Public Class PigFunc
     ''' <param name="RetInf">Returning OK indicates success, others indicate failure|返回OK表示成功，其他为失败</param>
     ''' <returns></returns>
     Public Function GetProductUuid(Optional ByRef RetInf As String = "") As String
-        Dim LOG As New PigStepLog("GetProductUuid")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetProductUuid"
         Try
             Dim strProductUuid As String = ""
             Dim strFilePath As String = "/sys/class/dmi/id/product_uuid"
@@ -1527,7 +1528,7 @@ Public Class PigFunc
     ''' <param name="RetInf">Returning OK indicates success, others indicate failure|返回OK表示成功，其他为失败</param>
     ''' <returns></returns>
     Public Function GetBootID(Optional ByRef RetInf As String = "") As String
-        Dim LOG As New PigStepLog("GetBootID")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetBootID"
         Try
             Dim strBootID As String = ""
             Dim strFilePath As String = "/proc/sys/kernel/random/boot_id"
@@ -1549,7 +1550,7 @@ Public Class PigFunc
     End Function
 
     Private Function mGetUUID(ByRef OutUUID As String) As String
-        Dim LOG As New PigStepLog("mGetUUID")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetUUID"
         Try
             Dim strFilePath As String = "/proc/sys/kernel/random/uuid"
             If Me.IsFileExists(strFilePath) = True Then
@@ -1689,7 +1690,7 @@ Public Class PigFunc
     End Function
 
     Public Function SaveShareMem(SMName As String, InBytes As Byte()) As String
-        Dim LOG As New PigStepLog("SaveShareMem")
+        Dim LOG As New StruStepLog : LOG.SubName = "SaveShareMem"
         Const SM_HEAD_LEN As Integer = 28
         Try
             If InBytes Is Nothing Then Throw New Exception("InBytes Is Nothing")
@@ -1750,7 +1751,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetShareMem(SMName As String, ByRef OutBytes As Byte(), ByRef CreateTime As Date) As String
-        Dim LOG As New PigStepLog("GetShareMem")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetShareMem"
         Const SM_HEAD_LEN As Integer = 28
         Try
             LOG.StepName = "GetTextPigMD5"
@@ -2299,7 +2300,7 @@ Public Class PigFunc
 
 
     Public Function ClipboardSetText(Text As String) As String
-        Dim LOG As New PigStepLog("ClipboardSetText")
+        Dim LOG As New StruStepLog : LOG.SubName = "ClipboardSetText"
         Try
 #If NETFRAMEWORK Then
             My.Computer.Clipboard.Clear()
@@ -2323,7 +2324,7 @@ Public Class PigFunc
     End Function
 
     Public Function GetDefaultBrowser() As String
-        Dim LOG As New PigStepLog("GetDefaultBrowser")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetDefaultBrowser"
         Dim strRegPath As String = "http\shell\open\command"
         Try
             If Me.IsWindows = False Then Throw New Exception("Only supports Windows")
@@ -2359,7 +2360,7 @@ Public Class PigFunc
     ''' <param name="EndTime"></param>
     ''' <returns></returns>
     Public Function GetTimeSlot(TimeSlot As EnmTimeSlot, ByRef BeginTime As Date, ByRef EndTime As Date) As String
-        Dim LOG As New PigStepLog("GetTimeSlot")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetTimeSlot"
         Try
             Dim dteTmp As Date
             LOG.StepName = TimeSlot.ToString

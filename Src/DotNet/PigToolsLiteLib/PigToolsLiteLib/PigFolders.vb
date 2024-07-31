@@ -4,14 +4,15 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigFolder 的集合类|Collection class of PigFolder
 '* Home Url: https://en.seowphong.com
-'* Version: 1.0
+'* Version: 1.2
 '* Create Time: 11/6/2023
 '* 1.1  22/11/2023   Add FilesSize,mGetAllFastPigMD5,AllFiles
+'* 1.2  27/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 Public Class PigFolders
 	Inherits PigBaseMini
 	Implements IEnumerable(Of PigFolder)
-	Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "32"
+	Private Const CLS_VERSION As String = "1" & "." & "2" & "." & "32"
 	Private ReadOnly moList As New List(Of PigFolder)
 	Public Sub New()
 		MyBase.New(CLS_VERSION)
@@ -85,7 +86,7 @@ Public Class PigFolders
 		Me.mAdd(NewItem)
 	End Sub
 	Public Function AddOrGet(FolderPath As String) As PigFolder
-		Dim LOG As New PigStepLog("AddOrGet")
+		Dim LOG As New StruStepLog : LOG.SubName = "AddOrGet"
 		Try
 			If Me.IsItemExists(FolderPath) = True Then
 				Return Me.Item(FolderPath)
@@ -98,7 +99,7 @@ Public Class PigFolders
 		End Try
 	End Function
 	Public Function Add(FolderPath As String) As PigFolder
-		Dim LOG As New PigStepLog("Add")
+		Dim LOG As New StruStepLog : LOG.SubName = "Add"
 		Try
 			LOG.StepName = "New PigFolder"
 			Dim oPigFolder As New PigFolder(FolderPath)
@@ -220,7 +221,7 @@ Public Class PigFolders
 	End Function
 
 	Private Function mGetAllFastPigMD5(ByRef FastPigMD5 As PigMD5, GetFastPigMD5Type As PigFolder.EnmGetFastPigMD5Type, Optional ScanSize As Integer = 20480) As String
-		Dim LOG As New PigStepLog("mGetAllFastPigMD5")
+		Dim LOG As New StruStepLog : LOG.SubName = "mGetAllFastPigMD5"
 		Try
 			Dim pbMain As New PigBytes
 			LOG.StepName = "SetValue"

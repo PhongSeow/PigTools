@@ -4,17 +4,18 @@
 '* License: Copyright (c) 2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 命令行菜单应用|Command line menu application
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 5/3/2024
 '* 1.1  8/3/2024  Modify SelectMenu, add mFullMenuTitle,mGetMaxLineCol,mGetMaxPage
 '* 1.2  8/3/2024  Modify SelectMenu, add mRefreshMenuProperty,AddMenuItem,AddMenuBarItem,PageItems,CurrPage,RowCol,MaxLineCol
 '* 1.3  13/3/2024  Modify mGetMaxLineCol,SelectMenu,mRefreshMenuProperty
 '* 1.5  21/7/2024  Modify PigFunc to PigFuncLite
+'* 1.6  28/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports PigToolsLiteLib
 Public Class PigCmdMenu
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "18"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "18"
 
     Friend ReadOnly Property mPigFunc As New PigFunc
     Public ReadOnly Property MenuTitle As String
@@ -120,7 +121,7 @@ Public Class PigCmdMenu
     End Sub
 
     Public Function ClearMenuItems() As String
-        Dim LOG As New PigStepLog("ClearMenuItems")
+        Dim LOG As New StruStepLog : LOG.SubName = "ClearMenuItems"
         Try
             LOG.StepName = "CmdMenus.Clear"
             Me.mCmdMenus.Clear()
@@ -132,7 +133,7 @@ Public Class PigCmdMenu
 
 
     Public Function AddMenuItem(MenuKey As String, MenuText As String) As String
-        Dim LOG As New PigStepLog("AddMenuItem")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddMenuItem"
         Try
             If Me.mCmdMenus.IsItemExists(MenuKey) = True Then
                 LOG.StepName = "Check "
@@ -155,7 +156,7 @@ Public Class PigCmdMenu
     End Function
 
     Public Function AddMenuBarItem() As String
-        Dim LOG As New PigStepLog("AddMenuBarItem")
+        Dim LOG As New StruStepLog : LOG.SubName = "AddMenuBarItem"
         Try
             LOG.StepName = "CmdMenus.Add"
             Me.mCmdMenus.Add(Me, CmdMenu.EnmMenuItemType.MenuBar, "", "")
@@ -220,7 +221,7 @@ Public Class PigCmdMenu
     End Function
 
     Private Function mRefreshMenuProperty() As String
-        Dim LOG As New PigStepLog("mRefreshMenuProperty")
+        Dim LOG As New StruStepLog : LOG.SubName = "mRefreshMenuProperty"
         Try
             If Me.mMaxLineCol < 0 Then
                 Me.mMaxLineCol = Me.mGetMaxLineCol
@@ -288,7 +289,7 @@ Public Class PigCmdMenu
     End Function
 
     Public Function SelectMenu(ByRef OutMenuKey As String) As String
-        Dim LOG As New PigStepLog("SelectMenu")
+        Dim LOG As New StruStepLog : LOG.SubName = "SelectMenu"
         Try
             LOG.StepName = "mRefreshMenuProperty"
             LOG.Ret = Me.mRefreshMenuProperty

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2023-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Host class|主机类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 1/16/2023
 '* 1.1  1/18/2023  Modify GetCPUBaseInf,New
 '* 1.2  1/19/2023  Modify GetCPUBaseInf,New
@@ -12,6 +12,7 @@
 '* 1.5  18/8/2023  Add fRefCpuActInf
 '* 1.6  21/2/2024  Modify 
 '* 1.7  21/7/2024  Modify PigFunc to PigFuncLite
+'* 1.8  28/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -19,7 +20,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigHost
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "16"
+    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "16"
 
     Friend Enum EnmGetCPUBaseWhat
         Model = 0
@@ -43,7 +44,7 @@ Public Class PigHost
 
     Public Sub New(Optional HostID As String = "")
         MyBase.New(CLS_VERSION)
-        Dim LOG As New PigStepLog("New")
+        Dim LOG As New StruStepLog : LOG.SubName = "New"
         Try
             Dim strTmp As String = ""
             If HostID <> "" Then
@@ -75,7 +76,7 @@ Public Class PigHost
     End Sub
 
     Friend Function fRefCpuActInf(ByRef InPigCPU As PigCPU) As String
-        Dim LOG As New PigStepLog("fGetCPUBaseInf")
+        Dim LOG As New StruStepLog : LOG.SubName = "fRefCpuActInf"
         Dim strCmd As String = ""
         Try
             If Me.IsWindows = True Then
@@ -109,7 +110,7 @@ Public Class PigHost
 
 
     Friend Function fGetCPUBaseInf(ByRef InPigCPU As PigCPU, GetCPUBaseWhat As EnmGetCPUBaseWhat) As String
-        Dim LOG As New PigStepLog("fGetCPUBaseInf")
+        Dim LOG As New StruStepLog : LOG.SubName = "fGetCPUBaseInf"
         Try
             If InPigCPU Is Nothing Then Throw New Exception("InPigCPU is Nothing")
             Dim strRetContent As String = ""

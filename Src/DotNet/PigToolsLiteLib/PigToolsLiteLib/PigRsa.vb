@@ -4,14 +4,15 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: RSA Processing Class|RSA处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 17/10/2019
-'1.0.2  2019-10-18 Decrypt和Encrypt重载函数
-'1.0.3  2019-11-17 增加 密钥 bytes 数据处理
-'1.1  16/10/2021 Modify LoadPubKey,mDecrypt,mEncrypt
-'1.2  14/11/2021 Add MkEncKey,LoadEncKey, modify Decrypt
-'1.3  15/11/2021 Add SignData,mSignData,mVerifyData,VerifyData
-'1.5  17/1/2024 Add Decrypt,Encrypt
+'* 1.0.2  2019-10-18 Decrypt和Encrypt重载函数
+'* 1.0.3  2019-11-17 增加 密钥 bytes 数据处理
+'* 1.1  16/10/2021 Modify LoadPubKey,mDecrypt,mEncrypt
+'* 1.2  14/11/2021 Add MkEncKey,LoadEncKey, modify Decrypt
+'* 1.3  15/11/2021 Add SignData,mSignData,mVerifyData,VerifyData
+'* 1.5  17/1/2024 Add Decrypt,Encrypt
+'* 1.6  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 
 Imports System.Security.Cryptography
@@ -20,7 +21,7 @@ Imports System.Security.Cryptography
 ''' </summary>
 Public Class PigRsa
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "8"
 
     ''' <summary>密钥组成部分结构长度</summary>
     Private Structure struEncKeyPartLen
@@ -240,7 +241,7 @@ Public Class PigRsa
     ''' <param name="OutPrivateKeyXml">Output private key XML|输出的私钥XML</param>
     ''' <returns></returns>
     Public Function MkEncKey(ByRef OutPrivateKeyXml As String, ByRef OutPublicKeyXml As String) As String
-        Dim LOG As New PigStepLog("MkEncKey")
+        Dim LOG As New StruStepLog : LOG.SubName = "mLoadEncKey"
         Try
             LOG.StepName = "Mk OutEncKeyXml"
             OutPrivateKeyXml = mrsaMain.ToXmlString(True)
@@ -580,7 +581,7 @@ Public Class PigRsa
     ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
     ''' <returns></returns>
     Public Function Encrypt(SrcString As String, ByRef EncBytes As Byte(), Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
-        Dim LOG As New PigStepLog("Encrypt")
+        Dim LOG As New StruStepLog : LOG.SubName = "Encrypt"
         Try
             Dim ptSrc As New PigText(SrcString, SrcTextType)
             LOG.StepName = "mEncrypt"
@@ -601,7 +602,7 @@ Public Class PigRsa
     ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
     ''' <returns></returns>
     Public Function Encrypt(SrcString As String, ByRef EncBase64Str As String, Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
-        Dim LOG As New PigStepLog("Encrypt")
+        Dim LOG As New StruStepLog : LOG.SubName = "Encrypt"
         Try
             Dim ptSrc As New PigText(SrcString, SrcTextType)
             Dim abEnc(-1) As Byte

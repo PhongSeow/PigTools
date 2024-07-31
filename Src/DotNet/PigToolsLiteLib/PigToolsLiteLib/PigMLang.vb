@@ -5,7 +5,7 @@
 '''* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '''* Describe: A lightweight multi language processing class, As long as you refer to this class, you can implement multilingual processing|一个轻量的多语言处理类，只要引用本类就可以实现多语言处理。 
 '''* Home Url: https://en.seowphong.com
-'''* Version: 1.8
+'''* Version: 1.9
 '''* Create Time: 30/11/2020
 '''* 1.0.2  1/12/2020   Modify GetAllLangInf, Add GetMLangText
 '''* 1.0.3  1/12/2020   Modify mInitCultureSortList
@@ -24,6 +24,7 @@
 '''* 1.6 31/10/2022     Modify mGetMLangText
 '''* 1.7 18/1/2022     Modify MkMLangText
 '''* 1.8 24/6/2023     Modify PigFileSystem
+'''* 1.9  27/7/2024   Modify PigStepLog to StruStepLog
 '''************************************
 ''' </summary>
 Imports System.Globalization
@@ -35,7 +36,7 @@ Imports System.IO
 ''' </summary>
 Public Class PigMLang
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "9" & "." & "2"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mFS As New PigFileSystem
@@ -320,7 +321,7 @@ Public Class PigMLang
     ''' </summary>
     ''' <param name="CultureName">区域名称</param>
     Public Function SetCurrCulture(CultureName As String) As String
-        Dim LOG As New PigStepLog("SetCurrCulture")
+        Dim LOG As New StruStepLog : LOG.SubName = "SetCurrCulture"
         Try
             Dim oCultureInfo As CultureInfo = Nothing
             Dim strRet As String = Me.mNewCultureInfo(CultureName, oCultureInfo)
@@ -823,7 +824,7 @@ Public Class PigMLang
     End Function
 
     Public Function GetCanUseCultureXml() As String
-        Dim LOG As New PigStepLog("GetCanUseCultureXml")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetCanUseCultureXml"
         Try
             GetCanUseCultureXml = ""
             LOG.StepName = "RefCanUseCultureList"
@@ -909,7 +910,7 @@ Public Class PigMLang
     End Function
 
     Private Function mLoadMLangInf(IsAuto As Boolean) As String
-        Dim LOG As New PigStepLog("mLoadMLangInf")
+        Dim LOG As New StruStepLog : LOG.SubName = "mLoadMLangInf"
         Try
             Dim strMLangFile As String
             LOG.StepName = "mGetMLangFile"

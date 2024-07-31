@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.22
+'* Version: 1.23
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -27,6 +27,7 @@
 '* 1.20 19/12/2023  Modify mCmdShell
 '* 1.21 21/2/2024  Modify New,mCmdShell,mWinHideShell,mCallFile,GetParentProc,GetSubProcs
 '* 1.22 21/7/2024  Modify PigFunc to PigFuncLite
+'* 1.23  28/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -36,7 +37,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "22" & "." & "12"
+    Private Const CLS_VERSION As String = "1" & "." & "23" & "." & "12"
     Public Property LinuxShPath As String
     Public Property WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -210,7 +211,7 @@ Public Class PigCmdApp
         Public IsAsync As Boolean
     End Structure
     Private Function mCmdShell(StruMain As mStruCmdShell) As String
-        Dim LOG As New PigStepLog("mCmdShell")
+        Dim LOG As New StruStepLog : LOG.SubName = "mCmdShell"
         Try
             Dim strShellPath As String
             If Me.IsWindows = True Then
@@ -270,7 +271,7 @@ Public Class PigCmdApp
     End Function
 
     Private Function mWinHideShell(CmdFilePath As String, Optional IsRunAsAdmin As Boolean = False) As Long
-        Dim LOG As New PigStepLog("mWinHideShell")
+        Dim LOG As New StruStepLog : LOG.SubName = "mWinHideShell"
         Try
             LOG.StepName = "New ProcessStartInfo"
             Dim moProcessStartInfo As New ProcessStartInfo(CmdFilePath)
@@ -301,7 +302,7 @@ Public Class PigCmdApp
     End Function
 
     Private Function mLinuxHideShell(CmdFilePath As String) As Long
-        Dim LOG As New PigStepLog("mLinuxHideShell")
+        Dim LOG As New StruStepLog : LOG.SubName = "mLinuxHideShell"
         Try
             LOG.StepName = "New ProcessStartInfo"
             Dim moProcessStartInfo As New ProcessStartInfo(Me.LinuxShPath)
@@ -361,7 +362,7 @@ Public Class PigCmdApp
     Public Event AsyncRet_CmdShell_StringArray(AsyncRet As PigAsync, StandardOutput As String(), StandardError As String)
 
     Private Function mCallFile(StruMain As mStruCallFile) As String
-        Dim LOG As New PigStepLog("mCallFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "mCallFile"
         Dim oPigAsync As New PigAsync
         Try
             If StruMain.IsAsync = True Then
@@ -480,7 +481,7 @@ Public Class PigCmdApp
     ''' <param name="PID">进程号|Process number</param>
     ''' <returns></returns>
     Public Function GetParentProc(PID As Integer) As PigProc
-        Dim LOG As New PigStepLog("GetParentProc")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetParentProc"
         Try
             If moPigProcApp Is Nothing Then
                 LOG.StepName = "New PigProcApp"
@@ -536,7 +537,7 @@ Public Class PigCmdApp
     ''' <param name="PID">进程号|Process number</param>
     ''' <returns></returns>
     Public Function KillSubProcs(PID As Integer) As String
-        Dim LOG As New PigStepLog("KillSubProcs")
+        Dim LOG As New StruStepLog : LOG.SubName = "KillSubProcs"
         Try
             LOG.StepName = "GetSubProcs"
             Dim oPigProcs As PigProcs = Me.GetSubProcs(PID)
@@ -562,7 +563,7 @@ Public Class PigCmdApp
     ''' <param name="PID">进程号|Process number</param>
     ''' <returns></returns>
     Public Function GetSubProcs(PID As Integer) As PigProcs
-        Dim LOG As New PigStepLog("GetSubProcs")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetSubProcs"
         Try
             If moPigProcApp Is Nothing Then
                 LOG.StepName = "New PigProcApp"
@@ -628,7 +629,7 @@ Public Class PigCmdApp
     End Function
 
     Private Function mCallFileWaitForExit(FilePath As String, Optional Para As String = "", Optional IsRunAsAdmin As Boolean = False) As String
-        Dim LOG As New PigStepLog("mCallFileWaitForExit")
+        Dim LOG As New StruStepLog : LOG.SubName = "mCallFileWaitForExit"
         Try
             If Me.mPigFunc.IsFileExists(FilePath) = False Then Throw New Exception("The execution file does not exist.")
             LOG.StepName = "New ProcessStartInfo"

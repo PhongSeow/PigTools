@@ -4,19 +4,20 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 豚豚键值|Pig key value
 '* Home Url: https://en.seowphong.com
-'* Version: 1.5
+'* Version: 1.6
 '* Create Time: 3/8/2022
-'* 1.1		5/8/2022	Modify SortedList,mSaveKeyValue, add mSaveBodyToFile
-'* 1.2		18/9/2022	Add to PigToolsLiteLib
-'* 1.3		24/9/2022	Add SaveKeyValue,IsCompress,mNew,mListKeyValues, modify New
-'* 1.5		3/10/2022	Modify mSaveKeyValue,mSaveKeyValueToList, add RemoveKeyValue,mRemoveKeyValue
+'* 1.1	5/8/2022	Modify SortedList,mSaveKeyValue, add mSaveBodyToFile
+'* 1.2	18/9/2022	Add to PigToolsLiteLib
+'* 1.3	24/9/2022	Add SaveKeyValue,IsCompress,mNew,mListKeyValues, modify New
+'* 1.5	3/10/2022	Modify mSaveKeyValue,mSaveKeyValueToList, add RemoveKeyValue,mRemoveKeyValue
+'* 1.6  27/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 ''' <summary>
 ''' Key value class|键值类
 ''' </summary>
 Public Class PigKeyValue
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "32"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "32"
     Public Enum HitCacheEnum
         Null = 0
         List = 1
@@ -83,7 +84,7 @@ Public Class PigKeyValue
     End Sub
 
     Private Function mSaveKeyValueToList(KeyName As String, ValueBytes As Byte()) As String
-        Dim LOG As New PigStepLog("mGetKeyValueFromList")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetKeyValueFromList"
         Try
             LOG.StepName = "Check ValueBytes"
             If ValueBytes Is Nothing Then Throw New Exception("ValueBytes Is Nothing")
@@ -119,7 +120,7 @@ Public Class PigKeyValue
     End Function
 
     Public Function GetKeyValue(KeyName As String, ByRef Base64Value As String, Optional CacheTimeSec As Integer = 60, Optional ByRef HitCache As HitCacheEnum = HitCacheEnum.Null) As String
-        Dim LOG As New PigStepLog("GetKeyValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetKeyValue"
         Try
             Dim abValue(-1) As Byte
             LOG.StepName = "mGetKeyValue"
@@ -135,7 +136,7 @@ Public Class PigKeyValue
     End Function
 
     Public Function GetKeyValue(KeyName As String, ByRef TextValue As String, Optional TextType As PigText.enmTextType = PigText.enmTextType.UTF8, Optional CacheTimeSec As Integer = 60, Optional ByRef HitCache As HitCacheEnum = HitCacheEnum.Null) As String
-        Dim LOG As New PigStepLog("GetKeyValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetKeyValue"
         Try
             Dim abValue(-1) As Byte
             LOG.StepName = "mGetKeyValue"
@@ -152,7 +153,7 @@ Public Class PigKeyValue
     End Function
 
     Private Function mGetKeyValue(KeyName As String, ByRef ValueBytes As Byte(), Optional CacheTimeSec As Integer = 60, Optional ByRef HitCache As HitCacheEnum = HitCacheEnum.Null) As String
-        Dim LOG As New PigStepLog("mGetKeyValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetKeyValue"
         Try
             Dim dteCreateTime As Date, bolIsNeedGetFromFile As Boolean = False, bolIsNeedGetFromShareMem As Boolean = False
             If Me.mListKeyValues.IsItemExists(KeyName) = False Then
@@ -325,7 +326,7 @@ Public Class PigKeyValue
     End Function
 
     Private Function mSaveKeyValue(KeyName As String, DataBytes As Byte()) As String
-        Dim LOG As New PigStepLog("mSaveKeyValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "mSaveKeyValue"
         Try
             LOG.StepName = "Check DataBytes"
             Select Case Len(KeyName)
@@ -369,7 +370,7 @@ Public Class PigKeyValue
     End Function
 
     Private Function mGetHeadFromFile(KeyNamePigMD5 As String, ByRef HeadBytes As Byte(), ByRef CreateTime As Date) As String
-        Dim LOG As New PigStepLog("mGetValueFromFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetHeadFromFile"
         Dim strFilePath As String = Me.CacheWorkDir & Me.OsPathSep & KeyNamePigMD5
         Try
             LOG.StepName = "New PigFile"
@@ -391,7 +392,7 @@ Public Class PigKeyValue
     End Function
 
     Private Function mGetValueFromFile(ValuePigMD5 As String, ByRef OutData As Byte()) As String
-        Dim LOG As New PigStepLog("mGetValueFromFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetValueFromFile"
         Dim strFilePath As String = Me.CacheWorkDir & Me.OsPathSep & ValuePigMD5
         Try
             LOG.StepName = "New PigFile"
@@ -412,7 +413,7 @@ Public Class PigKeyValue
 
 
     Private Function mSaveHeadToFile(KeyNamePigMD5 As String, ByRef PbBody As PigBytes) As String
-        Dim LOG As New PigStepLog("mSaveHeadToFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "mSaveHeadToFile"
         Dim strFilePath As String = Me.CacheWorkDir & Me.OsPathSep & KeyNamePigMD5
         Try
             LOG.StepName = "New PigBytes"
@@ -438,7 +439,7 @@ Public Class PigKeyValue
     End Function
 
     Private Function mSaveBodyToFile(ValuePigMD5 As String, ByRef SaveData As Byte()) As String
-        Dim LOG As New PigStepLog("mSaveBodyToFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "mSaveBodyToFile"
         Try
             Dim bolIsSave As Boolean = True
             Dim strFilePath As String = Me.CacheWorkDir & Me.OsPathSep & ValuePigMD5
@@ -474,7 +475,7 @@ Public Class PigKeyValue
     End Function
 
     Private Function mRemoveKeyValue(KeyName As String, IsIncFile As Boolean) As String
-        Dim LOG As New PigStepLog("mRemoveKeyValue")
+        Dim LOG As New StruStepLog : LOG.SubName = "mRemoveKeyValue"
         Try
             Dim strError As String = ""
             Dim strKeyNamePigMD5 As String = Me.mGetKeyNamePigMD5(KeyName)

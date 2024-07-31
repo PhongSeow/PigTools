@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.22
+'* Version: 1.25
 '* Create Time: 15/1/2022
 '* 1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '* 1.2 3/2/2022     Add GetLine
@@ -28,6 +28,7 @@
 '* 1.21 21/2/2024   Modify mDisplayPause,IsYesOrNo,mDisplayPause,SimpleMenu,mGetLine
 '* 1.22 9/6/2024   Modify EnmWhatTypeOfMenuDefinition,GetMenuDefinition
 '* 1.23  21/7/2024  Modify PigFunc to PigFuncLite
+'* 1.25  28/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -36,7 +37,7 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "23" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "25" & "." & "8"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -445,7 +446,7 @@ Public Class PigConsole
     ''' <param name="IsVertical">Whether to display vertically|是否垂直显示</param>
     ''' <returns></returns>
     Public Function SelectControl(Description As String, Definition As String, ByRef SelectKey As String, Optional IsVertical As Boolean = False) As String
-        Dim LOG As New PigStepLog("SelectControl")
+        Dim LOG As New StruStepLog : LOG.SubName = "SelectControl"
         Try
             Dim abSelectName As String(), abSelectKey As String(), abLetter As String()
             ReDim abSelectName(0)
@@ -514,7 +515,7 @@ Public Class PigConsole
     ''' <param name="EnmSimpleMenuExitType">退出方式|Exit mode</param>
     ''' <returns></returns>
     Public Function SimpleMenu(MenuTitle As String, MenuDefinition As String, ByRef OutMenuKey As String, Optional MenuExitType As EnmSimpleMenuExitType = EnmSimpleMenuExitType.QtoExit) As String
-        Dim LOG As New PigStepLog("SimpleMenu")
+        Dim LOG As New StruStepLog : LOG.SubName = "SimpleMenu"
         Try
             Dim abMenuName As String(), abMenuKey As String(), abLetter As String()
             ReDim abMenuName(0)
@@ -617,15 +618,9 @@ Public Class PigConsole
 
 
     Private Function mGetLine(PromptInf As String, ByRef OutLine As String, Optional IsShowCurrLine As Boolean = True) As String
-        Dim LOG As New PigStepLog("mGetLine")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetLine"
         Try
             Dim strOldLine As String = OutLine
-            '            Dim bolCurrCursorVisible As Boolean
-            'If Me.IsWindows = True Then
-            '    LOG.StepName = "Save CursorVisible"
-            '    bolCurrCursorVisible = Console.CursorVisible
-            '    If bolCurrCursorVisible = False Then Console.CursorVisible = True
-            'End If
             Dim intBeginLeft As Integer = Console.CursorLeft, intBeginTop As Integer = Console.CursorTop
             If OutLine <> "" And IsShowCurrLine = True Then
                 Dim strGlobalKey As String, strDefaultText As String
@@ -680,7 +675,7 @@ Public Class PigConsole
     End Function
 
     Private Function mEditLine(ByRef LineStr As String, BeginTop As Integer, LineEdit As EnmLineEdit, Optional InsChar As Char = "") As String
-        Dim LOG As New PigStepLog("mEditLine")
+        Dim LOG As New StruStepLog : LOG.SubName = "mEditLine"
         Try
             Dim intLinePos As Integer, intNowLeft As Integer = Console.CursorLeft, intNowTop As Integer = Console.CursorTop, intLineLen As Integer = Len(LineStr)
             Dim intOutNowTop As Integer = intNowTop
@@ -797,7 +792,7 @@ Public Class PigConsole
     End Function
 
     Public Function SetCurrCulture(CultureName As String) As String
-        Dim LOG As New PigStepLog("SetCurrCulture")
+        Dim LOG As New StruStepLog : LOG.SubName = "SetCurrCulture"
         Try
             If Me.IsUseMLang = False Or Me.mPigMLang Is Nothing Then
                 LOG.StepName = "New PigMLang"
@@ -814,7 +809,7 @@ Public Class PigConsole
     End Function
 
     Public Function RefMLang() As String
-        Dim LOG As New PigStepLog("RefMLang")
+        Dim LOG As New StruStepLog : LOG.SubName = "RefMLang"
         Try
             LOG.StepName = "New PigMLang"
             Me.mPigMLang = New PigMLang(Me.AppTitle, Me.AppPath)

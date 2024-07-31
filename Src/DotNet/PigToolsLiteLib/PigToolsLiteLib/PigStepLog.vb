@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigStepLog is for logging and error handling in the process.
 '* Home Url: https://en.seowphong.com
-'* Version: 1.8.6
+'* Version: 1.10.8
 '* Create Time: 8/12/2019
 '1.1    18/12/2021  Add TrackID,ErrInf2User, modify mNew,StepName
 '1.2    21/12/2021  Modify TrackID
@@ -13,12 +13,35 @@
 '1.6    8/12/2022  Modify mNew,StepName
 '1.7    1/6/2023  Modify ErrInf2User
 '1.8    17/2/2024  Modify mGEMD5,mNew,StepName
+'1.10   27/7/2024  Add mStruUseTime
 '************************************
 ''' <summary>
 ''' Error tracking processing class|错误跟踪处理类
 ''' </summary>
 Public Class PigStepLog
     Public ReadOnly Property SubName As String
+
+    Private Structure mStruUseTime
+        Public BeginTime As DateTime
+        Public EndTime As DateTime
+        Public CurrBeginTime As DateTime
+        Public TimeDiff As TimeSpan
+        Public Sub GoBegin()
+            BeginTime = Now
+            CurrBeginTime = BeginTime
+            TimeDiff = Nothing
+            TimeDiff = New TimeSpan
+        End Sub
+        Public Function AllDiffSeconds() As Decimal
+            AllDiffSeconds = TimeDiff.TotalMilliseconds / 1000
+        End Function
+        Public Sub ToEnd()
+            Me.EndTime = Now
+            TimeDiff = Now - BeginTime
+        End Sub
+    End Structure
+
+
 
     Private Property mHostInf As String = ""
     Private mbolIsLogUseTime As Boolean
@@ -33,7 +56,7 @@ Public Class PigStepLog
 
     Public Ret As String = ""
 
-    Private moUseTime As UseTime
+    Private moUseTime As mStruUseTime
 
     ''' <summary>
     ''' 显示给用户看的错误信息，不能显示内部错误内容。|The error message displayed to the user cannot display internal error content.
@@ -68,7 +91,7 @@ Public Class PigStepLog
             Me.TrackID = Mid(Me.mGEMD5(Me.TrackID), 9, 16)
         End If
         If Me.IsLogUseTime = True Then
-            moUseTime = New UseTime
+            moUseTime = New mStruUseTime
             moUseTime.GoBegin()
         End If
     End Sub

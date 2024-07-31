@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.17
+'* Version: 1.18
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add GetJavaVersion 
 '* 1.2  6/3/2022   Add WlstPath 
@@ -22,6 +22,7 @@
 '* 1.15 24/6/2024 Modify GetJavaVersion,add GetJMapHeapXml
 '* 1.16 26/6/2024 Modify GetJMapHeapXml
 '* 1.17 27/6/2024 Modify GetJMapHeapXml, add GetJStatGcUtilXml
+'* 1.18  28/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -31,7 +32,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class WebLogicApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1." & "17" & "." & "6"
+    Private Const CLS_VERSION As String = "1." & "18" & "." & "6"
     Public ReadOnly Property HomeDirPath As String
     Public ReadOnly Property WorkTmpDirPath As String
     Public ReadOnly Property CallWlstTimeout As Integer = 300
@@ -126,7 +127,7 @@ Public Class WebLogicApp
     ''' </summary>
     ''' <returns></returns>
     Public Function GetJavaVersion() As String
-        Dim LOG As New PigStepLog("GetJavaVersion")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetJavaVersion"
         Try
             Dim strCmd As String = ""
             LOG.StepName = "mGetExeHead"
@@ -212,7 +213,7 @@ Public Class WebLogicApp
     ''' <param name="ResInf">Return Results|返回结果</param>
     ''' <returns></returns>
     Public Function RunOpatch(Cmd As String, ByRef ResInf As String) As String
-        Dim LOG As New PigStepLog("RunOpatch")
+        Dim LOG As New StruStepLog : LOG.SubName = "RunOpatch"
         Try
             Dim strCmd As String = Me.HomeDirPath & Me.OsPathSep & "OPatch" & Me.OsPathSep & "opatch " & Cmd
             LOG.StepName = "CmdShell"
@@ -237,7 +238,7 @@ Public Class WebLogicApp
     ''' <param name="ResInf">Return Results|返回结果</param>
     ''' <returns></returns>
     Public Function RunOpatch(SudoUser As String, Cmd As String, ByRef ResInf As String) As String
-        Dim LOG As New PigStepLog("RunOpatch")
+        Dim LOG As New StruStepLog : LOG.SubName = "RunOpatch"
         Try
             If Me.IsWindows = True Then Throw New Exception("Can only be executed on the Linux platform")
             Dim strCmd As String = Me.HomeDirPath & Me.OsPathSep & "OPatch" & Me.OsPathSep & "opatch " & Cmd
@@ -267,7 +268,7 @@ Public Class WebLogicApp
     ''' <param name="RootKeyName">The name of the root node|根结点的名称</param>
     ''' <returns></returns>
     Public Function GetJStatGcUtilXml(JavaPID As Integer, ByRef OutPigXml As PigXml, Optional RootKeyName As String = "Root") As String
-        Dim LOG As New PigStepLog("GetJStatGcUtilXml")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetJStatGcUtilXml"
         Try
             Dim strCmd As String = ""
             LOG.StepName = "mGetExeHead"
@@ -322,7 +323,7 @@ Public Class WebLogicApp
     ''' <param name="RootKeyName">The name of the root node|根结点的名称</param>
     ''' <returns></returns>
     Public Function GetJMapHeapXml(JavaPID As Integer, ByRef OutPigXml As PigXml, Optional RootKeyName As String = "Root") As String
-        Dim LOG As New PigStepLog("GetJMapHeapXml")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetJMapHeapXml"
         Try
             Dim strCmd As String = ""
             LOG.StepName = "mGetExeHead"

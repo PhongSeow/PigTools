@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 用于 Recordset.AllRecordset2Xml 返回缓存数据的结果集处理|For recordset Allrecordset2xml returns the result set processing of cached data.
 '* Home Url: https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 10/7/2021
 '* 1.1 11/7/2022 Modify New
 '* 1.2	26/7/2022	Modify Imports
@@ -12,6 +12,7 @@
 '* 1.5	5/9/2022	Modify datetime
 '* 1.6	27/9/2022	Modify IntValue
 '* 1.7	10/10/2022	Modify IsEOF
+'* 1.8  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 
 ''' <summary>
@@ -19,11 +20,11 @@
 ''' </summary>
 Public Class PigSQLSrvXmlRS
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "2"
     Public ReadOnly Property PigXml As PigXml
     Public Sub New(XmlStr As String, Optional IsChgCtrlChar As Boolean = True)
         MyBase.New(CLS_VERSION)
-        Dim LOG As New PigStepLog("New")
+        Dim LOG As New StruStepLog : LOG.SubName = "New"
         Try
             Me.PigXml = New PigXml(False, IsChgCtrlChar)
             LOG.StepName = "SetMainXml"

@@ -4,25 +4,26 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://en.seowphong.com
-'* Version: 1.10
+'* Version: 1.11
 '* Create Time: 4/11/2019
-'*1.0.2  2019-11-5   增加mSaveFile
-'*1.0.3  2019-11-20  增加 CopyFileTo
-'*1.0.5  2020-2-13   增加 IsPigMD5
-'*1.0.6  2020-2-15   部分功能迁到 fGEFileSystem
-'*1.0.7  2020-3-5    增加 SetData
-'*1.0.8  2020-10-27  修改 LoadFile
-'*1.0.9  1/2/2021 Err.Raise change to Throw New Exception|Err.Raise改为Throw New Exception
-'*1.0.10  26/7/2021 Modify LoadFile
-'*1.1  10/5/2022    Add PigMD5, modify LoadFile
-'*1.2  10/8/2022    Add GetFastPigMD5
-'*1.3  16/8/2022    Add SegLoadFile, modify GetFastPigMD5,mGetMyMD5
-'*1.5  12/9/2022    Modify New
-'*1.6  30/9/2022    Add GetTailText,GetTopText
-'*1.7  2/5/2023     Modify GetFastPigMD5
-'*1.8  4/5/2023     Modify GetFastPigMD5,mGetMyMD5,SegLoadFile,GetTailText, add mGetFastPigMD5
-'*1.9  10/11/2023   Add GetTextRows, modify GetTailText
-'*1.10 4/12/2023   Add GetFullText
+'* 1.0.2  2019-11-5   增加mSaveFile
+'* 1.0.3  2019-11-20  增加 CopyFileTo
+'* 1.0.5  2020-2-13   增加 IsPigMD5
+'* 1.0.6  2020-2-15   部分功能迁到 fGEFileSystem
+'* 1.0.7  2020-3-5    增加 SetData
+'* 1.0.8  2020-10-27  修改 LoadFile
+'* 1.0.9  1/2/2021 Err.Raise change to Throw New Exception|Err.Raise改为Throw New Exception
+'* 1.0.10  26/7/2021 Modify LoadFile
+'* 1.1  10/5/2022    Add PigMD5, modify LoadFile
+'* 1.2  10/8/2022    Add GetFastPigMD5
+'* 1.3  16/8/2022    Add SegLoadFile, modify GetFastPigMD5,mGetMyMD5
+'* 1.5  12/9/2022    Modify New
+'* 1.6  30/9/2022    Add GetTailText,GetTopText
+'* 1.7  2/5/2023     Modify GetFastPigMD5
+'* 1.8  4/5/2023     Modify GetFastPigMD5,mGetMyMD5,SegLoadFile,GetTailText, add mGetFastPigMD5
+'* 1.9  10/11/2023   Add GetTextRows, modify GetTailText
+'* 1.10 4/12/2023   Add GetFullText
+'* 1.11  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports System.IO
 'Imports Microsoft.VisualBasic.Logging
@@ -31,7 +32,7 @@ Imports System.IO
 ''' </summary>
 Public Class PigFile
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "10" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "11" & "." & "8"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
     Public GbMain As PigBytes '主数据数组
@@ -122,7 +123,7 @@ Public Class PigFile
     ''' <param name="SegmentSize">一段大小|Segment size</param>
     ''' <returns></returns>
     Public Function SegLoadFile(SegmentSize As Long) As String
-        Dim LOG As New PigStepLog("SegLoadFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "SegLoadFile"
         Dim sfAny As FileStream = Nothing
         Dim brAny As BinaryReader = Nothing
         Try
@@ -193,7 +194,7 @@ Public Class PigFile
     ''' <param name="Rows"></param>
     ''' <returns></returns>
     Public Function GetTailText(Rows As Integer) As String
-        Dim LOG As New PigStepLog("GetTailText")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetTailText"
         Dim sfAny As FileStream = Nothing
         Dim srAny As StreamReader = Nothing
         Try
@@ -231,7 +232,7 @@ Public Class PigFile
     ''' <param name="Rows"></param>
     ''' <returns></returns>
     Public Function GetTopText(Rows As Integer) As String
-        Dim LOG As New PigStepLog("GetTopText")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetTopText"
         Try
             LOG.StepName = "New FileStream"
             Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
@@ -256,7 +257,7 @@ Public Class PigFile
 
     ''' <summary>导入数据</summary>
     Public Function LoadFile() As String
-        Dim LOG As New PigStepLog("LoadFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "LoadFile"
         Try
             If Me.GbMain IsNot Nothing Then Me.GbMain = Nothing
             LOG.StepName = "New FileStream"
@@ -419,7 +420,7 @@ Public Class PigFile
 
     Private mPigMD5 As PigMD5
     Private Function mGetMyMD5() As String
-        Dim LOG As New PigStepLog("mGetMyMD5")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetMyMD5"
         Const SEGMENTSIZE As Integer = 20971520
         Dim sfAny As FileStream = Nothing
         Dim brAny As BinaryReader = Nothing
@@ -615,7 +616,7 @@ Public Class PigFile
 
 
     Private Function mGetFastPigMD5(ByRef FastPigMD5 As PigMD5, Optional ScanSize As Integer = 20480) As String
-        Dim LOG As New PigStepLog("mGetFastPigMD5")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetFastPigMD5"
         Dim i As Long
         Dim intSize As Long = Me.Size
         Dim sfAny As FileStream = Nothing
@@ -671,7 +672,7 @@ Public Class PigFile
     End Function
 
     Public Function GetFullText(ByRef FileText As PigText, TextType As PigText.enmTextType) As String
-        Dim LOG As New PigStepLog("GetFullText")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetFullText"
         Try
             LOG.StepName = "Check GbMain.Main.Length"
             If Me.GbMain.Main.Length <> Me.Size Then

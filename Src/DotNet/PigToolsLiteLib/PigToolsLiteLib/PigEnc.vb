@@ -4,16 +4,17 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: A localized encryption and decryption class, ciphertext cannot be decrypted to other machines.
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 20/8/2022
-'1.1  6/9/2022   Add EnmEncKeySaveType,EnmEncType
-'1.2  25/9/2022  Modify EnmDataEncType
-'1.3  25/9/2023  Modify EnmDataEncType
+'* 1.1  6/9/2022   Add EnmEncKeySaveType,EnmEncType
+'* 1.2  25/9/2022  Modify EnmDataEncType
+'* 1.3  25/9/2023  Modify EnmDataEncType
+'* 1.5  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 
 Friend Class PigEnc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "8"
 
     ''' <summary>
     ''' 密钥使用方式|How to use the key
@@ -78,7 +79,7 @@ Friend Class PigEnc
     End Property
 
     Private Function mLoadEncKey(EncKey As Byte()) As String
-        Dim LOG As New PigStepLog("mLoadEncKey")
+        Dim LOG As New StruStepLog : LOG.SubName = "mLoadEncKey"
         Try
             Select Case Me.EncKeyUseType
                 Case EnmEncKeyUseType.LocalHost
@@ -110,7 +111,7 @@ Friend Class PigEnc
     End Function
 
     Private Function mMkEncKey(EncKeyUseType As EnmEncKeyUseType, DataEncType As EnmDataEncType, ByRef SrvEncKey As Byte(), ByRef CliEncKey As Byte()) As String
-        Dim LOG As New PigStepLog("mMkEncKey")
+        Dim LOG As New StruStepLog : LOG.SubName = "mMkEncKey"
         Try
             Select Case EncKeyUseType
                 Case EnmEncKeyUseType.Multifocal

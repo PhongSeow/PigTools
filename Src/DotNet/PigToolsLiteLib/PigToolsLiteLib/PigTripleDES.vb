@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing TripleDES encryption algorithm
 '* Home Url: https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 20/8/2022
-'1.1  23/8/2002 Modify New, add IsLoadEncKey,LoadEncKey
-'1.2  24/8/2002 Add MkKey
-'1.3  25/8/2002 Modify MkEncKey,mMkEncKey, add MkEncKey
-'1.5  15/1/2004 Add Encrypt
-'1.6  19/1/2004 Add EncryptSub
+'* 1.1  23/8/2002 Modify New, add IsLoadEncKey,LoadEncKey
+'* 1.2  24/8/2002 Add MkKey
+'* 1.3  25/8/2002 Modify MkEncKey,mMkEncKey, add MkEncKey
+'* 1.5  15/1/2004 Add Encrypt
+'* 1.6  19/1/2004 Add EncryptSub
+'* 1.7  27/7/2024 Modify PigStepLog to StruStepLog
 '************************************
 Imports System.Security.Cryptography
 Imports System.Text
@@ -21,7 +22,7 @@ Imports Microsoft.VisualBasic.Logging
 ''' </summary>
 Public Class PigTripleDES
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "16"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "16"
     Private mabEncKey As Byte()
 
     Public Sub New()
@@ -87,7 +88,7 @@ Public Class PigTripleDES
 
     ''' <remarks>导入密钥</remarks>
     Public Overloads Function LoadEncKey(EncKey As Byte()) As String
-        Dim LOG As New PigStepLog("LoadEncKey")
+        Dim LOG As New StruStepLog : LOG.SubName = "LoadEncKey"
         Try
             If EncKey Is Nothing Then Throw New Exception("EncKey is Nothing")
             If EncKey.Length <> 32 Then Throw New Exception("The length of EncKey must be 32")
@@ -133,7 +134,7 @@ Public Class PigTripleDES
 
 
     Private Function mEncrypt(SrcBytes As Byte(), ByRef EncBytes As Byte()) As String
-        Dim LOG As New PigStepLog("mEncrypt")
+        Dim LOG As New StruStepLog : LOG.SubName = "mEncrypt"
         Try
             If Me.IsLoadEncKey = False Then
                 Throw New Exception("Key not imported")
@@ -243,7 +244,7 @@ Public Class PigTripleDES
     End Function
 
     Private Function mDecrypt(EncBytes As Byte(), ByRef UnEncBytes As Byte()) As String
-        Dim LOG As New PigStepLog("mEncrypt")
+        Dim LOG As New StruStepLog : LOG.SubName = "mDecrypt"
         Try
             If Me.IsLoadEncKey = False Then
                 Throw New Exception("Key not imported")
@@ -284,7 +285,7 @@ Public Class PigTripleDES
     End Function
 
     Public Function MkEncKey(ByRef Base64EncKey As String, Optional InitKeyStr As String = "", Optional InitKeyTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
-        Dim LOG As New PigStepLog("MkKey")
+        Dim LOG As New StruStepLog : LOG.SubName = "MkEncKey"
         Try
             Dim abKey(-1) As Byte
             LOG.StepName = "New PigText"
@@ -309,7 +310,7 @@ Public Class PigTripleDES
     End Function
 
     Private Function mMkEncKey(InitKey As Byte(), ByRef EncKey As Byte()) As String
-        Dim LOG As New PigStepLog("mMkEncKey")
+        Dim LOG As New StruStepLog : LOG.SubName = "mMkEncKey"
         Try
             If InitKey Is Nothing Then Throw New Exception("InitKey Is Nothing")
             Dim intKenLen As Integer = InitKey.Length
@@ -354,7 +355,7 @@ Public Class PigTripleDES
     ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
     ''' <returns></returns>
     Public Function Encrypt(SrcString As String, ByRef EncBase64Str As String, Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
-        Dim LOG As New PigStepLog("Encrypt")
+        Dim LOG As New StruStepLog : LOG.SubName = "Encrypt"
         Try
             Dim ptSrc As New PigText(SrcString, SrcTextType)
             Dim abEnc(-1) As Byte
@@ -378,7 +379,7 @@ Public Class PigTripleDES
     ''' <param name="SrcTextType">源字符串文本类型|Source String Text Type</param>
     ''' <returns></returns>
     Public Function Encrypt(SrcString As String, ByRef EncBytes As Byte(), Optional SrcTextType As PigText.enmTextType = PigText.enmTextType.UTF8) As String
-        Dim LOG As New PigStepLog("Encrypt")
+        Dim LOG As New StruStepLog : LOG.SubName = "Encrypt"
         Try
             Dim ptSrc As New PigText(SrcString, SrcTextType)
             LOG.StepName = "mEncrypt"

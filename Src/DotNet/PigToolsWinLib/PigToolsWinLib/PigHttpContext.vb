@@ -4,22 +4,23 @@
 '* License: Copyright (c) 2019-2021 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 给 HttpContext 加壳，实现一系统功能
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 31/8/2019
-'1.0.2  2020-1-29   改用fGEBaseMini
-'1.0.3  2020-1-31   BinaryRead，BinaryWrite
-'1.0.5  2020-2-6   增加 WebSiteUrl
-'1.0.6  2020-2-8    删除 json
-'1.0.7  2020-3-11  增加 IsLocalHost
-'1.0.8  4/3/2021  Add to PigToolsWinLib
-'1.0.9  26/7/2021  Modify BinaryWrite,BinaryRead
-'1.1    28/28/2021  Modify for not NETFRAMEWORK
-'1.2    15/12/2021  Use LOG
-'1.3    26/7/2022  Modify Imports
-'1.5    19/8/2022  Use PigBaseLocal
-'1.6    6/12/2022  Add GetHeaders
-'1.7    8/12/2022  Add RequestItemLongValue,RequestItemBoolValue,RequestItemDateValue,RequestItemDecValue,IsEscapeHTML, modify related interfaces 
-'1.8    1/6/2023  Use PigBaseLocal, Imports PigToolsLiteLib
+'* 1.0.2  2020-1-29   改用fGEBaseMini
+'* 1.0.3  2020-1-31   BinaryRead，BinaryWrite
+'* 1.0.5  2020-2-6   增加 WebSiteUrl
+'* 1.0.6  2020-2-8    删除 json
+'* 1.0.7  2020-3-11  增加 IsLocalHost
+'* 1.0.8  4/3/2021  Add to PigToolsWinLib
+'* 1.0.9  26/7/2021  Modify BinaryWrite,BinaryRead
+'* 1.1    28/28/2021  Modify for not NETFRAMEWORK
+'* 1.2    15/12/2021  Use LOG
+'* 1.3    26/7/2022  Modify Imports
+'* 1.5    19/8/2022  Use PigBaseLocal
+'* 1.6    6/12/2022  Add GetHeaders
+'* 1.7    8/12/2022  Add RequestItemLongValue,RequestItemBoolValue,RequestItemDateValue,RequestItemDecValue,IsEscapeHTML, modify related interfaces 
+'* 1.8    1/6/2023  Use PigBaseLocal, Imports PigToolsLiteLib
+'* 1.9  28/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 #If NETFRAMEWORK Then
 Imports System.Web
@@ -34,7 +35,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigHttpContext
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.8.2"
+    Private Const CLS_VERSION As String = "1." & "9" & "." & "2"
 
     Public Enum enmWhatHtmlEle '什么HTML元素
         Table = 1 '表格
@@ -368,7 +369,7 @@ Public Class PigHttpContext
     ''' <param name="IsWrite2Memory"></param>
     ''' <returns></returns>
     Private Function WriteFileMain(FilePath As String, Optional ContentType As String = "", Optional IsWrite2Memory As Boolean = True) As String
-        Dim LOG As New PigStepLog("WriteFileMain")
+        Dim LOG As New StruStepLog : LOG.SubName = "WriteFileMain"
         Try
             If ContentType = "" Then
                 Dim strExtName As String = LCase(moPigFunc.GetFilePart(FilePath, PigFunc.EnmFilePart.ExtName))
@@ -453,7 +454,7 @@ Public Class PigHttpContext
     ''' <param name="FilePath"></param>
     ''' <returns></returns>
     Private Function WritePageMain(FilePath As String) As String
-        Dim LOG As New PigStepLog("WritePageMain")
+        Dim LOG As New StruStepLog : LOG.SubName = "WritePageMain"
         Try
             With Me.HcMain
                 .Response.Write(My.Computer.FileSystem.ReadAllText(FilePath))    '默认为UTF8
@@ -465,8 +466,7 @@ Public Class PigHttpContext
     End Function
 
     Public Function ResponsJsAlert(AlertDesc As String) As String
-        '向HTTP客户端写文件
-        Dim LOG As New PigStepLog("ResponsJsAlert")
+        Dim LOG As New StruStepLog : LOG.SubName = "ResponsJsAlert"
         Try
             Dim strHtml As String = "<script>window.alert(""" & AlertDesc & """);</script>"
             Me.HcMain.Response.Write(strHtml)
@@ -482,7 +482,7 @@ Public Class PigHttpContext
 
 
     Public Function ResponseWrite(WriteStr As String) As String
-        Dim LOG As New PigStepLog("ResponseWrite")
+        Dim LOG As New StruStepLog : LOG.SubName = "ResponseWrite"
         Try
             LOG.StepName = "HcMain.Response.Write"
             With Me.HcMain.Response
@@ -495,7 +495,7 @@ Public Class PigHttpContext
     End Function
 
     Public Function ResponsHtmlEnd(WhatTabEle As enmWhatHtmlEle) As String
-        Dim LOG As New PigStepLog("ResponsHtmlEnd")
+        Dim LOG As New StruStepLog : LOG.SubName = "ResponsHtmlEnd"
         Try
             With Me.HcMain.Response
                 Select Case WhatTabEle
@@ -516,7 +516,7 @@ Public Class PigHttpContext
     End Function
 
     Public Overloads Function ResponsTabRowBegin() As String
-        Dim LOG As New PigStepLog("ResponsTabRowBegin")
+        Dim LOG As New StruStepLog : LOG.SubName = "ResponsTabRowBegin"
         Try
             With Me.HcMain.Response
                 .Write("<tr>")
@@ -570,7 +570,7 @@ Public Class PigHttpContext
         'Colspan：规定表头单元格可横跨的列数
         'Rowspan：规定表头单元格可横跨的行数。
         'Scope：规定表头单元格是否是行、列、行组或列组的头部。
-        Dim LOG As New PigStepLog("ResponsTabCellBeginMain")
+        Dim LOG As New StruStepLog : LOG.SubName = "ResponsTabCellBeginMain"
         Try
             With Me.HcMain.Response
                 .Write("<td")
@@ -591,7 +591,7 @@ Public Class PigHttpContext
         'Colspan：规定表头单元格可横跨的列数
         'Rowspan：规定表头单元格可横跨的行数。
         'Scope：规定表头单元格是否是行、列、行组或列组的头部。
-        Dim LOG As New PigStepLog("ResponsTabHeadBeginMain")
+        Dim LOG As New StruStepLog : LOG.SubName = "ResponsTabHeadBeginMain"
         Try
             With Me.HcMain.Response
                 .Write("<th")
@@ -623,7 +623,7 @@ Public Class PigHttpContext
     ''' <param name="Style"></param>
     ''' <returns></returns>
     Private Function ResponsTableBeginMain(IsCrLf As Boolean, Optional Border As Integer = 1, Optional ClassName As String = "", Optional Style As String = "width:100%;") As String
-        Dim LOG As New PigStepLog("ResponsTableBeginMain")
+        Dim LOG As New StruStepLog : LOG.SubName = "ResponsTableBeginMain"
         Try
             With Me.HcMain.Response
                 .Write("<table border=""" & Border.ToString & """")
@@ -643,7 +643,7 @@ Public Class PigHttpContext
     End Function
 
     Public Function GetHeaders(ByRef OutHeaders As String) As String
-        Dim LOG As New PigStepLog("GetHeaders")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetHeaders"
         Try
             Dim strKey As String, strValue As String
             LOG.StepName = "NameValueCollection"

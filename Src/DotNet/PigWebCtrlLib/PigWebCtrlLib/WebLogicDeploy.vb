@@ -14,7 +14,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class WebLogicDeploy
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.0.10"
+    Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "10"
 
     Public Enum EnmModuleType
         War = 0

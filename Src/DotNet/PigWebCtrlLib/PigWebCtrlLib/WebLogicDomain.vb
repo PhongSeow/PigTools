@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.51
+'* Version: 1.52
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -46,6 +46,7 @@
 '* 1.39 5/6/2024 Modify StatisticsAccessLog
 '* 1.50 12/6/2024 Modify mGetTopTextAsc,mGetTopText,StatisticsAccessLog
 '* 1.51 26/6/2024 Modify GetDomainEnvInf
+'* 1.52  28/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -58,7 +59,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1." & "51" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "52" & "." & "2"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -552,7 +553,7 @@ Public Class WebLogicDomain
     ''' <param name="Password"></param>
     ''' <returns></returns>
     Public Function SaveSecurityBoot(UserName As String, Password As String) As String
-        Dim LOG As New PigStepLog("SaveSecurityBoot")
+        Dim LOG As New StruStepLog : LOG.SubName = "SaveSecurityBoot"
         Try
             LOG.StepName = "RefDeployStatus"
             LOG.Ret = Me.RefDeployStatus()
@@ -646,7 +647,7 @@ Public Class WebLogicDomain
     ''' </summary>
     ''' <returns></returns>
     Public Function StartDomain() As String
-        Dim LOG As New PigStepLog("StartDomain")
+        Dim LOG As New StruStepLog : LOG.SubName = "StartDomain"
         Try
             LOG.StepName = "RefAll"
             LOG.Ret = Me.RefAll()
@@ -704,7 +705,7 @@ Public Class WebLogicDomain
     End Function
 
     Private Function mKillProc(PID As Integer) As String
-        Dim LOG As New PigStepLog("mKillProc")
+        Dim LOG As New StruStepLog : LOG.SubName = "mKillProc"
         Try
             Dim strCmd As String = ""
             If Me.IsWindows = True Then
@@ -723,7 +724,7 @@ Public Class WebLogicDomain
     End Function
 
     Public Function HardStopDomain() As String
-        Dim LOG As New PigStepLog("HardStopDomain")
+        Dim LOG As New StruStepLog : LOG.SubName = "HardStopDomain"
         Try
             LOG.StepName = "RefAll"
             LOG.Ret = Me.RefAll()
@@ -777,7 +778,7 @@ Public Class WebLogicDomain
     ''' </summary>
     ''' <returns></returns>
     Public Function StopDomain() As String
-        Dim LOG As New PigStepLog("StopDomain")
+        Dim LOG As New StruStepLog : LOG.SubName = "StopDomain"
         Try
             LOG.StepName = "RefAll"
             LOG.Ret = Me.RefAll()
@@ -863,7 +864,7 @@ Public Class WebLogicDomain
     End Property
 
     Private Function mWlstCallMain(WlstCallCmd As EnmWlstCallCmd, Optional ListenPort As Integer = 0, Optional AdminPort As Integer = 0, Optional IsDisableIIOP As Boolean = True, Optional IsAsync As Boolean = False, Optional ByRef CmdRes As String = "", Optional IsEnableAdminPort As Boolean = False) As String
-        Dim LOG As New PigStepLog("mWlstCallMain")
+        Dim LOG As New StruStepLog : LOG.SubName = "mWlstCallMain"
         Try
             LOG.StepName = "Check CallWlst"
             If Me.mCallWlstThreadID > 0 Then Throw New Exception("Busy")
@@ -1124,7 +1125,7 @@ Public Class WebLogicDomain
     ''' </summary>
     ''' <returns></returns>
     Public Function RefConf() As String
-        Dim LOG As New PigStepLog("RefConf")
+        Dim LOG As New StruStepLog : LOG.SubName = "Add"
         Try
             If Me.mIsFileExists(Me.ConfPath) = False Then Throw New Exception(Me.ConfPath & " not found.")
             LOG.StepName = "New PigFile"
@@ -1194,7 +1195,7 @@ Public Class WebLogicDomain
     ''' </summary>
     ''' <returns></returns>
     Public Function RefDeployStatus() As String
-        Dim LOG As New PigStepLog("RefDeployStatus")
+        Dim LOG As New StruStepLog : LOG.SubName = "RefDeployStatus"
         Try
             If Me.mIsFolderExists(Me.HomeDirPath) = False Then
                 Me.DeployStatus = EnmDomainDeployStatus.NotCreate
@@ -1218,7 +1219,7 @@ Public Class WebLogicDomain
     ''' </summary>
     ''' <returns></returns>
     Public Function RefRunStatus() As String
-        Dim LOG As New PigStepLog("RefRunStatus")
+        Dim LOG As New StruStepLog : LOG.SubName = "RefRunStatus"
         Try
             Select Case Me.RunStatus
                 Case EnmDomainRunStatus.ExecutingWLST
@@ -1438,7 +1439,7 @@ Public Class WebLogicDomain
     End Function
 
     Public Function GetConsoleLogHasRunMode(ByRef IsHasRunMode As Boolean) As String
-        Dim LOG As New PigStepLog("IsConsoleLogHasRunMode")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetConsoleLogHasRunMode"
         Const RUN_MODE As String = "<The server started in RUNNING mode.>"
         Dim strCmd As String = ""
         Try
@@ -1519,7 +1520,7 @@ Public Class WebLogicDomain
     ''' </summary>
     ''' <returns></returns>
     Public Function GetDomainEnvInf() As String
-        Dim LOG As New PigStepLog("GetDomainEnvInf")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetDomainEnvInf"
         Try
             LOG.StepName = "OpenTextFile"
             Dim tsMain As TextStream = Me.mFS.OpenTextFile(Me.setDomainEnvPath, PigFileSystem.IOMode.ForReading)
@@ -1696,7 +1697,7 @@ Public Class WebLogicDomain
     ''' <param name="ErrLogFilePath">Log file path for recording error information during processing|用于记录处理过程的错误信息的日志文件路径</param>
     ''' <returns></returns>
     Public Function StatisticsAccessLog(TimeSlot As PigFunc.EnmTimeSlot, ByRef StatisticsResXml As String, Optional IsAscii As Boolean = False, Optional ErrLogFilePath As String = "") As String
-        Dim LOG As New PigStepLog("StatisticsAccessLog")
+        Dim LOG As New StruStepLog : LOG.SubName = "StatisticsAccessLog"
         Try
             Dim dteBegin As Date
             Dim dteEnd As Date
@@ -1863,7 +1864,7 @@ Public Class WebLogicDomain
     End Function
 
     Public Function GetAccessLogTextType(ByRef OutTextType As PigText.enmTextType) As String
-        Dim LOG As New PigStepLog("GetAccessLogTextType")
+        Dim LOG As New StruStepLog : LOG.SubName = "GetAccessLogTextType"
         Try
             Dim strFilePath As String = Me.LogDirPath & Me.OsPathSep & "access.log"
             Dim bolIsOK As Boolean = False
@@ -1915,7 +1916,7 @@ Public Class WebLogicDomain
     ''' <param name="ErrLogFilePath">Log file path for recording error information during processing|用于记录处理过程的错误信息的日志文件路径</param>
     ''' <returns></returns>
     Public Function StatisticsAccessLog(TimeSlot As PigFunc.EnmTimeSlot, ByRef StatisticsResXml As String, TextType As PigText.enmTextType, Optional ErrLogFilePath As String = "") As String
-        Dim LOG As New PigStepLog("StatisticsAccessLog")
+        Dim LOG As New StruStepLog : LOG.SubName = "StatisticsAccessLog"
         Dim lngLineNo As Long = 0
         Try
             Dim dteBegin As Date

@@ -49,7 +49,7 @@ Public Class PigNohup
 
 
     Public Function Run() As String
-        Dim LOG As New PigStepLog("Run")
+        Dim LOG As New StruStepLog : LOG.SubName = "Run"
         Try
             If Me.IsWindows = True Then Throw New Exception("Cannot execute on Windows")
             If Me.IsDebug = True Then Me.PrintDebugLog(LOG.SubName, Me.mCmd)

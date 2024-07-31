@@ -4,14 +4,15 @@
 '* License: Copyright (c) 2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: CmdMenus的集合类|Collection class of CmdMenu
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.0
+'* Version: 1.1
 '* Create Time: 5/3/2024
+'* 1.1  28/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports PigToolsLiteLib
 Friend Class CmdMenus
 	Inherits PigBaseLocal
 	Implements IEnumerable(Of CmdMenu)
-	Private Const CLS_VERSION As String = "1.0.2"
+	Private Const CLS_VERSION As String = "1.1.2"
 	Private ReadOnly moList As New List(Of CmdMenu)
 	Public Sub New()
 		MyBase.New(CLS_VERSION)
@@ -82,7 +83,7 @@ Friend Class CmdMenus
 		End Try
 	End Sub
 	Public Function Add(Parent As PigCmdMenu, MenuType As CmdMenu.EnmMenuItemType, MenuKey As String, MenuText As String) As CmdMenu
-		Dim LOG As New PigStepLog("Add")
+		Dim LOG As New StruStepLog : LOG.SubName = "Add"
 		Try
 			LOG.StepName = "New CmdMenu"
 			Dim oCmdMenu As New CmdMenu(Parent, MenuType, MenuKey, MenuText)

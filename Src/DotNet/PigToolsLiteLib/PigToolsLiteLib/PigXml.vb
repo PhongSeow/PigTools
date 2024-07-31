@@ -4,40 +4,41 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://en.seowphong.com
-'* Version: 1.23
+'* Version: 1.25
 '* Create Time: 8/11/2019
-'1.0.2  2019-11-10  修改bug
-'1.0.3  2020-5-26  修改bug
-'1.0.5  2020-6-5  增加 CData处理和流处理
-'1.0.6  2020-6-7  增加 CData处理和流处理优化
-'1.0.8  2020-6-19  修改 FillByXmlReader
-'1.0.9  2020-6-20  修改 Bug
-'1.0.10 2020-7-6    增加 XmlGetInt
-'1.0.11 2/2/2021   Modify mLng2Date
-'1.0.12 24/8/2021   Modify mLng2Date
-'1.0.13 24/8/2021   Modify mLng2Date for NETCOREAPP3_1_OR_GREATER
-'1.1 24/8/2021   Modify mGetStr
-'1.2 22/12/2021   Modify mXMLAddStr
-'1.3 3/1/2022   Modify Err.Raise to Throw New Exception
-'1.4 29/2/2022   Remove FillByXmlReader, add XmlDocument,GetXmlDocText
-'1.5 30/5/2022   Add mInitXmlDocument,InitXmlDocument,mGetXmlDoc, modify GetXmlDocText,mGetXmlDoc
-'1.6 31/5/2022   Add XmlDocGetInt
-'1.7 3/6/2022   Modify xpXMLAddWhere,AddEleLeftSign,mXMLAddStr, add AddEleLeftAttribute
-'1.8 6/6/2022   Add XmlDocGetStr
-'1.9 15/6/2022  Modify XmlDocGetStr
-'1.10 11/7/2022  Add AddXmlFragment,mSrc2CtlStr,mCtlStr2Src,mUnEscapeXmlValue,mEscapeXmlValue, modify mXMLAddStr,mGetXmlDoc
-'1.11 12/8/2022  Add XmdDocMainStr
-'1.12 25/8/2022  Modify mSrc2CtlStr,mCtlStr2Src
-'1.13 10/10/2022  Modify SetMainXml
-'1.15 20/10/2022  Add IsAutoUnEscValue, modify XmlDocGetStr,mXmlGetStr,XmlGetLong
-'1.16 21/10/2022  Modify SetMainXml, Add FlushMainXml
-'1.17 2/11/2022  Add IsMainXmlEmpty
-'1.18 6/5/2023  Modify mGetXmlDoc, add SetXmlDocText
-'1.19 7/5/2023  Add IsXmlNodeExists,SetXmlDocValue
-'1.20 26/5/2023  Add GetXmlDocText,XmlDocGetBool,XmlDocGetBoolEmpTrue,XmlDocGetDate,XmlDocGetDec,XmlDocGetInt,XmlDocGetLong,XmlDocGetStr
-'1.21 16/10/2023  Remove reference PigFunc
-'1.22 10/2/2024  Modify mGetXmlDoc
-'1.23 17/2/2024  Modify mXmlGetStr,AddEleValue
+'* 1.0.2  2019-11-10  修改bug
+'* 1.0.3  2020-5-26  修改bug
+'* 1.0.5  2020-6-5  增加 CData处理和流处理
+'* 1.0.6  2020-6-7  增加 CData处理和流处理优化
+'* 1.0.8  2020-6-19  修改 FillByXmlReader
+'* 1.0.9  2020-6-20  修改 Bug
+'* 1.0.10 2020-7-6    增加 XmlGetInt
+'* 1.0.11 2/2/2021   Modify mLng2Date
+'* 1.0.12 24/8/2021   Modify mLng2Date
+'* 1.0.13 24/8/2021   Modify mLng2Date for NETCOREAPP3_1_OR_GREATER
+'* 1.1 24/8/2021   Modify mGetStr
+'* 1.2 22/12/2021   Modify mXMLAddStr
+'* 1.3 3/1/2022   Modify Err.Raise to Throw New Exception
+'* 1.4 29/2/2022   Remove FillByXmlReader, add XmlDocument,GetXmlDocText
+'* 1.5 30/5/2022   Add mInitXmlDocument,InitXmlDocument,mGetXmlDoc, modify GetXmlDocText,mGetXmlDoc
+'* 1.6 31/5/2022   Add XmlDocGetInt
+'* 1.7 3/6/2022   Modify xpXMLAddWhere,AddEleLeftSign,mXMLAddStr, add AddEleLeftAttribute
+'* 1.8 6/6/2022   Add XmlDocGetStr
+'* 1.9 15/6/2022  Modify XmlDocGetStr
+'* 1.10 11/7/2022  Add AddXmlFragment,mSrc2CtlStr,mCtlStr2Src,mUnEscapeXmlValue,mEscapeXmlValue, modify mXMLAddStr,mGetXmlDoc
+'* 1.11 12/8/2022  Add XmdDocMainStr
+'* 1.12 25/8/2022  Modify mSrc2CtlStr,mCtlStr2Src
+'* 1.13 10/10/2022  Modify SetMainXml
+'* 1.15 20/10/2022  Add IsAutoUnEscValue, modify XmlDocGetStr,mXmlGetStr,XmlGetLong
+'* 1.16 21/10/2022  Modify SetMainXml, Add FlushMainXml
+'* 1.17 2/11/2022  Add IsMainXmlEmpty
+'* 1.18 6/5/2023  Modify mGetXmlDoc, add SetXmlDocText
+'* 1.19 7/5/2023  Add IsXmlNodeExists,SetXmlDocValue
+'* 1.20 26/5/2023  Add GetXmlDocText,XmlDocGetBool,XmlDocGetBoolEmpTrue,XmlDocGetDate,XmlDocGetDec,XmlDocGetInt,XmlDocGetLong,XmlDocGetStr
+'* 1.21 16/10/2023  Remove reference PigFunc
+'* 1.22 10/2/2024  Modify mGetXmlDoc
+'* 1.23 17/2/2024  Modify mXmlGetStr,AddEleValue
+'* 1.25 27/7/2024   Modify PigStepLog to StruStepLog
 '*******************************************************
 
 Imports System.Xml
@@ -48,7 +49,7 @@ Imports System.Text
 
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "22" & "." & "10"
+    Private Const CLS_VERSION As String = "1" & "." & "25" & "." & "10"
     Private Property mMainXml As String = ""
     Private msbMain As New StringBuilder("")    '主体的XML
 
@@ -894,7 +895,7 @@ Public Class PigXml
     End Function
 
     Private Function mGetXmlDoc(WhatGetXmlDoc As EmnGetXmlDoc, XmlKey As String, Optional FromXmlNode As XmlNode = Nothing, Optional ByRef OutNode As XmlNode = Nothing, Optional ByRef OutTextAttribute As String = "", Optional SkipTimes As Integer = 0) As String
-        Dim LOG As New PigStepLog("mGetXmlDoc")
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetXmlDoc"
         Try
             LOG.StepName = "Check XmlKey"
             Select Case Right(XmlKey, 1)
@@ -1052,7 +1053,7 @@ Public Class PigXml
     End Function
 
     Private Function mInitXmlDocument(Optional XmlFilePath As String = "") As String
-        Dim LOG As New PigStepLog("mInitXmlDocument")
+        Dim LOG As New StruStepLog : LOG.SubName = "mInitXmlDocument"
         Try
             LOG.StepName = "Check XmlFilePath"
             If XmlFilePath = "" Then

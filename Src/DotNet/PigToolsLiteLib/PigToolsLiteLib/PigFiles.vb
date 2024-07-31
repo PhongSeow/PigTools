@@ -4,13 +4,14 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: PigFile 的集合类|Collection class of PigFile
 '* Home Url: https://en.seowphong.com
-'* Version: 1.0
+'* Version: 1.1
 '* Create Time: 11/6/2023
+'* 1.1  27/7/2024   Modify PigStepLog to StruStepLog
 '************************************
 Public Class PigFiles
 	Inherits PigBaseMini
 	Implements IEnumerable(Of PigFile)
-	Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "2"
+	Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "2"
 	Private ReadOnly moList As New List(Of PigFile)
 	Public Sub New()
 		MyBase.New(CLS_VERSION)
@@ -84,7 +85,7 @@ Public Class PigFiles
 		Me.mAdd(NewItem)
 	End Sub
 	Public Function AddOrGet(FilePath As String) As PigFile
-		Dim LOG As New PigStepLog("AddOrGet")
+		Dim LOG As New StruStepLog : LOG.SubName = "AddOrGet"
 		Try
 			If Me.IsItemExists(FilePath) = True Then
 				Return Me.Item(FilePath)
@@ -97,7 +98,7 @@ Public Class PigFiles
 		End Try
 	End Function
 	Public Function Add(FilePath As String) As PigFile
-		Dim LOG As New PigStepLog("Add")
+		Dim LOG As New StruStepLog : LOG.SubName = "Add"
 		Try
 			LOG.StepName = "New PigFile"
 			Dim oPigFile As New PigFile(FilePath)

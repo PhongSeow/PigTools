@@ -4,18 +4,19 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Sending and receiving data processing class|发送和接收数据处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 6/11/2021
 '* 1.1  7/11/2022   Add InitEnc
 '* 1.2  8/11/2022   Modify InitEnc
 '* 1.3  88/9/2023   Modify EnmEncType,mInitEnc,mSendData,mReceiveData
+'* 1.5  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************v
 ''' <summary>
 ''' Sending and receiving data processing class|发送和接收数据处理类
 ''' </summary>
 Public Class PigSend
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "8"
 
     ''' <summary>
     ''' 加密方式|Encryption mode
@@ -65,7 +66,7 @@ Public Class PigSend
         Return Me.mInitEnc(InSeowEnc, , InPigRsa)
     End Function
     Private Function mInitEnc(InSeowEnc As SeowEnc, Optional InPigAes As PigAes = Nothing, Optional InPigRsa As PigRsa = Nothing) As String
-        Dim LOG As New PigStepLog("mInitEnc")
+        Dim LOG As New StruStepLog : LOG.SubName = "mInitEnc"
         Try
             Dim bolIsSeowEnc As Boolean = False, bolIsPigAes As Boolean = False, bolIsPigRsa As Boolean = False
             Select Case Me.EncType
@@ -170,7 +171,7 @@ Public Class PigSend
 
 
     Private Function mSendData(SendBytes As Byte(), ByRef TarBytes As Byte()) As String
-        Dim LOG As New PigStepLog("mSendData")
+        Dim LOG As New StruStepLog : LOG.SubName = "mSendData"
         Try
             Select Case Me.EncType
                 Case EnmEncType.SeowEnc
@@ -203,7 +204,7 @@ Public Class PigSend
     End Function
 
     Private Function mReceiveData(ReceiveBytes As Byte(), ByRef TarBytes As Byte()) As String
-        Dim LOG As New PigStepLog("mSendData")
+        Dim LOG As New StruStepLog : LOG.SubName = "mSendData"
         Try
             Select Case Me.EncType
                 Case EnmEncType.SeowEnc

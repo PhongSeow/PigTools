@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2023-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 用于目录及文件操作|Used for directory and file operations
 '* Home Url: https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 10/6/2023
 '* 1.1 11/6/2023   Add GetPigFile,GetPigFolder
 '* 1.2 15/6/2023   Add DeleteFile,CopyFile,IsFileExists,MoveFile
@@ -12,12 +12,13 @@
 '* 1.5 5/12/2023   Add OpenTextFile
 '* 1.6 19/12/2023  Modify OpenTextFile, add mOpenTextFile
 '* 1.7 17/2/2024  Modify mOpenTextFile
+'* 1.8  27/7/2024   Modify PigStepLog to StruStepLog
 '**********************************
 Imports System.IO
 
 Public Class PigFileSystem
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "2"
 
     Public Enum IOMode
         ForAppending = 8
@@ -72,7 +73,7 @@ Public Class PigFileSystem
     ''' <param name="IsOverWrite">Overwrite or not|是否覆盖</param>
     ''' <returns></returns>
     Public Function MoveFile(SourceFile As String, TargetFile As String, Optional IsOverwrite As Boolean = True) As String
-        Dim LOG As New PigStepLog("MoveFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "MoveFile"
         Try
             If SourceFile = TargetFile Then Throw New Exception("Cannot move file itself.")
             If Me.IsFileExists(TargetFile) = True Then
@@ -102,7 +103,7 @@ Public Class PigFileSystem
     ''' <param name="IsOverWrite">Overwrite or not|是否覆盖</param>
     ''' <returns></returns>
     Public Function CopyFile(SourceFile As String, TargetFile As String, Optional IsOverwrite As Boolean = True) As String
-        Dim LOG As New PigStepLog("CopyFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "CopyFile"
         Try
             If SourceFile = TargetFile Then Throw New Exception("Cannot copy file itself.")
             If IsOverwrite = False Then
@@ -142,7 +143,7 @@ Public Class PigFileSystem
 
 
     Private Function mOpenTextFile(FilePath As String, IOMode As IOMode, TextType As PigText.enmTextType, Optional Create As Boolean = False) As TextStream
-        Dim LOG As New PigStepLog("mOpenTextFile")
+        Dim LOG As New StruStepLog : LOG.SubName = "mOpenTextFile"
         Try
             Select Case TextType
                 Case PigText.enmTextType.UnknowOrBin
