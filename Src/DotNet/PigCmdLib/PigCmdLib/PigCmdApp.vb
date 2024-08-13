@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.23
+'* Version: 1.25
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -27,7 +27,8 @@
 '* 1.20 19/12/2023  Modify mCmdShell
 '* 1.21 21/2/2024  Modify New,mCmdShell,mWinHideShell,mCallFile,GetParentProc,GetSubProcs
 '* 1.22 21/7/2024  Modify PigFunc to PigFuncLite
-'* 1.23  28/7/2024   Modify PigStepLog to StruStepLog
+'* 1.23  28/7/2024 Modify PigStepLog to StruStepLog
+'* 1.25  12/8/2024 Add StringArrayToSpaceMulti2OneStr
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -655,5 +656,33 @@ Public Class PigCmdApp
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+    Public Function StringArrayToSpaceMulti2OneStr(ByRef OutStr As String, Optional IsTrimConvert As Boolean = True) As String
+        Dim LOG As New PigStepLog("StringArrayToSpaceMulti2OneStr")
+        Try
+            OutStr = ""
+            LOG.StepName = "StrSpaceMulti2One"
+            Dim intLineNo As Integer = 1
+            For Each strLine As String In Me.StandardOutputArray
+                Dim strLineOut As String = ""
+                LOG.Ret = Me.mPigFunc.StrSpaceMulti2One(strLine, strLineOut, IsTrimConvert)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(intLineNo.ToString)
+                    LOG.AddStepNameInf(strLine)
+                    Throw New Exception(LOG.Ret)
+                End If
+                If IsTrimConvert = False Then
+                    strLineOut = "<" & Trim(strLineOut) & ">"
+                End If
+                OutStr &= strLineOut & Me.OsCrLf
+                intLineNo += 1
+            Next
+            Return "OK"
+        Catch ex As Exception
+            OutStr = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
 End Class

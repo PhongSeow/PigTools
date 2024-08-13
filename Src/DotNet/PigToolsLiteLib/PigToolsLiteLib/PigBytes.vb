@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Byte array processing class|字节数组处理类
 '* Home Url: https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 2019-10-22
 '*1.0.2  2019-10-24  
 '*1.0.3  2019-10-25  优化 mSetValue 和 mGetValue 等，去掉一些没有属性
@@ -29,6 +29,7 @@
 '*1.1  8/11/2022 Modify New
 '*1.2  12/12/2022 Modify ExtByMD5
 '*1.3  27/7/2024   Modify PigStepLog to StruStepLog
+'*1.5  4/8/2024   Add GetPigText
 '************************************
 
 Imports System.Runtime.Serialization
@@ -37,7 +38,7 @@ Imports System.Runtime.Serialization
 ''' </summary>
 Public Class PigBytes
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "12"
+    Private Const CLS_VERSION As String = "1" & "." & "5" & "." & "6"
 
     Private mabMain As Byte()
     ''' <summary>是否转换出错则为零，如果是则调用接口不会出错</summary>
@@ -891,9 +892,14 @@ Public Class PigBytes
             Return False
         End Try
     End Function
-    'Protected Overrides Sub Finalize()
-    '    If Not mbfMain Is Nothing Then mbfMain = Nothing
-    '    If Not mmsMain Is Nothing Then mmsMain = Nothing
-    '    MyBase.Finalize()
-    'End Sub
+
+    Public Function GetPigText(TextType As PigText.enmTextType) As PigText
+        Try
+            GetPigText = New PigText(Me.Main, TextType)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetPigText", ex)
+            Return Nothing
+        End Try
+    End Function
+
 End Class

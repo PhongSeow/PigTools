@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.71
+'* Version: 1.72
 '* Create Time: 2/2/2021
 '* 1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '* 1.0.3  20/7/2021   Add GECBool,GECLng
@@ -67,7 +67,8 @@
 '* 1.68   2/7/2024  Add DistinctString
 '* 1.69   2/7/2024  Add StrSpaceMulti2Double,GECInt
 '* 1.70  16/7/2024  Add StrSpaceMulti2One
-'* 1.71  27/7/2024   Modify PigStepLog to StruStepLog
+'* 1.71  27/7/2024  Modify PigStepLog to StruStepLog
+'* 1.72  4/8/2024   Add XmlGetStr etc.
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -84,7 +85,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "71" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "72" & "." & "8"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -2819,6 +2820,79 @@ Public Class PigFunc
         Catch ex As Exception
             OutStr = ""
             Return Me.GetSubErrInf("StrSpaceMulti2One", ex)
+        End Try
+    End Function
+
+    Public Function XmlGetStr(ByRef SrcStr As String, XmlKey As String) As String
+        Try
+            Return Me.GetStr(SrcStr, "<" & XmlKey & ">", "</" & XmlKey & ">", True)
+        Catch ex As Exception
+            Return ""
+        End Try
+    End Function
+
+    Public Function XmlGetInt(ByRef SrcStr As String, XmlKey As String) As Integer
+        Try
+            Dim strRet As String = Me.GetStr(SrcStr, "<" & XmlKey & ">", "</" & XmlKey & ">", True)
+            If IsNumeric(strRet) = True Then
+                Return CInt(strRet)
+            Else
+                Return 0
+            End If
+        Catch ex As Exception
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlGetLng(ByRef SrcStr As String, XmlKey As String) As Long
+        Try
+            Dim strRet As String = Me.GetStr(SrcStr, "<" & XmlKey & ">", "</" & XmlKey & ">", True)
+            If IsNumeric(strRet) = True Then
+                Return CLng(strRet)
+            Else
+                Return 0
+            End If
+        Catch ex As Exception
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlGetDec(ByRef SrcStr As String, XmlKey As String) As Decimal
+        Try
+            Dim strRet As String = Me.GetStr(SrcStr, "<" & XmlKey & ">", "</" & XmlKey & ">", True)
+            If IsNumeric(strRet) = True Then
+                Return CDec(strRet)
+            Else
+                Return 0
+            End If
+        Catch ex As Exception
+            Return 0
+        End Try
+    End Function
+
+    Public Function XmlGetBool(ByRef SrcStr As String, XmlKey As String) As Boolean
+        Try
+            Dim strRet As String = Me.GetStr(SrcStr, "<" & XmlKey & ">", "</" & XmlKey & ">", True)
+            If IsNumeric(strRet) = True Then
+                Return CBool(strRet)
+            Else
+                Return False
+            End If
+        Catch ex As Exception
+            Return False
+        End Try
+    End Function
+
+    Public Function XmlGetDate(ByRef SrcStr As String, XmlKey As String) As Date
+        Try
+            Dim strRet As String = Me.GetStr(SrcStr, "<" & XmlKey & ">", "</" & XmlKey & ">", True)
+            If IsDate(strRet) = True Then
+                Return CDate(strRet)
+            Else
+                Return #2000-1-1#
+            End If
+        Catch ex As Exception
+            Return #2000-1-1#
         End Try
     End Function
 
