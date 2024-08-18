@@ -38,7 +38,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "23" & "." & "12"
+    Private Const CLS_VERSION As String = "1" & "." & "25" & "." & "8"
     Public Property LinuxShPath As String
     Public Property WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc

@@ -4,10 +4,11 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: About the Processing Class of sudo Command|关于sudo命令的处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.2
+'* Version: 1.3
 '* Create Time: 22/5/2023
 '* 1.1  23/5/2023   Add Run,AsyncRun
 '* 1.2  20/11/2023  Modify mPara,New
+'* 1.3  13/8/2024  Modify Run,StandardOutput,StandardError, add StringArrayToSpaceMulti2OneStr
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -15,7 +16,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSudo
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "30"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "6"
 
     Private ReadOnly Property mExePath As String
 
@@ -52,24 +53,52 @@ Public Class PigSudo
         Me.IsBackRun = IsBackRun
     End Sub
 
-    Private mStandardOutput As String
-    Public Property StandardOutput As String
+    Public ReadOnly Property StandardOutput As String
         Get
-            Return mStandardOutput
+            Try
+                If Me.mPigCmdApp IsNot Nothing Then
+                    Return Me.mPigCmdApp.StandardOutput
+                Else
+                    Return ""
+                End If
+            Catch ex As Exception
+                Me.SetSubErrInf("StandardOutput", ex)
+                Return ""
+            End Try
         End Get
-        Friend Set(value As String)
-            mStandardOutput = value
-        End Set
     End Property
 
-    Private mStandardError As String
-    Public Property StandardError As String
+    Public ReadOnly Property StringArrayToSpaceMulti2OneStr(Optional IsTrimConvert As Boolean = True) As String
         Get
-            Return mStandardError
+            Try
+                If Me.mPigCmdApp IsNot Nothing Then
+                    Dim strRet As String = "", strOutStr As String = ""
+                    strRet = Me.mPigCmdApp.StringArrayToSpaceMulti2OneStr(strOutStr, IsTrimConvert)
+                    If strRet <> "OK" Then Throw New Exception(strRet)
+                    Return strOutStr
+                Else
+                    Return ""
+                End If
+            Catch ex As Exception
+                Me.SetSubErrInf("StringArrayToSpaceMulti2OneStr", ex)
+                Return ""
+            End Try
         End Get
-        Friend Set(value As String)
-            mStandardError = value
-        End Set
+    End Property
+
+    Public ReadOnly Property StandardError As String
+        Get
+            Try
+                If Me.mPigCmdApp IsNot Nothing Then
+                    Return Me.mPigCmdApp.StandardError
+                Else
+                    Return ""
+                End If
+            Catch ex As Exception
+                Me.SetSubErrInf("StandardError", ex)
+                Return ""
+            End Try
+        End Get
     End Property
 
 
@@ -105,7 +134,7 @@ Public Class PigSudo
         End Try
     End Function
 
-    Public Function Run() As String
+    Public Function Run(Optional StandardOutputReadType As PigCmdApp.EnmStandardOutputReadType = PigCmdApp.EnmStandardOutputReadType.FullString) As String
         Dim LOG As New PigStepLog("Run")
         Try
             If Me.IsWindows = True Then Throw New Exception("Cannot execute on Windows")
@@ -115,8 +144,6 @@ Public Class PigSudo
             If LOG.Ret <> "OK" Then
                 Throw New Exception(LOG.Ret)
             End If
-            Me.StandardOutput = Me.mPigCmdApp.StandardOutput
-            Me.StandardError = Me.mPigCmdApp.StandardError
             Return "OK"
         Catch ex As Exception
             LOG.AddStepNameInf(mPara)
