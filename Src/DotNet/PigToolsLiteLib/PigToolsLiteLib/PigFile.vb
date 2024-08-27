@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://en.seowphong.com
-'* Version: 1.11
+'* Version: 1.12
 '* Create Time: 4/11/2019
 '* 1.0.2  2019-11-5   增加mSaveFile
 '* 1.0.3  2019-11-20  增加 CopyFileTo
@@ -24,6 +24,7 @@
 '* 1.9  10/11/2023   Add GetTextRows, modify GetTailText
 '* 1.10 4/12/2023   Add GetFullText
 '* 1.11  27/7/2024   Modify PigStepLog to StruStepLog
+'* 1.12  27/8/2024   Modify FileShare.Read to FileShare.ReadWrite
 '**********************************
 Imports System.IO
 'Imports Microsoft.VisualBasic.Logging
@@ -128,7 +129,7 @@ Public Class PigFile
         Dim brAny As BinaryReader = Nothing
         Try
             LOG.StepName = "New FileStream"
-            sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
             LOG.StepName = "New BinaryReader"
             brAny = New BinaryReader(sfAny)
             LOG.StepName = "New PigBytes"
@@ -172,7 +173,7 @@ Public Class PigFile
         Try
             Dim sfAny As FileStream = Nothing
             Dim srAny As StreamReader = Nothing
-            sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
             srAny = New StreamReader(sfAny)
             GetTextRows = 0
             Do While Not srAny.EndOfStream
@@ -203,7 +204,7 @@ Public Class PigFile
             If Rows > lngTotalRows Then Rows = lngTotalRows
             Dim lngSkip As Long = lngTotalRows - Rows
             LOG.StepName = "New FileStream"
-            sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
             LOG.StepName = "New StreamReader"
             srAny = New StreamReader(sfAny)
             GetTailText = ""
@@ -235,7 +236,7 @@ Public Class PigFile
         Dim LOG As New StruStepLog : LOG.SubName = "GetTopText"
         Try
             LOG.StepName = "New FileStream"
-            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
             LOG.StepName = "New StreamReader"
             Dim srAny = New StreamReader(sfAny)
             Dim strCrLf As String = Me.OsCrLf
@@ -261,7 +262,7 @@ Public Class PigFile
         Try
             If Me.GbMain IsNot Nothing Then Me.GbMain = Nothing
             LOG.StepName = "New FileStream"
-            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
             LOG.StepName = "New BinaryReader"
             Dim brAny = New BinaryReader(sfAny)
             LOG.StepName = "New PigBytes"
@@ -427,7 +428,7 @@ Public Class PigFile
         Try
             If mPigMD5 Is Nothing Then
                 LOG.StepName = "New FileStream"
-                sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
                 LOG.StepName = "New BinaryReader"
                 brAny = New BinaryReader(sfAny)
                 LOG.StepName = "New PigBytes"
@@ -630,7 +631,7 @@ Public Class PigFile
                 FastPigMD5 = Nothing
             Else
                 LOG.StepName = "New FileStream"
-                sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)
+                sfAny = New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
                 LOG.StepName = "New BinaryReader"
                 brAny = New BinaryReader(sfAny)
                 If ScanSize > Me.Size Then ScanSize = Me.Size

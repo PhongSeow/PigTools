@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020-2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Basic lightweight Edition
 '* Home Url: https://en.seowphong.com
-'* Version: 1.12
+'* Version: 1.13
 '* Create Time: 31/8/2019
 '*1.0.2  1/10/2019   Add mGetSubErrInf 
 '*1.0.3  4/11/2019   Add LastErr
@@ -41,7 +41,8 @@
 '*1.8 15/5/2022     Modify New
 '*1.9 2/8/2022      Modify PrintDebugLog
 '*1.10 8/12/2022    Add MyID,mGEMD5
-'*1.10 27/7/2024    Add StruStepLog
+'*1.12 27/7/2024    Add StruStepLog
+'*1.13 27/8/2024    Modify mGetSubErrInf
 '************************************
 Imports System.Runtime.InteropServices
 Public Class PigBaseMini
@@ -322,7 +323,7 @@ Public Class PigBaseMini
             Dim sbAny As New System.Text.StringBuilder("[Error]")
             sbAny.Append("[" & Me.AppTitle & "][" & Me.AppVersion & "][")
             sbAny.Append(Me.FullSubName(SubName))
-            If StepName.Length > 0 Then
+            If StepName <> "" Then
                 sbAny.Append("{" & StepName & "}")
             End If
             sbAny.Append("][ErrInf:")
