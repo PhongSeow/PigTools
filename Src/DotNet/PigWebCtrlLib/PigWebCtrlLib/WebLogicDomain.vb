@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.52
+'* Version: 1.53
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -46,7 +46,8 @@
 '* 1.39 5/6/2024 Modify StatisticsAccessLog
 '* 1.50 12/6/2024 Modify mGetTopTextAsc,mGetTopText,StatisticsAccessLog
 '* 1.51 26/6/2024 Modify GetDomainEnvInf
-'* 1.52  28/7/2024   Modify PigStepLog to StruStepLog
+'* 1.52  28/7/2024  Modify PigStepLog to StruStepLog
+'* 1.53  27/8/2024  Add DefaultAuditRecorderPath,GetConsoleLoginXml
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -59,7 +60,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "52" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "53" & "." & "16"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -525,6 +526,12 @@ Public Class WebLogicDomain
     Public ReadOnly Property AdminServerLogPath() As String
         Get
             Return Me.LogDirPath & Me.OsPathSep & "AdminServer.log"
+        End Get
+    End Property
+
+    Public ReadOnly Property DefaultAuditRecorderPath() As String
+        Get
+            Return Me.LogDirPath & Me.OsPathSep & "DefaultAuditRecorder.log"
         End Get
     End Property
 
@@ -2077,5 +2084,87 @@ Public Class WebLogicDomain
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+    Public Function GetConsoleLoginXml(ByRef OutPigXml As PigXml) As String
+        Dim LOG As New PigStepLog("GetConsoleLoginXml")
+        Dim intLineNo As Integer = 0, strLine As String = "", strTempFile As String = Me.DefaultAuditRecorderPath & ".tmp"
+        Try
+            Dim oUseTime As New UseTime
+            oUseTime.GoBegin()
+            LOG.StepName = "Check Default Audit Recorder"
+            If Me.mPigFunc.IsFileExists(Me.DefaultAuditRecorderPath) = False Then
+                LOG.Ret = "File not found."
+                Throw New Exception(LOG.Ret)
+            End If
+            LOG.StepName = "CopyFile TempFile"
+            LOG.Ret = Me.mFS.CopyFile(Me.DefaultAuditRecorderPath, strTempFile, True)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf("Temp File")
+                LOG.AddStepNameInf(strTempFile)
+                Throw New Exception(LOG.Ret)
+            End If
+            Me.mPigFunc.Delay(200)
+            OutPigXml = New PigXml(True)
+            OutPigXml.AddEleLeftSign("Root")
+            LOG.StepName = "OpenTextFile"
+            Dim tsMain As TextStream = Me.mFS.OpenTextFile(strTempFile, PigFileSystem.IOMode.ForReading)
+            If tsMain Is Nothing Then
+                If Me.mFS.LastErr <> "" Then LOG.AddStepNameInf(Me.mFS.LastErr)
+                LOG.Ret = "tsMain Is Nothing"
+                Throw New Exception(LOG.Ret)
+            End If
+            Dim bolIsFindAUTHENTICATE As Boolean = False, bolIsFindAUTHENTICATELineNo As Integer = 0
+            Dim strKeyAUTHENTICATELeft As String = "<Severity =SUCCESS>  <<<Event Type = Authentication Audit Event><"
+            Dim strKeyAUTHENTICATERight As String = "><AUTHENTICATE>>>"
+            Dim strKeyOnceUrl As String = "<ONCE><<url>><type=<url>, application=consoleapp,"
+            Dim strLoginTime As String = "", intTotalItems As Integer = 0, strUserName As String = "", intAddLines As Integer = 6
+            LOG.StepName = "tsMain.ReadLine"
+            Do While Not tsMain.AtEndOfStream
+                intLineNo += 1
+                strLine = tsMain.ReadLine
+                If bolIsFindAUTHENTICATE = True Then
+                    If InStr(strLine, strKeyOnceUrl) > 0 Then
+                        If intLineNo < (bolIsFindAUTHENTICATELineNo + intAddLines) Then
+                            intTotalItems += 1
+                            With OutPigXml
+                                .AddEleLeftSign("Item" & intTotalItems.ToString)
+                                .AddEle("LoginTime", strLoginTime)
+                                .AddEle("UserName", strUserName)
+                                .AddEle("LineNo", bolIsFindAUTHENTICATELineNo.ToString)
+                                .AddEleRightSign("Item" & intTotalItems.ToString)
+                            End With
+                            strLoginTime = ""
+                            bolIsFindAUTHENTICATE = False
+                        End If
+                    ElseIf intLineNo >= (bolIsFindAUTHENTICATELineNo + intAddLines) Then
+                        bolIsFindAUTHENTICATE = False
+                    End If
+                ElseIf InStr(strLine, strKeyAUTHENTICATELeft) > 0 Then
+                    If InStr(strLine, strKeyAUTHENTICATERight) > 0 Then
+                        strUserName = Me.mPigFunc.GetStr(strLine, strKeyAUTHENTICATELeft, strKeyAUTHENTICATERight, 1)
+                        bolIsFindAUTHENTICATE = True
+                        bolIsFindAUTHENTICATELineNo = intLineNo
+                        strLoginTime = Me.mPigFunc.GetStr(strLine, "Audit Record Begin <", ">", 1)
+                    End If
+                End If
+            Loop
+            OutPigXml.AddEle("TotalItems", intTotalItems.ToString)
+            oUseTime.ToEnd()
+            OutPigXml.AddEle("UseTimeSeconds", oUseTime.AllDiffSeconds)
+            OutPigXml.AddEleRightSign("Root")
+            tsMain.Close()
+            If Me.mPigFunc.IsFileExists(strTempFile) = True Then
+                Me.mPigFunc.DeleteFile(strTempFile)
+            End If
+            Return "OK"
+        Catch ex As Exception
+            If intLineNo > 0 Then LOG.AddStepNameInf("LineNo=" & intLineNo.ToString)
+            If strLine <> "" Then LOG.AddStepNameInf("Line=" & strLine)
+            LOG.AddStepNameInf(Me.DefaultAuditRecorderPath)
+            OutPigXml = Nothing
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
 End Class

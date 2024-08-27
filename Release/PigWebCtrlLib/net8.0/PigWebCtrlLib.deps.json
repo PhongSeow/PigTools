@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "PigWebCtrlLib/2.2.96.8": {
+      "PigWebCtrlLib/2.2.96.10": {
         "dependencies": {
           "PigCmdLib": "2.3.6.8"
         },
@@ -36,7 +36,7 @@
     }
   },
   "libraries": {
-    "PigWebCtrlLib/2.2.96.8": {
+    "PigWebCtrlLib/2.2.96.10": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -44,7 +44,7 @@
     "PigCmdLib/2.3.6.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-PvdauTg9cjbnUvryVOR3ZAuC+Z0KXRU/NilS1BpWItbmCxtLIvwa2S7aj7m6CF7z2DiyGmC7Ul1ssCpIYrTc1g==",
+      "sha512": "sha512-mF3zZ/ypeJudWeWrBgHJSGuSGffpxDGTZqG9QC3ixL2xee6klLd58qIkUNg3tL0zFTs+BNfpXD7lUAE31ASwqQ==",
       "path": "pigcmdlib/2.3.6.8",
       "hashPath": "pigcmdlib.2.3.6.8.nupkg.sha512"
     },
