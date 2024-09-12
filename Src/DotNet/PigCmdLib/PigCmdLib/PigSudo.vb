@@ -4,11 +4,13 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: About the Processing Class of sudo Command|关于sudo命令的处理类
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.3
+'* Version: 1.5
 '* Create Time: 22/5/2023
 '* 1.1  23/5/2023   Add Run,AsyncRun
 '* 1.2  20/11/2023  Modify mPara,New
 '* 1.3  13/8/2024  Modify Run,StandardOutput,StandardError, add StringArrayToSpaceMulti2OneStr
+'* 1.5  9/9/2024  Modify New
+'* 1.6  12/9/2024  Modify Run
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -16,7 +18,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSudo
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "6"
+    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "2"
 
     Private ReadOnly Property mExePath As String
 
@@ -34,7 +36,7 @@ Public Class PigSudo
     Public Event AsyncRet_FullString(AsyncRet As PigAsync, StandardOutput As String, StandardError As String)
 
 
-    Public Sub New(Cmd As String, SudoUser As String, Optional IsBackRun As Boolean = True)
+    Public Sub New(Cmd As String, SudoUser As String, Optional IsBackRun As Boolean = False)
         MyBase.New(CLS_VERSION)
         Me.mExePath = "/bin/sudo"
         Me.Cmd = Cmd
@@ -43,7 +45,7 @@ Public Class PigSudo
         Me.IsBackRun = IsBackRun
     End Sub
 
-    Public Sub New(FilePath As String, Para As String, SudoUser As String, Optional IsBackRun As Boolean = True)
+    Public Sub New(FilePath As String, Para As String, SudoUser As String, Optional IsBackRun As Boolean = False)
         MyBase.New(CLS_VERSION)
         Me.mExePath = "/bin/sudo"
         Me.CallFilePath = FilePath
@@ -140,7 +142,7 @@ Public Class PigSudo
             If Me.IsWindows = True Then Throw New Exception("Cannot execute on Windows")
             If Me.IsDebug = True Then Me.PrintDebugLog(LOG.SubName, Me.mPara)
             LOG.StepName = "CallFile"
-            LOG.Ret = Me.mPigCmdApp.CallFile(Me.mExePath, Me.mPara)
+            LOG.Ret = Me.mPigCmdApp.CallFile(Me.mExePath, Me.mPara, StandardOutputReadType)
             If LOG.Ret <> "OK" Then
                 Throw New Exception(LOG.Ret)
             End If

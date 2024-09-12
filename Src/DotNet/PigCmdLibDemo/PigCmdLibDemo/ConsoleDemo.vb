@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 2.10.2
+'* Version: 2.11.2
 '* Create Time: 15/1/2022
 '* 1.1    31/1/2022   Add CallFile
 '* 1.2    1/3/2022   Add CmdShell
@@ -28,11 +28,10 @@
 '* 2.8  20/10/2023  Modify PigSysCmdDemo
 '* 2.9  16/11/2023  Add CmdZipDemo
 '* 2.10  6/3/2024  Add TestPigCmdMenu
+'* 2.11  12/7/2024  Modify PigSysCmdDemo
 '************************************
-
-Imports PigCmdLib
 Imports PigToolsLiteLib
-
+Imports PigCmdLib
 
 Public Class ConsoleDemo
     Public CmdOrFilePath As String
@@ -83,6 +82,11 @@ Public Class ConsoleDemo
     Public StartMode As PigService.EnmStartMode
     Public PigCmdMenu As PigCmdMenu
     Public IsIopMenu As Boolean
+    Public IsMergeIp As Boolean
+    Public ByPID As String
+    Public ByProcName As String
+    Public ByProcUserName As String
+    Public IsGetUserName As Boolean
 
     Public Sub PigCmdAppDemo()
         Me.PigCmdApp = New PigCmdApp
@@ -169,9 +173,17 @@ Public Class ConsoleDemo
                                 Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
                             Else
                                 Console.WriteLine("StandardOutputArray.Count=" & Me.PigCmdApp.StandardOutputArray.Length)
-                                For i = 0 To Me.PigCmdApp.StandardOutputArray.Length - 1
-                                    Console.WriteLine("StandardOutputArray(" & i & ")=" & Me.PigCmdApp.StandardOutputArray(i))
-                                Next
+                                If Me.PigConsole.IsYesOrNo("Is StringArrayToSpaceMulti2OneStr") = True Then
+                                    Dim bolIsTrimConvert As Boolean = Me.PigConsole.IsYesOrNo("Is Trim Convert")
+                                    Dim strOutStr As String = ""
+                                    Me.Ret = Me.PigCmdApp.StringArrayToSpaceMulti2OneStr(strOutStr, bolIsTrimConvert)
+                                    Console.WriteLine("StringArrayToSpaceMulti2OneStr={0}", Me.Ret)
+                                    Console.WriteLine(strOutStr)
+                                Else
+                                    For i = 0 To Me.PigCmdApp.StandardOutputArray.Length - 1
+                                        Console.WriteLine("StandardOutputArray(" & i & ")=" & Me.PigCmdApp.StandardOutputArray(i))
+                                    Next
+                                End If
                                 Console.WriteLine("StandardError=" & Me.PigCmdApp.StandardError)
                             End If
                         End If
@@ -243,10 +255,78 @@ Public Class ConsoleDemo
             Me.MenuDefinition &= "GetDuSize#GetDuSize|"
             Me.MenuDefinition &= "MoveDir#MoveDir|"
             Me.MenuDefinition &= "RmDirAndSubDir#RmDirAndSubDir|"
+            Me.MenuDefinition &= "GetTcpListenProcList#GetTcpListenProcList|"
+            Me.MenuDefinition &= "GetProcListXml#GetProcListXml|"
+            Me.MenuDefinition &= "GetProcInfXml#GetProcInfXml|"
+            Me.MenuDefinition &= "GetProcUserName#GetProcUserName|"
             Me.PigConsole.SimpleMenu("PigConsoleDemo", Me.MenuDefinition, Me.MenuKey, PigConsole.EnmSimpleMenuExitType.QtoUp)
             Select Case Me.MenuKey
                 Case ""
                     Exit Do
+                Case "GetProcUserName"
+                    Me.PigConsole.GetLine("Input ByPID", Me.ByPID)
+                    Me.ByPID = Trim(Me.ByPID)
+                    If Me.ByPID = "" Then
+                        Console.WriteLine("")
+                    End If
+                    Console.WriteLine("GetProcUserName")
+                    Dim pxMain As PigXml = Nothing
+                    Dim strProcUserName As String = ""
+                    Me.Ret = Me.PigSysCmd.GetProcUserName(CInt(Me.ByPID), strProcUserName)
+                    Console.WriteLine(Me.Ret)
+                    Console.WriteLine("ProcUserName={0}", strProcUserName)
+                Case "GetProcListXml"
+                    If Me.PigConsole.IsYesOrNo("Is ByProcName") Then
+                        Me.PigConsole.GetLine("Input ByProcName", Me.ByProcName)
+                        Me.ByProcName = Trim(Me.ByProcName)
+                        Me.ByPID = "-1"
+                    Else
+                        Me.ByProcName = ""
+                    End If
+                    Console.WriteLine("GetProcListXml")
+                    Dim pxMain As PigXml = Nothing
+                    Me.Ret = Me.PigSysCmd.GetProcListXml(pxMain, Me.ByProcName)
+                    Console.WriteLine(Me.Ret)
+                    Console.WriteLine(pxMain.MainXmlStr)
+                Case "GetProcInfXml"
+                    Dim intItems As Integer = 0
+                    Dim asPIDs(intItems) As Integer
+                    Me.PigConsole.GetLine("Input PID", asPIDs(intItems))
+                    Do While Me.PigConsole.IsYesOrNo("Is add other PID") = True
+                        intItems += 1
+                        ReDim Preserve asPIDs(intItems)
+                        Me.PigConsole.GetLine("Input PID", asPIDs(intItems))
+                    Loop
+                    Me.IsGetUserName = Me.PigConsole.IsYesOrNo("Is Get UserName")
+                    Console.WriteLine("GetProcInfXml")
+                    Dim pxMain As PigXml = Nothing
+                    If intItems > 0 Then
+                        If Me.IsGetUserName = True Then
+                            Me.Ret = Me.PigSysCmd.GetProcInfXml(pxMain, asPIDs, Me.IsGetUserName,)
+                        Else
+                            Me.Ret = Me.PigSysCmd.GetProcInfXml(pxMain, asPIDs)
+                        End If
+                    ElseIf Me.IsGetUserName = True Then
+                        Me.Ret = Me.PigSysCmd.GetProcInfXml(pxMain, asPIDs(0), Me.IsGetUserName,)
+                    Else
+                        Me.Ret = Me.PigSysCmd.GetProcInfXml(pxMain, asPIDs(0))
+                    End If
+                    Console.WriteLine(Me.Ret)
+                    Console.WriteLine(pxMain.MainXmlStr)
+                Case "GetTcpListenProcList"
+                    Me.IsMergeIp = Me.PigConsole.IsYesOrNo("Is Merge Ip")
+                    Console.WriteLine("GetTcpListenProcList")
+                    Dim asTcpListenProcList(-1) As PigSysCmd.StruTcpListenProcList
+                    Me.Ret = Me.PigSysCmd.GetTcpListenProcList(asTcpListenProcList, Me.IsMergeIp)
+                    Console.WriteLine(Me.Ret)
+                    Console.WriteLine("Items={0}", asTcpListenProcList.Length)
+                    For i = 0 To asTcpListenProcList.Length - 1
+                        With asTcpListenProcList(i)
+                            Console.WriteLine("PID={0}", .PID.ToString)
+                            Console.WriteLine("LocalIp={0}", .LocalIp)
+                            Console.WriteLine("ListenPort={0}", .ListenPort.ToString)
+                        End With
+                    Next
                 Case "RmDirAndSubDir"
                     Me.PigConsole.GetLine("Enter the target directory for RmDirAndSubDir", Me.TargetDir)
                     Console.WriteLine("RmDirAndSubDir")
@@ -348,7 +428,7 @@ Public Class ConsoleDemo
                     If Me.Ret <> "OK" Then
                         Console.WriteLine(Me.Ret)
                     Else
-                        Console.WriteLine("PID=" & PID)
+                        Console.WriteLine("PID=" & Me.PID)
                     End If
             End Select
             Me.PigConsole.DisplayPause()
@@ -460,10 +540,19 @@ Public Class ConsoleDemo
                         Me.Ret = Me.PigSudo.AsyncRun()
                         Console.WriteLine(Me.Ret)
                     Else
-                        Me.Ret = Me.PigSudo.Run()
-                        Console.WriteLine(Me.Ret)
-                        Console.WriteLine("StandardOutput=" & Me.PigSudo.StandardOutput)
-                        Console.WriteLine("StandardError=" & Me.PigSudo.StandardError)
+                        If Me.PigConsole.IsYesOrNo("Is EnmStandardOutputReadType.FullString") = True Then
+                            Me.Ret = Me.PigSudo.Run(PigCmdApp.EnmStandardOutputReadType.FullString)
+                            Console.WriteLine(Me.Ret)
+                            Console.WriteLine("StandardOutput=" & Me.PigSudo.StandardOutput)
+                            Console.WriteLine("StandardError=" & Me.PigSudo.StandardError)
+                        Else
+                            Me.Ret = Me.PigSudo.Run(PigCmdApp.EnmStandardOutputReadType.StringArray)
+                            Console.WriteLine(Me.Ret)
+                            Dim bolIsTrimConvert As Boolean = Me.PigConsole.IsYesOrNo("Is TrimConvert")
+                            Console.WriteLine("StringArrayToSpaceMulti2OneStr=" & Me.PigSudo.StringArrayToSpaceMulti2OneStr(bolIsTrimConvert))
+                            Console.WriteLine("StringArrayToSpaceMulti2OneStr=" & Me.PigSudo.StringArrayToSpaceMulti2OneStr(bolIsTrimConvert))
+                            Console.WriteLine("StandardError=" & Me.PigSudo.StandardError)
+                        End If
                     End If
                     Me.PigConsole.DisplayPause()
                 Case "PigHostDemo"
@@ -706,7 +795,7 @@ Public Class ConsoleDemo
             If i Mod 10 = 0 Then
                 Me.PigCmdMenu.AddMenuBarItem()
             End If
-            Me.PigCmdMenu.AddMenuItem("Menu Key " & i, "MenuText" & i)
+            Me.PigCmdMenu.AddMenuItem("MenuText" & i, "Menu Key " & i)
         Next
         Do While True
             Me.Ret = Me.PigCmdMenu.SelectMenu(Me.MenuKey)

@@ -932,7 +932,7 @@ Public Class WebLogicDomain
                             .WriteLine("cd('/SecurityConfiguration/" + Me.DomainName + "')")
                             .WriteLine("cmo.setConnectionLoggerEnabled(true)")
                             .WriteLine("cmo.setConnectionFilter('weblogic.security.net.ConnectionFilterImpl')")
-                            .WriteLine("set ('ConnectionFilterRules',jarray.array([String('127.0.0.1 127.0.0.1 " & Me.ListenPort & " allow t3 t3s'),String('0.0.0.0/0 * * deny t3 t3s')], String))")
+                            .WriteLine("set ('ConnectionFilterRules',jarray.array([String('127.0.0.1 * " & Me.ListenPort & " allow t3 t3s'),String('0.0.0.0/0 * * deny t3 t3s')], String))")
                             .WriteLine("save()")
                             .WriteLine("activate()")
                         Case EnmWlstCallCmd.CreateDomain
