@@ -4,19 +4,20 @@
 '* License: Copyright (c) 2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 目录处理|Directory processing
 '* Home Url: https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 4/6/2023
 '* 1.1  11/5/2023   Add IsRootFolder
 '* 1.2  11/6/2023   Add CreationTime,UpdateTime
 '* 1.3  13/6/2023   Add RefSubPigFolders,RefPigFiles,FindSubFolders, modify mGetSubDirList
 '* 1.5  22/11/2023  Add FilesSize,mGetFastPigMD5,GetFastPigMD5,mGetSubPigFolders
 '* 1.6  27/7/2024   Modify PigStepLog to StruStepLog
+'* 1.7  26/9/2024   Modify RefPigFiles, add mRefPigFiles,DelOldFiles
 '**********************************
 Imports System.IO
 
 Public Class PigFolder
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "6" & "." & "18"
+    Private Const CLS_VERSION As String = "1" & "." & "7" & "." & "20"
 
     Public ReadOnly Property FolderPath As String
     Private Property mFolderInfo As DirectoryInfo
@@ -50,7 +51,7 @@ Public Class PigFolder
         Try
             Dim lngCount As Long = 0
 #If NET40_OR_GREATER Or NETCOREAPP Then
-                        lngCount = InDirectoryInfo.GetDirectories.LongCount
+            lngCount = InDirectoryInfo.GetDirectories.LongCount
 #Else
             lngCount = InDirectoryInfo.GetDirectories.Length
 #End If
@@ -73,6 +74,7 @@ Public Class PigFolder
             Return ex.Message.ToString
         End Try
     End Function
+
 
     Public ReadOnly Property IsRootFolder() As Boolean
         Get
@@ -170,6 +172,170 @@ Public Class PigFolder
         End Get
     End Property
 
+    Public Structure StruDelOldFileRes
+        Dim ScanFiles As Long
+        Dim DelOKFiles As Long
+        Dim DelFailFiles As Long
+        Dim ErrInf As String
+    End Structure
+
+    Private Function mDeleteFile(FilePath As String) As String
+        Try
+            File.Delete(FilePath)
+            Return "OK"
+        Catch ex As Exception
+            Return ex.Message.ToString
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Delete outdated files|删除过时的文件
+    ''' </summary>
+    ''' <param name="IsDeep">Does not include subdirectories|是不包含子目录</param>
+    ''' <param name="KeepDays">Keep days|保留天数</param>
+    ''' <param name="Res">Return information|返回信息</param>
+    ''' <returns></returns>
+    Public Function DelOldFiles(IsDeep As Boolean, KeepDays As Integer, ByRef Res As StruDelOldFileRes) As String
+        Try
+            If KeepDays < 0 Then Throw New Exception("Invalid KeepDays")
+            Return Me.mDelOldFiles(IsDeep, Res, 0, KeepDays, 0)
+        Catch ex As Exception
+            Return Me.GetSubErrInf("DelOldFiles", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Delete outdated files|删除过时的文件
+    ''' </summary>
+    ''' <param name="IsDeep">Does not include subdirectories|是不包含子目录</param>
+    ''' <param name="KeepHours">Keep hours|保留小时数</param>
+    ''' <param name="Res">Return information|返回信息</param>
+    ''' <returns></returns>
+    Public Function DelOldFiles(IsDeep As Boolean, KeepHours As Decimal, ByRef Res As StruDelOldFileRes) As String
+        Try
+            If KeepHours < 0 Then Throw New Exception("Invalid KeepHours")
+            Return Me.mDelOldFiles(IsDeep, Res, 0, 0, KeepHours)
+        Catch ex As Exception
+            Return Me.GetSubErrInf("DelOldFiles", ex)
+        End Try
+    End Function
+
+
+    ''' <summary>
+    ''' Delete outdated files|删除过时的文件
+    ''' </summary>
+    ''' <param name="IsDeep">Does not include subdirectories|是不包含子目录</param>
+    ''' <param name="KeepDays">Keep days|保留天数</param>
+    ''' <param name="MaxScanFiles">Maximum number of scanned files|最大扫描文件数</param>
+    ''' <param name="Res">Return information|返回信息</param>
+    ''' <returns></returns>
+    ''' <summary>
+    Public Function DelOldFiles(IsDeep As Boolean, KeepDays As Integer, MaxScanFiles As Long, ByRef Res As StruDelOldFileRes) As String
+        Try
+            If KeepDays < 0 Then Throw New Exception("Invalid KeepDays")
+            Return Me.mDelOldFiles(IsDeep, Res, MaxScanFiles, KeepDays, 0)
+        Catch ex As Exception
+            Return Me.GetSubErrInf("DelOldFiles", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Delete outdated files|删除过时的文件
+    ''' </summary>
+    ''' <param name="IsDeep">Does not include subdirectories|是不包含子目录</param>
+    ''' <param name="KeepHours">Keep hours|保留小时数</param>
+    ''' <param name="MaxScanFiles">Maximum number of scanned files|最大扫描文件数</param>
+    ''' <param name="Res">Return information|返回信息</param>
+    ''' <returns></returns>
+    ''' <summary>
+    Public Function DelOldFiles(IsDeep As Boolean, KeepHours As Decimal, MaxScanFiles As Long, ByRef Res As StruDelOldFileRes) As String
+        Try
+            If KeepHours < 0 Then Throw New Exception("Invalid KeepDays")
+            If MaxScanFiles <= 0 Then Throw New Exception("Invalid MaxScanFiles")
+            Return Me.mDelOldFiles(IsDeep, Res, MaxScanFiles, 0, KeepHours)
+        Catch ex As Exception
+            Return Me.GetSubErrInf("DelOldFiles", ex)
+        End Try
+    End Function
+
+
+    Private Function mDelOldFiles(IsDeep As Boolean, ByRef Res As StruDelOldFileRes, Optional MaxScanFiles As Long = 0, Optional KeepDays As Integer = 0, Optional KeepHours As Decimal = 0) As String
+        Dim LOG As New StruStepLog : LOG.SubName = "mDelOldFiles"
+        Try
+            Dim oPigFolders As PigFolders = Nothing
+            If IsDeep = False Then
+                oPigFolders = New PigFolders
+            Else
+                LOG.StepName = "FindSubFolders"
+                LOG.Ret = Me.FindSubFolders(True, oPigFolders)
+                If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            End If
+            If oPigFolders.IsItemExists(Me.FolderPath) = False Then
+                LOG.StepName = "oPigFolders.Add"
+                LOG.AddStepNameInf(Me.FolderPath)
+                oPigFolders.Add(Me.FolderPath)
+            End If
+            LOG.StepName = "For Each"
+            With Res
+                .DelFailFiles = 0
+                .DelOKFiles = 0
+                .ErrInf = ""
+                .ScanFiles = 0
+            End With
+            Dim intMaxScanFiles As Long = MaxScanFiles, bolIsMaxScan As Boolean
+            If intMaxScanFiles <= 0 Then
+                bolIsMaxScan = False
+            Else
+                bolIsMaxScan = True
+            End If
+            For Each oPigFolder As PigFolder In oPigFolders
+                LOG.StepName = "RefPigFiles"
+                If bolIsMaxScan = False Then
+                    LOG.Ret = oPigFolder.RefPigFiles()
+                ElseIf intMaxScanFiles < 0 Then
+                    Exit For
+                Else
+                    LOG.Ret = oPigFolder.RefPigFiles(intMaxScanFiles)
+                End If
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(oPigFolder.FolderPath)
+                    Res.ErrInf &= LOG.StepLogInf & Me.OsCrLf
+                Else
+                    Res.ScanFiles += oPigFolder.PigFiles.Count
+                    intMaxScanFiles -= oPigFolder.PigFiles.Count
+                    LOG.StepName = "For Each mDeleteFile"
+                    For Each oPigFile As PigFile In oPigFolder.PigFiles
+                        If KeepDays > 0 Then
+                            If DateDiff(DateInterval.Day, oPigFile.UpdateTime, Now) > KeepDays Then
+                                LOG.Ret = mDeleteFile(oPigFile.FilePath)
+                                If LOG.Ret <> "OK" Then
+                                    Res.ErrInf &= "Delete File " & oPigFile.FilePath & " Err:" & LOG.Ret
+                                    Res.DelFailFiles += 1
+                                Else
+                                    Res.DelOKFiles += 1
+                                End If
+                            End If
+                        ElseIf KeepHours > 0 Then
+                            If CDec(DateDiff(DateInterval.Minute, oPigFile.UpdateTime, Now)) / 60 > KeepHours Then
+                                LOG.Ret = mDeleteFile(oPigFile.FilePath)
+                                If LOG.Ret <> "OK" Then
+                                    Res.ErrInf &= "Delete File " & oPigFile.FilePath & " Err:" & LOG.Ret
+                                    Res.DelFailFiles += 1
+                                Else
+                                    Res.DelOKFiles += 1
+                                End If
+                            End If
+                        End If
+                    Next
+                End If
+            Next
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+
     ''' <summary>
     ''' 扫描子目录|Scan for subdirectories
     ''' </summary>
@@ -211,7 +377,6 @@ Public Class PigFolder
         Try
             strRet = mInitFolderInf()
             If strRet <> "OK" Then Throw New Exception(strRet)
-            Me.mFolderInfo.Refresh()
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("RefMe", ex)
@@ -241,9 +406,25 @@ Public Class PigFolder
         End Try
     End Function
 
-
+    ''' <summary>
+    ''' Refresh the collection of files in the current directory|刷新当前目录下的文件集合
+    ''' </summary>
+    ''' <returns></returns>
     Public Function RefPigFiles() As String
-        Dim LOG As New StruStepLog : LOG.SubName = "RefPigFiles"
+        Return Me.mRefPigFiles(0)
+    End Function
+
+    ''' <summary>
+    ''' Refresh the collection of files in the current directory|刷新当前目录下的文件集合
+    ''' </summary>
+    ''' <param name="MaxScanFiles">The maximum number of scanned files|扫描最多的文件数</param>
+    ''' <returns></returns>
+    Public Function RefPigFiles(MaxScanFiles As Long) As String
+        Return Me.mRefPigFiles(MaxScanFiles)
+    End Function
+
+    Private Function mRefPigFiles(MaxScanFiles As Long) As String
+        Dim LOG As New StruStepLog : LOG.SubName = "mRefPigFiles"
         Try
             LOG.Ret = Me.RefMe()
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
@@ -255,7 +436,12 @@ Public Class PigFolder
             End If
             If Me.mPigFiles.LastErr <> "" Then Throw New Exception(Me.mPigFiles.LastErr)
             LOG.StepName = "For Each"
+            Dim lngScanFiles As Long = 0
             For Each oFileInf In Me.mFolderInfo.GetFiles
+                If MaxScanFiles > 0 Then
+                    lngScanFiles += 1
+                    If lngScanFiles > MaxScanFiles Then Exit For
+                End If
                 Me.mPigFiles.Add(oFileInf.FullName)
             Next
             Return "OK"
