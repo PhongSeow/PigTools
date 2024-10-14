@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.53
+'* Version: 1.56
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -48,6 +48,8 @@
 '* 1.51 26/6/2024 Modify GetDomainEnvInf
 '* 1.52  28/7/2024  Modify PigStepLog to StruStepLog
 '* 1.53  27/8/2024  Add DefaultAuditRecorderPath,GetConsoleLoginXml
+'* 1.55  30/9/2024  Modify New,RefConf,RefRunStatus, add WeblogicServers,ConsoleName
+'* 1.56  12/10/2024 Modify RefRunStatus
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -60,7 +62,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "53" & "." & "16"
+    Private Const CLS_VERSION As String = "1" & "." & "56" & "." & "18"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -71,6 +73,7 @@ Public Class WebLogicDomain
     Private mUpdateCheck As New UpdateCheck
 
     Public ReadOnly Property WebLogicDeploys As WebLogicDeploys
+    Public ReadOnly Property WeblogicServers As WeblogicServers
 
 
 
@@ -228,7 +231,7 @@ Public Class WebLogicDomain
     Private Property mStartDomainBeginTime
 
     Private Property mStopDomainThreadID As Integer
-    Private Property mStopDomainBeginTime
+    Private Property mStopDomainBeginTime As Date
     'Private Property mGetConsoleLogHasRunModeThreadID As Integer
 
     Private Property mRefRunStatusThreadID As Integer
@@ -236,8 +239,6 @@ Public Class WebLogicDomain
     Private Property mConfFileUpdtime As Date
 
     Private mstrStartDomainRes As String
-
-
     Public Property StartDomainRes As String
         Get
             Return mstrStartDomainRes
@@ -248,7 +249,6 @@ Public Class WebLogicDomain
     End Property
 
     Private mintJavaPID As Integer = -1
-
     Public Property JavaPID As Integer
         Get
             Return mintJavaPID
@@ -259,7 +259,6 @@ Public Class WebLogicDomain
     End Property
 
     Private mdteJavaStartTime As DateTime = TEMP_DATE
-
     Public Property JavaStartTime As DateTime
         Get
             Return mdteJavaStartTime
@@ -295,14 +294,25 @@ Public Class WebLogicDomain
         End Set
     End Property
 
-    Private mstrStopDomainRes As String
+    Private mConsoleName As String = "console"
 
-    Public Property StopDomainRes As String
+    Public Property ConsoleName As String
         Get
-            Return mstrStopDomainRes
+            Return mConsoleName
         End Get
         Friend Set(value As String)
-            mstrStopDomainRes = value
+            mConsoleName = value
+        End Set
+    End Property
+
+
+    Private mStopDomainRes As String
+    Public Property StopDomainRes As String
+        Get
+            Return mStopDomainRes
+        End Get
+        Friend Set(value As String)
+            mStopDomainRes = value
         End Set
     End Property
 
@@ -440,6 +450,7 @@ Public Class WebLogicDomain
         Me.HomeDirPath = HomeDirPath
         Me.fParent = Parent
         Me.WebLogicDeploys = New WebLogicDeploys
+        Me.WeblogicServers = New WeblogicServers
     End Sub
 
     Public ReadOnly Property ConfPath() As String
@@ -1151,6 +1162,8 @@ Public Class WebLogicDomain
                     .DomainName = oPigXml.GetXmlDocText("domain.name")
                     .DomainVersion = oPigXml.GetXmlDocText("domain.domain-version")
                     .IsProdMode = oPigXml.XmlDocGetBool("domain.production-mode-enabled")
+                    .ConsoleName = oPigXml.XmlDocGetStr("domain.console-context-path")
+                    If .ConsoleName = "" Then .ConsoleName = "console"
                     If oPigXml.GetXmlDocText("domain.server.name") = "AdminServer" Then
                         .HasAdminServer = True
                     Else
@@ -1172,16 +1185,34 @@ Public Class WebLogicDomain
                         Loop
                     End If
                     intSkipTimes = 0
+                    Me.WeblogicServers.Clear()
+                    Do While True
+                        Dim oXmlNode As Xml.XmlNode = oPigXml.GetXmlDocNode("domain.server", intSkipTimes)
+                        If oXmlNode Is Nothing Then Exit Do
+                        Dim strServerName As String = oPigXml.XmlDocGetStr(oXmlNode, "name")
+                        Dim intListerPort As Integer = oPigXml.XmlDocGetInt(oXmlNode, "listen-port")
+                        If strServerName <> "AdminServer" Then
+                            With Me.WeblogicServers.AddOrGet(strServerName, intListerPort, Me)
+                                .JavaPID = -1
+                            End With
+
+                        End If
+                        intSkipTimes += 1
+                    Loop
+
+                    intSkipTimes = 0
                     Me.WebLogicDeploys.Clear()
                     Do While True
                         Dim oXmlNode As Xml.XmlNode = oPigXml.GetXmlDocNode("domain.app-deployment", intSkipTimes)
                         If oXmlNode Is Nothing Then Exit Do
                         Dim strDeployName As String = oPigXml.XmlDocGetStr(oXmlNode, "name")
+                        Dim strTargetList As String = oPigXml.XmlDocGetStr(oXmlNode, "target")
                         Dim intModuleType As WebLogicDeploy.EnmModuleType = oPigXml.XmlDocGetInt(oXmlNode, "module-type")
                         Dim strSourcePath As String = oPigXml.XmlDocGetStr(oXmlNode, "source-path")
                         With Me.WebLogicDeploys.AddOrGet(strDeployName, Me)
                             .ModuleType = intModuleType
                             .SourcePath = strSourcePath
+                            .TargetList = strTargetList
                         End With
                         intSkipTimes += 1
                     Loop
@@ -1246,38 +1277,69 @@ Public Class WebLogicDomain
                                         Me.StopDomainRes = "Stop domain timeout."
                                     End If
                                 Case Else
-                                    Dim intPID As Integer
-                                    LOG.StepName = "GetListenPortProcID.ListenPort"
-                                    LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.ListenPort, intPID)
-                                    If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
-                                    If intPID >= 0 Then
-                                        LOG.StepName = "GetPigProc.ListenPort"
-                                        Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
-                                        If Me.mPigProcApp.LastErr <> "" Then
-                                            Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
+                                    Dim bolIsGetListenPortProcID As Boolean = False
+                                    Dim strPIDMath As String = ""
+                                    If Me.IsWindows = False Then
+                                        Dim strCmd As String = "ps -ef|awk '{if($8==""/bin/sh"" && $9==""" & Replace(Me.startWebLogicPath, "\", "\\") & """) print $2}'"
+                                        LOG.StepName = "CmdShell"
+                                        'Console.WriteLine(strCmd)
+                                        LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+                                        If LOG.Ret <> "OK" Then
+                                            LOG.AddStepNameInf(strCmd)
+                                            Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.StepLogInf)
                                         Else
-                                            If UCase(oPigProc.ProcessName) = "JAVA" Then
-                                                Me.RunStatus = EnmDomainRunStatus.Running
-                                                Me.JavaPID = oPigProc.ProcessID
-                                                Me.JavaStartTime = oPigProc.StartTime
-                                                Me.JavaCpuTime = oPigProc.UserProcessorTime
-                                                Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
+                                            For i = 0 To Me.mPigCmdApp.StandardOutputArray.Length - 1
+                                                If strPIDMath <> "" Then
+                                                    strPIDMath &= "||"
+                                                End If
+                                                strPIDMath &= "$3==""" & Me.mPigCmdApp.StandardOutputArray(i).ToString & """"
+                                            Next
+                                        End If
+                                        If strPIDMath <> "" Then
+                                            strCmd = "ps -ef|awk '{if(" & strPIDMath & ") print $0}'|grep "" \-Dweblogic.Name=AdminServer ""|awk '{print $2}'"
+                                            LOG.StepName = "CmdShell"
+                                            'Console.WriteLine(strCmd)
+                                            LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+                                            'Console.WriteLine(Me.mPigCmdApp.StandardOutput)
+                                            If LOG.Ret <> "OK" Then
+                                                LOG.AddStepNameInf(strCmd)
+                                                Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.StepLogInf)
+                                                bolIsGetListenPortProcID = True
                                             Else
-                                                Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
+                                                Dim intPID As Integer = Me.mPigFunc.GECInt(Me.mPigCmdApp.StandardOutput)
+                                                'Console.WriteLine("intPID=" & intPID.ToString)
+                                                If intPID > 0 Then
+                                                    Dim oPigProc As New PigProc(intPID)
+                                                    If UCase(oPigProc.ProcessName) = "JAVA" Then
+                                                        Me.RunStatus = EnmDomainRunStatus.Running
+                                                        Me.JavaPID = oPigProc.ProcessID
+                                                        Me.JavaStartTime = oPigProc.StartTime
+                                                        Me.JavaCpuTime = oPigProc.UserProcessorTime
+                                                        Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
+                                                    Else
+                                                        Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
+                                                    End If
+                                                Else
+                                                    bolIsGetListenPortProcID = True
+                                                End If
                                             End If
                                         End If
-                                    ElseIf Me.AdminPort > 0 Then
-                                        LOG.StepName = "GetListenPortProcID.AdminPort"
-                                        LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.AdminPort, intPID)
+                                    Else
+                                        bolIsGetListenPortProcID = True
+                                    End If
+                                    If bolIsGetListenPortProcID = True Then
+                                        Dim intPID As Integer
+                                        LOG.StepName = "GetListenPortProcID.ListenPort"
+                                        LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.ListenPort, intPID)
                                         If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
                                         If intPID >= 0 Then
-                                            LOG.StepName = "GetPigProc.AdminPort"
+                                            LOG.StepName = "GetPigProc.ListenPort"
                                             Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
                                             If Me.mPigProcApp.LastErr <> "" Then
                                                 Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
                                             Else
                                                 If UCase(oPigProc.ProcessName) = "JAVA" Then
-                                                    Me.RunStatus = EnmDomainRunStatus.StartPartReady
+                                                    Me.RunStatus = EnmDomainRunStatus.Running
                                                     Me.JavaPID = oPigProc.ProcessID
                                                     Me.JavaStartTime = oPigProc.StartTime
                                                     Me.JavaCpuTime = oPigProc.UserProcessorTime
@@ -1285,6 +1347,42 @@ Public Class WebLogicDomain
                                                 Else
                                                     Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
                                                 End If
+                                            End If
+                                        ElseIf Me.AdminPort > 0 Then
+                                            LOG.StepName = "GetListenPortProcID.AdminPort"
+                                            LOG.Ret = Me.mPigSysCmd.GetListenPortProcID(Me.AdminPort, intPID)
+                                            If LOG.Ret <> "OK" Then Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.Ret)
+                                            If intPID >= 0 Then
+                                                LOG.StepName = "GetPigProc.AdminPort"
+                                                Dim oPigProc As PigProc = Me.mPigProcApp.GetPigProc(intPID)
+                                                If Me.mPigProcApp.LastErr <> "" Then
+                                                    Me.PrintDebugLog(LOG.SubName, LOG.StepName, Me.mPigProcApp.LastErr)
+                                                Else
+                                                    If UCase(oPigProc.ProcessName) = "JAVA" Then
+                                                        Me.RunStatus = EnmDomainRunStatus.StartPartReady
+                                                        Me.JavaPID = oPigProc.ProcessID
+                                                        Me.JavaStartTime = oPigProc.StartTime
+                                                        Me.JavaCpuTime = oPigProc.UserProcessorTime
+                                                        Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
+                                                    Else
+                                                        Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
+                                                    End If
+                                                End If
+                                            Else
+                                                Select Case Me.RunStatus
+                                                    Case EnmDomainRunStatus.Starting, EnmDomainRunStatus.StartPartReady
+                                                        If Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                                            Me.RunStatus = EnmDomainRunStatus.StartFail
+                                                            Me.StartDomainRes = "Start domain timeout."
+                                                        End If
+                                                    Case EnmDomainRunStatus.Stopping
+                                                        If Math.Abs(DateDiff(DateInterval.Second, Me.mStopDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
+                                                            Me.RunStatus = EnmDomainRunStatus.StopFail
+                                                            Me.StartDomainRes = "Stop domain timeout."
+                                                        End If
+                                                    Case Else
+                                                        Me.RunStatus = EnmDomainRunStatus.Stopped
+                                                End Select
                                             End If
                                         Else
                                             Select Case Me.RunStatus
@@ -1302,21 +1400,6 @@ Public Class WebLogicDomain
                                                     Me.RunStatus = EnmDomainRunStatus.Stopped
                                             End Select
                                         End If
-                                    Else
-                                        Select Case Me.RunStatus
-                                            Case EnmDomainRunStatus.Starting, EnmDomainRunStatus.StartPartReady
-                                                If Math.Abs(DateDiff(DateInterval.Second, Me.mStartDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
-                                                    Me.RunStatus = EnmDomainRunStatus.StartFail
-                                                    Me.StartDomainRes = "Start domain timeout."
-                                                End If
-                                            Case EnmDomainRunStatus.Stopping
-                                                If Math.Abs(DateDiff(DateInterval.Second, Me.mStopDomainBeginTime, Now)) > Me.fParent.StartOrStopTimeout Then
-                                                    Me.RunStatus = EnmDomainRunStatus.StopFail
-                                                    Me.StartDomainRes = "Stop domain timeout."
-                                                End If
-                                            Case Else
-                                                Me.RunStatus = EnmDomainRunStatus.Stopped
-                                        End Select
                                     End If
                             End Select
                     End Select

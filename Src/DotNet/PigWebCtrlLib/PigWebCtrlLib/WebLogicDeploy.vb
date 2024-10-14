@@ -6,6 +6,7 @@
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
 '* Version: 1.0
 '* Create Time: 28/2/2023
+'* 1.1  8/10/2024   Add TargetList 
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -14,7 +15,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class WebLogicDeploy
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "0" & "." & "10"
+    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "2"
 
     Public Enum EnmModuleType
         War = 0
@@ -43,6 +44,15 @@ Public Class WebLogicDeploy
         End Set
     End Property
 
+    Private mTargetList As String
+    Public Property TargetList As String
+        Get
+            Return mTargetList
+        End Get
+        Friend Set(value As String)
+            mTargetList = value
+        End Set
+    End Property
 
     Public Sub New(DeployName As String, Parent As WebLogicDomain)
         MyBase.New(CLS_VERSION)

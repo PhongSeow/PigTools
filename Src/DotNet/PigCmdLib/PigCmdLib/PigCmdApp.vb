@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.25
+'* Version: 1.26
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -29,6 +29,7 @@
 '* 1.22 21/7/2024  Modify PigFunc to PigFuncLite
 '* 1.23  28/7/2024 Modify PigStepLog to StruStepLog
 '* 1.25  12/8/2024 Add StringArrayToSpaceMulti2OneStr
+'* 1.26  29/9/2024 Add GetPsEfCmdInf
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -38,7 +39,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "25" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "26" & "." & "6"
     Public Property LinuxShPath As String
     Public Property WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -475,6 +476,33 @@ Public Class PigCmdApp
             Return strError
         End Try
     End Function
+
+
+    ''' <summary>
+    ''' Retrieve the CMD section from the ps ef statement|获取 ps -ef语句中的CMD部分
+    ''' </summary>
+    ''' <param name="PID">Process number|进程号</param>
+    ''' <returns></returns>
+    Public Function GetPsEfCmdInf(PID As Integer, ByRef CmdInf As String) As String
+        Dim LOG As New StruStepLog : LOG.SubName = "GetPsEfCmdInf"
+        Try
+            If Me.IsWindows = True Then Throw New Exception("Can only run on Linux.")
+            Dim strCmd As String = "ps -ef|awk '{if($2==""" & PID.ToString & """){for(i=8;i<=NF;i++)printf $i"" "";print """"}}'"
+            Console.WriteLine(strCmd)
+            LOG.StepName = "CmdShell"
+            LOG.Ret = Me.CmdShell(strCmd, EnmStandardOutputReadType.StringArray)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            End If
+            CmdInf = Trim(Me.StandardOutputArray(0))
+            Return "OK"
+        Catch ex As Exception
+            CmdInf = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
 
     ''' <summary>
     ''' 获取指定进程号的父进程|Gets the parent process of the specified process number
