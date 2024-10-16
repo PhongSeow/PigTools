@@ -49,7 +49,7 @@
 '* 1.52  28/7/2024  Modify PigStepLog to StruStepLog
 '* 1.53  27/8/2024  Add DefaultAuditRecorderPath,GetConsoleLoginXml
 '* 1.55  30/9/2024  Modify New,RefConf,RefRunStatus, add WeblogicServers,ConsoleName
-'* 1.56  12/10/2024 Modify RefRunStatus
+'* 1.56  12/10/2024 Modify RefRunStatus, add RootUrl,LocalIp,mPigCmdApp_AsyncRet_CmdShell_FullString
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -62,7 +62,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "56" & "." & "18"
+    Private Const CLS_VERSION As String = "1" & "." & "56" & "." & "26"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -75,7 +75,31 @@ Public Class WebLogicDomain
     Public ReadOnly Property WebLogicDeploys As WebLogicDeploys
     Public ReadOnly Property WeblogicServers As WeblogicServers
 
+    Private mLocalIp As String = "127.0.0.1"
+    Public Property LocalIp As String
+        Get
+            Return mLocalIp
+        End Get
+        Set(value As String)
+            mLocalIp = value
+        End Set
+    End Property
 
+    Public ReadOnly Property RootUrl As String
+        Get
+            If Me.IsAdminPortEnable = True Then
+                RootUrl = "https://" & Me.LocalIp & ":" & Me.AdminPort.ToString
+                If Me.AdminPort <> 443 Then
+                    RootUrl &= ":" & Me.AdminPort.ToString
+                End If
+            Else
+                RootUrl = "http://" & Me.LocalIp
+                If Me.ListenPort <> 80 Then
+                    RootUrl &= ":" & Me.ListenPort.ToString
+                End If
+            End If
+        End Get
+    End Property
 
     Public ReadOnly Property LastUpdateTime() As DateTime
         Get
