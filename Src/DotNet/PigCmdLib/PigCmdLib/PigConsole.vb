@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.25
+'* Version: 1.26
 '* Create Time: 15/1/2022
 '* 1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '* 1.2 3/2/2022     Add GetLine
@@ -29,6 +29,7 @@
 '* 1.22 9/6/2024   Modify EnmWhatTypeOfMenuDefinition,GetMenuDefinition
 '* 1.23  21/7/2024  Modify PigFunc to PigFuncLite
 '* 1.25  28/7/2024   Modify PigStepLog to StruStepLog
+'* 1.26  30/10/2024   Modify SelectMenuOfEnumeration
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -37,7 +38,7 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "25" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "26" & "." & "2"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -825,6 +826,31 @@ Public Class PigConsole
         End Try
     End Function
 
+    ''' <summary>
+    ''' Get a simple menu of enumerated types|获取一个枚举类型的简单菜单
+    ''' <param name="EnmType">Enumeration types, such as Get Type (EnmWhatTypeOfMenuDefinition)|枚举类型，例如GetType(EnmWhatTypeOfMenuDefinition)</param>
+    ''' <returns></returns>
+    Public Function SelectMenuOfEnumeration(EnmType As Type) As String
+        Try
+            SelectMenuOfEnumeration = ""
+            Dim aValues As Array = [Enum].GetValues(EnmType)
+            Dim strMenuDefinition As String = ""
+            For Each oValue In aValues
+                strMenuDefinition &= CStr(oValue) & "#" & oValue.ToString & "|"
+            Next
+            Dim strRet As String = Me.SimpleMenu("Select " & EnmType.ToString, strMenuDefinition, SelectMenuOfEnumeration, PigConsole.EnmSimpleMenuExitType.Null)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMenuDefinition", ex)
+            Return ""
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get a simple menu of pre-defined enumeration types|获取一个预定义的枚举类型的简单菜单
+    ''' </summary>
+    ''' <param name="WhatTypeOfMenuDefinition">Pre-defined enumeration types|预定义的枚举类型</param>
+    ''' <returns></returns>
     Public Function SelectMenuOfEnumeration(WhatTypeOfMenuDefinition As EnmWhatTypeOfMenuDefinition) As String
         Try
             SelectMenuOfEnumeration = ""
