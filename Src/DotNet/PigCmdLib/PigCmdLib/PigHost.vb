@@ -13,6 +13,7 @@
 '* 1.6  21/2/2024  Modify 
 '* 1.7  21/7/2024  Modify PigFunc to PigFuncLite
 '* 1.8  28/7/2024   Modify PigStepLog to StruStepLog
+'* 1.9  4/11/2024   Modify New
 '**********************************
 Imports PigToolsLiteLib
 ''' <summary>
@@ -20,7 +21,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigHost
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "8" & "." & "16"
+    Private Const CLS_VERSION As String = "1" & "." & "9" & "." & "6"
 
     Friend Enum EnmGetCPUBaseWhat
         Model = 0
@@ -32,11 +33,11 @@ Public Class PigHost
 
 
     Public ReadOnly Property IsInit As Boolean
-    Public ReadOnly Property HostName As String
-    Public ReadOnly Property HostID As String
-    Public ReadOnly Property UUID As String
+    Public ReadOnly Property HostName As String = ""
+    Public ReadOnly Property HostID As String = ""
+    Public ReadOnly Property UUID As String = ""
     Public ReadOnly Property CPU As PigCPU
-    Public ReadOnly Property OSCaption As String
+    Public ReadOnly Property OSCaption As String = ""
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigSysCmd As New PigSysCmd
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -47,6 +48,12 @@ Public Class PigHost
         Dim LOG As New StruStepLog : LOG.SubName = "New"
         Try
             Dim strTmp As String = ""
+            Me.HostName = Me.mPigFunc.GetComputerName
+            LOG.StepName = "GetOSCaption"
+            LOG.Ret = Me.mPigSysCmd.GetOSCaption(strTmp)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Me.OSCaption = strTmp
+            Me.CPU = New PigCPU(Me)
             If HostID <> "" Then
                 Me.HostID = HostID
                 LOG.Ret = Me.mPigSysCmd.GetUUID(strTmp)
@@ -62,12 +69,6 @@ Public Class PigHost
                 If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
                 Me.HostID = UCase(strTmp)
             End If
-            Me.HostName = Me.mPigFunc.GetComputerName
-            LOG.StepName = "GetOSCaption"
-            LOG.Ret = Me.mPigSysCmd.GetOSCaption(strTmp)
-            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
-            Me.OSCaption = strTmp
-            Me.CPU = New PigCPU(Me)
             Me.IsInit = True
         Catch ex As Exception
             Me.IsInit = False

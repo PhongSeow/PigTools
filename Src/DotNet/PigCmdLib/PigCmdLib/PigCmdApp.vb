@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.26
+'* Version: 1.27
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -30,6 +30,7 @@
 '* 1.23  28/7/2024 Modify PigStepLog to StruStepLog
 '* 1.25  12/8/2024 Add StringArrayToSpaceMulti2OneStr
 '* 1.26  29/9/2024 Add GetPsEfCmdInf
+'* 1.27  4/11/2024 Modify mCallFile
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -39,7 +40,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "26" & "." & "6"
+    Private Const CLS_VERSION As String = "1" & "." & "27" & "." & "8"
     Public Property LinuxShPath As String
     Public Property WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -121,11 +122,14 @@ Public Class PigCmdApp
     '    End Set
     'End Property
 
-    Private mabStandardOutputArray As String()
-    Public ReadOnly Property StandardOutputArray As String()
+    Private mabStandardOutputArray(-1) As String
+    Public Property StandardOutputArray As String()
         Get
             Return mabStandardOutputArray
         End Get
+        Friend Set(value As String())
+            mabStandardOutputArray = value
+        End Set
     End Property
 
 
@@ -367,6 +371,7 @@ Public Class PigCmdApp
         Dim LOG As New StruStepLog : LOG.SubName = "mCallFile"
         Dim oPigAsync As New PigAsync
         Try
+            ReDim Me.StandardOutputArray(-1)
             If StruMain.IsAsync = True Then
                 Select Case Me.StandardOutputReadType
                     Case EnmStandardOutputReadType.FullString, EnmStandardOutputReadType.StringArray
@@ -394,7 +399,7 @@ Public Class PigCmdApp
             LOG.StepName = "Process.StandardOutput"
             Dim oStreamReader As StreamReader = oProcess.StandardOutput
             Dim strStandardOutput As String = ""
-            Dim abStandardOutputArray(0) As String
+            Dim abStandardOutputArray(-1) As String
             Select Case Me.StandardOutputReadType
                 Case EnmStandardOutputReadType.FullString
                     LOG.StepName = "Process.StandardOutput.WaitForExit"
@@ -415,7 +420,7 @@ Public Class PigCmdApp
                             i += 1
                         Loop
                     Else
-                        ReDim mabStandardOutputArray(i)
+                        'ReDim mabStandardOutputArray(i - 1)
                         Do While Not oStreamReader.EndOfStream
                             ReDim Preserve mabStandardOutputArray(i)
                             'LOG.StepName = "StreamReader.ReadLine(" & i & ")"
@@ -488,7 +493,7 @@ Public Class PigCmdApp
         Try
             If Me.IsWindows = True Then Throw New Exception("Can only run on Linux.")
             Dim strCmd As String = "ps -ef|awk '{if($2==""" & PID.ToString & """){for(i=8;i<=NF;i++)printf $i"" "";print """"}}'"
-            Console.WriteLine(strCmd)
+            'Console.WriteLine(strCmd)
             LOG.StepName = "CmdShell"
             LOG.Ret = Me.CmdShell(strCmd, EnmStandardOutputReadType.StringArray)
             If LOG.Ret <> "OK" Then

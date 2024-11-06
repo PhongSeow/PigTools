@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.56
+'* Version: 1.57
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -50,6 +50,7 @@
 '* 1.53  27/8/2024  Add DefaultAuditRecorderPath,GetConsoleLoginXml
 '* 1.55  30/9/2024  Modify New,RefConf,RefRunStatus, add WeblogicServers,ConsoleName
 '* 1.56  12/10/2024 Modify RefRunStatus, add RootUrl,LocalIp,mPigCmdApp_AsyncRet_CmdShell_FullString
+'* 1.57  1/11/2024 Modify RefRunStatus
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -62,7 +63,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "56" & "." & "26"
+    Private Const CLS_VERSION As String = "1" & "." & "57" & "." & "10"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -1282,7 +1283,13 @@ Public Class WebLogicDomain
     ''' <returns></returns>
     Public Function RefRunStatus() As String
         Dim LOG As New StruStepLog : LOG.SubName = "RefRunStatus"
+        Dim strCmd As String = ""
         Try
+            If Me.mPigCmdApp Is Nothing Then
+                LOG.StepName = "New PigCmdApp"
+                Me.mPigCmdApp = New PigCmdApp
+                'Console.WriteLine(LOG.StepLogInf)
+            End If
             Select Case Me.RunStatus
                 Case EnmDomainRunStatus.ExecutingWLST
                     If Math.Abs(DateDiff(DateInterval.Second, Me.mCallWlstBeginTime, Now)) > Me.fParent.CallWlstTimeout Then
@@ -1304,14 +1311,17 @@ Public Class WebLogicDomain
                                     Dim bolIsGetListenPortProcID As Boolean = False
                                     Dim strPIDMath As String = ""
                                     If Me.IsWindows = False Then
-                                        Dim strCmd As String = "ps -ef|awk '{if($8==""/bin/sh"" && $9==""" & Replace(Me.startWebLogicPath, "\", "\\") & """) print $2}'"
+                                        strCmd = "ps -ef|awk '{if($8==""/bin/sh"" && $9==""" & Replace(Me.startWebLogicPath, "\", "\\") & """) print $2}'"
                                         LOG.StepName = "CmdShell"
-                                        'Console.WriteLine(strCmd)
+                                        LOG.AddStepNameInf(Me.RunStatus.ToString)
                                         LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+                                        'Console.WriteLine(LOG.StepLogInf)
+                                        strPIDMath = ""
                                         If LOG.Ret <> "OK" Then
-                                            LOG.AddStepNameInf(strCmd)
                                             Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.StepLogInf)
-                                        Else
+                                        ElseIf mPigCmdApp.StandardOutputArray IsNot Nothing Then
+                                            LOG.AddStepNameInf("For")
+                                            LOG.AddStepNameInf("StandardOutputArray.Length=" & Me.mPigCmdApp.StandardOutputArray.Length)
                                             For i = 0 To Me.mPigCmdApp.StandardOutputArray.Length - 1
                                                 If strPIDMath <> "" Then
                                                     strPIDMath &= "||"
@@ -1322,16 +1332,13 @@ Public Class WebLogicDomain
                                         If strPIDMath <> "" Then
                                             strCmd = "ps -ef|awk '{if(" & strPIDMath & ") print $0}'|grep "" \-Dweblogic.Name=AdminServer ""|awk '{print $2}'"
                                             LOG.StepName = "CmdShell"
-                                            'Console.WriteLine(strCmd)
+                                            LOG.AddStepNameInf(Me.RunStatus.ToString)
                                             LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
-                                            'Console.WriteLine(Me.mPigCmdApp.StandardOutput)
                                             If LOG.Ret <> "OK" Then
-                                                LOG.AddStepNameInf(strCmd)
                                                 Me.PrintDebugLog(LOG.SubName, LOG.StepName, LOG.StepLogInf)
                                                 bolIsGetListenPortProcID = True
                                             Else
                                                 Dim intPID As Integer = Me.mPigFunc.GECInt(Me.mPigCmdApp.StandardOutput)
-                                                'Console.WriteLine("intPID=" & intPID.ToString)
                                                 If intPID > 0 Then
                                                     Dim oPigProc As New PigProc(intPID)
                                                     If UCase(oPigProc.ProcessName) = "JAVA" Then
@@ -1347,6 +1354,8 @@ Public Class WebLogicDomain
                                                     bolIsGetListenPortProcID = True
                                                 End If
                                             End If
+                                        Else
+                                            bolIsGetListenPortProcID = True
                                         End If
                                     Else
                                         bolIsGetListenPortProcID = True
@@ -1438,6 +1447,7 @@ Public Class WebLogicDomain
             End Select
             Return "OK"
         Catch ex As Exception
+            LOG.AddStepNameInf(strCmd)
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
