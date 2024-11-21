@@ -2,8 +2,9 @@
 '* Name: PigJSonLite
 '* Author: Seow Phong
 '* Describe: Simple JSON class.
+'* Example JSon = "{""RS"":[{""ROW"":[{""name"":""sp_MSalreadyhavegeneration"",""id"":""-1073624922"",""xtype"":""P"",""uid"":""4"",""info"":""0"",""status"":""0"",""base_schema_ver"":""0"",""replinfo"":""0"",""parent_obj"":""0"",""crdate"":""2012-02-10 20:56:30.180"",""ftcatid"":""0"",""schema_ver"":""0"",""stats_schema_ver"":""0"",""type"":""P"",""userstat"":""0"",""sysstat"":""4"",""indexdel"":""0"",""refdate"":""2012-02-10 20:56:30.180"",""version"":""0"",""deltrig"":""0"",""instrig"":""0"",""updtrig"":""0"",""seltrig"":""0"",""category"":""2"",""cache"":""0""}],""TotalRows"":""1"",""IsEOF"":""True""}],""TotalRS"":""1""}"
 '* Home Url: http://www.seowphong.com
-'* Version: 1.1
+'* Version: 1.3
 '* Create Time: 8/8/2019
 '* 1.0.2    10/8/2020   Code changed from VB6 to VB.NET
 '* 1.0.3    12/8/2020   Some Function debugging 
@@ -19,14 +20,33 @@
 '* 1.0.13   6/7/2021   Modify mLng2Date,AddEle,mDate2Lng
 '* 1.0.14   27/8/2021  Modify mLng2Date for NETCOREAPP3_1_OR_GREATER
 '* 1.1      14/9/2021  Modify xpJSonEleType,mAddJSonStr, and add AddOneObjectEle
+'* 1.2      18/11/2024 Add Object2JSon,JSon2Object,ParseJSON,GetJsonArray,GetJsonNode,mGetStrValue,GetBoolValue,GetDateValue,GetDecValue,GetIntValue,GetLngValue
+'* 1.3      21/11/2024 Modify mGetStrValue
 '*******************************************************
 Imports System.Text
+#If NET6_0_OR_GREATER Then
+Imports System.Text.Json
+Imports System.Text.Json.Nodes
+#End If
 ''' <summary>
 ''' Simple JSON processing class|简单JSon处理类
 ''' </summary>
 Public Class PigJSonLite
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "1" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "3" & "." & "16"
+
+    Private ReadOnly Property mPigFunc As New PigFunc
+#If NET6_0_OR_GREATER Then
+    Private mJsonNode As JsonNode
+    Public Property JSonNode As JsonNode
+        Get
+            Return mJsonNode
+        End Get
+        Friend Set(value As JsonNode)
+            mJsonNode = value
+        End Set
+    End Property
+#End If
 
     ''' <summary>The type of the JSON element</summary>
     Public Enum xpJSonEleType
@@ -501,8 +521,279 @@ Public Class PigJSonLite
             If strRet <> "OK" Then Throw New Exception(strRet)
             Me.ClearErr()
         Catch ex As Exception
+
             Me.SetSubErrInf("AddObjectEleValue", strStepName, ex)
         End Try
     End Sub
+
+
+#If NET6_0_OR_GREATER Then
+
+    ''' <summary>
+    ''' Get the float value of the JSon element|获取JSon元素的浮点值
+    ''' </summary>
+    ''' <param name="JSonKey">For example:RS[0].ROW[0].indexdel|例如：RS[0].ROW[0].indexdel</param>
+    ''' <returns></returns>
+    Public Function GetDecValue(JSonKey As String) As Decimal
+        Try
+            Dim strRet As String = ""
+            Dim strValue As String = ""
+            strRet = Me.mGetStrValue(JSonKey, strValue)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return CDec(strValue)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetIntValue", ex)
+            If Me.IsGetValueErrRetNothing = True Then
+                Return Nothing
+            Else
+                Return 0
+            End If
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get the date value of the JSon element|获取JSon元素的日期值
+    ''' </summary>
+    ''' <param name="JSonKey">For example:RS[0].ROW[0].refdate|例如：RS[0].ROW[0].refdate</param>
+    ''' <param name="IsLocalTime">Is it local time|是否本地时间</param>
+    ''' <returns></returns>
+    Public Function GetDateValue(JSonKey As String, Optional IsLocalTime As Boolean = True) As DateTime
+        Try
+            Dim strRet As String = ""
+            Dim strValue As String = ""
+            strRet = Me.mGetStrValue(JSonKey, strValue)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            If IsDate(strValue) = True Then
+                GetDateValue = CDate(strValue)
+            ElseIf IsNumeric(strValue) Then
+                GetDateValue = Me.mLng2Date(CLng(strValue), IsLocalTime)
+                If Me.LastErr <> "" Then Throw New Exception(Me.LastErr)
+            Else
+                Throw New Exception("Not date string")
+            End If
+        Catch ex As Exception
+            Me.SetSubErrInf("GetDateValue", ex)
+            If Me.IsGetValueErrRetNothing = True Then
+                Return Nothing
+            Else
+                Return DateTime.MinValue
+            End If
+        End Try
+    End Function
+
+
+    ''' <summary>
+    ''' Get the long integer value of the JSon element|获取JSon元素的长整型值
+    ''' </summary>
+    ''' <param name="JSonKey">For example:RS[0].TotalRows|例如：RS[0].TotalRows</param>
+    ''' <returns></returns>
+    Public Function GetLngValue(JSonKey As String) As Long
+        Try
+            Dim strRet As String = ""
+            Dim strValue As String = ""
+            strRet = Me.mGetStrValue(JSonKey, strValue)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return CLng(strValue)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetLngValue", ex)
+            If Me.IsGetValueErrRetNothing = True Then
+                Return Nothing
+            Else
+                Return 0
+            End If
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 获取JSon元素的整型值|Get the integer value of the JSon element
+    ''' </summary>
+    ''' <param name="JSonKey">For example:RS[0].TotalRows|例如：RS[0].TotalRows</param>
+    ''' <returns></returns>
+    Public Function GetIntValue(JSonKey As String) As Integer
+        Try
+            Dim strRet As String = ""
+            Dim strValue As String = ""
+            strRet = Me.mGetStrValue(JSonKey, strValue)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return CInt(strValue)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetIntValue", ex)
+            If Me.IsGetValueErrRetNothing = True Then
+                Return Nothing
+            Else
+                Return 0
+            End If
+        End Try
+    End Function
+
+
+    ''' <summary>
+    ''' 获取JSon元素的布尔值|Get the boolean value of the JSon element
+    ''' </summary>
+    ''' <param name="JSonKey">For example:RS[0].IsEOF|例如：RS[0].IsEOF</param>
+    ''' <returns></returns>
+    Public Function GetBoolValue(JSonKey As String) As Boolean
+        Try
+            Dim strRet As String = ""
+            Dim strValue As String = ""
+            strRet = Me.mGetStrValue(JSonKey, strValue)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return CBool(strValue)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetBoolValue", ex)
+            If Me.IsGetValueErrRetNothing = True Then
+                Return Nothing
+            Else
+                Return False
+            End If
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 获取JSon元素的字符串值|Get the string value of the JSon element
+    ''' </summary>
+    ''' <param name="JSonKey">For example:RS[0].ROW[0].name|例如：RS[0].ROW[0].name</param>
+    ''' <returns></returns>
+    Public Function GetStrValue(JSonKey As String) As String
+        Try
+            Dim strRet As String = ""
+            Dim strValue As String = ""
+            strRet = Me.mGetStrValue(JSonKey, strValue)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            Return strValue
+        Catch ex As Exception
+            Me.SetSubErrInf("GetStrValue", ex)
+            Return ""
+        End Try
+    End Function
+
+    Private Function mGetStrValue(JSonKey As String, ByRef OutStrValue As String) As String
+        Dim LOG As New PigStepLog("mGetStrValue")
+        Dim strJSonKey As String = ""
+        Dim strSubJSonKey As String = ""
+        Try
+            OutStrValue = ""
+            If Me.JSonNode IsNot Nothing Then
+                If InStr(JSonKey, ".") = 0 Then
+                    OutStrValue = Me.JSonNode(JSonKey).ToString()
+                Else
+                    strJSonKey = JSonKey
+                    Dim oSubNode = Me.JSonNode
+                    Do While True
+                        strSubJSonKey = Me.mPigFunc.GetStr(strJSonKey, "", ".", True)
+                        If strSubJSonKey = "" Then
+                            strSubJSonKey = strJSonKey
+                            If InStr(strSubJSonKey, "[") > 0 Then
+                                Dim strIndex As String = Me.mPigFunc.GetStr(strSubJSonKey, "[", "]")
+                                If IsNumeric(strIndex) Then
+                                    Dim intIndex As Integer = CInt(strIndex)
+                                    OutStrValue = oSubNode(strSubJSonKey)(intIndex).ToString
+                                End If
+                            Else
+                                OutStrValue = oSubNode(strSubJSonKey).ToString
+                            End If
+                            Exit Do
+                        End If
+                        If InStr(strSubJSonKey, "[") > 0 Then
+                            Dim strIndex As String = Me.mPigFunc.GetStr(strSubJSonKey, "[", "]")
+                            If IsNumeric(strIndex) Then
+                                Dim intIndex As Integer = CInt(strIndex)
+                                oSubNode = oSubNode(strSubJSonKey)(intIndex)
+                            End If
+                        Else
+                            oSubNode = oSubNode(strSubJSonKey)
+                        End If
+                    Loop
+
+                End If
+            End If
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf("JSonKey=" & strJSonKey)
+            LOG.AddStepNameInf("SubJSonKey=" & strSubJSonKey)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 获取一个JSon数组|Get a JSon array
+    ''' </summary>
+    ''' <param name="JSonKey"></param>
+    ''' <param name="ArrayIndex"></param>
+    ''' <returns></returns>
+    Public Function GetJsonArray(JSonKey As String, ArrayIndex As Integer) As JsonArray
+        Try
+            Return Me.JsonNode(ArrayIndex)(JSonKey)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("GetJsonArray", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 获取一个JSon节点|Get a JSon node
+    ''' </summary>
+    ''' <param name="JSonKey"></param>
+    ''' <returns></returns>
+    Public Function GetJsonNode(JSonKey As String) As JsonNode
+        Try
+            Return Me.JsonNode(JSonKey)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetJsonNode", ex)
+            Return Nothing
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 解析JSon字符串|Parse JSon string
+    ''' </summary>
+    ''' <param name="JSonStr"></param>
+    ''' <returns></returns>
+    Public Function ParseJSON(JSonStr As String) As String
+        Try
+            Me.JsonNode = JsonNode.Parse(JSonStr)
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("ParseJSON", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' JSon serialization|JSon序列化
+    ''' </summary>
+    ''' <param name="InObj">Input Object|输入对象</param>
+    ''' <param name="OutJSon">|输出的JSon</param>
+    ''' <param name="IsIndented">Is it indented|是否缩进</param>
+    ''' <returns></returns>
+    Public Function Object2JSon(InObj As Object, ByRef OutJSon As String, Optional IsIndented As Boolean = False) As String
+        Try
+            Dim Options = New JsonSerializerOptions()
+            Options.WriteIndented = True
+            OutJSon = JsonSerializer.Serialize(InObj, Options)
+            Return "OK"
+        Catch ex As Exception
+            OutJSon = ""
+            Return Me.GetSubErrInf("JSon2Object", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' JSon deserialization|JSon反序列化
+    ''' </summary>
+    ''' <param name="InJSon">Enter JSon string|输入JSon字符串</param>
+    ''' <param name="OutObject">Output Object|输出对象</param>
+    ''' <returns></returns>
+    Public Function JSon2Object(Of T)(InJSon As String, ByRef OutObject As T) As String
+        Try
+            Dim Options = New JsonSerializerOptions()
+            OutObject = JsonSerializer.Deserialize(Of T)(InJSon, Options)
+            Return "OK"
+        Catch ex As Exception
+            OutObject = Nothing
+            Return Me.GetSubErrInf("JSon2Object", ex)
+        End Try
+    End Function
+
+#End If
 
 End Class

@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "PigToolsLiteLib/3.6.10": {
+      "PigToolsLiteLib/3.6.18": {
         "runtime": {
           "PigToolsLiteLib.dll": {}
         }
@@ -14,7 +14,7 @@
     }
   },
   "libraries": {
-    "PigToolsLiteLib/3.6.10": {
+    "PigToolsLiteLib/3.6.18": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
