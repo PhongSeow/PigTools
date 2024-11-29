@@ -33,7 +33,7 @@
 '* 1.27 21/7/2024  Modify PigFunc to PigFuncLite
 '* 1.28  28/7/2024  Modify PigStepLog to StruStepLog
 '* 1.29  16/10/2024 Modify mGetProcInfXml,GetProcListXml,GetTcpListenProcList,mGetWmicSimpleXml, add GetParentProcList,GetAllProcCmdList
-'* 1.30  27/11/2024 Add GetLinuxServceList,GetLinuxServcePID,GetWindowsServceList
+'* 1.30  27/11/2024 Add GetLinuxServiceList,GetLinuxServicePID,GetWindowsServceList
 '**********************************
 Imports System.Security.Cryptography
 Imports PigCmdLib.PigSysCmd
@@ -43,7 +43,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "30" & "." & "15"
+    Private Const CLS_VERSION As String = "1" & "." & "30" & "." & "18"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -1438,8 +1438,8 @@ Public Class PigSysCmd
     ''' </summary>
     ''' <param name="OutItem">Output StruServiceList item|输出的StruServiceList项</param>
     ''' <returns></returns>
-    Public Function GetLinuxServcePID(ByRef OutItem As StruServiceList) As String
-        Dim LOG As New StruStepLog : LOG.SubName = "GetLinuxServcePID"
+    Public Function GetLinuxServicePID(ByRef OutItem As StruServiceList) As String
+        Dim LOG As New StruStepLog : LOG.SubName = "GetLinuxServicePID"
         Try
             If Me.IsWindows = True Then
                 LOG.Ret = "This is not a Linux system"
@@ -1549,8 +1549,8 @@ Public Class PigSysCmd
     ''' <param name="OutList">Output List|输出的列表</param>
     ''' <param name="IsGetRunningOnly">Only retrieve items that are currently running|只获取运行中的项|</param>
     ''' <returns></returns>
-    Public Function GetLinuxServceList(ByRef OutList As StruServiceList(), IsGetRunningOnly As Boolean) As String
-        Dim LOG As New StruStepLog : LOG.SubName = "GetLinuxServceList"
+    Public Function GetLinuxServiceList(ByRef OutList As StruServiceList(), IsGetRunningOnly As Boolean) As String
+        Dim LOG As New StruStepLog : LOG.SubName = "GetLinuxServiceList"
         Try
             If Me.IsWindows = True Then
                 LOG.Ret = "This is not a Linux system"
