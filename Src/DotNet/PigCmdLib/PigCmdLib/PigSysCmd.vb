@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.29
+'* Version: 1.30
 '* Create Time: 2/6/2022
 '* 1.1  3/6/2022  Add GetListenPortProcID
 '* 1.2  7/6/2022  Add GetOSCaption
@@ -32,7 +32,8 @@
 '* 1.26 18/7/2024  Modify GetListenPortProcID,GetProcListenPortList,mStruProcList
 '* 1.27 21/7/2024  Modify PigFunc to PigFuncLite
 '* 1.28  28/7/2024  Modify PigStepLog to StruStepLog
-'* 1.29  16/10/2024  Modify mGetProcInfXml,GetProcListXml,GetTcpListenProcList,mGetWmicSimpleXml, add GetParentProcList,GetAllProcCmdList
+'* 1.29  16/10/2024 Modify mGetProcInfXml,GetProcListXml,GetTcpListenProcList,mGetWmicSimpleXml, add GetParentProcList,GetAllProcCmdList
+'* 1.30  27/11/2024 Add GetLinuxServceList,GetLinuxServcePID,GetWindowsServceList
 '**********************************
 Imports System.Security.Cryptography
 Imports PigCmdLib.PigSysCmd
@@ -42,7 +43,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "29" & "." & "30"
+    Private Const CLS_VERSION As String = "1" & "." & "30" & "." & "15"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -1360,6 +1361,30 @@ Public Class PigSysCmd
         End Try
     End Function
 
+    Public Structure StruServiceList
+        Public PID As Integer
+        Public IsWindows As Boolean
+        Public ServiceName As String
+        Public IsRunning As Boolean
+        Public ServiceDesc As String
+        Public IsActive As Boolean
+        Public IsLoaded As Boolean
+        Public PathName As String
+        Public IsAutoStart As Boolean
+        '-----------
+        Friend Sub ResetLine()
+            PID = -1
+            ServiceName = ""
+            IsRunning = False
+            ServiceDesc = ""
+            IsLoaded = False
+            IsActive = False
+            IsAutoStart = False
+            PathName = ""
+        End Sub
+    End Structure
+
+
     Public Structure StruAllProcCmdList
         Public PID As Integer
         Public ParentPID As Integer
@@ -1407,6 +1432,190 @@ Public Class PigSysCmd
             End With
         End Function
     End Structure
+
+    ''' <summary>
+    ''' 获取 Linux 服务的 PID|Get Linux service PID
+    ''' </summary>
+    ''' <param name="OutItem">Output StruServiceList item|输出的StruServiceList项</param>
+    ''' <returns></returns>
+    Public Function GetLinuxServcePID(ByRef OutItem As StruServiceList) As String
+        Dim LOG As New StruStepLog : LOG.SubName = "GetLinuxServcePID"
+        Try
+            If Me.IsWindows = True Then
+                LOG.Ret = "This is not a Linux system"
+                Throw New Exception(LOG.Ret)
+            End If
+            Dim oPigCmdApp As New PigCmdApp, strCmd As String, strServiceName As String = Replace(OutItem.ServiceName, "&", "")
+            LOG.StepName = "Check ServiceName"
+            If strServiceName = "" Then
+                LOG.Ret = "ServiceName is empty"
+                Throw New Exception(LOG.Ret)
+            ElseIf Len(strServiceName) > 64 Then
+                LOG.AddStepNameInf("ServiceName=" & OutItem.ServiceName)
+                LOG.Ret = "The service name is too long"
+                Throw New Exception(LOG.Ret)
+            End If
+            strCmd = "systemctl status " & OutItem.ServiceName & "|grep ""Main PID:""|awk '{print $3}'"
+            LOG.StepName = "CmdShell"
+            LOG.Ret = oPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.FullString)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            ElseIf oPigCmdApp.StandardError <> "" Then
+                LOG.Ret = oPigCmdApp.StandardError
+                Throw New Exception(LOG.Ret)
+            End If
+            If IsNumeric(oPigCmdApp.StandardOutput) = True Then
+                OutItem.PID = CInt(oPigCmdApp.StandardOutput)
+            Else
+                OutItem.PID = -1
+            End If
+            Return "OK"
+        Catch ex As Exception
+            OutItem.PID = -1
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+
+    End Function
+
+    ''' <summary>
+    ''' Get Windows service PID|获取 Windows 服务的 PID
+    ''' </summary>
+    ''' <param name="OutList">Output List|输出的列表</param>
+    ''' <param name="IsGetRunningOnly">Only retrieve items that are currently running|只获取运行中的项|</param>
+    ''' <param name="ByPID">Check by process number, if yes, ignore IsGetRunningOnly parameter|是否按进程号查，是则忽略IsGetRunningOnly参数</param>
+    ''' <returns></returns>
+    Public Function GetWindowsServiceList(ByRef OutList As StruServiceList(), IsGetRunningOnly As Boolean, Optional ByPID As Integer = -1) As String
+        Dim LOG As New StruStepLog : LOG.SubName = "GetWindowsServiceList"
+        Try
+            If Me.IsWindows = False Then
+                LOG.Ret = "This is not a Windows system"
+                Throw New Exception(LOG.Ret)
+            End If
+            Dim strCmd As String = ""
+            strCmd = "service"
+            If ByPID >= 0 Then
+                strCmd &= " where ProcessId=" & ByPID.ToString
+            ElseIf IsGetRunningOnly = True Then
+                strCmd &= " where State=""Running"""
+            End If
+            strCmd &= " get Caption,Name,PathName,ProcessId,Started,StartMode,State"
+            Dim pxMain As PigXml = Nothing
+            LOG.StepName = "GetWmicSimpleXml"
+            LOG.Ret = Me.GetWmicSimpleXml(strCmd, pxMain)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            Dim intTotalItems As Integer = pxMain.XmlDocGetInt("WmicXml.TotalRows")
+            For i = 1 To intTotalItems
+                Dim strXmlRowKey As String = "WmicXml.Row" & i.ToString & "."
+                ReDim Preserve OutList(i - 1)
+                With OutList(i - 1)
+                    .ResetLine()
+                    .IsWindows = True
+                    .ServiceName = pxMain.XmlDocGetStr(strXmlRowKey & "Name")
+                    If pxMain.XmlDocGetBool(strXmlRowKey & "Started") = True Then
+                        .IsLoaded = True
+                        .IsActive = True
+                    Else
+                        .IsLoaded = False
+                        .IsActive = False
+                    End If
+                    If pxMain.XmlDocGetStr(strXmlRowKey & "StartMode") = "Auto" Then
+                        .IsAutoStart = True
+                    Else
+                        .IsAutoStart = False
+                    End If
+                    .PathName = pxMain.XmlDocGetStr(strXmlRowKey & "PathName")
+                    If pxMain.XmlDocGetStr(strXmlRowKey & "State") = "Running" Then
+                        .IsRunning = True
+                    Else
+                        .IsRunning = False
+                    End If
+                    .ServiceDesc = pxMain.XmlDocGetStr(strXmlRowKey & "Caption")
+                    .PID = pxMain.XmlDocGetInt(strXmlRowKey & "ProcessId")
+                End With
+            Next
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+
+
+
+    ''' <summary>
+    ''' Get Linux service list|获取 Linux 服务列表
+    ''' </summary>
+    ''' <param name="OutList">Output List|输出的列表</param>
+    ''' <param name="IsGetRunningOnly">Only retrieve items that are currently running|只获取运行中的项|</param>
+    ''' <returns></returns>
+    Public Function GetLinuxServceList(ByRef OutList As StruServiceList(), IsGetRunningOnly As Boolean) As String
+        Dim LOG As New StruStepLog : LOG.SubName = "GetLinuxServceList"
+        Try
+            If Me.IsWindows = True Then
+                LOG.Ret = "This is not a Linux system"
+                Throw New Exception(LOG.Ret)
+            End If
+            Dim oPigCmdApp As New PigCmdApp, strCmd As String
+            strCmd = "systemctl --type=service"
+            If IsGetRunningOnly = True Then
+                strCmd &= "|awk '{if($4==""running"") print $0}'"
+            Else
+                strCmd &= "|awk '{if (NR>2) print $0}'"
+            End If
+            LOG.StepName = "CmdShell"
+            LOG.Ret = oPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            ElseIf oPigCmdApp.StandardError <> "" Then
+                LOG.Ret = oPigCmdApp.StandardError
+                Throw New Exception(LOG.Ret)
+            End If
+            ReDim OutList(-1)
+            Dim stTmp As New StruTmp
+            With stTmp
+                .Reset()
+                .BeginStr = "<"
+                .EndStr = ">"
+            End With
+            For i = 0 To oPigCmdApp.StandardOutputArray.Length - 1
+                ReDim Preserve OutList(i)
+                With stTmp
+                    .ResetLine()
+                    .LineIn = oPigCmdApp.StandardOutputArray(i)
+                    .LineInStrSpaceMulti2One(True)
+                    .CutLineIn2StrTmp()
+                    OutList(i).ServiceName = .StrTmp
+                    .CutLineIn2StrTmp()
+                    If .StrTmp = "loaded" Then
+                        OutList(i).IsLoaded = True
+                    Else
+                        OutList(i).IsLoaded = False
+                    End If
+                    .CutLineIn2StrTmp()
+                    If .StrTmp = "active" Then
+                        OutList(i).IsActive = True
+                    Else
+                        OutList(i).IsActive = False
+                    End If
+                    .CutLineIn2StrTmp()
+                    If .StrTmp = "running" Then
+                        OutList(i).IsRunning = True
+                    Else
+                        OutList(i).IsRunning = False
+                    End If
+                    .CutLineIn2StrTmp()
+                    OutList(i).ServiceDesc = .StrTmp
+                End With
+            Next
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+
+
 
     ''' <summary>
     ''' Retrieve command line information for all processes|获取全部进程的命令行信息
