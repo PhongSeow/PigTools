@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.30
+'* Version: 1.31
 '* Create Time: 2/6/2022
 '* 1.1  3/6/2022  Add GetListenPortProcID
 '* 1.2  7/6/2022  Add GetOSCaption
@@ -33,7 +33,8 @@
 '* 1.27 21/7/2024  Modify PigFunc to PigFuncLite
 '* 1.28  28/7/2024  Modify PigStepLog to StruStepLog
 '* 1.29  16/10/2024 Modify mGetProcInfXml,GetProcListXml,GetTcpListenProcList,mGetWmicSimpleXml, add GetParentProcList,GetAllProcCmdList
-'* 1.30  27/11/2024 Add GetLinuxServiceList,GetLinuxServicePID,GetWindowsServceList
+'* 1.30  27/11/2024 Add GetLinuxServiceList,GetLinuxServicePID,GetWindowsServiceList
+'* 1.31  13/12/2024 Modify GetAllProcCmdList
 '**********************************
 Imports System.Security.Cryptography
 Imports PigCmdLib.PigSysCmd
@@ -43,7 +44,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "30" & "." & "18"
+    Private Const CLS_VERSION As String = "1" & "." & "31" & "." & "28"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -1643,10 +1644,11 @@ Public Class PigSysCmd
                         .PID = intPID
                         .ParentPID = pxMain.XmlDocGetInt(strXmlRowKey & "ParentProcessId")
                         .ProcCmd = pxMain.XmlDocGetStr(strXmlRowKey & "CommandLine")
+                        .ProcUserName = ""
                     End With
                 Next
             Else
-                strCmd = "ps -ef|awk '{printf ""<""$2""><""$3""><ProcCmd>""; for(i=8;i<=NF;i++){printf $i"" ""}; print ""</ProcCmd>"";}'"
+                strCmd = "ps -ef|awk '{printf ""<""$1"">""<""$2""><""$3""><ProcCmd>""; for(i=8;i<=NF;i++){printf $i"" ""}; print ""</ProcCmd>"";}'"
                 LOG.StepName = "CmdShell"
                 LOG.Ret = mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
                 If LOG.Ret <> "OK" Then
@@ -1661,11 +1663,12 @@ Public Class PigSysCmd
                     .Reset()
                 End With
                 For i = 0 To mPigCmdApp.StandardOutputArray.Length - 1
-                    Dim intPID As Integer, intParentPID As Integer, strProcCmd As String
+                    Dim intPID As Integer, intParentPID As Integer, strProcCmd As String, strProcUserName As String
                     With sTmp
                         .ResetLine()
                         .BeginStr = "<" : .EndStr = ">"
                         .LineIn = mPigCmdApp.StandardOutputArray(i)
+                        .CutLineIn2StrTmp() : strProcUserName = .StrTmp
                         .CutLineIn2StrTmp() : intPID = .IntTmp
                         .CutLineIn2StrTmp() : intParentPID = .IntTmp
                         .BeginStr = "<ProcCmd>" : .EndStr = "</ProcCmd>"
@@ -1674,6 +1677,7 @@ Public Class PigSysCmd
                     ReDim Preserve OutList(i)
                     With OutList(i)
                         .ResetLine()
+                        .ProcUserName = strProcUserName
                         .PID = intPID
                         .ParentPID = intParentPID
                         .ProcCmd = strProcCmd
@@ -1690,6 +1694,57 @@ Public Class PigSysCmd
                     End With
                 Next
             Next
+            If Me.IsWindows = True Then
+                strCmd = "query process"
+                LOG.StepName = "CmdShell"
+                LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+                If LOG.Ret <> "OK" Then
+                    LOG.AddStepNameInf(strCmd)
+                    Throw New Exception(LOG.Ret)
+                End If
+                Dim sTmp As New StruTmp
+                With sTmp
+                    .Reset()
+                End With
+                For i = 1 To mPigCmdApp.StandardOutputArray.Length - 1
+                    Dim intPID As Integer, strProcUserName As String, bolIsDo As Boolean = False
+                    With sTmp
+                        .ResetLine()
+                        .BeginStr = "{{" : .EndStr = "}}"
+                        LOG.StepName = "StrSpaceMulti2One"
+                        Me.mPigFunc.StrSpaceMulti2One(mPigCmdApp.StandardOutputArray(i), .LineIn, True)
+                        If LOG.Ret <> "OK" Then
+                            LOG.AddStepNameInf(mPigCmdApp.StandardOutputArray(i))
+                        End If
+                        .LineIn = .BeginStr & Replace(.LineIn, "><", "}}{{") & .EndStr
+                        .CutLineIn2StrTmp() : strProcUserName = .StrTmp
+                        strProcUserName = Replace(strProcUserName, ">", "")
+                        strProcUserName = Replace(strProcUserName, "<", "")
+                        .CutLineIn2StrTmp()
+                        .CutLineIn2StrTmp()
+                        .CutLineIn2StrTmp()
+                        If IsNumeric(.StrTmp) = True Then
+                            bolIsDo = True
+                            intPID = .IntTmp
+                        End If
+                    End With
+                    If bolIsDo = True Then
+                        For j = 0 To OutList.Length - 1
+                            With OutList(j)
+                                If .PID = intPID Then
+                                    .ProcUserName = strProcUserName
+                                    Exit For
+                                End If
+                            End With
+                        Next
+                    End If
+                Next
+                'For i = 0 To OutList.Length - 1
+                '    Dim strProcUserName As String = ""
+                '    Me.GetProcUserName(OutList(i).PID, strProcUserName)
+                '    OutList(i).ProcUserName = strProcUserName
+                'Next
+            End If
             If IsDetailProcInf = True Then
                 For i = 0 To OutList.Length - 1
                     With OutList(i)
