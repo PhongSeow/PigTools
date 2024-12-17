@@ -44,7 +44,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "31" & "." & "28"
+    Private Const CLS_VERSION As String = "1" & "." & "31" & "." & "30"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -1622,8 +1622,9 @@ Public Class PigSysCmd
     ''' Retrieve command line information for all processes|获取全部进程的命令行信息
     ''' </summary>
     ''' <param name="OutList">Output StruAllProcCmdList|输出的 StruAllProcCmdList</param>
+    ''' <param name="IsGetWinUserName">Do you want to obtain a Windows username|是否获取Windows用户名</param>
     ''' <returns></returns>
-    Public Function GetAllProcCmdList(ByRef OutList As StruAllProcCmdList(), Optional IsDetailProcInf As Boolean = False) As String
+    Public Function GetAllProcCmdList(ByRef OutList As StruAllProcCmdList(), Optional IsDetailProcInf As Boolean = False, Optional IsGetWinUserName As Boolean = True) As String
         Dim LOG As New StruStepLog : LOG.SubName = "GetAllProcCmdList"
         Try
             Dim strCmd As String = ""
@@ -1694,20 +1695,22 @@ Public Class PigSysCmd
                     End With
                 Next
             Next
-            If Me.IsWindows = True Then
-                strCmd = "query process"
+            If Me.IsWindows = True And IsGetWinUserName = True Then
+                Dim sTmp As New StruTmp
+                sTmp.Reset()
+                Dim strUserList As String = "<system>"
+                strCmd = "query user"
                 LOG.StepName = "CmdShell"
                 LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
                 If LOG.Ret <> "OK" Then
                     LOG.AddStepNameInf(strCmd)
                     Throw New Exception(LOG.Ret)
+                ElseIf Me.mPigCmdApp.StandardError <> "" Then
+                    LOG.Ret = Me.mPigCmdApp.StandardError
+                    LOG.AddStepNameInf(strCmd)
+                    Throw New Exception(LOG.Ret)
                 End If
-                Dim sTmp As New StruTmp
-                With sTmp
-                    .Reset()
-                End With
-                For i = 1 To mPigCmdApp.StandardOutputArray.Length - 1
-                    Dim intPID As Integer, strProcUserName As String, bolIsDo As Boolean = False
+                For i = 1 To Me.mPigCmdApp.StandardOutputArray.Length - 1
                     With sTmp
                         .ResetLine()
                         .BeginStr = "{{" : .EndStr = "}}"
@@ -1717,33 +1720,59 @@ Public Class PigSysCmd
                             LOG.AddStepNameInf(mPigCmdApp.StandardOutputArray(i))
                         End If
                         .LineIn = .BeginStr & Replace(.LineIn, "><", "}}{{") & .EndStr
-                        .CutLineIn2StrTmp() : strProcUserName = .StrTmp
-                        strProcUserName = Replace(strProcUserName, ">", "")
-                        strProcUserName = Replace(strProcUserName, "<", "")
                         .CutLineIn2StrTmp()
-                        .CutLineIn2StrTmp()
-                        .CutLineIn2StrTmp()
-                        If IsNumeric(.StrTmp) = True Then
-                            bolIsDo = True
-                            intPID = .IntTmp
-                        End If
+                        Dim strTmp As String = Replace(.StrTmp, "<", ""）
+                        strTmp = Replace(strTmp, ">", "")
+                        strUserList &= "<" & strTmp & ">"
                     End With
-                    If bolIsDo = True Then
-                        For j = 0 To OutList.Length - 1
-                            With OutList(j)
-                                If .PID = intPID Then
-                                    .ProcUserName = strProcUserName
-                                    Exit For
-                                End If
-                            End With
-                        Next
-                    End If
                 Next
-                'For i = 0 To OutList.Length - 1
-                '    Dim strProcUserName As String = ""
-                '    Me.GetProcUserName(OutList(i).PID, strProcUserName)
-                '    OutList(i).ProcUserName = strProcUserName
-                'Next
+                Do While True
+                    Dim strUserName As String = Me.mPigFunc.GetStr(strUserList, "<", ">")
+                    If strUserName = "" Then Exit Do
+                    strCmd = "query process " & strUserName
+                    LOG.StepName = "CmdShell"
+                    LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
+                    If LOG.Ret <> "OK" Then
+                        LOG.AddStepNameInf(strCmd)
+                        Throw New Exception(LOG.Ret)
+                    ElseIf Me.mPigCmdApp.StandardError <> "" Then
+                        LOG.Ret = Me.mPigCmdApp.StandardError
+                        LOG.AddStepNameInf(strCmd)
+                        Throw New Exception(LOG.Ret)
+                    End If
+                    sTmp.Reset()
+                    For i = 1 To mPigCmdApp.StandardOutputArray.Length - 1
+                        Dim intPID As Integer, bolIsDo As Boolean = False
+                        With sTmp
+                            .ResetLine()
+                            .BeginStr = "{{" : .EndStr = "}}"
+                            LOG.StepName = "StrSpaceMulti2One"
+                            Me.mPigFunc.StrSpaceMulti2One(mPigCmdApp.StandardOutputArray(i), .LineIn, True)
+                            If LOG.Ret <> "OK" Then
+                                LOG.AddStepNameInf(mPigCmdApp.StandardOutputArray(i))
+                            End If
+                            .LineIn = .BeginStr & Replace(.LineIn, "><", "}}{{") & .EndStr
+                            .CutLineIn2StrTmp()
+                            .CutLineIn2StrTmp()
+                            .CutLineIn2StrTmp()
+                            .CutLineIn2StrTmp()
+                            If IsNumeric(.StrTmp) = True Then
+                                bolIsDo = True
+                                intPID = .IntTmp
+                            End If
+                        End With
+                        If bolIsDo = True Then
+                            For j = 0 To OutList.Length - 1
+                                With OutList(j)
+                                    If .PID = intPID Then
+                                        .ProcUserName = strUserName
+                                        Exit For
+                                    End If
+                                End With
+                            Next
+                        End If
+                    Next
+                Loop
             End If
             If IsDetailProcInf = True Then
                 For i = 0 To OutList.Length - 1
