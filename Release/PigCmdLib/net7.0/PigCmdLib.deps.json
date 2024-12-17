@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v7.0": {
-      "PigCmdLib/2.3.56": {
+      "PigCmdLib/2.3.58": {
         "dependencies": {
           "PigToolsLiteLib": "3.6.18"
         },
@@ -25,7 +25,7 @@
     }
   },
   "libraries": {
-    "PigCmdLib/2.3.56": {
+    "PigCmdLib/2.3.58": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

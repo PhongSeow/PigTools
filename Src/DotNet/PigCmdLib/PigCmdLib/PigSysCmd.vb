@@ -44,7 +44,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "31" & "." & "30"
+    Private Const CLS_VERSION As String = "1" & "." & "31" & "." & "36"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -1649,7 +1649,7 @@ Public Class PigSysCmd
                     End With
                 Next
             Else
-                strCmd = "ps -ef|awk '{printf ""<""$1"">""<""$2""><""$3""><ProcCmd>""; for(i=8;i<=NF;i++){printf $i"" ""}; print ""</ProcCmd>"";}'"
+                strCmd = "ps -ef|awk '{printf ""<""$1""><""$2""><""$3""><ProcCmd>""; for(i=8;i<=NF;i++){printf $i"" ""}; print ""</ProcCmd>"";}'"
                 LOG.StepName = "CmdShell"
                 LOG.Ret = mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)
                 If LOG.Ret <> "OK" Then
@@ -1660,9 +1660,7 @@ Public Class PigSysCmd
                     Throw New Exception(LOG.Ret)
                 End If
                 Dim sTmp As New StruTmp
-                With sTmp
-                    .Reset()
-                End With
+                sTmp.Reset()
                 For i = 0 To mPigCmdApp.StandardOutputArray.Length - 1
                     Dim intPID As Integer, intParentPID As Integer, strProcCmd As String, strProcUserName As String
                     With sTmp
