@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.31
+'* Version: 1.32
 '* Create Time: 2/6/2022
 '* 1.1  3/6/2022  Add GetListenPortProcID
 '* 1.2  7/6/2022  Add GetOSCaption
@@ -35,6 +35,7 @@
 '* 1.29  16/10/2024 Modify mGetProcInfXml,GetProcListXml,GetTcpListenProcList,mGetWmicSimpleXml, add GetParentProcList,GetAllProcCmdList
 '* 1.30  27/11/2024 Add GetLinuxServiceList,GetLinuxServicePID,GetWindowsServiceList
 '* 1.31  13/12/2024 Modify GetAllProcCmdList
+'* 1.32  19/12/2024 Modify GetAllProcCmdList,ColNameLine,BcpLine
 '**********************************
 Imports System.Security.Cryptography
 Imports PigCmdLib.PigSysCmd
@@ -44,7 +45,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "31" & "." & "36"
+    Private Const CLS_VERSION As String = "1" & "." & "31" & "." & "38"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -1400,6 +1401,7 @@ Public Class PigSysCmd
         Public MemoryUse As Decimal
         Public ProcUserName As String
         Public ListenPort As Integer
+        Public IsLinuxKernel As Boolean
         '-----------
         Friend Sub ResetLine()
             PID = -1
@@ -1415,10 +1417,11 @@ Public Class PigSysCmd
             MemoryUse = -1
             ProcUserName = ""
             ListenPort = -1
+            IsLinuxKernel = False
         End Sub
         Public Function ColNameLine(Optional IsDetailProcInf As Boolean = False) As String
             With Me
-                ColNameLine = "PID,ParentPID,ProcCmd,ParentProcCmd"
+                ColNameLine = "PID,ParentPID,ProcCmd,ParentProcCmd,IsLinuxKernel"
                 If IsDetailProcInf = True Then
                     ColNameLine &= ",ProcName,FilePath,StartTime,ThreadsCount,TotalProcessorTime,MemoryUse,ProcUserName,ListenPort"
                 End If
@@ -1426,7 +1429,7 @@ Public Class PigSysCmd
         End Function
         Public Function BcpLine(Optional IsDetailProcInf As Boolean = False) As String
             With Me
-                BcpLine = .PID.ToString & vbTab & .ParentPID.ToString & vbTab & .ProcCmd & vbTab & .ParentProcCmd
+                BcpLine = .PID.ToString & vbTab & .ParentPID.ToString & vbTab & .ProcCmd & vbTab & .ParentProcCmd & vbTab & .IsLinuxKernel
                 If IsDetailProcInf = True Then
                     BcpLine &= vbTab & .ProcName & vbTab & .FilePath & vbTab & Format(.StartTime, "yyyy-MM-dd HH:mm:ss.fff") & vbTab & .ThreadsCount.ToString & vbTab & .TotalProcessorTime & vbTab & .MemoryUse.ToString & vbTab & .ProcUserName & vbTab & .ListenPort.ToString
                 End If
@@ -1646,6 +1649,7 @@ Public Class PigSysCmd
                         .ParentPID = pxMain.XmlDocGetInt(strXmlRowKey & "ParentProcessId")
                         .ProcCmd = pxMain.XmlDocGetStr(strXmlRowKey & "CommandLine")
                         .ProcUserName = ""
+                        .IsLinuxKernel = False
                     End With
                 Next
             Else
@@ -1662,7 +1666,7 @@ Public Class PigSysCmd
                 Dim sTmp As New StruTmp
                 sTmp.Reset()
                 For i = 0 To mPigCmdApp.StandardOutputArray.Length - 1
-                    Dim intPID As Integer, intParentPID As Integer, strProcCmd As String, strProcUserName As String
+                    Dim intPID As Integer, intParentPID As Integer, strProcCmd As String, strProcUserName As String, bolIsLinuxKernel As Boolean
                     With sTmp
                         .ResetLine()
                         .BeginStr = "<" : .EndStr = ">"
@@ -1672,6 +1676,15 @@ Public Class PigSysCmd
                         .CutLineIn2StrTmp() : intParentPID = .IntTmp
                         .BeginStr = "<ProcCmd>" : .EndStr = "</ProcCmd>"
                         .CutLineIn2StrTmp() : strProcCmd = .StrTmp
+                        If InStr(strProcCmd, "[") > 0 And InStr(strProcCmd, "]") > 0 Then
+                            strProcCmd = Me.mPigFunc.GetStr(strProcCmd, "[", "]")
+                            If InStr(strProcCmd, "/") > 0 Then
+                                strProcCmd = Me.mPigFunc.GetStr(strProcCmd, "", "/")
+                            End If
+                            bolIsLinuxKernel = True
+                        Else
+                            bolIsLinuxKernel = False
+                        End If
                     End With
                     ReDim Preserve OutList(i)
                     With OutList(i)
@@ -1680,6 +1693,7 @@ Public Class PigSysCmd
                         .PID = intPID
                         .ParentPID = intParentPID
                         .ProcCmd = strProcCmd
+                        .IsLinuxKernel = bolIsLinuxKernel
                     End With
                 Next
             End If
@@ -1778,6 +1792,9 @@ Public Class PigSysCmd
                         Dim oPigProc As New PigProc(.PID)
                         If oPigProc IsNot Nothing Then
                             .ProcName = oPigProc.ProcessName
+                            If Me.IsWindows = False And InStr(.ProcName, "/") > 0 Then
+                                .ProcName = Me.mPigFunc.GetStr(.ProcName, "", "/")
+                            End If
                             .FilePath = oPigProc.FilePath
                             .TotalProcessorTime = oPigProc.TotalProcessorTime.ToString
                             .ThreadsCount = oPigProc.ThreadsCount
