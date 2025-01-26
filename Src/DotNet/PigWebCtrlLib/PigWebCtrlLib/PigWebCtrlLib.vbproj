@@ -4,7 +4,7 @@
     <RootNamespace>PigWebCtrlLib</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;net5.0;net6.0;net7.0;net8.0;netcoreapp3.1;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.2.96.70</Version>
+    <Version>2.2.96.72</Version>
     <Authors>Seow Phong</Authors>
     <Product>Seow Phong Studio</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -15,7 +15,7 @@
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop windows Linux weblogic web administration-port-enabled</PackageTags>
     <Description>An application class library for dealing with mainstream Web Services.</Description>
-    <PackageReleaseNotes>Reference the latest library.</PackageReleaseNotes>
+    <PackageReleaseNotes>Optimize WebLogicDomain.</PackageReleaseNotes>
     <Copyright>Copyright (c) 2022-2024 Seow Phong</Copyright>
     <Title>Pig Web control library</Title>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>

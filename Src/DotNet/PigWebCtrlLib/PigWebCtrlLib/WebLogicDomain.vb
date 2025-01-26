@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.57
+'* Version: 1.58
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -51,6 +51,7 @@
 '* 1.55  30/9/2024  Modify New,RefConf,RefRunStatus, add WeblogicServers,ConsoleName
 '* 1.56  12/10/2024 Modify RefRunStatus, add RootUrl,LocalIp,mPigCmdApp_AsyncRet_CmdShell_FullString
 '* 1.57  1/11/2024 Modify RefRunStatus
+'* 1.58  23/1/2025 Modify mGetFileKeyValue
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -63,7 +64,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "57" & "." & "10"
+    Private Const CLS_VERSION As String = "1" & "." & "58" & "." & "10"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -1680,17 +1681,38 @@ Public Class WebLogicDomain
 
     Private Function mGetFileKeyValue(FileCont As String, Key As String) As String
         Try
-            Dim strLeft As String = "", strRight As String = Me.OsCrLf
-            If Me.IsWindows = True Then
-                strLeft = Me.OsCrLf & "set " & Key & "="
+            Dim strCrLf As String
+            If InStr(FileCont, vbCrLf) > 0 Then
+                strCrLf = vbCrLf
             Else
-                strLeft = Me.OsCrLf & "" & Key & "="
+                strCrLf = vbLf
             End If
-            Dim strValue As String = Me.mPigFunc.GetStr(FileCont, strLeft, strRight)
-            If InStr(strValue, """") > 0 Then
-                strValue = Replace(strValue, """", "")
+            mGetFileKeyValue = ""
+            If InStr(FileCont, Key) > 0 Then
+                Dim strRegularExp As String = "^(.*)\s*" & Key & "\s*=\s*(.*)$"
+                FileCont = strCrLf & FileCont & strCrLf
+                Do While True
+                    Dim strLine As String = Me.mPigFunc.GetStr(FileCont, strCrLf, strCrLf)
+                    If strLine = "" Then Exit Do
+                    Select Case Left(strLine, 1)
+                        Case "@", "#"
+                        Case Else
+                            If InStr(strLine, Key) > 0 Then
+                                strLine = Replace(strLine, strCrLf, "")
+                                If Me.mPigFunc.IsRegexMatch(strLine, strRegularExp) = True Then
+                                    Dim intStart As Integer = 1, intDataPos As Integer
+                                    intDataPos = InStr(intStart, strLine, Key)
+                                    If intDataPos > 0 Then
+                                        intStart = intDataPos + 1
+                                        intDataPos = InStr(intStart, strLine, "=")
+                                        If intDataPos > 0 Then mGetFileKeyValue = Trim(Mid(strLine, intDataPos + 1))
+                                    End If
+                                    Exit Do
+                                End If
+                            End If
+                    End Select
+                Loop
             End If
-            Return strValue
         Catch ex As Exception
             Me.SetSubErrInf("mGetKeyLeft", ex)
             Return ""

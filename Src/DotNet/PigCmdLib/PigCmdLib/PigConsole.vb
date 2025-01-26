@@ -30,6 +30,7 @@
 '* 1.23  21/7/2024  Modify PigFunc to PigFuncLite
 '* 1.25  28/7/2024   Modify PigStepLog to StruStepLog
 '* 1.26  30/10/2024   Modify SelectMenuOfEnumeration
+'* 1.27  25/12/2024   Modify SetCurrCulture
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -38,7 +39,7 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "26" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "27" & "." & "2"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -802,7 +803,7 @@ Public Class PigConsole
             End If
             LOG.StepName = "SetCurrCulture"
             LOG.Ret = Me.mPigMLang.SetCurrCulture(CultureName)
-            If LOG.Ret <> "" Then Throw New Exception(LOG.Ret)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
