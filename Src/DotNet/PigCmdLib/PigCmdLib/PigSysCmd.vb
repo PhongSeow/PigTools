@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 系统操作的命令|Commands for system operation
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.32
+'* Version: 1.33
 '* Create Time: 2/6/2022
 '* 1.1  3/6/2022  Add GetListenPortProcID
 '* 1.2  7/6/2022  Add GetOSCaption
@@ -36,6 +36,7 @@
 '* 1.30  27/11/2024 Add GetLinuxServiceList,GetLinuxServicePID,GetWindowsServiceList
 '* 1.31  13/12/2024 Modify GetAllProcCmdList
 '* 1.32  19/12/2024 Modify GetAllProcCmdList,ColNameLine,BcpLine
+'* 1.33  7/2/2025 Modify GetProcCmdInf
 '**********************************
 Imports System.Security.Cryptography
 Imports PigCmdLib.PigSysCmd
@@ -45,7 +46,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class PigSysCmd
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "31" & "." & "38"
+    Private Const CLS_VERSION As String = "1" & "." & "32" & "." & "8"
 
     Private ReadOnly Property mPigFunc As New PigFunc
     Private ReadOnly Property mPigCmdApp As New PigCmdApp
@@ -1919,5 +1920,51 @@ Public Class PigSysCmd
         End Try
     End Function
 
+    ''' <summary>
+    ''' Get the command line information of the process|获取进程的命令行信息
+    ''' </summary>
+    ''' <param name="PID">Process number|进程号</param>
+    ''' <param name="OutProcCmd">Output command line information|输出的命令行信息</param>
+    ''' <param name="OutParentProcCmd">Output parent command line information|输出的父命令行信息|</param>
+    ''' <returns></returns>
+    ''' </summary>
+    ''' <returns></returns>
+    Public Function GetProcCmdInf(PID As Integer, ByRef OutProcCmd As String, ByRef OutParentProcCmd As String) As String
+        Dim LOG As New PigStepLog("GetPIDCmdInf")
+        Try
+            Dim oPigProc As PigProc = Nothing
+            LOG.StepName = "GetPigProc"
+            oPigProc = Me.mPigProcApp.GetPigProc(PID)
+            If Me.mPigProcApp.LastErr <> "" Then
+                LOG.Ret = Me.mPigProcApp.LastErr
+                Throw New Exception(LOG.Ret)
+            ElseIf oPigProc Is Nothing Then
+                LOG.Ret = "Process does not exist"
+                Throw New Exception(LOG.Ret)
+            End If
+            LOG.StepName = "GetParentProc"
+            oPigProc = Me.mPigCmdApp.GetParentProc(PID)
+            If Me.mPigProcApp.LastErr <> "" Then
+                LOG.Ret = Me.mPigProcApp.LastErr
+                Throw New Exception(LOG.Ret)
+            ElseIf oPigProc Is Nothing Then
+                LOG.Ret = "Parent process does not exist"
+                Throw New Exception(LOG.Ret)
+            End If
+            Dim sParentProcList(1) As StruParentProcList
+            sParentProcList(0).PID = PID
+            sParentProcList(1).PID = oPigProc.ProcessID
+            LOG.StepName = "GetParentProcList"
+            LOG.Ret = Me.GetParentProcList(sParentProcList)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
+            OutProcCmd = sParentProcList(0).ParentProcCmd
+            OutParentProcCmd = sParentProcList(1).ParentProcCmd
+            Return "OK"
+        Catch ex As Exception
+            OutProcCmd = ""
+            OutParentProcCmd = ""
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
 
 End Class
