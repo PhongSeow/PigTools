@@ -4,3 +4,5 @@
 [PressEnterSetCurrValue]=(Press ENTER to set the current value to the following text)
 [ToExit]=Exit
 [ToUp]=Up
+[PleaseEnterAValidDate]=Please enter a valid date
+[PleaseEnterAValidNumber]=Please enter a valid number

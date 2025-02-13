@@ -4,11 +4,11 @@
     <RootNamespace>PigToolsWinLib</RootNamespace>
     <TargetFrameworks>net20;net30;net35;net40;net45;net46;net47;net48;</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>3.6.18</Version>
+    <Version>3.6.20</Version>
     <Authors>Seow Phong</Authors>
     <Company>Seow Phong Studio</Company>
     <Description>Change to referencing PigToolsLiteLib to avoid class name conflicts.</Description>
-    <Copyright>Copyright (c) 2021-2024 Seow Phong</Copyright>
+    <Copyright>Copyright (c) 2021-2025 Seow Phong</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://en.seowphong.com</PackageProjectUrl>
     <PackageIcon>SeowPhongLogo.png</PackageIcon>
@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.6.18" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.6.20" />
   </ItemGroup>
 
 </Project>

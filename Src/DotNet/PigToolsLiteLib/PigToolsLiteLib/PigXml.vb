@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Processing XML string splicing and parsing. 处理XML字符串拼接及解析
 '* Home Url: https://en.seowphong.com
-'* Version: 1.25
+'* Version: 1.26
 '* Create Time: 8/11/2019
 '* 1.0.2  2019-11-10  修改bug
 '* 1.0.3  2020-5-26  修改bug
@@ -39,6 +39,7 @@
 '* 1.22 10/2/2024  Modify mGetXmlDoc
 '* 1.23 17/2/2024  Modify mXmlGetStr,AddEleValue
 '* 1.25 27/7/2024   Modify PigStepLog to StruStepLog
+'* 1.26 10/2/2025   Modify GetXmlDocNode
 '*******************************************************
 
 Imports System.Xml
@@ -49,7 +50,7 @@ Imports System.Text
 
 Public Class PigXml
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "25" & "." & "10"
+    Private Const CLS_VERSION As String = "1" & "." & "26" & "." & "2"
     Private Property mMainXml As String = ""
     Private msbMain As New StringBuilder("")    '主体的XML
 
@@ -642,11 +643,42 @@ Public Class PigXml
     ''' 快速获取一个元素的XML结点|Quickly get the XmlNode of an element
     ''' </summary>
     ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N]|Key value, for example: element 1 Element 2 [... Element n]</param>
+    ''' <param name="FromNode">源XML节点|Source XML Node</param>
     ''' <returns></returns>
+    Public Function GetXmlDocNode(XmlKey As String, FromNode As XmlNode) As XmlNode
+        Try
+            GetXmlDocNode = Nothing
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Node, XmlKey, FromNode, GetXmlDocNode)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocNode", ex)
+            Return Nothing
+        End Try
+    End Function
+
     Public Function GetXmlDocNode(XmlKey As String) As XmlNode
         Try
             GetXmlDocNode = Nothing
             Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Node, XmlKey,, GetXmlDocNode)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetXmlDocNode", ex)
+            Return Nothing
+        End Try
+    End Function
+
+
+    ''' <summary>
+    ''' 快速获取一个元素的XML结点|Quickly get the XmlNode of an element
+    ''' </summary>
+    ''' <param name="XmlKey">键值，例如：元素1.元素2.[...元素N]|Key value, for example: element 1 Element 2 [... Element n]</param>
+    ''' <param name="SkipTimes">最后一个元素，如有名称重复，此为跳过的次数|If the name of the last element is repeated, this is the number of times to skip</param>
+    ''' <param name="FromNode">源XML节点|Source XML Node</param>
+    ''' <returns></returns>
+    Public Function GetXmlDocNode(XmlKey As String, SkipTimes As Integer, FromNode As XmlNode) As XmlNode
+        Try
+            GetXmlDocNode = Nothing
+            Dim strRet As String = Me.mGetXmlDoc(EmnGetXmlDoc.Node, XmlKey, FromNode, GetXmlDocNode,, SkipTimes)
             If strRet <> "OK" Then Throw New Exception(strRet)
         Catch ex As Exception
             Me.SetSubErrInf("GetXmlDocNode", ex)

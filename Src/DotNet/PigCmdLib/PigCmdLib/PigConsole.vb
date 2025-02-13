@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.26
+'* Version: 1.28
 '* Create Time: 15/1/2022
 '* 1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '* 1.2 3/2/2022     Add GetLine
@@ -31,6 +31,7 @@
 '* 1.25  28/7/2024   Modify PigStepLog to StruStepLog
 '* 1.26  30/10/2024   Modify SelectMenuOfEnumeration
 '* 1.27  25/12/2024   Modify SetCurrCulture
+'* 1.28  10/2/2025   Modify mGetLine,mDisplayPause,SelectMenuOfEnumeration
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -39,7 +40,7 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "27" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "28" & "." & "28"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -367,10 +368,50 @@ Public Class PigConsole
     ''' 从控制台当前行读取文本|Read text from the current line of the console
     ''' </summary>
     ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutDate">输出的日期|Output date</param>
+    ''' <param name="IsShowCurrLine">是否显示当前文本|Is show current text</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutDate As Date, IsShowCurrLine As Boolean) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.DateStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutDate = CDate(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutDate = ""
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
     ''' <param name="OutLine">输出的文本，也作为默认文本|The output text is also used as the default text</param>
     ''' <returns></returns>
     Public Function GetLine(PromptInf As String, ByRef OutLine As String) As String
         Return Me.mGetLine(PromptInf, OutLine)
+    End Function
+
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutDate">输出的日期|Output date</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutDate As Date) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine,, mEnmGetLingStrType.DateStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutDate = CDate(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutDate = CDate("1900-1-1")
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
     End Function
 
     ''' <summary>
@@ -382,6 +423,159 @@ Public Class PigConsole
         Return Me.mGetLine("", OutLine)
     End Function
 
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutDate">输出的日期|Output date</param>
+    ''' <returns></returns>
+    Public Function GetLine(ByRef OutDate As Date) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine("", strOutLine,, mEnmGetLingStrType.DateStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutDate = CDate(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutDate = CDate("1900-1-1")
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <returns></returns>
+    Public Function GetLine(ByRef OutNumeric As Decimal) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine("", strOutLine,, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CDec(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <param name="IsShowCurrLine">是否显示当前文本|Is show current text</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Decimal, IsShowCurrLine As Boolean) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CDec(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <param name="IsShowCurrLine">是否显示当前文本|Is show current text</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Long, IsShowCurrLine As Boolean) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CLng(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <param name="IsShowCurrLine">是否显示当前文本|Is show current text</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Integer, IsShowCurrLine As Boolean) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CInt(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Decimal) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine,, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CDec(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Long) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine,, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CLng(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Integer) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine,, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CInt(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
 
     ''' <summary>
     ''' 显示信息并暂停|Display message and pause
@@ -402,7 +596,7 @@ Public Class PigConsole
             strGlobalKey = "PressToContinue"
             strDefaultText = "(Press any key to continue)"
             Dim strDisp As String = Me.mGetMLangText(strGlobalKey, strDefaultText)
-            Console.Write(DisplayInf & strDisp)
+            Console.WriteLine(DisplayInf & strDisp)
             Dim oConsoleKey As ConsoleKey = Console.ReadKey(True).Key
             Return "OK"
         Catch ex As Exception
@@ -619,27 +813,50 @@ Public Class PigConsole
     End Function
 
 
-    Private Function mGetLine(PromptInf As String, ByRef OutLine As String, Optional IsShowCurrLine As Boolean = True) As String
+    Private Enum mEnmGetLingStrType
+        TextStr = 0
+        NumStr = 1
+        DateStr = 2
+    End Enum
+
+    Private Function mGetLine(PromptInf As String, ByRef OutLine As String, Optional IsShowCurrLine As Boolean = True, Optional StrType As mEnmGetLingStrType = mEnmGetLingStrType.TextStr) As String
         Dim LOG As New StruStepLog : LOG.SubName = "mGetLine"
         Try
             Dim strOldLine As String = OutLine
             Dim intBeginLeft As Integer = Console.CursorLeft, intBeginTop As Integer = Console.CursorTop
+            Dim strGlobalKey As String, strDefaultText As String, strDisp As String
             If OutLine <> "" And IsShowCurrLine = True Then
-                Dim strGlobalKey As String, strDefaultText As String
                 strGlobalKey = "PressEnterSetCurrValue"
                 strDefaultText = "(Press ENTER to set the current value to the following text)"
-                Dim strDisp As String = Me.mGetMLangText(strGlobalKey, strDefaultText)
+                strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
                 Console.WriteLine(strDisp)
                 Console.WriteLine(OutLine)
             End If
             If PromptInf <> "" Then Console.Write(PromptInf & ":")
+ReDo:
             Dim strLine As String = Console.ReadLine
-            If strLine <> "" Then
-                OutLine = strLine
-            End If
-            'If Me.IsWindows = True Then
-            '    If bolCurrCursorVisible = Console.CursorVisible Then Console.CursorVisible = bolCurrCursorVisible
-            'End If
+            Select Case StrType
+                Case mEnmGetLingStrType.DateStr
+                    If IsDate(strLine) = False Then
+                        strGlobalKey = "PleaseEnterAValidDate"
+                        strDefaultText = "Please enter a valid Date"
+                        strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
+                        Console.WriteLine(strDisp)
+                        GoTo ReDo
+                    End If
+                Case mEnmGetLingStrType.NumStr
+                    If IsNumeric(strLine) = False Then
+                        strGlobalKey = "PleaseEnterAValidNumber"
+                        strDefaultText = "Please enter a valid number"
+                        strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
+                        Console.WriteLine(strDisp)
+                        GoTo ReDo
+                    End If
+                Case Else
+                    If strLine <> "" Then
+                        OutLine = strLine
+                    End If
+            End Select
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -831,19 +1048,24 @@ Public Class PigConsole
     ''' Get a simple menu of enumerated types|获取一个枚举类型的简单菜单
     ''' <param name="EnmType">Enumeration types, such as Get Type (EnmWhatTypeOfMenuDefinition)|枚举类型，例如GetType(EnmWhatTypeOfMenuDefinition)</param>
     ''' <returns></returns>
-    Public Function SelectMenuOfEnumeration(EnmType As Type) As String
+    Public Function SelectMenuOfEnumeration(EnmType As Type, ByRef OutSelectEnum As Integer) As String
         Try
-            SelectMenuOfEnumeration = ""
+            Dim strOutMenuKey As String = ""
             Dim aValues As Array = [Enum].GetValues(EnmType)
             Dim strMenuDefinition As String = ""
             For Each oValue In aValues
                 strMenuDefinition &= CStr(oValue) & "#" & oValue.ToString & "|"
             Next
-            Dim strRet As String = Me.SimpleMenu("Select " & EnmType.ToString, strMenuDefinition, SelectMenuOfEnumeration, PigConsole.EnmSimpleMenuExitType.Null)
+            Dim strRet As String = Me.SimpleMenu("Select " & EnmType.ToString, strMenuDefinition, strOutMenuKey, PigConsole.EnmSimpleMenuExitType.Null)
             If strRet <> "OK" Then Throw New Exception(strRet)
+            If IsNumeric(strOutMenuKey) = False Then
+                Throw New Exception("OutMenuKey[" & strOutMenuKey & "] is not a numerical value.")
+            End If
+            OutSelectEnum = CInt(strOutMenuKey)
+            Return "OK"
         Catch ex As Exception
-            Me.SetSubErrInf("GetMenuDefinition", ex)
-            Return ""
+            OutSelectEnum = 0
+            Me.GetSubErrInf("GetMenuDefinition", ex)
         End Try
     End Function
 

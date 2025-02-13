@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.27
+'* Version: 1.28
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -31,6 +31,7 @@
 '* 1.25  12/8/2024 Add StringArrayToSpaceMulti2OneStr
 '* 1.26  29/9/2024 Add GetPsEfCmdInf
 '* 1.27  4/11/2024 Modify mCallFile
+'* 1.28  10/2/2025 Modify GetSubProcs
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -40,7 +41,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "27" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "28" & "." & "2"
     Public Property LinuxShPath As String
     Public Property WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -619,6 +620,12 @@ Public Class PigCmdApp
             If LOG.Ret <> "OK" Then
                 LOG.AddStepNameInf(strCmd)
                 Throw New Exception(LOG.Ret)
+            ElseIf Me.StandardError <> "" Then
+                LOG.Ret = Me.StandardError
+                If Me.IsDebug = True Then
+                    LOG.AddStepNameInf(strCmd)
+                End If
+                Throw New Exception(LOG.Ret)
             End If
             LOG.StepName = "New PigProcs"
             LOG.Ret = ""
@@ -627,11 +634,9 @@ Public Class PigCmdApp
                 If IsNumeric(strSubPID) = True Then
                     GetSubProcs.Add(strSubPID)
                     If GetSubProcs.LastErr <> "" Then
-                        If LOG.Ret = "" Then
-
-                        End If
+                        LOG.Ret = GetSubProcs.LastErr
                         LOG.AddStepNameInf(strSubPID)
-                        LOG.AddStepNameInf(GetSubProcs.LastErr)
+                        Throw New Exception(LOG.Ret)
                     End If
                 End If
             Next
