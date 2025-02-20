@@ -40,7 +40,7 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "28" & "." & "28"
+    Private Const CLS_VERSION As String = "1" & "." & "28" & "." & "32"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -608,15 +608,14 @@ Public Class PigConsole
     ''' 选择是或否|Select Yes or no
     ''' </summary>
     ''' <param name="PromptInf">Prompt information</param>
+    ''' <param name="DefaultValue">Default Value</param>
     ''' <returns></returns>
-    Public Function IsYesOrNo(PromptInf As String) As Boolean
+    Public Function IsYesOrNo(PromptInf As String, Optional DefaultValue As Boolean = False) As Boolean
         Try
-            IsYesOrNo = Nothing
-            Dim strGlobalKey As String, strDefaultText As String
-            strGlobalKey = "PressYesOrNo"
-            strDefaultText = ":(Press Y to Yes, N to No)"
-            Dim strDisp As String = Me.mGetMLangText(strGlobalKey, strDefaultText)
-            Console.Write(Me.OsCrLf & PromptInf & Me.OsCrLf & strDisp & Me.OsCrLf)
+            IsYesOrNo = False
+            Dim strDisp As String = Me.mGetMLangText("PressYesOrNo", ":(Press Y to Yes, N to No)")
+            strDisp &= Me.OsCrLf & Me.mGetMLangText("DefaultValue", "default value") & ":" & DefaultValue.ToString
+            Console.WriteLine(PromptInf & Me.OsCrLf & strDisp)
             Do While True
                 Select Case Console.ReadKey(True).Key
                     Case ConsoleKey.Y
@@ -629,7 +628,7 @@ Public Class PigConsole
             Loop
         Catch ex As Exception
             Me.SetSubErrInf("IsYesOrNo", ex)
-            Return Nothing
+            Return False
         End Try
     End Function
 
@@ -1047,16 +1046,25 @@ ReDo:
     ''' <summary>
     ''' Get a simple menu of enumerated types|获取一个枚举类型的简单菜单
     ''' <param name="EnmType">Enumeration types, such as Get Type (EnmWhatTypeOfMenuDefinition)|枚举类型，例如GetType(EnmWhatTypeOfMenuDefinition)</param>
+    ''' <param name="OutSelectEnum">Output enumeration selection|输出的枚举选择|</param>
     ''' <returns></returns>
     Public Function SelectMenuOfEnumeration(EnmType As Type, ByRef OutSelectEnum As Integer) As String
         Try
             Dim strOutMenuKey As String = ""
             Dim aValues As Array = [Enum].GetValues(EnmType)
-            Dim strMenuDefinition As String = ""
+            Dim strMenuDefinition As String = "", strDefaultValue As String = ""
             For Each oValue In aValues
                 strMenuDefinition &= CStr(oValue) & "#" & oValue.ToString & "|"
+                If CStr(oValue) = CStr(OutSelectEnum) Then
+                    strDefaultValue = oValue.ToString
+                End If
             Next
-            Dim strRet As String = Me.SimpleMenu("Select " & EnmType.ToString, strMenuDefinition, strOutMenuKey, PigConsole.EnmSimpleMenuExitType.Null)
+            Dim strTitle As String
+            strTitle = Me.mGetMLangText("Select", "Select") & " " & EnmType.ToString
+            If strDefaultValue <> "" Then
+                strTitle &= "," & Me.mGetMLangText("DefaultValue", "default value") & ":" & strDefaultValue
+            End If
+            Dim strRet As String = Me.SimpleMenu(strTitle, strMenuDefinition, strOutMenuKey, PigConsole.EnmSimpleMenuExitType.Null)
             If strRet <> "OK" Then Throw New Exception(strRet)
             If IsNumeric(strOutMenuKey) = False Then
                 Throw New Exception("OutMenuKey[" & strOutMenuKey & "] is not a numerical value.")
@@ -1073,8 +1081,9 @@ ReDo:
     ''' Get a simple menu of pre-defined enumeration types|获取一个预定义的枚举类型的简单菜单
     ''' </summary>
     ''' <param name="WhatTypeOfMenuDefinition">Pre-defined enumeration types|预定义的枚举类型</param>
+    ''' <param name="OutSelectEnum">Output enumeration selection|输出的枚举选择|</param>
     ''' <returns></returns>
-    Public Function SelectMenuOfEnumeration(WhatTypeOfMenuDefinition As EnmWhatTypeOfMenuDefinition) As String
+    Public Function SelectMenuOfEnumeration(WhatTypeOfMenuDefinition As EnmWhatTypeOfMenuDefinition, ByRef OutSelectEnum As Integer) As String
         Try
             SelectMenuOfEnumeration = ""
             Dim strRet As String = Me.SimpleMenu("Select " & WhatTypeOfMenuDefinition.ToString, Me.GetMenuDefinition(WhatTypeOfMenuDefinition), SelectMenuOfEnumeration, PigConsole.EnmSimpleMenuExitType.Null)

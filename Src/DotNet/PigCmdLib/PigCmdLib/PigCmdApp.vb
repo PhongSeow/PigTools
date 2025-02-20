@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.28
+'* Version: 1.29
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -32,6 +32,7 @@
 '* 1.26  29/9/2024 Add GetPsEfCmdInf
 '* 1.27  4/11/2024 Modify mCallFile
 '* 1.28  10/2/2025 Modify GetSubProcs
+'* 1.29  20/2/2025 Add CmdShellWaitForExit
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -41,7 +42,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "28" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "29" & "." & "6"
     Public Property LinuxShPath As String
     Public Property WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -654,6 +655,52 @@ Public Class PigCmdApp
     ''' <returns></returns>
     Public Function CallFileWaitForExit(FilePath As String, Optional IsRunAsAdmin As Boolean = False) As String
         Return Me.mCallFileWaitForExit(FilePath, "", IsRunAsAdmin)
+    End Function
+
+    ''' <summary>
+    ''' Call a command and wait for it to return|调用一条命令并等待返回
+    ''' </summary>
+    ''' <param name="Cmd">Executed commands|执行的命令</param>
+    ''' <param name="IsRunAsAdmin">Run as administrator|是否以管理员身份运行</param>
+    ''' <returns></returns>
+    Public Function CmdShellWaitForExit(Cmd As String, Optional IsRunAsAdmin As Boolean = False) As String
+        Dim LOG As New PigStepLog("CmdShellWaitForExit")
+        Try
+            Dim strShellPath As String
+            If Me.IsWindows = True Then
+                strShellPath = Me.WindowsCmdPath
+            Else
+                strShellPath = Me.LinuxShPath
+            End If
+            Dim strCmd As String
+            If Me.IsWindows = True Then
+                strCmd = " /C "
+                If InStr(Cmd, """") > 0 Then
+                    strCmd &= """"
+                    strCmd &= Cmd
+                    strCmd &= """"
+                Else
+                    strCmd &= Cmd
+                End If
+            Else
+                If InStr(Cmd, """") > 0 Then
+                    Cmd = Replace(Cmd, """", "\""")
+                End If
+                strCmd = " -c """
+                strCmd &= Cmd
+                strCmd &= """"
+            End If
+            LOG.StepName = "mCallFileWaitForExit"
+            LOG.Ret = Me.mCallFileWaitForExit(strShellPath, strCmd, IsRunAsAdmin)
+            If LOG.Ret <> "OK" Then
+                LOG.AddStepNameInf(strShellPath)
+                LOG.AddStepNameInf(strCmd)
+                Throw New Exception(LOG.Ret)
+            End If
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
     End Function
 
     ''' <summary>
