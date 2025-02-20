@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.28
+'* Version: 1.29
 '* Create Time: 15/1/2022
 '* 1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
 '* 1.2 3/2/2022     Add GetLine
@@ -32,6 +32,7 @@
 '* 1.26  30/10/2024   Modify SelectMenuOfEnumeration
 '* 1.27  25/12/2024   Modify SetCurrCulture
 '* 1.28  10/2/2025   Modify mGetLine,mDisplayPause,SelectMenuOfEnumeration
+'* 1.29  20/2/2025   Modify mGetLine,SelectMenuOfEnumeration,GetLine
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -40,7 +41,7 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "28" & "." & "32"
+    Private Const CLS_VERSION As String = "1" & "." & "29" & "." & "18"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
@@ -373,7 +374,7 @@ Public Class PigConsole
     ''' <returns></returns>
     Public Function GetLine(PromptInf As String, ByRef OutDate As Date, IsShowCurrLine As Boolean) As String
         Try
-            Dim strRet As String, strOutLine As String = ""
+            Dim strRet As String, strOutLine As String = CStr(OutDate)
             strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.DateStr)
             If strRet <> "OK" Then Throw New Exception(strRet)
             OutDate = CDate(strOutLine)
@@ -469,7 +470,7 @@ Public Class PigConsole
     ''' <returns></returns>
     Public Function GetLine(PromptInf As String, ByRef OutNumeric As Decimal, IsShowCurrLine As Boolean) As String
         Try
-            Dim strRet As String, strOutLine As String = ""
+            Dim strRet As String, strOutLine As String = CStr(OutNumeric)
             strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.NumStr)
             If strRet <> "OK" Then Throw New Exception(strRet)
             OutNumeric = CDec(strOutLine)
@@ -489,7 +490,7 @@ Public Class PigConsole
     ''' <returns></returns>
     Public Function GetLine(PromptInf As String, ByRef OutNumeric As Long, IsShowCurrLine As Boolean) As String
         Try
-            Dim strRet As String, strOutLine As String = ""
+            Dim strRet As String, strOutLine As String = CStr(OutNumeric)
             strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.NumStr)
             If strRet <> "OK" Then Throw New Exception(strRet)
             OutNumeric = CLng(strOutLine)
@@ -509,7 +510,7 @@ Public Class PigConsole
     ''' <returns></returns>
     Public Function GetLine(PromptInf As String, ByRef OutNumeric As Integer, IsShowCurrLine As Boolean) As String
         Try
-            Dim strRet As String, strOutLine As String = ""
+            Dim strRet As String, strOutLine As String = CStr(OutNumeric)
             strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.NumStr)
             If strRet <> "OK" Then Throw New Exception(strRet)
             OutNumeric = CInt(strOutLine)
@@ -836,6 +837,7 @@ ReDo:
             Dim strLine As String = Console.ReadLine
             Select Case StrType
                 Case mEnmGetLingStrType.DateStr
+                    If strLine = "" Then strLine = OutLine
                     If IsDate(strLine) = False Then
                         strGlobalKey = "PleaseEnterAValidDate"
                         strDefaultText = "Please enter a valid Date"
@@ -843,7 +845,9 @@ ReDo:
                         Console.WriteLine(strDisp)
                         GoTo ReDo
                     End If
+                    OutLine = strLine
                 Case mEnmGetLingStrType.NumStr
+                    If strLine = "" Then strLine = OutLine
                     If IsNumeric(strLine) = False Then
                         strGlobalKey = "PleaseEnterAValidNumber"
                         strDefaultText = "Please enter a valid number"
@@ -851,10 +855,9 @@ ReDo:
                         Console.WriteLine(strDisp)
                         GoTo ReDo
                     End If
+                    OutLine = strLine
                 Case Else
-                    If strLine <> "" Then
-                        OutLine = strLine
-                    End If
+                    If strLine <> "" Then OutLine = strLine
             End Select
             Return "OK"
         Catch ex As Exception
@@ -1073,7 +1076,7 @@ ReDo:
             Return "OK"
         Catch ex As Exception
             OutSelectEnum = 0
-            Me.GetSubErrInf("GetMenuDefinition", ex)
+            Return Me.GetSubErrInf("GetMenuDefinition", ex)
         End Try
     End Function
 
