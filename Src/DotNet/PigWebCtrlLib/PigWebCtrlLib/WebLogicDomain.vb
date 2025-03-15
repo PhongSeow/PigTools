@@ -64,7 +64,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "58" & "." & "10"
+    Private Const CLS_VERSION As String = "1" & "." & "58" & "." & "12"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -1689,7 +1689,7 @@ Public Class WebLogicDomain
             End If
             mGetFileKeyValue = ""
             If InStr(FileCont, Key) > 0 Then
-                Dim strRegularExp As String = "^(.*)\s*" & Key & "\s*=\s*(.*)$"
+                Dim strRegularExp As String = "^(.*)(\s*)" & Key & "(\s*)=(\s*)(.*)$"
                 FileCont = strCrLf & FileCont & strCrLf
                 Do While True
                     Dim strLine As String = Me.mPigFunc.GetStr(FileCont, strCrLf, strCrLf)

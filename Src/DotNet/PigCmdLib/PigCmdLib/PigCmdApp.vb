@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 调用操作系统命令的应用|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.29
+'* Version: 1.30
 '* Create Time: 15/1/2022
 '* 1.1  31/1/2022  Add CallFile, modify mWinHideShell,mLinuxHideShell
 '* 1.2  1/2/2022   Add CmdShell, modify CallFile
@@ -33,6 +33,7 @@
 '* 1.27  4/11/2024 Modify mCallFile
 '* 1.28  10/2/2025 Modify GetSubProcs
 '* 1.29  20/2/2025 Add CmdShellWaitForExit
+'* 1.30  26/2/2025 Modify GetSubProcs
 '**********************************
 Imports PigToolsLiteLib
 Imports System.IO
@@ -42,7 +43,7 @@ Imports System.Threading
 ''' </summary>
 Public Class PigCmdApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "29" & "." & "6"
+    Private Const CLS_VERSION As String = "1" & "." & "30" & "." & "2"
     Public Property LinuxShPath As String
     Public Property WindowsCmdPath As String
     Private WithEvents mPigFunc As New PigFunc
@@ -629,18 +630,19 @@ Public Class PigCmdApp
                 Throw New Exception(LOG.Ret)
             End If
             LOG.StepName = "New PigProcs"
-            LOG.Ret = ""
             GetSubProcs = New PigProcs
+            LOG.StepName = "For Each StandardOutputArray"
             For Each strSubPID As String In Me.StandardOutputArray
+                LOG.AddStepNameInf("SubPID=" & strSubPID)
                 If IsNumeric(strSubPID) = True Then
                     GetSubProcs.Add(strSubPID)
                     If GetSubProcs.LastErr <> "" Then
                         LOG.Ret = GetSubProcs.LastErr
-                        LOG.AddStepNameInf(strSubPID)
                         Throw New Exception(LOG.Ret)
                     End If
                 End If
             Next
+            Me.ClearErr()
         Catch ex As Exception
             Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
             Return Nothing
