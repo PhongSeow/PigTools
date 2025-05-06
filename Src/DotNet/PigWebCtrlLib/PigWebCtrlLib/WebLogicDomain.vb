@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.58
+'* Version: 1.59
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -52,6 +52,7 @@
 '* 1.56  12/10/2024 Modify RefRunStatus, add RootUrl,LocalIp,mPigCmdApp_AsyncRet_CmdShell_FullString
 '* 1.57  1/11/2024 Modify RefRunStatus
 '* 1.58  23/1/2025 Modify mGetFileKeyValue
+'* 1.59  30/4/2025 Modify RefRunStatus
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -1312,7 +1313,8 @@ Public Class WebLogicDomain
                                     Dim bolIsGetListenPortProcID As Boolean = False
                                     Dim strPIDMath As String = ""
                                     If Me.IsWindows = False Then
-                                        strCmd = "ps -ef|awk '{if($8==""/bin/sh"" && $9==""" & Replace(Me.startWebLogicPath, "\", "\\") & """) print $2}'"
+                                        Dim strStartWebLogicPath As String = Replace(Me.startWebLogicPath, "\", "\\")
+                                        strCmd = "ps -ef|awk '{if($8==""" & strStartWebLogicPath & """ || $9==""" & strStartWebLogicPath & """) print $2}'"
                                         LOG.StepName = "CmdShell"
                                         LOG.AddStepNameInf(Me.RunStatus.ToString)
                                         LOG.Ret = Me.mPigCmdApp.CmdShell(strCmd, PigCmdApp.EnmStandardOutputReadType.StringArray)

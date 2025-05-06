@@ -1,5 +1,5 @@
 ﻿'**********************************
-'* Name: PigBaseMini
+'* Name: WebLogicApp
 '* Author: Seow Phong
 '* License: Copyright (c) 2022-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Application of dealing with Weblogic
