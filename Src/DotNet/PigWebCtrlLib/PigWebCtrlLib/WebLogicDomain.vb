@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Weblogic domain
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.59
+'* Version: 1.60
 '* Create Time: 31/1/2022
 '* 1.1  5/2/2022   Add CheckDomain 
 '* 1.2  5/3/2022   Modify New
@@ -53,6 +53,7 @@
 '* 1.57  1/11/2024 Modify RefRunStatus
 '* 1.58  23/1/2025 Modify mGetFileKeyValue
 '* 1.59  30/4/2025 Modify RefRunStatus
+'* 1.60  19/11/2025 Modify RefRunStatus
 '************************************
 Imports PigCmdLib
 Imports PigToolsLiteLib
@@ -65,7 +66,7 @@ Imports System.Runtime.InteropServices.ComTypes
 ''' </summary>
 Public Class WebLogicDomain
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1" & "." & "58" & "." & "12"
+    Private Const CLS_VERSION As String = "1" & "." & "60" & "." & "8"
 
     Private WithEvents mPigCmdApp As New PigCmdApp
     Private mPigSysCmd As New PigSysCmd
@@ -282,6 +283,16 @@ Public Class WebLogicDomain
         End Get
         Friend Set(value As Integer)
             mintJavaPID = value
+        End Set
+    End Property
+
+    Private mintThreadsCount As Integer = -1
+    Public Property ThreadsCount As Integer
+        Get
+            Return mintThreadsCount
+        End Get
+        Friend Set(value As Integer)
+            mintThreadsCount = value
         End Set
     End Property
 
@@ -1350,6 +1361,7 @@ Public Class WebLogicDomain
                                                         Me.JavaStartTime = oPigProc.StartTime
                                                         Me.JavaCpuTime = oPigProc.UserProcessorTime
                                                         Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
+                                                        Me.ThreadsCount = oPigProc.ThreadsCount
                                                     Else
                                                         Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
                                                     End If
@@ -1380,6 +1392,7 @@ Public Class WebLogicDomain
                                                     Me.JavaStartTime = oPigProc.StartTime
                                                     Me.JavaCpuTime = oPigProc.UserProcessorTime
                                                     Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
+                                                    Me.ThreadsCount = oPigProc.ThreadsCount
                                                 Else
                                                     Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
                                                 End If
@@ -1400,6 +1413,7 @@ Public Class WebLogicDomain
                                                         Me.JavaStartTime = oPigProc.StartTime
                                                         Me.JavaCpuTime = oPigProc.UserProcessorTime
                                                         Me.JavaMemoryUse = CDec(oPigProc.MemoryUse) / 1024 / 1024
+                                                        Me.ThreadsCount = oPigProc.ThreadsCount
                                                     Else
                                                         Me.RunStatus = EnmDomainRunStatus.ListenPortByOther
                                                     End If
@@ -1447,6 +1461,7 @@ Public Class WebLogicDomain
                     Me.JavaStartTime = TEMP_DATE
                     Me.JavaCpuTime = TimeSpan.Zero
                     Me.JavaMemoryUse = 0
+                    Me.ThreadsCount = -1
             End Select
             Return "OK"
         Catch ex As Exception
