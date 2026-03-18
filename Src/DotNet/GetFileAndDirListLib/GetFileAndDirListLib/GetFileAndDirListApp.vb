@@ -28,7 +28,7 @@ Imports PigToolsLiteLib
 ''' </summary>
 Public Class GetFileAndDirListApp
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.8.16"
+    Private Const CLS_VERSION As String = "1.8.18"
     Private Property mFS As New FileSystemObject
     Private Property mPigFunc As New PigFunc
 
@@ -419,14 +419,14 @@ Public Class GetFileAndDirListApp
             LOG.Ret = Me.SaveStatus(EnmCtrlStatus.Start, False)
             If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Dim strLine As String = ""
-            Dim tsDir As TextStream
+            Dim tsDir As PigObjFsLib.TextStream
             LOG.StepName = "OpenTextFile"
             tsDir = mFS.OpenTextFile(Me.DirListPath, FileSystemObject.IOMode.ForWriting, True)
             If mFS.LastErr <> "" Then
                 LOG.AddStepNameInf(Me.DirListPath)
                 Throw New Exception(mFS.LastErr)
             End If
-            Dim tsFile As TextStream
+            Dim tsFile As PigObjFsLib.TextStream
             LOG.StepName = "OpenTextFile"
             tsFile = mFS.OpenTextFile(Me.FileListPath, FileSystemObject.IOMode.ForWriting, True)
             If mFS.LastErr <> "" Then
