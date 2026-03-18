@@ -103,7 +103,8 @@ Public Class ConsoleDemo
                         Me.PigConsole.SimpleMenu("Select TimeSlot", Me.MenuDefinition2, Me.MenuKey2, PigConsole.EnmSimpleMenuExitType.Null)
                         Me.TimeSlot = CInt(Me.MenuKey2)
                         Dim strResXml As String = ""
-                        Me.TextType = CInt(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigText_EnmTextType))
+                        'Me.TextType = CInt(Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigText_EnmTextType))
+                        Me.PigConsole.SelectMenuOfEnumeration(PigConsole.EnmWhatTypeOfMenuDefinition.PigText_EnmTextType, Me.TextType)
                         Me.Ret = Me.WebLogicDomain.StatisticsAccessLog(Me.TimeSlot, strResXml, Me.TextType, "c:\temp\aaaa.log")
                         Console.WriteLine(Me.Ret)
                         Console.WriteLine(strResXml)

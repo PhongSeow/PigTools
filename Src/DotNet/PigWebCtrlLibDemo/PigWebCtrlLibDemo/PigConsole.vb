@@ -1,28 +1,38 @@
 ﻿'**********************************
 '* Name: PigConsole
 '* Author: Seow Phong
-'* License: Copyright (c) 2022 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2022-2024 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: 增加控制台的功能|Application of calling operating system commands
 '* Home Url: https://www.seowphong.com or https://en.seowphong.com
-'* Version: 1.18
+'* Version: 1.29
 '* Create Time: 15/1/2022
-'*1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
-'*1.2 3/2/2022     Add GetLine
-'*1.3 4/2/2022     Add mGetKeyTypeForLine,ClearLine,mGetLine
-'*1.4 5/2/2022     Modify GetLine.
-'*1.5 6/2/2022     Modify mGetKeyTypeForLine,mGetKeyTypeForPwd,mGetLine
-'*1.6 19/3/2022    Modify mGetLine,GetLine,GetPwdStr, add mGetPwdStr, 
-'*1.7 16/4/2022    Add IsYesOrNo and SimpleMenu.
-'*1.8 17/4/2022    Modify SimpleMenu
-'*1.9 29/4/2022    Add DisplayPause,mDisplayPause
-'*1.10 26/7/2022   Modify Imports
-'*1.11 29/7/2022   Modify Imports,mGetLine
-'*1.12 12/8/2022   Modify IsYesOrNo
-'*1.13 16/10/2022  Add InitMLang
-'*1.15 17/10/2022  Add MLang function, modify mDisplayPause
-'*1.16 18/10/2022  Modify SimpleMenu,IsYesOrNo
-'*1.17 19/10/2022  Add GetCanUseCultureXml
-'*1.18 17/11/2022  Add SelectControl
+'* 1.1 23/1/2022    Add GetKeyType1, modify GetPwdStr
+'* 1.2 3/2/2022     Add GetLine
+'* 1.3 4/2/2022     Add mGetKeyTypeForLine,ClearLine,mGetLine
+'* 1.4 5/2/2022     Modify GetLine.
+'* 1.5 6/2/2022     Modify mGetKeyTypeForLine,mGetKeyTypeForPwd,mGetLine
+'* 1.6 19/3/2022    Modify mGetLine,GetLine,GetPwdStr, add mGetPwdStr, 
+'* 1.7 16/4/2022    Add IsYesOrNo and SimpleMenu.
+'* 1.8 17/4/2022    Modify SimpleMenu
+'* 1.9 29/4/2022    Add DisplayPause,mDisplayPause
+'* 1.10 26/7/2022   Modify Imports
+'* 1.11 29/7/2022   Modify Imports,mGetLine
+'* 1.12 12/8/2022   Modify IsYesOrNo
+'* 1.13 16/10/2022  Add InitMLang
+'* 1.15 17/10/2022  Add MLang function, modify mDisplayPause
+'* 1.16 18/10/2022  Modify SimpleMenu,IsYesOrNo
+'* 1.17 19/10/2022  Add GetCanUseCultureXml
+'* 1.18 17/11/2022  Add SelectControl
+'* 1.19 23/10/2023  Modify SimpleMenu
+'* 1.20 5/12/2023   Add EnmWhatTypeOfMenuDefinition,GetMenuDefinition,SelectMenuOfEnumeration,AddMenuDefinition
+'* 1.21 21/2/2024   Modify mDisplayPause,IsYesOrNo,mDisplayPause,SimpleMenu,mGetLine
+'* 1.22 9/6/2024   Modify EnmWhatTypeOfMenuDefinition,GetMenuDefinition
+'* 1.23  21/7/2024  Modify PigFunc to PigFuncLite
+'* 1.25  28/7/2024   Modify PigStepLog to StruStepLog
+'* 1.26  30/10/2024   Modify SelectMenuOfEnumeration
+'* 1.27  25/12/2024   Modify SetCurrCulture
+'* 1.28  10/2/2025   Modify mGetLine,mDisplayPause,SelectMenuOfEnumeration
+'* 1.29  20/2/2025   Modify mGetLine,SelectMenuOfEnumeration,GetLine
 '**********************************
 Imports PigToolsLiteLib
 Imports System.Globalization
@@ -31,11 +41,22 @@ Imports System.Globalization
 ''' </summary>
 Public Class PigConsole
     Inherits PigBaseLocal
-    Private Const CLS_VERSION As String = "1.18.2"
+    Private Const CLS_VERSION As String = "1" & "." & "29" & "." & "18"
     Private ReadOnly Property mPigFunc As New PigFunc
 
     Private Property mPigMLang As PigMLang
     Property mIsUseMLang As Boolean = False
+
+    Public Enum EnmWhatTypeOfMenuDefinition
+        PigText_EnmTextType = 0
+        PigFileSystem_IOMode = 1
+        PigReg_RegRoot = 2
+        PigFunc_TimeSlot = 3
+        PigFunc_Alignment = 4
+        PigFunc_FilePart = 5
+        PigFunc_FathPart = 6
+        PigFunc_GetRandString = 7
+    End Enum
 
     Public Property IsUseMLang As Boolean
         Get
@@ -348,10 +369,50 @@ Public Class PigConsole
     ''' 从控制台当前行读取文本|Read text from the current line of the console
     ''' </summary>
     ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutDate">输出的日期|Output date</param>
+    ''' <param name="IsShowCurrLine">是否显示当前文本|Is show current text</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutDate As Date, IsShowCurrLine As Boolean) As String
+        Try
+            Dim strRet As String, strOutLine As String = CStr(OutDate)
+            strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.DateStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutDate = CDate(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutDate = ""
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
     ''' <param name="OutLine">输出的文本，也作为默认文本|The output text is also used as the default text</param>
     ''' <returns></returns>
     Public Function GetLine(PromptInf As String, ByRef OutLine As String) As String
         Return Me.mGetLine(PromptInf, OutLine)
+    End Function
+
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutDate">输出的日期|Output date</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutDate As Date) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine,, mEnmGetLingStrType.DateStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutDate = CDate(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutDate = CDate("1900-1-1")
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
     End Function
 
     ''' <summary>
@@ -363,6 +424,159 @@ Public Class PigConsole
         Return Me.mGetLine("", OutLine)
     End Function
 
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutDate">输出的日期|Output date</param>
+    ''' <returns></returns>
+    Public Function GetLine(ByRef OutDate As Date) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine("", strOutLine,, mEnmGetLingStrType.DateStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutDate = CDate(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutDate = CDate("1900-1-1")
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <returns></returns>
+    Public Function GetLine(ByRef OutNumeric As Decimal) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine("", strOutLine,, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CDec(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <param name="IsShowCurrLine">是否显示当前文本|Is show current text</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Decimal, IsShowCurrLine As Boolean) As String
+        Try
+            Dim strRet As String, strOutLine As String = CStr(OutNumeric)
+            strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CDec(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <param name="IsShowCurrLine">是否显示当前文本|Is show current text</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Long, IsShowCurrLine As Boolean) As String
+        Try
+            Dim strRet As String, strOutLine As String = CStr(OutNumeric)
+            strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CLng(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <param name="IsShowCurrLine">是否显示当前文本|Is show current text</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Integer, IsShowCurrLine As Boolean) As String
+        Try
+            Dim strRet As String, strOutLine As String = CStr(OutNumeric)
+            strRet = Me.mGetLine(PromptInf, strOutLine, IsShowCurrLine, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CInt(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Decimal) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine,, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CDec(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Long) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine,, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CLng(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 从控制台当前行读取文本|Read text from the current line of the console
+    ''' </summary>
+    ''' <param name="PromptInf">提示信息|Prompt information</param>
+    ''' <param name="OutNumeric">输出的数值|Output numeric</param>
+    ''' <returns></returns>
+    Public Function GetLine(PromptInf As String, ByRef OutNumeric As Integer) As String
+        Try
+            Dim strRet As String, strOutLine As String = ""
+            strRet = Me.mGetLine(PromptInf, strOutLine,, mEnmGetLingStrType.NumStr)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            OutNumeric = CInt(strOutLine)
+            Return "OK"
+        Catch ex As Exception
+            OutNumeric = 0
+            Return Me.GetSubErrInf("GetLine", ex)
+        End Try
+    End Function
 
     ''' <summary>
     ''' 显示信息并暂停|Display message and pause
@@ -379,8 +593,11 @@ Public Class PigConsole
 
     Private Function mDisplayPause(DisplayInf As String) As String
         Try
-            Dim strDisp As String = Me.mGetMLangText("PressToContinue", "(Press any key to continue)")
-            Console.Write(DisplayInf & strDisp)
+            Dim strGlobalKey As String, strDefaultText As String
+            strGlobalKey = "PressToContinue"
+            strDefaultText = "(Press any key to continue)"
+            Dim strDisp As String = Me.mGetMLangText(strGlobalKey, strDefaultText)
+            Console.WriteLine(DisplayInf & strDisp)
             Dim oConsoleKey As ConsoleKey = Console.ReadKey(True).Key
             Return "OK"
         Catch ex As Exception
@@ -392,12 +609,14 @@ Public Class PigConsole
     ''' 选择是或否|Select Yes or no
     ''' </summary>
     ''' <param name="PromptInf">Prompt information</param>
+    ''' <param name="DefaultValue">Default Value</param>
     ''' <returns></returns>
-    Public Function IsYesOrNo(PromptInf As String) As Boolean
+    Public Function IsYesOrNo(PromptInf As String, Optional DefaultValue As Boolean = False) As Boolean
         Try
-            IsYesOrNo = Nothing
+            IsYesOrNo = False
             Dim strDisp As String = Me.mGetMLangText("PressYesOrNo", ":(Press Y to Yes, N to No)")
-            Console.Write(Me.OsCrLf & PromptInf & Me.OsCrLf & strDisp & Me.OsCrLf)
+            strDisp &= Me.OsCrLf & Me.mGetMLangText("DefaultValue", "default value") & ":" & DefaultValue.ToString
+            Console.WriteLine(PromptInf & Me.OsCrLf & strDisp)
             Do While True
                 Select Case Console.ReadKey(True).Key
                     Case ConsoleKey.Y
@@ -410,7 +629,7 @@ Public Class PigConsole
             Loop
         Catch ex As Exception
             Me.SetSubErrInf("IsYesOrNo", ex)
-            Return Nothing
+            Return False
         End Try
     End Function
 
@@ -423,7 +642,7 @@ Public Class PigConsole
     ''' <param name="IsVertical">Whether to display vertically|是否垂直显示</param>
     ''' <returns></returns>
     Public Function SelectControl(Description As String, Definition As String, ByRef SelectKey As String, Optional IsVertical As Boolean = False) As String
-        Dim LOG As New PigStepLog("SelectControl")
+        Dim LOG As New StruStepLog : LOG.SubName = "SelectControl"
         Try
             Dim abSelectName As String(), abSelectKey As String(), abLetter As String()
             ReDim abSelectName(0)
@@ -489,10 +708,10 @@ Public Class PigConsole
     ''' <param name="MenuTitle">菜单标题|Menu title</param>
     ''' <param name="MenuDefinition">菜单定义，格式：键值1#名称1|键值2#名称2|...|Menu definition, format:Key1#Name1|Key2#Name2|...</param>
     ''' <param name="OutMenuKey">选择的键值|Selected key value</param>
-    ''' <param name="MenuExitType">退出方式|Exit mode</param>
+    ''' <param name="EnmSimpleMenuExitType">退出方式|Exit mode</param>
     ''' <returns></returns>
     Public Function SimpleMenu(MenuTitle As String, MenuDefinition As String, ByRef OutMenuKey As String, Optional MenuExitType As EnmSimpleMenuExitType = EnmSimpleMenuExitType.QtoExit) As String
-        Dim LOG As New PigStepLog("SimpleMenu")
+        Dim LOG As New StruStepLog : LOG.SubName = "SimpleMenu"
         Try
             Dim abMenuName As String(), abMenuKey As String(), abLetter As String()
             ReDim abMenuName(0)
@@ -514,31 +733,49 @@ Public Class PigConsole
                 If Len(abMenuName(intItems)) > intMaxLen Then intMaxLen = Len(abMenuName(intItems))
                 abLetter(intItems) = Chr(64 + intItems)
                 If MenuExitType <> EnmSimpleMenuExitType.Null And abLetter(intItems) >= "Q" Then
-                    abLetter(intItems) += Chr(64 + intItems + 1)
+                    abLetter(intItems) = Chr(64 + intItems + 1)
+                    '                    abLetter(intItems) += Chr(64 + intItems + 1)
                 End If
             Loop
-            If intItems <= 0 Then
-                Throw New Exception("No menu item defined")
-            End If
+            If intItems = 0 Then Throw New Exception("No menu item defined")
+            Select Case MenuExitType
+                Case EnmSimpleMenuExitType.QtoExit, EnmSimpleMenuExitType.QtoUp
+                    If intItems > 25 Then Throw New Exception("Supports defining up to 25 menu items")
+                Case EnmSimpleMenuExitType.Null
+                    If intItems > 26 Then Throw New Exception("Supports defining up to 26 menu items")
+            End Select
             intMaxLen += 8
             LOG.StepName = "Print Menu"
             Dim strStarLine As String = mPigFunc.GetRepeatStr(intMaxLen, "*")
             Console.WriteLine(strStarLine)
             Console.WriteLine("* " & MenuTitle)
             Console.WriteLine(strStarLine)
+            Dim strGlobalKey As String, strDefaultText As String
             Dim strDisp As String = ""
             Select Case MenuExitType
                 Case EnmSimpleMenuExitType.QtoExit
-                    strDisp = Me.mGetMLangText("ToExit", "Exit")
+                    strGlobalKey = "ToExit"
+                    strDefaultText = "Exit"
+                    strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
                     Console.WriteLine("* Q - " & strDisp)
                 Case EnmSimpleMenuExitType.QtoUp
-                    strDisp = Me.mGetMLangText("ToUp", "Up")
+                    strGlobalKey = "ToUp"
+                    strDefaultText = "Up"
+                    strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
                     Console.WriteLine("* Q - " & strDisp)
             End Select
             For i = 1 To intItems
                 Dim strLetter As String = Chr(64 + i)
-                If strLetter = "Q" Then strLetter = Chr(65 + i)
-                Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+                Select Case i
+                    Case < 17
+                        Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+                    Case >= 17
+                        Select Case MenuExitType
+                            Case EnmSimpleMenuExitType.QtoExit, EnmSimpleMenuExitType.QtoUp
+                                strLetter = Chr(65 + i)
+                        End Select
+                        Console.WriteLine("* " & strLetter & " - " & abMenuName(i))
+                End Select
             Next
             Console.WriteLine(strStarLine)
             LOG.StepName = "Select Menu"
@@ -551,7 +788,17 @@ Public Class PigConsole
                         Else
                             Dim intKey As Integer = CInt(oConsoleKey) - 64
                             If MenuExitType <> EnmSimpleMenuExitType.Null And intKey > ConsoleKey.Q Then intKey -= 1
-                            OutMenuKey = abMenuKey(intKey)
+                            Select Case intKey
+                                Case < 17
+                                    OutMenuKey = abMenuKey(intKey)
+                                Case >= 17
+                                    Select Case MenuExitType
+                                        Case EnmSimpleMenuExitType.QtoExit, EnmSimpleMenuExitType.QtoUp
+                                            OutMenuKey = abMenuKey(intKey - 1)
+                                        Case EnmSimpleMenuExitType.Null
+                                            OutMenuKey = abMenuKey(intKey)
+                                    End Select
+                            End Select
                         End If
                         Exit Do
                 End Select
@@ -559,35 +806,59 @@ Public Class PigConsole
             Return "OK"
         Catch ex As Exception
             OutMenuKey = ""
+            Console.WriteLine(ex.Message.ToString)
+            Me.DisplayPause()
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
 
 
-    Private Function mGetLine(PromptInf As String, ByRef OutLine As String, Optional IsShowCurrLine As Boolean = True) As String
-        Dim LOG As New PigStepLog("mGetLine")
+    Private Enum mEnmGetLingStrType
+        TextStr = 0
+        NumStr = 1
+        DateStr = 2
+    End Enum
+
+    Private Function mGetLine(PromptInf As String, ByRef OutLine As String, Optional IsShowCurrLine As Boolean = True, Optional StrType As mEnmGetLingStrType = mEnmGetLingStrType.TextStr) As String
+        Dim LOG As New StruStepLog : LOG.SubName = "mGetLine"
         Try
             Dim strOldLine As String = OutLine
-            '            Dim bolCurrCursorVisible As Boolean
-            'If Me.IsWindows = True Then
-            '    LOG.StepName = "Save CursorVisible"
-            '    bolCurrCursorVisible = Console.CursorVisible
-            '    If bolCurrCursorVisible = False Then Console.CursorVisible = True
-            'End If
             Dim intBeginLeft As Integer = Console.CursorLeft, intBeginTop As Integer = Console.CursorTop
+            Dim strGlobalKey As String, strDefaultText As String, strDisp As String
             If OutLine <> "" And IsShowCurrLine = True Then
-                Dim strDisp As String = Me.mGetMLangText("PressEnterSetCurrValue", "(Press ENTER to set the current value to the following text)")
+                strGlobalKey = "PressEnterSetCurrValue"
+                strDefaultText = "(Press ENTER to set the current value to the following text)"
+                strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
                 Console.WriteLine(strDisp)
                 Console.WriteLine(OutLine)
             End If
             If PromptInf <> "" Then Console.Write(PromptInf & ":")
+ReDo:
             Dim strLine As String = Console.ReadLine
-            If strLine <> "" Then
-                OutLine = strLine
-            End If
-            'If Me.IsWindows = True Then
-            '    If bolCurrCursorVisible = Console.CursorVisible Then Console.CursorVisible = bolCurrCursorVisible
-            'End If
+            Select Case StrType
+                Case mEnmGetLingStrType.DateStr
+                    If strLine = "" Then strLine = OutLine
+                    If IsDate(strLine) = False Then
+                        strGlobalKey = "PleaseEnterAValidDate"
+                        strDefaultText = "Please enter a valid Date"
+                        strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
+                        Console.WriteLine(strDisp)
+                        GoTo ReDo
+                    End If
+                    OutLine = strLine
+                Case mEnmGetLingStrType.NumStr
+                    If strLine = "" Then strLine = OutLine
+                    If IsNumeric(strLine) = False Then
+                        strGlobalKey = "PleaseEnterAValidNumber"
+                        strDefaultText = "Please enter a valid number"
+                        strDisp = Me.mGetMLangText(strGlobalKey, strDefaultText)
+                        Console.WriteLine(strDisp)
+                        GoTo ReDo
+                    End If
+                    OutLine = strLine
+                Case Else
+                    If strLine <> "" Then OutLine = strLine
+            End Select
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -625,7 +896,7 @@ Public Class PigConsole
     End Function
 
     Private Function mEditLine(ByRef LineStr As String, BeginTop As Integer, LineEdit As EnmLineEdit, Optional InsChar As Char = "") As String
-        Dim LOG As New PigStepLog("mEditLine")
+        Dim LOG As New StruStepLog : LOG.SubName = "mEditLine"
         Try
             Dim intLinePos As Integer, intNowLeft As Integer = Console.CursorLeft, intNowTop As Integer = Console.CursorTop, intLineLen As Integer = Len(LineStr)
             Dim intOutNowTop As Integer = intNowTop
@@ -742,7 +1013,7 @@ Public Class PigConsole
     End Function
 
     Public Function SetCurrCulture(CultureName As String) As String
-        Dim LOG As New PigStepLog("SetCurrCulture")
+        Dim LOG As New StruStepLog : LOG.SubName = "SetCurrCulture"
         Try
             If Me.IsUseMLang = False Or Me.mPigMLang Is Nothing Then
                 LOG.StepName = "New PigMLang"
@@ -751,7 +1022,7 @@ Public Class PigConsole
             End If
             LOG.StepName = "SetCurrCulture"
             LOG.Ret = Me.mPigMLang.SetCurrCulture(CultureName)
-            If LOG.Ret <> "" Then Throw New Exception(LOG.Ret)
+            If LOG.Ret <> "OK" Then Throw New Exception(LOG.Ret)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -759,7 +1030,7 @@ Public Class PigConsole
     End Function
 
     Public Function RefMLang() As String
-        Dim LOG As New PigStepLog("RefMLang")
+        Dim LOG As New StruStepLog : LOG.SubName = "RefMLang"
         Try
             LOG.StepName = "New PigMLang"
             Me.mPigMLang = New PigMLang(Me.AppTitle, Me.AppPath)
@@ -774,5 +1045,120 @@ Public Class PigConsole
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
         End Try
     End Function
+
+    ''' <summary>
+    ''' Get a simple menu of enumerated types|获取一个枚举类型的简单菜单
+    ''' <param name="EnmType">Enumeration types, such as Get Type (EnmWhatTypeOfMenuDefinition)|枚举类型，例如GetType(EnmWhatTypeOfMenuDefinition)</param>
+    ''' <param name="OutSelectEnum">Output enumeration selection|输出的枚举选择|</param>
+    ''' <returns></returns>
+    Public Function SelectMenuOfEnumeration(EnmType As Type, ByRef OutSelectEnum As Integer) As String
+        Try
+            Dim strOutMenuKey As String = ""
+            Dim aValues As Array = [Enum].GetValues(EnmType)
+            Dim strMenuDefinition As String = "", strDefaultValue As String = ""
+            For Each oValue In aValues
+                strMenuDefinition &= CStr(oValue) & "#" & oValue.ToString & "|"
+                If CStr(oValue) = CStr(OutSelectEnum) Then
+                    strDefaultValue = oValue.ToString
+                End If
+            Next
+            Dim strTitle As String
+            strTitle = Me.mGetMLangText("Select", "Select") & " " & EnmType.ToString
+            If strDefaultValue <> "" Then
+                strTitle &= "," & Me.mGetMLangText("DefaultValue", "default value") & ":" & strDefaultValue
+            End If
+            Dim strRet As String = Me.SimpleMenu(strTitle, strMenuDefinition, strOutMenuKey, PigConsole.EnmSimpleMenuExitType.Null)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+            If IsNumeric(strOutMenuKey) = False Then
+                Throw New Exception("OutMenuKey[" & strOutMenuKey & "] is not a numerical value.")
+            End If
+            OutSelectEnum = CInt(strOutMenuKey)
+            Return "OK"
+        Catch ex As Exception
+            OutSelectEnum = 0
+            Return Me.GetSubErrInf("GetMenuDefinition", ex)
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Get a simple menu of pre-defined enumeration types|获取一个预定义的枚举类型的简单菜单
+    ''' </summary>
+    ''' <param name="WhatTypeOfMenuDefinition">Pre-defined enumeration types|预定义的枚举类型</param>
+    ''' <param name="OutSelectEnum">Output enumeration selection|输出的枚举选择|</param>
+    ''' <returns></returns>
+    Public Function SelectMenuOfEnumeration(WhatTypeOfMenuDefinition As EnmWhatTypeOfMenuDefinition, ByRef OutSelectEnum As Integer) As String
+        Try
+            SelectMenuOfEnumeration = ""
+            Dim strRet As String = Me.SimpleMenu("Select " & WhatTypeOfMenuDefinition.ToString, Me.GetMenuDefinition(WhatTypeOfMenuDefinition), SelectMenuOfEnumeration, PigConsole.EnmSimpleMenuExitType.Null)
+            If strRet <> "OK" Then Throw New Exception(strRet)
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMenuDefinition", ex)
+            Return ""
+        End Try
+    End Function
+
+
+    Public Function GetMenuDefinition(WhatTypeOfMenuDefinition As EnmWhatTypeOfMenuDefinition) As String
+        Try
+            Dim strMenuDefinition As String = ""
+            Select Case WhatTypeOfMenuDefinition
+                Case EnmWhatTypeOfMenuDefinition.PigFileSystem_IOMode
+                    For Each strName As String In [Enum].GetNames(GetType(PigFileSystem.IOMode))
+                        Dim enmAny As PigFileSystem.IOMode = [Enum].Parse(GetType(PigFileSystem.IOMode), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigText_EnmTextType
+                    For Each strName As String In [Enum].GetNames(GetType(PigText.enmTextType))
+                        Dim enmAny As PigText.enmTextType = [Enum].Parse(GetType(PigText.enmTextType), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigText_EnmTextType
+                    For Each strName As String In [Enum].GetNames(GetType(PigReg.EmnRegRoot))
+                        Dim enmAny As PigReg.EmnRegRoot = [Enum].Parse(GetType(PigReg.EmnRegRoot), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_TimeSlot
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmTimeSlot))
+                        Dim enmAny As PigFunc.EnmTimeSlot = [Enum].Parse(GetType(PigFunc.EnmTimeSlot), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_Alignment
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmAlignment))
+                        Dim enmAny As PigFunc.EnmAlignment = [Enum].Parse(GetType(PigFunc.EnmAlignment), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_FilePart
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmFilePart))
+                        Dim enmAny As PigFunc.EnmFilePart = [Enum].Parse(GetType(PigFunc.EnmFilePart), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_FathPart
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmFathPart))
+                        Dim enmAny As PigFunc.EnmFathPart = [Enum].Parse(GetType(PigFunc.EnmFathPart), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case EnmWhatTypeOfMenuDefinition.PigFunc_GetRandString
+                    For Each strName As String In [Enum].GetNames(GetType(PigFunc.EnmGetRandString))
+                        Dim enmAny As PigFunc.EnmGetRandString = [Enum].Parse(GetType(PigFunc.EnmGetRandString), strName)
+                        strMenuDefinition &= CStr(CInt(enmAny)) & "#" & strName & "|"
+                    Next
+                Case Else
+                    Throw New Exception("Invalid WhatTypeOfMenuDefinition")
+            End Select
+            Return strMenuDefinition
+        Catch ex As Exception
+            Me.SetSubErrInf("GetMenuDefinition", ex)
+            Return ""
+        End Try
+    End Function
+
+    Public Sub AddMenuDefinition(ByRef MainMenuDefinition As String, MenuItemKey As String, MenuItemName As String)
+        MainMenuDefinition &= MenuItemKey & "#" & MenuItemName & "|"
+    End Sub
+
+    Public Sub AddMenuDefinition(ByRef MainMenuDefinition As String, MenuItemKeyAndName As String)
+        MainMenuDefinition &= MenuItemKeyAndName & "#" & MenuItemKeyAndName & "|"
+    End Sub
+
 
 End Class
