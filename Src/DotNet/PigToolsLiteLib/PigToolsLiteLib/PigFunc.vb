@@ -69,6 +69,7 @@
 '* 1.70  16/7/2024  Add StrSpaceMulti2One
 '* 1.71  27/7/2024  Modify PigStepLog to StruStepLog
 '* 1.72  4/8/2024   Add XmlGetStr etc.
+'* 1.73  19/8/2026  Add OptLogInfAsync
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -79,13 +80,17 @@ Imports System.Security.Cryptography
 Imports Microsoft.VisualBasic
 Imports System.Text
 Imports System.Runtime.InteropServices.ComTypes
+#If NETCOREAPP Then
+Imports System.Threading.Tasks
+#End If
+
 
 ''' <summary>
 ''' Function set|功能函数集
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "72" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "73" & "." & "2"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -257,6 +262,40 @@ Public Class PigFunc
         End With
         OptLogInf = Me.mOptLogInfMain(struMain)
     End Function
+
+#If NETCOREAPP Then
+    Public Async Function OptLogInfAsync(OptStr As String, LogFilePath As String, IsShowLocalInf As Boolean, LineBufSize As Integer) As Task(Of String)
+        Dim LOG As New StruStepLog : LOG.SubName = "OptLogInfAsync"
+        Try
+            Dim struMain As mStruOptLogInfMain
+            With struMain
+                .OptStr = OptStr
+                .LogFilePath = LogFilePath
+                .IsShowLocalInf = IsShowLocalInf
+                .LineBufSize = LineBufSize
+            End With
+            LOG.StepName = "Check StruOptLogInfMain"
+            With StruMain
+                If .LineBufSize <= 0 Then .LineBufSize = 10240
+                If .LogFilePath = "" Then Throw New Exception("LogFilePath invalid")
+            End With
+            LOG.StepName = "New FileStream"
+            Dim sfAny As New FileStream(StruMain.LogFilePath, System.IO.FileMode.Append, System.IO.FileAccess.Write, System.IO.FileShare.Write, StruMain.LineBufSize, False)
+            LOG.StepName = "New StreamWriter"
+            Dim swAny = New StreamWriter(sfAny)
+            If StruMain.IsShowLocalInf = True Then StruMain.OptStr = "[" & GENow() & "][" & GetProcThreadID() & "]" & StruMain.OptStr
+            LOG.StepName = "WriteLineAsync"
+            Await swAny.WriteLineAsync(StruMain.OptStr)
+            LOG.StepName = "Close"
+            swAny.Close()
+            sfAny.Close()
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+#End If
+
 
     ''' <remarks>异步写日志</remarks>
     Public Overloads Function ASyncOptLogInf(OptStr As String, LogFilePath As String, IsShowLocalInf As Boolean, LineBufSize As Integer) As String
@@ -1420,8 +1459,8 @@ Public Class PigFunc
                 Case EmnHowToConvHtml.DisableHTML
                     ConvertHtmlStr = Replace(ConvertHtmlStr, "<", "&lt;")
                     ConvertHtmlStr = Replace(ConvertHtmlStr, ">", "&gt;")
-                    ConvertHtmlStr = Replace(ConvertHtmlStr, " ", "&nbsp;")
                     ConvertHtmlStr = Replace(ConvertHtmlStr, vbTab, "&nbsp;&nbsp;&nbsp;&nbsp;")
+                    ConvertHtmlStr = Replace(ConvertHtmlStr, " ", "&nbsp;")
                     ConvertHtmlStr = Replace(ConvertHtmlStr, vbCrLf, "<br>")
                     ConvertHtmlStr = Replace(ConvertHtmlStr, "&lt;br&gt;", "<br>")
                 Case EmnHowToConvHtml.EnableHTML

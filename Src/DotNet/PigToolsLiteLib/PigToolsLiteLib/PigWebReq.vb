@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Http Web Request operation
 '* Home Url: https://en.seowphong.com
-'* Version: 1.6
+'* Version: 1.7
 '* Create Time: 5/2/2021
 '* 1.0.2  25/2/2021   Add Me.ClearErr()
 '* 1.0.3  9/3/2021  Modify GetText,GetTextAuth,PostText,PostTextAuth
@@ -13,18 +13,22 @@
 '* 1.3  25/3/2024   Add PostRaw
 '* 1.5  30/5/2024   Rewrite the internal code of a class
 '* 1.6  27/7/2024   Modify PigStepLog to StruStepLog
+'* 1.7  19/8/2026   Add GetTextAsync
 '**********************************
 Imports System.Net
 Imports System.IO
 Imports System.Text
 Imports Microsoft.VisualBasic.Logging
+#If NETCOREAPP Then
+Imports System.Threading.Tasks
+#End If
 
 ''' <summary>
 ''' WEB request processing class|WEB请求处理类
 ''' </summary>
 Public Class PigWebReq
     Inherits PigBaseMini
-    Const CLS_VERSION As String = "1" & "." & "6" & "." & "168"
+    Const CLS_VERSION As String = "1" & "." & "7" & "." & "8"
     Private ReadOnly Property mUrl As String = ""
     Private ReadOnly Property mPara As String = ""
     Private Property mUri As System.Uri
@@ -96,7 +100,93 @@ Public Class PigWebReq
         End Try
     End Function
 
+#If NETCOREAPP Then
+    Public Async Function GetTextAsync() As Task(Of String)
+        Dim LOG As New StruStepLog : LOG.SubName = "GetTextAsync"
+        Try
+            Me.UseTimeItem.GoBegin()
+            mHttpWebRequest.Method = "GET"
+            LOG.StepName = "GetResponse"
+            Me.mHttpWebResponse = mHttpWebRequest.GetResponse
+            LOG.StepName = "GetResponseStream"
+            Dim msrRes As New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+            LOG.StepName = "ReadToEndAsync"
+            Me.ResString = Await msrRes.ReadToEndAsync
+            msrRes.Close()
+            Me.UseTimeItem.ToEnd()
+            Me.ClearErr()
+            Return "OK"
+        Catch ex As Exception
+            Me.ResString = ""
+            Me.UseTimeItem.ToEnd()
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Me.LastErr
+        End Try
+    End Function
 
+    Public Async Function PostRawAsync(JSon As String) As Task(Of String)
+        Dim LOG As New StruStepLog : LOG.SubName = "PostRaw"
+        Try
+            Me.UseTimeItem.GoBegin()
+            LOG.StepName = "Set Properties"
+            mHttpWebRequest.Method = "POST"
+            mHttpWebRequest.ContentType = "application/json"
+            Dim encoding As New UTF8Encoding()
+            Dim bys As Byte() = encoding.GetBytes(JSon)
+            mHttpWebRequest.ContentLength = bys.Length
+            LOG.StepName = "GetRequestStream"
+            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
+            newStream.Write(bys, 0, bys.Length)
+            newStream.Close()
+            LOG.StepName = "GetResponse"
+            Me.mHttpWebResponse = Me.mHttpWebRequest.GetResponse
+            LOG.StepName = "GetResponseStream"
+            Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+            LOG.StepName = "ReadToEndAsync"
+            Me.ResString = Await srMain.ReadToEndAsync
+            Me.UseTimeItem.ToEnd()
+            Me.ClearErr()
+            Return "OK"
+        Catch ex As Exception
+            Me.ResString = ""
+            Me.UseTimeItem.ToEnd()
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Me.LastErr
+        End Try
+    End Function
+
+    Public Async Function PostTextAsync(Para As String) As Task(Of String)
+        Dim LOG As New StruStepLog : LOG.SubName = "PostTextAsync"
+        Try
+            Me.UseTimeItem.GoBegin()
+            LOG.StepName = "Set Properties"
+            mHttpWebRequest.Method = "POST"
+            mHttpWebRequest.ContentType = "application/x-www-form-urlencoded"
+            Dim encoding As New UTF8Encoding()
+            Dim bys As Byte() = encoding.GetBytes(Para)
+            mHttpWebRequest.ContentLength = bys.Length
+            LOG.StepName = "GetRequestStream"
+            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
+            newStream.Write(bys, 0, bys.Length)
+            newStream.Close()
+            LOG.StepName = "GetResponse"
+            Me.mHttpWebResponse = mHttpWebRequest.GetResponse
+            LOG.StepName = "GetResponseStream"
+            Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream())
+            LOG.StepName = "ReadToEndAsync"
+            Me.ResString = Await srMain.ReadToEndAsync
+            Me.UseTimeItem.ToEnd()
+            Me.ClearErr()
+            Return "OK"
+        Catch ex As Exception
+            Me.ResString = ""
+            Me.UseTimeItem.ToEnd()
+            Me.SetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            Return Me.LastErr
+        End Try
+    End Function
+
+#End If
 
 
     ''' <summary>
