@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: File processing,Handle file reading, writing, information, etc
 '* Home Url: https://en.seowphong.com
-'* Version: 1.12
+'* Version: 1.13
 '* Create Time: 4/11/2019
 '* 1.0.2  2019-11-5   增加mSaveFile
 '* 1.0.3  2019-11-20  增加 CopyFileTo
@@ -25,15 +25,20 @@
 '* 1.10 4/12/2023   Add GetFullText
 '* 1.11  27/7/2024   Modify PigStepLog to StruStepLog
 '* 1.12  27/8/2024   Modify FileShare.Read to FileShare.ReadWrite
+'* 1.13  7/9/2024   Add LoadFileAsync,SaveFileAsync,SegLoadFileAsync
 '**********************************
 Imports System.IO
+#If NETCOREAPP Or NET451_OR_GREATER Then
+Imports System.Threading.Tasks
+#End If
+
 'Imports Microsoft.VisualBasic.Logging
 ''' <summary>
 ''' File processing set|文件处理集
 ''' </summary>
 Public Class PigFile
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "11" & "." & "8"
+    Private Const CLS_VERSION As String = "1" & "." & "13" & "." & "10"
     Private mstrFilePath As String '文件路径
     Private moFileInfo As FileInfo '文件信息
     Public GbMain As PigBytes '主数据数组
@@ -117,6 +122,74 @@ Public Class PigFile
     End Function
 
     Public Event EnvSegLoadFile(SegNo As Integer, SegBytes As Byte(), IsEnd As Boolean)
+
+#If NETCOREAPP Or NET451_OR_GREATER Then
+    ''' <summary>
+    ''' 异步分段读取文件，每段通过回调返回：intSegNo, abSegFile, bolIsEnd
+    ''' </summary>
+    ''' <param name="SegmentSize">分段大小</param>
+    ''' <param name="onSegmentRead">回调：(segNo, buffer, isEnd)</param>
+    ''' <returns>"OK" 或者错误信息字符串</returns>
+    Public Async Function SegLoadFileAsync(SegmentSize As Long, onSegmentRead As Action(Of Integer, Byte(), Boolean)) As Task(Of String)
+        Dim LOG As New StruStepLog
+        LOG.SubName = "SegLoadFile"
+
+        Try
+            LOG.StepName = "New FileStream"
+            Using sfAny As New FileStream(mstrFilePath,
+                                      FileMode.Open,
+                                      FileAccess.Read,
+                                      FileShare.ReadWrite,
+                                      bufferSize:=4096,
+                                      useAsync:=True)
+
+                LOG.StepName = "New PigBytes"
+                Dim abSegFile(-1) As Byte
+                Dim intRetSize As Integer = 0
+                Dim intSegNo As Integer = 0
+                Dim lngPos As Long = 0
+                Dim lngFileSize As Long = Me.Size
+                Dim intGetBytes As Integer = CInt(SegmentSize)
+                Dim bolIsEnd As Boolean = False
+
+                Do While True
+                    If (lngPos + SegmentSize) > lngFileSize Then
+                        intGetBytes = CInt(lngFileSize - lngPos)
+                        bolIsEnd = True
+                    End If
+
+                    ReDim abSegFile(intGetBytes - 1)
+                    LOG.StepName = "Read"
+
+                    intRetSize = Await sfAny.ReadAsync(abSegFile, 0, intGetBytes)
+
+                    If intRetSize <= 0 Then
+                        Throw New Exception("RetSize is " & intRetSize)
+                    ElseIf intRetSize <> intGetBytes Then
+                        Throw New Exception("RetSize not equal to GetBytes")
+                    End If
+
+                    lngPos += intGetBytes
+
+                    ' 将分段数据回调输出到外部
+                    onSegmentRead?.Invoke(intSegNo, abSegFile, bolIsEnd)
+
+                    If bolIsEnd = True Then
+                        Exit Do
+                    End If
+                    intSegNo += 1
+                Loop
+
+                LOG.StepName = "Close"
+            End Using
+
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(mstrFilePath)
+            Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+        End Try
+    End Function
+#End If
 
     ''' <summary>
     ''' 异步分段导入文件|Asynchronous segmented load file
@@ -255,6 +328,47 @@ Public Class PigFile
         End Try
     End Function
 
+#If NETCOREAPP Or NET451_OR_GREATER Then
+   Public Async Function LoadFileAsync() As Task(Of String)
+        Dim LOG As New StruStepLog : LOG.SubName = "LoadFileAsync"
+        Try
+            If Me.GbMain IsNot Nothing Then Me.GbMain = Nothing
+            LOG.StepName = "New FileStream"
+            Dim intFileSize As Integer = Me.Size
+            Dim sfAny As New FileStream(mstrFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, intFileSize, True)
+            LOG.StepName = "New BinaryReader"
+            Dim brAny = New BinaryReader(sfAny)
+            LOG.StepName = "New PigBytes"
+            Me.GbMain = New PigBytes
+            LOG.StepName = "GbMain ReadBytes Async"
+            Dim totalNeed As Integer = CInt(Me.Size)
+            Dim buf As Byte() = New Byte(totalNeed - 1) {}
+            Dim offset As Integer = 0
+            Do While offset < totalNeed
+                Dim r = Await sfAny.ReadAsync(buf, offset, totalNeed - offset)
+                If r = 0 Then Exit Do ' 文件到达末尾
+                offset += r
+            Loop
+            ' 如果文件不足需要长度，截断数组，和BinaryReader行为一致
+            If offset < totalNeed Then
+                ReDim Preserve buf(offset - 1)
+            End If
+            GbMain.Main = buf
+            LOG.StepName = "Close"
+            brAny.Close()
+            sfAny.Close()
+            Return "OK"
+        Catch ex As Exception
+            LOG.AddStepNameInf(mstrFilePath)
+            If Me.IsDebug Or Me.IsHardDebug Then
+                Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex, True)
+            Else
+                Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
+            End If
+        End Try
+    End Function
+#End If
+
 
     ''' <summary>导入数据</summary>
     Public Function LoadFile() As String
@@ -293,6 +407,86 @@ Public Class PigFile
     Public Overloads Function SaveFile() As String
         SaveFile = Me.mSaveFile(True)
     End Function
+
+#If NETCOREAPP Or NET451_OR_GREATER Then
+
+    Public Overloads Async Function SaveFileAsync(IsKeepVerFile As Boolean) As Task(Of String)
+        Return Await Me.mSaveFileAsync(IsKeepVerFile)
+    End Function
+
+    Public Overloads Async Function SaveFileAsync() As Task(Of String)
+        Return Await Me.mSaveFileAsync(True)
+    End Function
+
+    Private Async Function mSaveFileAsync(IsKeepVerFile As Boolean) As Task(Of String)
+        Dim strStepName As String = ""
+        Try
+            strStepName = "Check the data"    '检查数据
+            If Me.GbMain Is Nothing Then Throw New Exception("No data")
+            If IsKeepVerFile = True Then
+                strStepName = "Locate the current backup file"  '定位当前备份文件
+                Dim i As Integer, strBakFile As String = "", bolIsFind As Boolean = False
+                For i = 1 To Me.KeepFileVerCnt
+                    strBakFile = Me.FilePath & "." & i.ToString
+                    If Me.IsExists(strBakFile) = False Then
+                        bolIsFind = True
+                        Exit For
+                    End If
+                Next
+                strStepName = "Locating backup file"   '定位备份文件
+                If bolIsFind = False Then
+                    strBakFile = Me.FilePath & "." & Me.KeepFileVerCnt.ToString
+                    Dim oGEFile As New PigFile(strBakFile)
+                    If oGEFile.IsExists = False Then
+                        bolIsFind = True
+                    Else
+                        For i = 1 To Me.KeepFileVerCnt
+                            strBakFile = Me.FilePath & "." & i.ToString
+                            Dim oGEFile2 As New PigFile(strBakFile)
+                            If oGEFile2.IsExists = False Then
+                                bolIsFind = True
+                                Exit For
+                            End If
+                            If oGEFile2.UpdateTime < oGEFile.UpdateTime Then
+                                bolIsFind = True
+                                Exit For
+                            End If
+                            oGEFile2 = Nothing
+                        Next
+                        If bolIsFind = False Then
+                            bolIsFind = True
+                            strBakFile = Me.FilePath & ".1"
+                        End If
+                    End If
+                End If
+                If bolIsFind = False Then Throw New Exception("Unable to determine backup file")
+                strStepName = "Backup" & Me.FilePath & " to " & strBakFile
+            End If
+            strStepName = "New FileStream(" & mstrFilePath & ")"
+            ' bufferSize 使用数组长度，useAsync:=True 启用异步IO
+            Using sfAny As New FileStream(mstrFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize:=Me.GbMain.Main.Length, useAsync:=True)
+                strStepName = "Write Bytes"
+                Await sfAny.WriteAsync(Me.GbMain.Main, 0, Me.GbMain.Main.Length)
+                ' 异步刷新缓冲区，确保数据落盘
+                Await sfAny.FlushAsync()
+                strStepName = "Close"
+            End Using
+            'strStepName = "New FileStream(" & mstrFilePath & ")"
+            'Dim sfAny As New FileStream(mstrFilePath, FileMode.Create, FileAccess.Write, FileShare.None, Me.GbMain.Main.Length, False)
+            'strStepName = "New BinaryWriter"
+            'Dim bwAny = New BinaryWriter(sfAny)
+            'strStepName = "Write Bytes"
+            'bwAny.Write(Me.GbMain.Main)
+            'strStepName = "Close"
+            'bwAny.Close()
+            'sfAny.Close()
+            Return "OK"
+        Catch ex As Exception
+            Return Me.GetSubErrInf("mSaveFile", ex, False)
+        End Try
+    End Function
+#End If
+
 
     ''' <summary>保存数据</summary>
     ''' <param name="IsKeepVerFile">是否保留版本文件</param>
@@ -343,8 +537,6 @@ Public Class PigFile
             End If
             strStepName = "New FileStream(" & mstrFilePath & ")"
             Dim sfAny As New FileStream(mstrFilePath, FileMode.Create, FileAccess.Write, FileShare.None, Me.GbMain.Main.Length, False)
-            'strStepName = "New StreamWriter"
-            'Dim swAny = New StreamWriter(sfAny)
             strStepName = "New BinaryWriter"
             Dim bwAny = New BinaryWriter(sfAny)
             strStepName = "Write Bytes"

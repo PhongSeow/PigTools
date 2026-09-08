@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Http Web Request operation
 '* Home Url: https://en.seowphong.com
-'* Version: 1.7
+'* Version: 1.8
 '* Create Time: 5/2/2021
 '* 1.0.2  25/2/2021   Add Me.ClearErr()
 '* 1.0.3  9/3/2021  Modify GetText,GetTextAuth,PostText,PostTextAuth
@@ -14,12 +14,12 @@
 '* 1.5  30/5/2024   Rewrite the internal code of a class
 '* 1.6  27/7/2024   Modify PigStepLog to StruStepLog
 '* 1.7  19/8/2026   Add GetTextAsync
+'* 1.8  7/9/2026   Add PostRawAsync, PostTextAsync
 '**********************************
 Imports System.Net
 Imports System.IO
 Imports System.Text
-Imports Microsoft.VisualBasic.Logging
-#If NETCOREAPP Then
+#If NETCOREAPP Or NET451_OR_GREATER Then
 Imports System.Threading.Tasks
 #End If
 
@@ -28,7 +28,7 @@ Imports System.Threading.Tasks
 ''' </summary>
 Public Class PigWebReq
     Inherits PigBaseMini
-    Const CLS_VERSION As String = "1" & "." & "7" & "." & "8"
+    Const CLS_VERSION As String = "1" & "." & "8" & "." & "2"
     Private ReadOnly Property mUrl As String = ""
     Private ReadOnly Property mPara As String = ""
     Private Property mUri As System.Uri
@@ -100,7 +100,7 @@ Public Class PigWebReq
         End Try
     End Function
 
-#If NETCOREAPP Then
+#If NETCOREAPP Or NET451_OR_GREATER Then
     Public Async Function GetTextAsync() As Task(Of String)
         Dim LOG As New StruStepLog : LOG.SubName = "GetTextAsync"
         Try

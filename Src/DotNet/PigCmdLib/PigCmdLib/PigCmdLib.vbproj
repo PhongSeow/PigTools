@@ -15,8 +15,8 @@
     <RepositoryType>GIT</RepositoryType>
     <PackageTags>.net develop shell command windows Linux VB6 console password string cmdShell CallFile StandardOutput StandardError StandardInput parent process asynchronous system wmic host hardware software CPU zip winrar 7z directory scanning</PackageTags>
     <Description>Add directory scanning function.</Description>
-    <Version>2.5.6</Version>
-    <PackageReleaseNotes>Update the latest library.</PackageReleaseNotes>
+    <Version>2.5.8</Version>
+    <PackageReleaseNotes>Add async handling functionality.</PackageReleaseNotes>
     <Title>Pig command library</Title>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
   </PropertyGroup>
@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PigToolsLiteLib" Version="3.6.28" />
+    <PackageReference Include="PigToolsLiteLib" Version="3.6.30" />
   </ItemGroup>
 
 </Project>
