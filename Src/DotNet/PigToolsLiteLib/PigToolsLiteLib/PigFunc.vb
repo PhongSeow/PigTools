@@ -1,10 +1,10 @@
 ﻿'**********************************
 '* Name: PigFunc
 '* Author: Seow Phong
-'* License: Copyright (c) 2020-2023 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
+'* License: Copyright (c) 2020-2026 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Some common functions|一些常用的功能函数
 '* Home Url: https://en.seowphong.com
-'* Version: 1.72
+'* Version: 1.73
 '* Create Time: 2/2/2021
 '* 1.0.2  1/3/2021   Add UrlEncode,UrlDecode
 '* 1.0.3  20/7/2021   Add GECBool,GECLng
@@ -69,7 +69,7 @@
 '* 1.70  16/7/2024  Add StrSpaceMulti2One
 '* 1.71  27/7/2024  Modify PigStepLog to StruStepLog
 '* 1.72  4/8/2024   Add XmlGetStr etc.
-'* 1.73  19/8/2026  Add OptLogInfAsync
+'* 1.73  19/8/2026  Add OptLogInfAsync,mOptLogInfMain_Worker, modify mOptLogInfMain,OptLogInfAsync,mASyncOptLogInfMain
 '**********************************
 Imports System.IO
 Imports System.Net
@@ -90,7 +90,7 @@ Imports System.Threading.Tasks
 ''' </summary>
 Public Class PigFunc
     Inherits PigBaseMini
-    Private Const CLS_VERSION As String = "1" & "." & "73" & "." & "2"
+    Private Const CLS_VERSION As String = "1" & "." & "73" & "." & "20"
 
     Public Event ASyncRet_SaveTextToFile(SyncRet As StruASyncRet)
 
@@ -221,14 +221,18 @@ Public Class PigFunc
                 .IsShowLocalInf = IsShowLocalInf
                 .LineBufSize = LineBufSize
             End With
-            Dim oThread As New Thread(AddressOf mOptLogInfMain)
-            oThread.Start(struMain)
-            oThread = Nothing
+            ThreadPool.QueueUserWorkItem(AddressOf mOptLogInfMain_Worker, struMain)
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf("mASyncOptLogInfMain", ex)
         End Try
     End Function
+
+    Private Sub mOptLogInfMain_Worker(state As Object)
+        Dim struMain As mStruOptLogInfMain = CType(state, mStruOptLogInfMain)
+        ' 调用原有日志逻辑，子线程内部已经try-catch，不会崩溃主线程
+        Call mOptLogInfMain(struMain)
+    End Sub
 
     ''' <remarks>异步写日志</remarks>
     Public Overloads Function ASyncOptLogInf(OptStr As String, LogFilePath As String, IsShowLocalInf As Boolean) As String
@@ -273,22 +277,19 @@ Public Class PigFunc
                 .LogFilePath = LogFilePath
                 .IsShowLocalInf = IsShowLocalInf
                 .LineBufSize = LineBufSize
-            End With
-            LOG.StepName = "Check StruOptLogInfMain"
-            With StruMain
+                LOG.StepName = "Check StruOptLogInfMain"
                 If .LineBufSize <= 0 Then .LineBufSize = 10240
                 If .LogFilePath = "" Then Throw New Exception("LogFilePath invalid")
             End With
             LOG.StepName = "New FileStream"
-            Dim sfAny As New FileStream(StruMain.LogFilePath, System.IO.FileMode.Append, System.IO.FileAccess.Write, System.IO.FileShare.Write, StruMain.LineBufSize, False)
-            LOG.StepName = "New StreamWriter"
-            Dim swAny = New StreamWriter(sfAny)
-            If StruMain.IsShowLocalInf = True Then StruMain.OptStr = "[" & GENow() & "][" & GetProcThreadID() & "]" & StruMain.OptStr
-            LOG.StepName = "WriteLineAsync"
-            Await swAny.WriteLineAsync(StruMain.OptStr)
-            LOG.StepName = "Close"
-            swAny.Close()
-            sfAny.Close()
+            Using sfAny As New FileStream(struMain.LogFilePath, System.IO.FileMode.Append, System.IO.FileAccess.Write, System.IO.FileShare.Write, struMain.LineBufSize, True)
+                LOG.StepName = "New StreamWriter"
+                Using swAny = New StreamWriter(sfAny)
+                    If struMain.IsShowLocalInf = True Then struMain.OptStr = "[" & GENow() & "][" & GetProcThreadID() & "]" & struMain.OptStr
+                    LOG.StepName = "WriteLineAsync"
+                    Await swAny.WriteLineAsync(struMain.OptStr)
+                End Using
+            End Using
             Return "OK"
         Catch ex As Exception
             Return Me.GetSubErrInf(LOG.SubName, LOG.StepName, ex)
@@ -329,15 +330,13 @@ Public Class PigFunc
                 If .LogFilePath = "" Then Throw New Exception("LogFilePath invalid")
             End With
             LOG.StepName = "New FileStream"
-            Dim sfAny As New FileStream(StruMain.LogFilePath, System.IO.FileMode.Append, System.IO.FileAccess.Write, System.IO.FileShare.Write, StruMain.LineBufSize, False)
-            LOG.StepName = "New StreamWriter"
-            Dim swAny = New StreamWriter(sfAny)
-            If StruMain.IsShowLocalInf = True Then StruMain.OptStr = "[" & GENow() & "][" & GetProcThreadID() & "]" & StruMain.OptStr
-            LOG.StepName = "WriteLine"
-            swAny.WriteLine(StruMain.OptStr)
-            LOG.StepName = "Close"
-            swAny.Close()
-            sfAny.Close()
+            Using sfAny As New FileStream(StruMain.LogFilePath, System.IO.FileMode.Append, System.IO.FileAccess.Write, System.IO.FileShare.Write, StruMain.LineBufSize, False)
+                LOG.StepName = "New StreamWriter"
+                Using swAny = New StreamWriter(sfAny)
+                    If StruMain.IsShowLocalInf = True Then StruMain.OptStr = "[" & GENow() & "][" & GetProcThreadID() & "]" & StruMain.OptStr
+                    swAny.WriteLine(StruMain.OptStr)
+                End Using
+            End Using
             Return "OK"
         Catch ex As Exception
             LOG.AddStepNameInf(StruMain.LogFilePath)

@@ -4,7 +4,7 @@
 '* License: Copyright (c) 2020 Seow Phong, For more details, see the MIT LICENSE file included with this distribution.
 '* Describe: Http Web Request operation
 '* Home Url: https://en.seowphong.com
-'* Version: 1.8
+'* Version: 1.9
 '* Create Time: 5/2/2021
 '* 1.0.2  25/2/2021   Add Me.ClearErr()
 '* 1.0.3  9/3/2021  Modify GetText,GetTextAuth,PostText,PostTextAuth
@@ -14,7 +14,8 @@
 '* 1.5  30/5/2024   Rewrite the internal code of a class
 '* 1.6  27/7/2024   Modify PigStepLog to StruStepLog
 '* 1.7  19/8/2026   Add GetTextAsync
-'* 1.8  7/9/2026   Add PostRawAsync, PostTextAsync
+'* 1.8  7/9/2026    Add PostRawAsync, PostTextAsync
+'* 1.9  22/9/2026   Modify PostRawAsync,PostTextAsync,PostText,PostTextAuth,PostRaw,GetTextAsync,GetText,GetTextAuth
 '**********************************
 Imports System.Net
 Imports System.IO
@@ -28,7 +29,7 @@ Imports System.Threading.Tasks
 ''' </summary>
 Public Class PigWebReq
     Inherits PigBaseMini
-    Const CLS_VERSION As String = "1" & "." & "8" & "." & "2"
+    Const CLS_VERSION As String = "1" & "." & "9" & "." & "22"
     Private ReadOnly Property mUrl As String = ""
     Private ReadOnly Property mPara As String = ""
     Private Property mUri As System.Uri
@@ -108,11 +109,15 @@ Public Class PigWebReq
             mHttpWebRequest.Method = "GET"
             LOG.StepName = "GetResponse"
             Me.mHttpWebResponse = mHttpWebRequest.GetResponse
-            LOG.StepName = "GetResponseStream"
-            Dim msrRes As New StreamReader(Me.mHttpWebResponse.GetResponseStream)
-            LOG.StepName = "ReadToEndAsync"
-            Me.ResString = Await msrRes.ReadToEndAsync
-            msrRes.Close()
+            LOG.StepName = "New StreamReader"
+            Using msrRes As New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+                LOG.AddStepNameInf("ReadToEndAsync")
+                Me.ResString = Await msrRes.ReadToEndAsync
+            End Using
+            'Dim msrRes As New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+            'LOG.StepName = "ReadToEndAsync"
+            'Me.ResString = Await msrRes.ReadToEndAsync
+            'msrRes.Close()
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
@@ -135,15 +140,17 @@ Public Class PigWebReq
             Dim bys As Byte() = encoding.GetBytes(JSon)
             mHttpWebRequest.ContentLength = bys.Length
             LOG.StepName = "GetRequestStream"
-            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
-            newStream.Write(bys, 0, bys.Length)
-            newStream.Close()
+            Using newStream As Stream = mHttpWebRequest.GetRequestStream()
+                LOG.AddStepNameInf("WriteAsync")
+                Await newStream.WriteAsync(bys, 0, bys.Length)
+            End Using
             LOG.StepName = "GetResponse"
             Me.mHttpWebResponse = Me.mHttpWebRequest.GetResponse
-            LOG.StepName = "GetResponseStream"
-            Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream)
-            LOG.StepName = "ReadToEndAsync"
-            Me.ResString = Await srMain.ReadToEndAsync
+            LOG.StepName = "New StreamReader"
+            Using srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+                LOG.AddStepNameInf("ReadToEndAsync")
+                Me.ResString = Await srMain.ReadToEndAsync
+            End Using
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
@@ -166,15 +173,17 @@ Public Class PigWebReq
             Dim bys As Byte() = encoding.GetBytes(Para)
             mHttpWebRequest.ContentLength = bys.Length
             LOG.StepName = "GetRequestStream"
-            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
-            newStream.Write(bys, 0, bys.Length)
-            newStream.Close()
+            Using newStream As Stream = mHttpWebRequest.GetRequestStream()
+                LOG.AddStepNameInf("WriteAsync")
+                Await newStream.WriteAsync(bys, 0, bys.Length)
+            End Using
             LOG.StepName = "GetResponse"
             Me.mHttpWebResponse = mHttpWebRequest.GetResponse
-            LOG.StepName = "GetResponseStream"
-            Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream())
-            LOG.StepName = "ReadToEndAsync"
-            Me.ResString = Await srMain.ReadToEndAsync
+            LOG.StepName = "New StreamReader"
+            Using srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream())
+                LOG.AddStepNameInf("ReadToEndAsync")
+                Me.ResString = Await srMain.ReadToEndAsync
+            End Using
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
@@ -200,11 +209,15 @@ Public Class PigWebReq
             mHttpWebRequest.Method = "GET"
             LOG.StepName = "GetResponse"
             Me.mHttpWebResponse = mHttpWebRequest.GetResponse
-            LOG.StepName = "GetResponseStream"
-            Dim msrRes As New StreamReader(Me.mHttpWebResponse.GetResponseStream)
-            LOG.StepName = "ReadToEnd"
-            Me.ResString = msrRes.ReadToEnd
-            msrRes.Close()
+            LOG.StepName = "New StreamReader"
+            Using msrRes As New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+                LOG.AddStepNameInf("ReadToEnd")
+                Me.ResString = msrRes.ReadToEnd
+            End Using
+            'Dim msrRes As New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+            'LOG.StepName = "ReadToEnd"
+            'Me.ResString = msrRes.ReadToEnd
+            'msrRes.Close()
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
@@ -228,11 +241,15 @@ Public Class PigWebReq
             End With
             LOG.StepName = "GetResponse"
             Me.mHttpWebResponse = mHttpWebRequest.GetResponse
-            LOG.StepName = "GetResponseStream"
-            Dim msrRes As New StreamReader(mHttpWebRequest.GetResponse().GetResponseStream)
-            LOG.StepName = "ReadToEnd"
-            Me.ResString = msrRes.ReadToEnd
-            msrRes.Close()
+            LOG.StepName = "New StreamReader"
+            Using msrRes As New StreamReader(mHttpWebRequest.GetResponse().GetResponseStream)
+                LOG.AddStepNameInf("ReadToEnd")
+                Me.ResString = msrRes.ReadToEnd
+            End Using
+            'Dim msrRes As New StreamReader(mHttpWebRequest.GetResponse().GetResponseStream)
+            'LOG.StepName = "ReadToEnd"
+            'Me.ResString = msrRes.ReadToEnd
+            'msrRes.Close()
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
@@ -279,15 +296,25 @@ Public Class PigWebReq
             Dim bys As Byte() = encoding.GetBytes(Para)
             mHttpWebRequest.ContentLength = bys.Length
             LOG.StepName = "GetRequestStream"
-            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
-            newStream.Write(bys, 0, bys.Length)
-            newStream.Close()
+            Using newStream As Stream = mHttpWebRequest.GetRequestStream()
+                LOG.AddStepNameInf("Write")
+                newStream.Write(bys, 0, bys.Length)
+            End Using
+            'LOG.StepName = "GetRequestStream"
+            'Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
+            'newStream.Write(bys, 0, bys.Length)
+            'newStream.Close()
             LOG.StepName = "GetResponse"
             Me.mHttpWebResponse = mHttpWebRequest.GetResponse
-            LOG.StepName = "GetResponseStream"
-            Dim sr As StreamReader = New StreamReader(mHttpWebRequest.GetResponse().GetResponseStream)
-            LOG.StepName = "ReadToEnd"
-            Me.ResString = sr.ReadToEnd
+            LOG.StepName = "New StreamReader"
+            Using sr As StreamReader = New StreamReader(mHttpWebRequest.GetResponse().GetResponseStream)
+                LOG.AddStepNameInf("ReadToEnd")
+                Me.ResString = sr.ReadToEnd
+            End Using
+            'LOG.StepName = "GetResponseStream"
+            'Dim sr As StreamReader = New StreamReader(mHttpWebRequest.GetResponse().GetResponseStream)
+            'LOG.StepName = "ReadToEnd"
+            'Me.ResString = sr.ReadToEnd
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
@@ -344,15 +371,23 @@ Public Class PigWebReq
             Dim bys As Byte() = encoding.GetBytes(JSon)
             mHttpWebRequest.ContentLength = bys.Length
             LOG.StepName = "GetRequestStream"
-            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
-            newStream.Write(bys, 0, bys.Length)
-            newStream.Close()
+            Using newStream As Stream = mHttpWebRequest.GetRequestStream()
+                LOG.AddStepNameInf("Write")
+                newStream.Write(bys, 0, bys.Length)
+            End Using
+            'Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
+            'newStream.Write(bys, 0, bys.Length)
+            'newStream.Close()
             LOG.StepName = "GetResponse"
             Me.mHttpWebResponse = Me.mHttpWebRequest.GetResponse
-            LOG.StepName = "GetResponseStream"
-            Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream)
-            LOG.StepName = "ReadToEnd"
-            Me.ResString = srMain.ReadToEnd
+            LOG.StepName = "New StreamReader"
+            Using srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+                LOG.AddStepNameInf("ReadToEnd")
+                Me.ResString = srMain.ReadToEnd
+            End Using
+            'Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream)
+            'LOG.StepName = "ReadToEnd"
+            'Me.ResString = srMain.ReadToEnd
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
@@ -381,15 +416,23 @@ Public Class PigWebReq
             Dim bys As Byte() = encoding.GetBytes(Para)
             mHttpWebRequest.ContentLength = bys.Length
             LOG.StepName = "GetRequestStream"
-            Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
-            newStream.Write(bys, 0, bys.Length)
-            newStream.Close()
+            Using newStream As Stream = mHttpWebRequest.GetRequestStream()
+                LOG.AddStepNameInf("Write")
+                newStream.Write(bys, 0, bys.Length)
+            End Using
+            'Dim newStream As Stream = mHttpWebRequest.GetRequestStream()
+            'newStream.Write(bys, 0, bys.Length)
+            'newStream.Close()
             LOG.StepName = "GetResponse"
             Me.mHttpWebResponse = mHttpWebRequest.GetResponse
-            LOG.StepName = "GetResponseStream"
-            Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream())
-            LOG.StepName = "ReadToEnd"
-            Me.ResString = srMain.ReadToEnd
+            LOG.StepName = "New StreamReader"
+            Using srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream())
+                LOG.AddStepNameInf("ReadToEnd")
+                Me.ResString = srMain.ReadToEnd
+            End Using
+            'Dim srMain As StreamReader = New StreamReader(Me.mHttpWebResponse.GetResponseStream())
+            'LOG.StepName = "ReadToEnd"
+            'Me.ResString = srMain.ReadToEnd
             Me.UseTimeItem.ToEnd()
             Me.ClearErr()
             Return "OK"
